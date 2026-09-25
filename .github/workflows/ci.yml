@@ -146,10 +146,6 @@ jobs:
       - run: corepack enable
       - run: pnpm install --frozen-lockfile || pnpm install
       - run: pnpm --filter @rabbit/db generate
-      - uses: actions/download-artifact@v4
-        with:
-          name: web-build
-          path: apps/web/.next
       - name: install jmeter
         run: |
           curl -sL https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-5.6.3.tgz | tar -xz -C /opt
