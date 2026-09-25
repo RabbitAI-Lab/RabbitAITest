@@ -95,10 +95,16 @@
           </DurationAssertion>
           <hashTree/>
         </hashTree>
-        <WhileController guiclass="WhileControllerGui" testclass="WhileController" testname="轮询至终态">
-          <stringProp name="WhileController.condition">${__javaScript(vars.get(&quot;STATUS&quot;)!=&quot;SUCCESS&quot; &amp;&amp; vars.get(&quot;STATUS&quot;)!=&quot;FAILED&quot;)}</stringProp>
-        </WhileController>
+        <LoopController guiclass="LoopControlPanel" testclass="LoopController" testname="轮询至终态（硬上限 120 次，防死循环）">
+          <stringProp name="LoopController.loops">120</stringProp>
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+        </LoopController>
         <hashTree>
+          <IfController guiclass="IfControllerPanel" testclass="IfController" testname="未终态才继续查">
+            <stringProp name="IfController.condition">${__jexl3(&quot;$STATUS&quot; != &quot;SUCCESS&quot; &amp;&amp; &quot;$STATUS&quot; != &quot;FAILED&quot;)}</stringProp>
+            <boolProp name="IfController.evaluateAll">false</boolProp>
+          </IfController>
+          <hashTree>
           <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="T3-2 查询报告状态">
             <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments">
               <collectionProp name="Arguments.arguments"/>
@@ -121,6 +127,7 @@
               <stringProp name="ConstantTimer.delay">500</stringProp>
             </ConstantTimer>
             <hashTree/>
+          </hashTree>
           </hashTree>
         </hashTree>
         <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="T3-3 终态=SUCCESS 且断言通过">
