@@ -64,6 +64,7 @@ jobs:
         with: { node-version: 20 }
       - run: corepack enable
       - run: pnpm install --frozen-lockfile || pnpm install
+      - run: pnpm --filter @rabbit/db generate
       - name: migrate deploy + diff + seed 幂等
         run: |
           export DATABASE_URL=postgresql://postgres:postgres@localhost:5432/rabbit_ci
@@ -103,10 +104,7 @@ jobs:
       - run: corepack enable
       - run: pnpm install --frozen-lockfile || pnpm install
       - run: pnpm --filter @rabbit/db generate
-      - uses: actions/download-artifact@v4
-        with:
-          name: web-build
-          path: apps/web/.next
+      - run: pnpm --filter web build
       - run: pnpm exec playwright install --with-deps chromium
       - name: run e2e
         run: pnpm test:e2e
