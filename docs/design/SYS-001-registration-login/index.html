@@ -1,0 +1,25 @@
+<!doctype html><html lang="zh"><head><meta charset="utf-8"><title>SYS-001 登录/注册</title><script src="https://cdn.tailwindcss.com"></script></head>
+<body class="bg-slate-100 min-h-screen flex items-center justify-center">
+<div class="w-[400px] bg-white rounded-lg shadow p-8">
+  <div class="flex items-center gap-2 mb-6"><div class="w-8 h-8 rounded bg-[#574BFF] text-white grid place-items-center font-bold">R</div><span class="font-semibold text-lg">RabbitAITest</span></div>
+  <!-- 登录 -->
+  <form class="space-y-4">
+    <h2 class="text-base font-medium">登录</h2>
+    <label class="block"><span class="text-sm text-slate-600">邮箱</span><input class="mt-1 w-full border rounded px-3 py-2" placeholder="you@example.com"></label>
+    <label class="block"><span class="text-sm text-slate-600">密码</span><input type="password" class="mt-1 w-full border rounded px-3 py-2" placeholder="≥8 位"></label>
+    <p class="text-xs text-red-500 hidden">邮箱或密码错误（10102）</p>
+    <button class="w-full bg-[#574BFF] text-white rounded py-2">登录</button>
+    <p class="text-xs text-slate-500 text-center">还没有账号？<a class="text-[#574BFF]" href="#">注册</a></p>
+  </form>
+  <hr class="my-6">
+  <!-- 注册 -->
+  <form class="space-y-4">
+    <h2 class="text-base font-medium">注册</h2>
+    <input class="w-full border rounded px-3 py-2" placeholder="邮箱">
+    <input type="password" class="w-full border rounded px-3 py-2" placeholder="密码（≥8 位）">
+    <input type="password" class="w-full border rounded px-3 py-2" placeholder="确认密码">
+    <p class="text-xs text-red-500 hidden">该邮箱已注册（10101）</p>
+    <button class="w-full bg-[#574BFF] text-white rounded py-2 flex items-center justify-center gap-2">创建账号 <svg class="w-4 h-4 animate-spin hidden" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" fill="none"/></svg></button>
+    <p class="text-xs text-slate-400">注册后自动创建默认组织与「演示项目」</p>
+  </form>
+</div></body></html>

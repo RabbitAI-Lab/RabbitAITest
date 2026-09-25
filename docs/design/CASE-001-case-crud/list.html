@@ -1,0 +1,26 @@
+<!doctype html><html lang="zh"><head><meta charset="utf-8"><title>CASE-001 用例列表</title><script src="https://cdn.tailwindcss.com"></script></head>
+<body class="bg-slate-50 text-slate-800">
+<header class="h-12 bg-white border-b flex items-center px-4 gap-3 text-sm"><span class="font-semibold">RabbitAITest</span><span class="border rounded px-2 py-0.5">演示项目 #1</span></header>
+<div class="flex"><aside class="w-[200px] bg-white border-r p-2 text-sm"><p class="px-3 py-2">工作台</p><p class="px-3 py-2 rounded bg-[#574BFF]/10 text-[#574BFF] font-medium">测试用例</p><p class="px-3 py-2 text-slate-400">测试计划（S1）</p><p class="px-3 py-2 text-slate-400">接口测试</p></aside>
+<main class="flex-1 p-6">
+  <div class="flex items-center gap-3 mb-4">
+    <h1 class="text-lg font-medium">功能用例</h1>
+    <span class="text-xs border-b-2 border-[#574BFF] text-[#574BFF] pb-0.5">全部（12）</span>
+    <span class="text-xs text-slate-400 pb-0.5 border-b-2 border-transparent">回收站（2）</span>
+    <button class="ml-auto bg-[#574BFF] text-white rounded px-3 py-1.5 text-sm">＋ 新建用例</button>
+  </div>
+  <div class="bg-white border rounded">
+    <div class="flex gap-2 p-3 border-b"><input class="border rounded px-2 py-1 text-sm w-56" placeholder="用例名称"><select class="border rounded px-2 py-1 text-sm"><option>等级：全部</option><option>P0</option><option>P1</option><option>P2</option><option>P3</option></select><button class="border rounded px-2 py-1 text-sm">查询</button></div>
+    <table class="w-full text-sm">
+      <thead class="text-slate-400 text-xs"><tr class="border-b"><th class="text-left p-3">编号</th><th class="text-left p-3">用例名称</th><th class="text-left p-3">等级</th><th class="text-left p-3">标签</th><th class="text-left p-3">更新时间</th><th class="text-left p-3">操作</th></tr></thead>
+      <tbody>
+        <tr class="border-b hover:bg-slate-50"><td class="p-3 text-slate-500">C-0001</td><td class="p-3"><a class="text-[#574BFF]" href="#">登录成功场景</a></td><td class="p-3"><span class="text-red-500 text-xs font-medium">P0</span></td><td class="p-3"><span class="bg-slate-100 rounded px-1.5 text-xs">冒烟</span></td><td class="p-3 text-slate-500">2026-09-26</td><td class="p-3 text-slate-500">编辑 · 删除</td></tr>
+        <tr class="hover:bg-slate-50"><td class="p-3 text-slate-500">C-0002</td><td class="p-3"><a class="text-[#574BFF]" href="#">密码错误提示</a></td><td class="p-3"><span class="text-orange-500 text-xs font-medium">P1</span></td><td class="p-3">—</td><td class="p-3 text-slate-500">2026-09-26</td><td class="p-3 text-slate-500">编辑 · 删除</td></tr>
+      </tbody>
+    </table>
+    <div class="flex justify-end items-center gap-2 p-3 text-sm"><span class="text-slate-400 text-xs">共 12 条</span><button class="border rounded px-2 py-0.5">‹</button><span class="px-2">1 / 2</span><button class="border rounded px-2 py-0.5">›</button></div>
+  </div>
+  <!-- 回收站态行操作示意
+  <td class="p-3"><button class="text-[#574BFF]">恢复</button> · <button class="text-red-500">彻底删除</button></td>
+  彻底删除点击 → Modal：确认彻底删除「登录成功场景」？该操作不可恢复。 [取消] [彻底删除(红)] -->
+</main></div></body></html>

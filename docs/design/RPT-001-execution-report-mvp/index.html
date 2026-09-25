@@ -1,0 +1,36 @@
+<!doctype html><html lang="zh"><head><meta charset="utf-8"><title>RPT-001 执行报告</title><script src="https://cdn.tailwindcss.com"></script></head>
+<body class="bg-slate-50 text-slate-800">
+<header class="h-12 bg-white border-b flex items-center px-4 gap-3 text-sm"><span class="font-semibold">RabbitAITest</span><span class="border rounded px-2 py-0.5">演示项目 #1</span></header>
+<div class="flex"><aside class="w-[200px] bg-white border-r p-2 text-sm"><p class="px-3 py-2 rounded bg-[#574BFF]/10 text-[#574BFF] font-medium">接口测试</p></aside>
+<main class="flex-1 p-6 max-w-5xl">
+  <div class="flex items-center gap-3 mb-4"><a class="text-slate-400 text-sm" href="#">‹ 返回调试</a><h1 class="text-lg font-medium">执行报告 <span class="text-slate-400 text-sm">T-0007</span></h1>
+    <span class="rounded-full bg-red-50 text-red-500 text-xs px-2 py-0.5 font-medium">FAILED</span>
+    <span class="text-xs text-slate-400">耗时 842ms · 2026-09-26 14:32</span>
+    <button class="ml-auto border rounded px-3 py-1 text-sm text-slate-400" disabled>重跑（S2）</button></div>
+  <div class="grid grid-cols-2 gap-4">
+    <!-- 请求卡片 -->
+    <div class="bg-white border rounded"><p class="p-3 border-b text-sm font-medium">请求</p><div class="p-3 text-sm space-y-1 font-mono"><p><span class="text-green-600 font-bold">GET</span> https://httpbin.org/get</p><p class="text-slate-500">Accept: application/json</p><p class="text-slate-500">— 无 Body —</p></div></div>
+    <!-- 响应卡片 -->
+    <div class="bg-white border rounded"><p class="p-3 border-b text-sm font-medium flex justify-between">响应 <span class="text-xs"><span class="text-green-600 font-semibold">200</span> · 842ms</span></p><pre class="p-3 text-xs bg-slate-50 overflow-auto max-h-64 font-mono">{
+  "args": {},
+  "headers": { "Accept": "application/json" },
+  "url": "https://httpbin.org/get"
+}</pre><p class="px-3 pb-2 text-[10px] text-amber-500 hidden">响应体已截断至 256KB（truncated）</p></div>
+  </div>
+  <!-- 断言列表（失败置顶红底）-->
+  <div class="bg-white border rounded mt-4"><p class="p-3 border-b text-sm font-medium">断言 <span class="text-xs text-slate-400">2 条 · 1 失败</span></p>
+    <table class="w-full text-sm"><thead class="text-xs text-slate-400"><tr class="border-b"><th class="text-left p-2">类型</th><th class="text-left p-2">表达式</th><th class="text-left p-2">期望</th><th class="text-left p-2">实际</th><th class="text-left p-2">结果</th></tr></thead>
+    <tbody>
+      <tr class="bg-red-50 border-b"><td class="p-2">状态码</td><td class="p-2 font-mono text-xs">—</td><td class="p-2 font-mono">404</td><td class="p-2 font-mono">200</td><td class="p-2 text-red-500 font-medium">✗ 失败</td></tr>
+      <tr><td class="p-2">响应体 JSONPath</td><td class="p-2 font-mono text-xs">$.url</td><td class="p-2 font-mono">包含 httpbin</td><td class="p-2 font-mono text-xs">https://httpbin.org/get</td><td class="p-2 text-green-600">✓ 通过</td></tr>
+    </tbody></table>
+  </div>
+  <!-- 日志时间线 -->
+  <div class="bg-white border rounded mt-4"><p class="p-3 border-b text-sm font-medium">执行日志 <span class="text-xs text-slate-400">SSE 实时</span></p><div class="p-3 font-mono text-xs space-y-1">
+    <p class="text-slate-500">14:32:01.102 [task-start] 任务开始</p>
+    <p class="text-slate-500">14:32:01.105 [step-start] GET https://httpbin.org/get</p>
+    <p class="text-slate-500">14:32:01.940 [step-result] 200 · 838ms</p>
+    <p class="text-slate-500">14:32:01.945 [assert] 状态码 404==200 ✗</p>
+    <p class="text-red-400">14:32:01.947 [task-final] FAILED（ASSERT_FAILED）</p>
+  </div></div>
+</main></div></body></html>
