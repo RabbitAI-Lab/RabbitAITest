@@ -1,0 +1,14 @@
+export default {
+  extends: ['@commitlint/config-conventional'],
+  rules: {
+    'scope-enum': [
+      2,
+      'always',
+      [
+        'infra', 'sys', 'proj', 'file', 'case', 'plan', 'bug', 'api', 'exec',
+        'rpt', 'dash', 'msg', 'plug', 'intg', 'ai', 'entp', 'qa', 'tool',
+        'load', 'uit', 'web', 'db', 'shared', 'ui', 'deps', 'ci', 'docs',
+      ],
+    ],
+  },
+};

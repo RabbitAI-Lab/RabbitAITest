@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.next/
+.turbo/
+coverage/
+test-results/
+playwright-report/
+.pgdata*/
+.pgdata-e2e/
+.env
+.env.local
+*.log
+.DS_Store
+tests/.e2e.env
