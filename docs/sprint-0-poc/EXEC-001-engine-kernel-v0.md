@@ -5,7 +5,7 @@
 | 文档编号 | EXEC-001 |
 | 所属迭代 | Sprint 0 — POC |
 | 优先级 | P0（全项目最大技术风险点，B 线起点） |
-| 文档状态 | Approved（P0 起步授权） |
+| 文档状态 | Implemented（Sprint 0 交付，验收自查见 sprint-overview §7） |
 | 最后更新日期 | 2026-09-26 |
 | 上游依赖 | INFRA-001；架构 engine-execution-architecture、rules/engine |
 | 下游消费 | API-001（调试执行）、RPT-001（事件流消费）、EXEC-002（Sprint 2 资源池化） |

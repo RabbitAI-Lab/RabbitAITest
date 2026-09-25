@@ -5,7 +5,7 @@
 | 文档编号 | RPT-001 |
 | 所属迭代 | Sprint 0 — POC |
 | 优先级 | P0 |
-| 文档状态 | Approved（P0 起步授权） |
+| 文档状态 | Implemented（Sprint 0 交付，验收自查见 sprint-overview §7） |
 | 最后更新日期 | 2026-09-26 |
 | 上游依赖 | EXEC-001（事件流契约）、INFRA-003（Report/ExecStepResult） |
 | 下游消费 | RPT-002/003（Sprint 2/3 完整报告）、报告分享（P0 不做） |

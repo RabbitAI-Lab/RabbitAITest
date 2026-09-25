@@ -6,7 +6,7 @@
 | 所属迭代 | Sprint 0 — POC 技术验证（第 1-2 周） |
 | 优先级 | P0（POC 阻塞级 · 迭代起点） |
 | 所属模块 | M0-INFRA |
-| 文档状态 | Approved（P0 起步授权） |
+| 文档状态 | Implemented（Sprint 0 交付，验收自查见 sprint-overview §7） |
 | 最后更新日期 | 2026-09-26 |
 | 上游依赖 | 架构文档 tech-stack / monorepo-structure |
 | 下游消费 | 全部 Sprint 0 文档（INFRA-002/003 首当其冲） |
@@ -63,3 +63,7 @@ MeterSphere：Java Maven 多模块 + 独立前端仓 → 本项目：单仓纯 T
 ## 7. 里程碑与验收
 - 交付：全部目录/配置就位、管道四任务全绿、CI workflow 跑通
 - DoD：本文件 §5 三条通过；monorepo-structure §1 目录树逐项存在
+
+## 8. 勘误登记
+- **勘误 1（2026-09-26）**：packages/api-client 为手工类型化客户端（信封+SSE 封装），OpenAPI 自动生成推迟至 Sprint 1（zod-to-openapi 管线）——P0 控制体量；类型来源仍单一（packages/shared 契约）。
+- **勘误 2（2026-09-26）**：`output: 'standalone'` 在本机构建禁用（磁盘成本）、Docker 构建阶段启用（Dockerfile sed 开关）。

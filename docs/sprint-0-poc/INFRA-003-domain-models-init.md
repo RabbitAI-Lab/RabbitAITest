@@ -5,7 +5,7 @@
 | 文档编号 | INFRA-003 |
 | 所属迭代 | Sprint 0 — POC |
 | 优先级 | P0（本迭代最重的基建） |
-| 文档状态 | Approved（P0 起步授权） |
+| 文档状态 | Implemented（Sprint 0 交付，验收自查见 sprint-overview §7） |
 | 最后更新日期 | 2026-09-26 |
 | 上游依赖 | INFRA-001；架构 test-domain-model 全文、rules/database |
 | 下游消费 | SYS/CASE/API/EXEC/RPT 全部（一切实体来源） |
@@ -57,3 +57,6 @@ MeterSphere 六域 MyBatis 实体 → 本项目八域 Prisma 模型（exec/repor
 
 ## 7. 里程碑与验收
 schema 与 test-domain-model §2 逐实体核对一致（验收标准 7 前半）；跨域引用 CI 静态检查（executor 域无 case 域 import）规则由 lint 承担。
+
+## 8. 勘误登记
+- **勘误 1（2026-09-26）**：P0 列名采用 Prisma 默认 camelCase（如 `orgId`），未按 rules/database §2 落 snake_case @map——为控制 P0 交付体量；Sprint 1 以 `@map` 全量补齐并出独立 migration（expand-contract）。影响面：raw SQL 需带引号访问列（已在 nextNum/registerUser 处理）。

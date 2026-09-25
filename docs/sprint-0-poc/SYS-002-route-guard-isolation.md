@@ -5,7 +5,7 @@
 | 文档编号 | SYS-002 |
 | 所属迭代 | Sprint 0 — POC |
 | 优先级 | P0 |
-| 文档状态 | Approved（P0 起步授权） |
+| 文档状态 | Implemented（Sprint 0 交付，验收自查见 sprint-overview §7） |
 | 最后更新日期 | 2026-09-26 |
 | 上游依赖 | SYS-001（会话）、INFRA-003 |
 | 下游消费 | 全部项目级资源端点（CASE-001/API-001/RPT-001）与前端路由 |

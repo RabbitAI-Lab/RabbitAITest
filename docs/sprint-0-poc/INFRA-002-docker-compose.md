@@ -5,7 +5,7 @@
 | 文档编号 | INFRA-002 |
 | 所属迭代 | Sprint 0 — POC |
 | 优先级 | P0 |
-| 文档状态 | Approved（P0 起步授权） |
+| 文档状态 | Implemented（Sprint 0 交付，验收自查见 sprint-overview §7） |
 | 最后更新日期 | 2026-09-26 |
 | 上游依赖 | INFRA-001（骨架）、INFRA-003（migration/seed） |
 | 下游消费 | 验收标准 1；全部本地/CI 环境说明 |

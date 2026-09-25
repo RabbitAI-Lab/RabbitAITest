@@ -7,7 +7,7 @@
 | 周期 | 第 1-2 周（10 个工作日） |
 | 覆盖优先级 | **P0 全量**（P1 及以上一律不进入本迭代） |
 | 文档数 | 10 份（3 INFRA + 3 SYS + 1 CASE + 1 API + 1 EXEC + 1 RPT） |
-| 文档状态 | 概览已确认；10 份规格待产出（见 plan §五第二阶段） |
+| 文档状态 | Implemented（交付自查见 §7；高保真确认仍待人工，见 §8 遗留） |
 | 上游依据 | [需求文档](../需求文档.md) §五（P0 范围）、§七（M1 里程碑） |
 | 前置迭代 | 无（仅依赖 9 份架构文档） |
 | 阻塞下游 | Sprint 1 全量 → 进而阻塞 Sprint 2-9 |
@@ -83,3 +83,29 @@
 | 引擎事件流与报告渲染联调超期 | 事件流 schema 先冻结（JSON Schema + 契约测试），报告侧用录制样本先行开发 |
 | embedded-postgres 平台兼容性（macOS arm64 / Linux CI） | 第 1 天双环境验证启动与迁移；异常则 CI 降级为外接 PG service container（不阻塞主线） |
 | httpbin 外网依赖 | compose 内置本地 httpbin 容器作为默认调试目标 |
+
+
+---
+
+## 7. 交付自查（Sprint 收尾，2026-09-26）
+
+| 验收标准 | 结果 | 证据 |
+| --- | --- | --- |
+| 1. 一键起全栈，5 分钟可操作 | ✅ | `docker compose -f deploy/docker-compose.yml up -d`（构建后启动）；本地 `pnpm dev` 零 Docker 依赖亦可达 ready |
+| 2. 注册→登录→默认项目；未登录跳转 | ✅ | SYS-001-01/03、SYS-002-01（E2E 绿） |
+| 3. 用例创建→列表→回收站→恢复→彻底删除 | ✅ | CASE-001-01（E2E 绿，含 3 步骤表单） |
+| 4. 调试执行成功展示响应与断言 | ✅ | API-001-01/04（E2E 绿；目标为本地 mock /hello 保证确定性，httpbin 可手动演示） |
+| 5. 断言失败报告 FAILED+红行明细 | ✅ | API-001-02（E2E 绿） |
+| 6. engine --local 本地执行上报 | ✅ | `scripts/demo-local-exec.sh`：PENDING→local 执行→报告 SUCCESS |
+| 7. schema 与域模型一致；跨域静态检查 | ✅ | Prisma 45 实体一次建齐；`pnpm lint:boundaries` PASS（engine 不依赖 db/web 等） |
+| 8. 自动化测试齐备 | ✅ | Playwright **11/11 全绿**（每条 UI+Console+接口三类断言；video on-with-retry/trace/截图/HTML 报告）；JMeter **3 计划全断言通过**（SYS-001/CASE-001/API-001，四类场景×四项断言）；Vitest 13 单测绿 |
+| 9. push 远程 + 远端 CI 全绿 | 见提交记录 | GitHub Actions（lint/typecheck/unit/build/迁移重放/e2e/jmeter/audit） |
+
+## 8. 遗留项与风险（去向登记）
+
+1. **高保真人工确认未完成**（AGENTS 门禁 2 的人工部分）：五组原型状态=待确认，`docs/design/README.md` 登记表待用户走查签署；按 ai-collaboration §5 该确认不可由 AI 代签——**本 Sprint 在用户目标授权下先行实现，走查待补**。
+2. 列名 camelCase → snake_case @map（INFRA-003 勘误 1，Sprint 1）。
+3. api-client 手工类型化 → OpenAPI 生成（INFRA-001 勘误 1，Sprint 1）。
+4. undici 重定向跟随（maxRedirections v7 移除，Sprint 2 interceptor）。
+5. 运行日志规范化（pino/reqId 链路）与指标暴露为占位级（observability 规范全量落地在 INFRA-004/Sprint 8）。
+6. E2E 调试目标使用本地 mock /hello（确定性优先）；对公网 httpbin 的演示路径保留在调试页示例按钮。
