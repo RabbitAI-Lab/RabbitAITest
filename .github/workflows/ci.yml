@@ -146,6 +146,7 @@ jobs:
       - run: corepack enable
       - run: pnpm install --frozen-lockfile || pnpm install
       - run: pnpm --filter @rabbit/db generate
+      - run: pnpm --filter web build
       - name: install jmeter
         run: |
           curl -sL https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-5.6.3.tgz | tar -xz -C /opt
