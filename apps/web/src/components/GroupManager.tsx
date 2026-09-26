@@ -110,7 +110,9 @@ export function GroupManager({ scope, scopeId }: { scope: GroupScope; scopeId?: 
     setDraft(selected ? [...selected.permissions] : []);
   }, [selected?.id, permKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // 添加成员：搜索系统用户（排除已在组成员）
+  // 添加成员：按作用域取候选——系统组→系统用户（SYSTEM_USER:READ）；
+  // 组织组→组织成员（ORG_MEMBER:READ，对齐 PROJ-001「从组织用户搜索添加」）；
+  // 项目组→项目成员（PROJECT_MEMBER:READ）。预置组同样可管理成员（SYS-004 §1.2）。
   const [userKeyword, setUserKeyword] = useState("");
   const [picked, setPicked] = useState<string[]>([]);
   useEffect(() => {
@@ -121,10 +123,26 @@ export function GroupManager({ scope, scopeId }: { scope: GroupScope; scopeId?: 
     () => new Set((selected?.members ?? []).map((m) => m.userId)),
     [selected],
   );
+  const candidateSource =
+    scope === "system"
+      ? "system-users"
+      : scope === "org"
+        ? `org-members-${resolvedScopeId}`
+        : `project-members-${resolvedScopeId}`;
   const { data: userPage, isFetching: searchingUsers } = useQuery({
-    queryKey: ["group-user-options", userKeyword],
-    queryFn: () => userApi.list({ keyword: userKeyword || undefined, pageSize: 20 }),
-    enabled: Boolean(selected) && !readonly,
+    queryKey: ["group-member-candidates", candidateSource, userKeyword],
+    queryFn: async () => {
+      if (scope === "org") {
+        const { orgApi } = await import("@rabbit/api-client");
+        return orgApi.members(resolvedScopeId, { keyword: userKeyword || undefined, pageSize: 20 });
+      }
+      if (scope === "project") {
+        const { projectInfoApi } = await import("@rabbit/api-client");
+        return projectInfoApi.members(resolvedScopeId, { keyword: userKeyword || undefined, pageSize: 20 });
+      }
+      return userApi.list({ keyword: userKeyword || undefined, pageSize: 20 });
+    },
+    enabled: Boolean(selected) && (scope === "system" || Boolean(resolvedScopeId)),
   });
   const userOptions = (userPage?.items ?? [])
     .filter((u) => !memberIds.has(u.id))
