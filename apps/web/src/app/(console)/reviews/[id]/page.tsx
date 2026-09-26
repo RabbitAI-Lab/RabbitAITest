@@ -229,6 +229,7 @@ export default function ReviewDetailPage({ params }: { params: Promise<{ id: str
                 { value: "SUGGEST", label: "建议" },
                 { value: "PENDING", label: "未评审" },
               ]}
+              virtual={false}
               data-testid="review-filter-result"
             />
             <label className="flex items-center gap-1 text-xs text-[#646A73] cursor-pointer">

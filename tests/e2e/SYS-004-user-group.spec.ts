@@ -209,3 +209,129 @@ test("SYS-004-04 组织组候选源=组织成员（普通组织管理员不 403�
     "组织管理员应能在组织组搜索到组织成员（候选源=org members 而非 system users）",
   ).toBeVisible({ timeout: 10_000 });
 });
+
+/** coverage-audit 回补（rules/testing §1.2 能力行覆盖）：SYS-004 §1.2 行 4「权限点清单登录下发（菜单守卫 + 按钮指令）」
+ *  的按钮级指令半边，即规格 §5 T2 声明但从未落地的用例（受限成员：列表可见 + 新建按钮隐藏 + 直发 POST 403）。
+ *  构造方式说明（期望值溯源规格 §5 T2 + §2「禁用交集」语义）：
+ *  - 受 S1 组织成员缺口（coverage-audit P-2）限制，无法把第二用户加进他人项目，改为「自降权」等价构造：
+ *    注册者把自己移出项目预置组「项目管理员」（victim 仍有 ORG_ADMIN 只读权限集 = 语义等价「仅勾 PROJECT_CASE:READ」）；
+ *  - 断言口径：PROJECT_CASE:READ 保留（列表可见）、PROJECT_CASE:CREATE 缺失（btn-new-case 渲染于 canCreate，cases/page.tsx:537）、
+ *    服务端 requirePerm 403 code 10003（rbac §4）；回组后按钮恢复（受限/恢复二态）。 */
+test("SYS-004-05 受限成员：用例列表可见、新建按钮隐藏、直发 POST 403", async ({
+  authedPage,
+  page,
+  request,
+  expectNoConsoleErrors,
+}) => {
+  const pid = authedPage.projectId;
+  // 取本人 userId 与项目「项目管理员」预置组 id
+  const meRes = await request.get("/api/v1/personal/me");
+  expect(meRes.status()).toBe(200);
+  const me = (await meRes.json()) as { code: number; data: { userId: string } };
+  expect(me.code).toBe(0);
+  const groupsRes = await request.get(`/api/v1/projects/${pid}/groups`);
+  expect(groupsRes.status()).toBe(200);
+  const groups = (await groupsRes.json()) as {
+    code: number;
+    data: { id: string; name: string }[];
+  };
+  expect(groups.code).toBe(0);
+  const adminGroup = groups.data.find((g) => g.name === "项目管理员");
+  expect(adminGroup, "项目预置组「项目管理员」应存在").toBeTruthy();
+
+  // 自降权：移出「项目管理员」→ 剩余生效权限=ORG_ADMIN 只读集（含 PROJECT_CASE:READ，无 CREATE）
+  const leave = await request.delete(
+    `/api/v1/projects/${pid}/groups/${adminGroup!.id}/members/${me.data.userId}`,
+  );
+  expect(leave.status()).toBe(200);
+  expect(((await leave.json()) as { code: number }).code).toBe(0);
+
+  // 用户路径：首页 → 左侧菜单「测试用例」——列表可见（READ 保留），新建按钮隐藏（CREATE 缺失）
+  await page.goto("/");
+  await page.getByTestId("leftnav").getByRole("link", { name: "测试用例" }).click();
+  await expect(page.getByTestId("case-table")).toBeVisible();
+  await expect(page.getByTestId("btn-new-case")).toHaveCount(0);
+
+  // 接口断言：受限会话直发创建用例 → 403 code 10003（按钮指令的服务端兜底）
+  const post = await page.request.post(`/api/v1/projects/${pid}/cases`, {
+    data: { name: "受限成员不应能创建" },
+  });
+  expect(post.status()).toBe(403);
+  expect(((await post.json()) as { code: number }).code).toBe(10003);
+
+  // 二态回补：重新入组（ORG_ADMIN 含 PROJECT_GROUP:UPDATE，自恢复可用）→ 刷新后按钮恢复
+  const rejoin = await page.request.post(
+    `/api/v1/projects/${pid}/groups/${adminGroup!.id}/members`,
+    { data: { userIds: [me.data.userId] } },
+  );
+  expect(rejoin.status()).toBe(200);
+  expect(((await rejoin.json()) as { code: number }).code).toBe(0);
+  await page.reload();
+  await expect(page.getByTestId("case-table")).toBeVisible();
+  await expect(page.getByTestId("btn-new-case")).toBeVisible();
+
+  await expectNoConsoleErrors();
+});
+
+/** coverage-audit 回补：SYS-004 §1.2 行 1 子能力——重置密码 / 启用/禁用（禁用后原 Session 立即 401，规格 §2）/ 软删除。
+ *  页面实现：system/users/page.tsx（btn-reset-{email} → Modal 一次性新密码；user-status-{email} Switch；行内删除 Popconfirm）。 */
+test("SYS-004-06 重置密码、禁用（会话失效）与软删除用户", async ({
+  page,
+  context,
+  request,
+  browser,
+  expectNoConsoleErrors,
+  expectApi,
+}) => {
+  // 受害用户用独立 context（会话 cookie 与管理员隔离），公开注册不占系统建户配额
+  const victimCtx = await browser.newContext();
+  const victimEmail = `sys004-victim-${Date.now()}@rabbit.test`;
+  const reg = await victimCtx.request.post("/api/v1/auth/register", {
+    data: { email: victimEmail, password: "rabbit-pass-123" },
+  });
+  expect(reg.status()).toBe(201);
+
+  // 管理员会话（主 context）
+  await loginSeedAdmin(request, context);
+
+  // 用户路径：首页 → 系统设置 › 用户管理，搜索定位受害用户
+  await page.goto("/");
+  await page.getByTestId("nav-system-users").click();
+  await page.getByTestId("input-user-keyword").fill(victimEmail);
+  const victimRow = page.getByRole("row", { name: new RegExp(victimEmail) });
+  await expect(victimRow).toBeVisible();
+
+  // ① 重置密码：Modal 展示一次性新密码（仅本次展示，genPassword 前缀 Rb-）
+  const resetApi = expectApi("**/api/v1/system/users/*/reset-password");
+  await victimRow.getByTestId(`btn-reset-${victimEmail}`).click();
+  const reset = await resetApi;
+  expect(reset.status).toBe(200);
+  expect(reset.code).toBe(0);
+  const newPassword = (reset.data as { newPassword: string }).newPassword;
+  expect(newPassword, "一次性新密码应非空").toMatch(/^Rb-/);
+  const dialog = page.getByRole("dialog");
+  await expect(dialog).toContainText("密码已重置");
+  await expect(dialog.getByText(newPassword)).toBeVisible(); // UI 断言：新密码明文回显
+  await dialog.getByRole("button", { name: "知道了" }).click();
+
+  // ② 禁用：Switch 关闭 → 全部会话失效（规格 §2：立即失效 Session）
+  const statusApi = expectApi("**/api/v1/system/users/*/status");
+  await victimRow.getByTestId(`user-status-${victimEmail}`).click();
+  const disabled = await statusApi;
+  expect(disabled.status).toBe(200);
+  expect(disabled.code).toBe(0);
+  expect((disabled.data as { status: string }).status).toBe("DISABLED");
+  await expect(page.getByText("状态已更新（该用户全部会话已失效）")).toBeVisible();
+  // 接口断言：受害用户原会话请求 → 401（守卫按用户状态校验）
+  const meRes = await victimCtx.request.get("/api/v1/personal/me");
+  expect(meRes.status()).toBe(401);
+
+  // ③ 软删除：行内删除 → Popconfirm → 列表消失（软删，邮箱保留占用）
+  await victimRow.getByRole("button", { name: "删除" }).click();
+  await page.locator(".ant-popover").getByRole("button", { name: /确\s*定/ }).click();
+  await expect(page.getByText("用户已删除（软删，邮箱保留占用）")).toBeVisible();
+  await expect(page.getByTestId("user-email").filter({ hasText: victimEmail })).toHaveCount(0);
+
+  await victimCtx.close();
+  await expectNoConsoleErrors();
+});

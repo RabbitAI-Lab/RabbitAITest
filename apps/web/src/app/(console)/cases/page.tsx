@@ -1185,6 +1185,7 @@ export default function CaseListPage() {
             <Select
               className="w-full"
               allowClear
+              virtual={false}
               placeholder="保持不变"
               value={batchLevel}
               options={["P0", "P1", "P2", "P3"].map((l) => ({ value: l, label: l }))}

@@ -187,3 +187,64 @@ test("CASE-003-02 Markdown 注入转义", async ({
 
   await expectNoConsoleErrors();
 });
+
+/** coverage-audit 回补：CASE-003 §1.2 行 8「头部操作：关注/取关（星标）、分享（复制链接）、复制」——UI 层整行无覆盖
+ *  （关注 API 已由 CASE-002 jmx T1-11 覆盖，本用例补齐交互面）。期望值溯源规格 §2：复制用例=名称追加「_copy」、
+ *  新 num、状态=草稿、关联关系不复制；关注/取关星标与 toast 文案见 cases/[id]/page.tsx。
+ *  页面实现：cases/[id]/page.tsx（btn-follow-case 星标切换 / btn-share-case → navigator.clipboard / btn-copy-case）。 */
+test("CASE-003-03 头部操作：关注星标、分享链接、复制用例", async ({
+  authedPage,
+  page,
+  request,
+  context,
+  expectNoConsoleErrors,
+  expectApi,
+}) => {
+  const uniq = `${Date.now() % 100000}`;
+  const caseName = `头部操作用例${uniq}`;
+  const kase = await apiCreateCase(request, authedPage.projectId, { name: caseName });
+
+  // 用户路径：首页 → 测试用例 → 点编号进详情
+  await navFromHome(page, "测试用例");
+  await expect(page.getByTestId("case-table")).toBeVisible();
+  await page
+    .getByRole("row", { name: new RegExp(caseName) })
+    .getByRole("link", { name: /^C-\d{4,}$/ })
+    .click();
+  await expect(page.getByTestId("case-title")).toHaveText(caseName);
+
+  // ① 关注 → 星标态 + toast；再点取关 → 回未关注（关注/取关二态，Follow 多态表）
+  await expect(page.getByTestId("btn-follow-case")).toHaveText("关注");
+  const followApi = expectApi("**/api/v1/projects/*/cases/*/follow");
+  await page.getByTestId("btn-follow-case").click();
+  const followed = await followApi;
+  expect(followed.status).toBe(200);
+  expect(followed.code).toBe(0);
+  await expect(page.getByText("已关注，变更将提醒")).toBeVisible();
+  await expect(page.getByTestId("btn-follow-case")).toHaveText("已关注");
+  await page.getByTestId("btn-follow-case").click();
+  await expect(page.getByText("已取消关注")).toBeVisible();
+  await expect(page.getByTestId("btn-follow-case")).toHaveText("关注");
+
+  // ② 分享：复制当前详情链接（剪贴板断言 URL=/cases/{id}）
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  await page.getByTestId("btn-share-case").click();
+  await expect(page.getByText("链接已复制")).toBeVisible();
+  const shared = await page.evaluate(() => navigator.clipboard.readText());
+  expect(shared).toBe(`${new URL(page.url()).origin}/cases/${kase.id}`);
+
+  // ③ 复制：名称 _copy 后缀 + 新编号（规格 §2：新 num、草稿、关联不复制——关联不复制由 CASE-002 jmx T1-10 契约覆盖）
+  const copyApi = expectApi("**/api/v1/projects/*/cases/*/copy");
+  await page.getByTestId("btn-copy-case").click();
+  const copied = await copyApi;
+  expect(copied.status).toBe(201);
+  expect(copied.code).toBe(0);
+  const copyData = copied.data as { id: string; num: number; name: string };
+  expect(copyData.name).toBe(`${caseName}_copy`);
+  expect(copyData.num).toBeGreaterThan(kase.num);
+  await expect(
+    page.getByText(`已复制为「${caseName}_copy」（C-${String(copyData.num).padStart(4, "0")}，草稿）`),
+  ).toBeVisible();
+
+  await expectNoConsoleErrors();
+});

@@ -215,3 +215,156 @@ test("CASE-005-02 失败必填意见与结束只读", async ({
 
   await expectNoConsoleErrors();
 });
+
+/** coverage-audit 回补：CASE-005 §1.2 行 5 后半「重新提审受项目应用设置开关控制」的**关闭态**（规格 §5 T3
+ *  「关闭开关后编辑不重置」声明但从未落地；开启态已由 CASE-005-01 + jmx T1-7 覆盖——开关开/关二态补齐）。
+ *  期望值溯源规格 §2：触达条件=用例 update 白名单字段；开关关闭则不触发（不重置 result、不置 reSubmit）。
+ *  设置端点：PUT /api/v1/projects/{pid}/settings/case-review（S1 无设置 UI，契约层断言 + UI 验证徽标不出现）。 */
+test("CASE-005-03 重新提审开关关闭：编辑用例不重置评审结果", async ({
+  authedPage,
+  page,
+  request,
+  expectNoConsoleErrors,
+}) => {
+  const uniq = `${Date.now() % 100000}`;
+  const caseName = `开关关闭用例${uniq}`;
+  const reviewName = `开关关闭评审${uniq}`;
+  const kase = await apiCreateCase(request, authedPage.projectId, { name: caseName });
+
+  // API 建评审（multi、评审人=自己、直接关联）→ 标记 PASS（受控前置：开启态语义同 05-01，此处只为取得已评状态）
+  const meRes = await request.get("/api/v1/personal/me");
+  const me = ((await meRes.json()) as { code: number; data: { userId: string } }).data;
+  const reviewRes = await request.post(`/api/v1/projects/${authedPage.projectId}/reviews`, {
+    data: { name: reviewName, reviewMode: "MULTI", reviewers: [me.userId], caseIds: [kase.id] },
+  });
+  expect(reviewRes.status()).toBe(201);
+  const review = ((await reviewRes.json()) as { data: { id: string } }).data;
+  const judgeRes = await request.post(
+    `/api/v1/projects/${authedPage.projectId}/reviews/${review.id}/cases/${kase.id}/judge`,
+    { data: { result: "PASS", comment: "" } },
+  );
+  expect(judgeRes.status()).toBe(200);
+
+  // 关闭重新提审开关（接口断言 PUT 200 + 读回 false）
+  const offRes = await request.put(
+    `/api/v1/projects/${authedPage.projectId}/settings/case-review`,
+    { data: { enabled: false } },
+  );
+  expect(offRes.status()).toBe(200);
+  expect(((await offRes.json()) as { data: { reSubmitEnabled: boolean } }).data.reSubmitEnabled).toBe(false);
+
+  // 编辑用例（name 属白名单字段，version 乐观锁）——开关关闭 → 不重置
+  const putRes = await request.put(
+    `/api/v1/projects/${authedPage.projectId}/cases/${kase.id}`,
+    {
+      data: {
+        name: `${caseName}-改`,
+        precondition: kase.precondition,
+        steps: kase.steps,
+        level: kase.level,
+        tags: kase.tags,
+        fields: kase.fields,
+        moduleId: kase.moduleId,
+        version: kase.version,
+      },
+    },
+  );
+  expect(putRes.status()).toBe(200);
+
+  // 接口断言：评审结果仍 PASS、reSubmit=false（未重置）
+  const detailRes = await request.get(
+    `/api/v1/projects/${authedPage.projectId}/reviews/${review.id}`,
+  );
+  expect(detailRes.status()).toBe(200);
+  const detail = (await detailRes.json()) as {
+    data: { cases: { caseId: string; result: string; reSubmit: boolean }[] };
+  };
+  const rc = detail.data.cases.find((c) => c.caseId === kase.id);
+  expect(rc?.result).toBe("PASS");
+  expect(rc?.reSubmit).toBe(false);
+
+  // 用户路径：首页 → 用例评审 → 进详情——通过率 100%（未回 pending）且无「重新提审」徽标
+  await navFromHome(page, "用例评审");
+  await expect(page.getByTestId("input-review-keyword")).toBeVisible();
+  await page.getByRole("link", { name: reviewName }).click();
+  await expect(page).toHaveURL(new RegExp(`/reviews/${review.id}`));
+  await expect(page.getByTestId("review-circle").getByText("100%")).toBeVisible();
+  await expect(page.getByText("重新提审")).toHaveCount(0);
+
+  await expectNoConsoleErrors();
+});
+
+/** coverage-audit 回补：CASE-005 §1.2 行 6「评审历史：每条 ReviewCase 的标记时间线」整行无覆盖 + 行 2 子能力
+ *  「自动下一条开关」「按状态筛选」（规格 §3：历史弹窗=人/结果/意见/时间；自动下一条=提交后选中下一条未评用例）。
+ *  页面实现：reviews/[id]/page.tsx（btn-review-history → review-history 时间线 / switch-auto-next /
+ *  review-filter-result；提交按钮文案「提交并下一条」，autoNext 开启时跳到下一 pending 用例）。 */
+test("CASE-005-04 评审历史时间线、自动下一条与状态筛选", async ({
+  authedPage,
+  page,
+  request,
+  expectNoConsoleErrors,
+  expectApi,
+}) => {
+  const uniq = `${Date.now() % 100000}`;
+  const nameA = `历史用例A${uniq}`;
+  const nameB = `历史用例B${uniq}`;
+  const caseA = await apiCreateCase(request, authedPage.projectId, { name: nameA });
+  const caseB = await apiCreateCase(request, authedPage.projectId, { name: nameB });
+
+  // API 建评审（multi、评审人=自己、关联 2 条）
+  const meRes = await request.get("/api/v1/personal/me");
+  const me = ((await meRes.json()) as { code: number; data: { userId: string } }).data;
+  const reviewRes = await request.post(`/api/v1/projects/${authedPage.projectId}/reviews`, {
+    data: {
+      name: `历史评审${uniq}`,
+      reviewMode: "MULTI",
+      reviewers: [me.userId],
+      caseIds: [caseA.id, caseB.id],
+    },
+  });
+  expect(reviewRes.status()).toBe(201);
+  const review = ((await reviewRes.json()) as { data: { id: string } }).data;
+
+  // 用户路径：首页 → 用例评审 → 进详情；默认选中第 1 条（A）
+  await navFromHome(page, "用例评审");
+  await expect(page.getByTestId("input-review-keyword")).toBeVisible();
+  await page.getByRole("link", { name: `历史评审${uniq}` }).click();
+  await expect(page).toHaveURL(new RegExp(`/reviews/${review.id}`));
+  // 服务端按 ReviewCase.id（UUID）排序，默认选中不保证是 A——显式选中 A 再断言右侧速览链接
+  await page.getByTestId(`review-case-item-${caseA.num}`).click();
+  await expect(page.locator(`a[href="/cases/${caseA.id}"]`)).toBeVisible();
+  // 自动下一条开关默认开启（reviews/[id]/page.tsx useState(true)）
+  await expect(page.getByTestId("switch-auto-next")).toHaveAttribute("aria-checked", "true");
+
+  // 标记 A 为 FAIL（意见必填）→ 提交并下一条：自动跳到 B（右侧速览切换）
+  await page.getByTestId("judge-btn-FAIL").click();
+  await page.getByTestId("judge-comment-input").fill("步骤预期不明确");
+  const judgeApi = expectApi("**/api/v1/projects/*/reviews/*/cases/*/judge");
+  await page.getByTestId("btn-submit-judge").click();
+  const judged = await judgeApi;
+  expect(judged.status).toBe(200);
+  expect((judged.data as { result: string }).result).toBe("FAIL");
+  await expect(page.locator(`a[href="/cases/${caseB.id}"]`)).toBeVisible({ timeout: 8000 });
+  await expect(page.locator(`a[href="/cases/${caseA.id}"]`)).toHaveCount(0);
+
+  // 按状态筛选：未评审 → 仅剩 B；通过 → 空态；全部 → 2 条
+  await page.getByTestId("review-filter-result").click();
+  await page.getByRole("option", { name: "未评审" }).click();
+  await expect(page.getByTestId("review-case-item-" + caseB.num)).toBeVisible();
+  await expect(page.getByTestId("review-case-item-" + caseA.num)).toHaveCount(0);
+  await page.getByTestId("review-filter-result").click();
+  await page.getByRole("option", { name: "通过" }).click();
+  await expect(page.getByText("无该状态用例")).toBeVisible();
+  // 回「全部状态」并选中 A → 打开评审历史
+  await page.getByTestId("review-filter-result").click();
+  await page.getByRole("option", { name: "全部状态" }).click();
+  await page.getByTestId("review-case-item-" + caseA.num).click();
+  await page.getByTestId("btn-review-history").click();
+  const historyDialog = page.getByRole("dialog");
+  await expect(historyDialog).toContainText("评审历史");
+  await expect(page.getByTestId("review-history")).toBeVisible();
+  await expect(page.getByTestId("review-history").getByText("失败", { exact: true })).toBeVisible();
+  await expect(page.getByTestId("review-history").getByText("步骤预期不明确")).toBeVisible();
+
+  await expectNoConsoleErrors();
+});

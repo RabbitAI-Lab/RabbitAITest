@@ -544,14 +544,14 @@ route("api/v1/orgs/[orgId]/templates/[id]/fields/route.ts", {
     params: ["id"],
     argExprs: ["ctx.orgId", "id", "body.fields"],
     custom: `import { toResponse, okResponse, withOrgScope } from '@/server/guard';
-import { templateUpsertSchema } from '@rabbit/shared';
+import { templateFieldsUpdateSchema } from '@rabbit/shared';
 import * as svc from '@/server/domains/project/template.service';
 
 export const PUT = withOrgScope(async (ctx, req, seg) => {
   try {
     ctx.requirePerm('ORG_TEMPLATE:UPDATE');
     const { id } = await (seg as { params: Promise<{ id: string }> }).params;
-    const body = templateUpsertSchema.parse(await req.json());
+    const body = templateFieldsUpdateSchema.parse(await req.json());
     return okResponse(await svc.updateTemplateFields(ctx.orgId, id, body.fields));
   } catch (err) { return toResponse(err); }
 });
@@ -632,7 +632,7 @@ route("api/v1/projects/[projectId]/templates/[id]/fields/route.ts", {
     params: ["id"],
     argExprs: ["ctx.orgId", "id", "body.fields"],
     custom: `import { toResponse, okResponse, withProjectScope } from '@/server/guard';
-import { templateUpsertSchema } from '@rabbit/shared';
+import { templateFieldsUpdateSchema } from '@rabbit/shared';
 import * as svc from '@/server/domains/project/template.service';
 
 export const PUT = withProjectScope(async (ctx, req, seg) => {
@@ -640,7 +640,7 @@ export const PUT = withProjectScope(async (ctx, req, seg) => {
     ctx.requirePerm('PROJECT_TEMPLATE:UPDATE');
     ctx.requireWritable();
     const { id } = await (seg as { params: Promise<{ id: string }> }).params;
-    const body = templateUpsertSchema.parse(await req.json());
+    const body = templateFieldsUpdateSchema.parse(await req.json());
     return okResponse(await svc.updateTemplateFields(ctx.orgId, id, body.fields));
   } catch (err) { return toResponse(err); }
 });
@@ -995,9 +995,13 @@ export const POST = withProjectScope(async (ctx, req) => {
     const moduleId = String(form.get('moduleId') ?? '') || undefined;
     if (!(file instanceof File)) return okResponse({ ok: false, message: '缺少文件' }, 422);
     const buffer = Buffer.from(await file.arrayBuffer());
-    const report = await svc.importCases(ctx.projectId, ctx.orgId, ctx.userId, {
-      buffer, filename: file.name, mode, moduleId,
-    });
+    let report;
+    try {
+      report = await svc.importCases(ctx.projectId, ctx.orgId, ctx.userId, { buffer, filename: file.name, mode, moduleId });
+    } catch (err) {
+      if (err && typeof err === 'object' && 'code' in err) throw err;
+      return okResponse({ ok: false, message: '无法解析该文件（格式损坏或列结构不识别）' }, 422);
+    }
     return okResponse(report);
   } catch (err) { return toResponse(err); }
 });

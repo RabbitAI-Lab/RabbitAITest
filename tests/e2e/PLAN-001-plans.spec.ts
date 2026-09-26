@@ -225,3 +225,117 @@ test("PLAN-001-02 重复关联与归档只读接口", async ({
 
   await expectNoConsoleErrors();
 });
+
+/** coverage-audit 回补：PLAN-001 §1.2 行 3 子能力「批量修改执行人」（规格 §5 T3 声明「批量改执行人生效」从未落地）+
+ *  行 2 二态「允许关联重复用例开关：开启态」（关闭态 422 10009 已由 PLAN-001-02 覆盖——开关开/关二态补齐）。
+ *  期望值溯源规格 §2：重复关联开关关闭时二次关联 422；§3 工具条「批量改执行人」。
+ *  实现口径注记（plan.service.ts addPlanCases）：开关开启后同用例再关联为「不拒绝、静默跳过」（added=0），
+ *  规格 §2 仅定义关闭态行为，开启态明细未定义——本用例按「不再 422」断言并另关联新用例证 added=1。 */
+test("PLAN-001-03 重复关联开关开启二态与批量改执行人", async ({
+  authedPage,
+  page,
+  request,
+  expectNoConsoleErrors,
+  expectApi,
+}) => {
+  const { projectId } = authedPage;
+  const uniq = `E${Date.now() % 1e7}${Math.floor(Math.random() * 1e3)}`;
+  const planName = `批量执行计划-${uniq}`;
+  const caseAName = `批量用例A-${uniq}`;
+  const caseBName = `批量用例B-${uniq}`;
+
+  // API 造 2 用例 + 计划并关联 A（默认 allowDuplicate=false）
+  const ids: string[] = [];
+  for (const name of [caseAName, caseBName]) {
+    const r = await request.post(`/api/v1/projects/${projectId}/cases`, { data: { name } });
+    expect(r.status()).toBe(201);
+    ids.push(((await r.json()) as { data: { id: string } }).data.id);
+  }
+  const planRes = await request.post(`/api/v1/projects/${projectId}/plans`, {
+    data: { name: planName },
+  });
+  expect(planRes.status()).toBe(201);
+  const planId = ((await planRes.json()) as { data: { id: string } }).data.id;
+  const linkRes = await request.post(`/api/v1/projects/${projectId}/plans/${planId}/cases`, {
+    data: { caseIds: [ids[0]] },
+  });
+  expect(((await linkRes.json()) as { data: { added: number } }).data.added).toBe(1);
+
+  // 用户路径：首页 → 测试计划 → 进详情
+  await navFromHome(page, "测试计划");
+  await page.getByRole("link", { name: planName }).click();
+  await expect(page.getByTestId("plan-cases-tab")).toBeVisible();
+  await expect(page.getByTestId("plan-cases-tab")).toContainText("用例清单（1）");
+
+  // ── 二态：开启「允许重复关联」开关（更多设置抽屉 → PUT settings） ──
+  await page.getByRole("button", { name: "更多设置" }).click();
+  await expect(page.getByTestId("drawer-switch-duplicate")).toBeVisible();
+  await page.getByTestId("drawer-switch-duplicate").click();
+  const saveApi = expectApi("**/api/v1/projects/*/plans/*");
+  const saveRaw = page.waitForResponse("**/api/v1/projects/*/plans/*");
+  await page.getByTestId("btn-save-plan-settings").click();
+  const saved = await saveApi;
+  expect(saved.status).toBe(200);
+  expect(saved.code).toBe(0);
+  const saveRawRes = await saveRaw;
+  expect(saveRawRes.request().method()).toBe("PUT");
+  expect((saveRawRes.request().postDataJSON() as { settings: { allowDuplicate: boolean } })
+    .settings.allowDuplicate).toBe(true);
+  await expect(page.getByText("设置已保存")).toBeVisible();
+
+  // 开关开启后二次关联 A：不再 422（实现口径=静默跳过 added=0）；顺带关联 B（added=1）供批量执行人用
+  await page.getByTestId("btn-link-cases").click();
+  const linkModal = page.getByTestId("link-cases-modal");
+  await expect(linkModal).toBeVisible();
+  await page.getByTestId("link-cases-keyword").fill(uniq);
+  for (const row of await linkModal.getByRole("row").all()) {
+    const box = row.locator('input[type="checkbox"]');
+    if (await box.count()) await box.check();
+  }
+  const relinkApi = expectApi("**/api/v1/projects/*/plans/*/cases");
+  await page.getByTestId("btn-confirm-link-cases").click();
+  const relinked = await relinkApi;
+  expect(relinked.status).toBe(200);
+  expect(relinked.code).toBe(0);
+  expect((relinked.data as { added: number }).added).toBe(1); // 仅 B 新增；A 静默跳过不再 422
+  await expect(page.getByTestId("plan-cases-tab")).toContainText("用例清单（2）");
+
+  // ── 批量改执行人：勾选 2 行 → 弹窗选执行人=本人 → 确定生效 ──
+  const meRes = await request.get("/api/v1/personal/me");
+  const me = ((await meRes.json()) as { data: { userId: string } }).data;
+  await expect(page.getByTestId("btn-batch-executor")).toBeDisabled(); // 未勾选时禁用
+  for (const name of [caseAName, caseBName]) {
+    await page
+      .getByRole("row", { name: new RegExp(name) })
+      .locator('input[type="checkbox"]')
+      .check();
+  }
+  await expect(page.getByTestId("btn-batch-executor")).toBeEnabled();
+  await page.getByTestId("btn-batch-executor").click();
+  const batchModal = page.getByRole("dialog");
+  await batchModal.locator(".ant-select").first().click();
+  await page
+    .getByRole("option", { name: new RegExp(authedPage.email) })
+    .first()
+    .click();
+  const execApi = expectApi("**/api/v1/projects/*/plans/*/cases/batch-executor");
+  const execRaw = page.waitForResponse("**/api/v1/projects/*/plans/*/cases/batch-executor");
+  await batchModal.getByRole("button", { name: /确\s*定/ }).click();
+  const batched = await execApi;
+  expect(batched.status).toBe(200);
+  expect(batched.code).toBe(0);
+  expect((batched.data as { affected: number }).affected).toBe(2);
+  const execRawRes = await execRaw;
+  expect(execRawRes.request().postDataJSON()).toMatchObject({
+    execUserId: me.userId,
+  });
+  await expect(page.getByText("已更新 2 条执行人")).toBeVisible();
+  // UI 断言：两行执行人列回显本人（MemberSelect label=name（email））
+  for (const name of [caseAName, caseBName]) {
+    await expect(
+      page.getByRole("row", { name: new RegExp(name) }).getByText(authedPage.email),
+    ).toBeVisible();
+  }
+
+  await expectNoConsoleErrors();
+});

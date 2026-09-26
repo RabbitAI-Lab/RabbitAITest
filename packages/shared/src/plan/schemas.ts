@@ -17,6 +17,9 @@ export const planUpsertSchema = z.object({
   settings: planSettingsSchema.optional(),
 });
 
+/** PUT 部分更新（updatePlan 语义） */
+export const planUpdateSchema = planUpsertSchema.partial();
+
 export const planCasesAddSchema = z.object({
   caseIds: z.array(z.string().uuid()).min(1).max(500),
   execUserId: z.string().uuid().optional(),

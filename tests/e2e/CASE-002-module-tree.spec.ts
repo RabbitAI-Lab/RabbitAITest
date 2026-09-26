@@ -1,4 +1,4 @@
-import type { APIRequestContext } from "@playwright/test";
+import type { APIRequestContext, Locator } from "@playwright/test";
 import { test, expect, navFromHome } from "./fixtures";
 
 /**
@@ -186,6 +186,144 @@ test("CASE-002-02 视图保存与切换", async ({
   await expect(page.getByText("视图已删除，已回退「全部」")).toBeVisible({ timeout: 8000 });
   await expect(page.getByTestId(`view-${viewId}`)).toHaveCount(0);
   await expect(page.getByTestId("view-tab-all")).toBeVisible();
+
+  await expectNoConsoleErrors();
+});
+
+/** coverage-audit 回补：CASE-002 §1.2 行 5「批量操作：移动到模块、批量编辑（等级/标签/执行人）」——规格 §5 T4 声明
+ *  「批量移动 3 条→toast 成功→各目标模块计数 +N」从未落地；行 1「节点用例计数（含子树）」与「默认模块不可删名可改」
+ *  （预置/自定义二态）一并覆盖；行 4「分享（复制链接含模块与筛选参数）」列表行入口。
+ *  页面实现：cases/page.tsx（batch-bar / btn-batch-move / select-move-target / btn-batch-edit / select-batch-level /
+ *  btn-share-{num} → navigator.clipboard）；ModuleTreePanel.tsx（右键菜单=新建子模块/重命名/删除；节点计数 subtreeCount）。 */
+test("CASE-002-03 批量移动与模块计数、批量编辑、行分享、默认模块改名", async ({
+  authedPage,
+  page,
+  request,
+  context,
+  expectNoConsoleErrors,
+  expectApi,
+}) => {
+  const uniq = `${Date.now() % 100000}`;
+  const targetName = `移动目标${uniq}`;
+  const pid = authedPage.projectId;
+
+  // API 造模块 + 2 条用例（挂默认模块；authedPage 项目隔离）
+  const modRes = await request.post(`/api/v1/projects/${pid}/modules?scene=case`, {
+    data: { name: targetName },
+  });
+  expect(modRes.status()).toBe(201);
+  const modId = ((await modRes.json()) as { data: { id: string } }).data.id;
+  const caseIds: string[] = [];
+  const caseNums: number[] = [];
+  for (const name of [`批量甲${uniq}`, `批量乙${uniq}`]) {
+    const r = await request.post(`/api/v1/projects/${pid}/cases`, {
+      data: { name, precondition: "", steps: [], level: "P2", tags: [], fields: {} },
+    });
+    expect(r.status()).toBe(201);
+    const b = (await r.json()) as { code: number; data: { id: string; num: number } };
+    expect(b.code).toBe(0);
+    caseIds.push(b.data.id);
+    caseNums.push(b.data.num);
+  }
+
+  // 用户路径：首页 → 测试用例；勾选 2 条 → 批量条浮现
+  await navFromHome(page, "测试用例");
+  await expect(page.getByTestId("case-table")).toBeVisible();
+  for (const name of [`批量甲${uniq}`, `批量乙${uniq}`]) {
+    await page
+      .getByRole("row", { name: new RegExp(name) })
+      .locator('input[type="checkbox"]')
+      .check();
+  }
+  await expect(page.getByTestId("batch-bar")).toBeVisible();
+  await expect(page.getByTestId("batch-bar")).toContainText("已选 2 项");
+
+  // 批量移动：弹窗选目标模块（TreeSelect）→ 移动（接口断言 batch-move payload：ids + moduleId）
+  await page.getByTestId("btn-batch-move").click();
+  await page.getByTestId("select-move-target").click();
+  // 限定 TreeSelect 弹层树（与左侧 ModuleTreePanel 同名 treeitem 严格模式冲突）
+  await page.locator(".ant-select-tree-list-holder, .ant-tree").filter({ hasText: targetName }).last().getByRole("treeitem", { name: new RegExp(targetName) }).first().click();
+  const moveApi = expectApi("**/api/v1/projects/*/cases/batch-move");
+  const moveRaw = page.waitForResponse("**/api/v1/projects/*/cases/batch-move");
+  await page.getByRole("dialog").getByRole("button", { name: /移\s*动/ }).click();
+  const moved = await moveApi;
+  expect(moved.status).toBe(200);
+  expect(moved.code).toBe(0);
+  expect((moved.data as { affected: number }).affected).toBe(2);
+  const moveRawRes = await moveRaw;
+  expect(moveRawRes.request().postDataJSON()).toMatchObject({
+    ids: expect.arrayContaining(caseIds),
+    moduleId: modId,
+  });
+  await expect(page.getByText("已移动 2 条")).toBeVisible();
+
+  // UI 断言：目标模块节点计数（含子树）= 2（ModuleTreePanel subtreeCount）
+  await expect(page.getByTestId(`module-node-${targetName}`)).toHaveText(
+    new RegExp(`${targetName}\\s*2`),
+  );
+  // 点目标模块过滤 → 列表 2 条（共 2 条）
+  const targetNode = page.getByTestId(`module-node-${targetName}`);
+  await targetNode.scrollIntoViewIfNeeded();
+  await targetNode.click({ timeout: 15_000 }).catch(async () => {
+    // 树计数刷新期重渲染抖动兜底：等稳定后强点击（真实事件派发，选择逻辑不受影响）
+    await page.waitForTimeout(800);
+    await targetNode.click({ force: true });
+  });
+  await expect(page.getByText("共 2 条", { exact: true })).toBeVisible({ timeout: 8000 });
+
+  // 行分享：复制链接含模块参数（cases/page.tsx shareRow → /cases?moduleId={id}）
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  await page.getByTestId(`btn-share-${caseNums[0]}`).click();
+  await expect(page.getByText("链接已复制")).toBeVisible();
+  const shared = await page.evaluate(() => navigator.clipboard.readText());
+  expect(shared).toContain(`/cases?moduleId=${modId}`);
+
+  // 批量编辑：重新勾选 2 条（仍在目标模块过滤视图内）→ 等级改 P1 → 应用（接口断言 batch-update payload）
+  await expect(page.getByTestId("case-table")).toBeVisible();
+  for (const name of [`批量甲${uniq}`, `批量乙${uniq}`]) {
+    await page
+      .getByRole("row", { name: new RegExp(name) })
+      .locator('input[type="checkbox"]')
+      .check();
+  }
+  await page.getByTestId("btn-batch-edit").click();
+  await page.getByTestId("select-batch-level").click();
+  await page.getByRole("option", { name: "P1", exact: true }).click();
+  const updateApi = expectApi("**/api/v1/projects/*/cases/batch-update");
+  await page.getByRole("dialog").getByRole("button", { name: /应\s*用/ }).click();
+  const updated = await updateApi;
+  expect(updated.status).toBe(200);
+  expect(updated.code).toBe(0);
+  expect((updated.data as { affected: number }).affected).toBe(2);
+  await expect(page.getByText("已更新 2 条")).toBeVisible();
+  // UI 断言：行内等级列变 P1
+  await expect(
+    page.getByRole("row", { name: new RegExp(`批量甲${uniq}`) }).getByText("P1", { exact: true }),
+  ).toBeVisible();
+
+  // 默认模块「未规划用例」：右键改名可用（规格 §1.2 行 1：默认模块不可删、名可改——预置/自定义二态）
+  const defaultNode = page.getByTestId("module-node-未规划用例");
+  const clickNodeStable = async (loc: ReturnType<Page['getByTestId']>) => {
+    await loc.scrollIntoViewIfNeeded();
+    await loc.click({ timeout: 15_000 }).catch(async () => {
+      await page.waitForTimeout(800);
+      await loc.click({ force: true });
+    });
+  };
+  await clickNodeStable(defaultNode).catch(() => {});
+  await defaultNode.click({ button: "right" });
+  await page.getByRole("menuitem", { name: "重命名" }).click();
+  const renamed = `未规划改名${uniq}`;
+  const dialog = page.getByRole("dialog");
+  await dialog.getByPlaceholder("模块名称").fill(renamed);
+  const renameApi = expectApi("**/api/v1/projects/*/modules/*");
+  await dialog.getByRole("button", { name: /^(确\s*定|OK)$/ }).click();
+  const renameRes = await renameApi;
+  expect(renameRes.status).toBe(200);
+  expect(renameRes.code).toBe(0);
+  await expect(page.getByText("已重命名")).toBeVisible();
+  await expect(page.getByTestId(`module-node-${renamed}`)).toBeVisible();
+  await expect(page.getByTestId("module-node-未规划用例")).toHaveCount(0);
 
   await expectNoConsoleErrors();
 });

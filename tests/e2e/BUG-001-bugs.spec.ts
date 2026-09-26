@@ -139,3 +139,134 @@ test("BUG-001-02 回收站恢复与非法流转（allowedTransitions 驱动）",
 
   await expectNoConsoleErrors();
 });
+
+/** coverage-audit 回补：BUG-001 §1.2 行 2「附件：多文件上传、单文件上限（SYS-005 参数）、下载/删除、可执行文件拒收」整行无覆盖。
+ *  期望值溯源规格 §2（附件校验大小/类型黑名单，security.md：可执行文件拒收）与 §3（附件上传区：列表+删除）。
+ *  页面实现：bugs/[id]/page.tsx（btn-upload-attachment（antd Upload customRequest）→ attachment-list /
+ *  attachment-name-{id} / 下载 a[href=downloadUrl] / 删除 X Popconfirm）。 */
+test("BUG-001-03 附件上传、下载、删除与可执行文件拒收", async ({
+  authedPage,
+  page,
+  request,
+  expectNoConsoleErrors,
+  expectApi,
+}, testInfo) => {
+  const { projectId } = authedPage;
+  const uniq = `A${Date.now() % 1e7}${Math.floor(Math.random() * 1e3)}`;
+  const bugTitle = `附件缺陷-${uniq}`;
+
+  // API 造缺陷（数据独立）
+  const created = await request.post(`/api/v1/projects/${projectId}/bugs`, {
+    data: { title: bugTitle },
+  });
+  expect(created.status()).toBe(201);
+  const bugId = ((await created.json()) as { data: { id: string } }).data.id;
+
+  // 用户路径：首页 → 缺陷管理 → 列表进详情（详情 Tab 默认激活，附件区在页内）
+  await navFromHome(page, "缺陷管理");
+  await page.getByRole("link", { name: bugTitle }).click();
+  await expect(page.getByTestId("bug-status")).toHaveText("待处理");
+  // UI 断言：附件空态
+  await expect(page.getByText("暂无附件")).toBeVisible();
+
+  // 上传：fixture 自造文件（rules/testing §3.5.2 fixture 一律自造，禁止依赖本机路径残留）
+  const attPath = testInfo.outputPath("e2e-attachment.txt");
+  const attContent = `e2e 附件内容 ${uniq}`;
+  const { writeFileSync } = await import("node:fs");
+  writeFileSync(attPath, attContent, "utf8");
+  const uploadApi = expectApi("**/api/v1/projects/*/attachments");
+  await page.locator(".ant-upload input[type='file']").setInputFiles(attPath);
+  const uploaded = await uploadApi;
+  // 接口断言：POST /attachments 201 + code=0 + 实体字段（multipart：file+entity=bug:{id}）
+  expect(uploaded.status).toBe(201);
+  expect(uploaded.code).toBe(0);
+  const att = uploaded.data as { id: string; name: string; size: number };
+  expect(att.name).toBe("e2e-attachment.txt");
+  expect(att.size).toBe(Buffer.byteLength(attContent, "utf8"));
+  // UI 断言：toast + 附件列表出现（名称 + 计数 1）
+  await expect(page.getByText("附件已上传")).toBeVisible();
+  await expect(page.getByTestId("attachment-list")).toBeVisible();
+  await expect(page.getByTestId(`attachment-name-${att.id}`)).toHaveText(att.name);
+
+  // 下载：走预签名/令牌下载 URL（勘误 1：本地磁盘驱动 + HMAC 令牌）→ 200 且内容一致
+  const downloadRes = await page.request.get(
+    `/api/v1/projects/${projectId}/attachments/${att.id}/download`,
+  );
+  expect(downloadRes.status()).toBe(200);
+  expect(await downloadRes.text()).toBe(attContent);
+
+  // 删除：附件行内 X 图标按钮（Popconfirm）→ 确认 → 列表回空态
+  const attRow = page.getByTestId(`attachment-name-${att.id}`).locator("xpath=..");
+  await attRow.getByRole("button").click();
+  const delApi = expectApi("**/api/v1/projects/*/attachments/*");
+  await page.locator(".ant-popover").getByRole("button", { name: /确\s*定/ }).click();
+  const removed = await delApi;
+  expect(removed.status).toBe(200);
+  expect(removed.code).toBe(0);
+  await expect(page.getByText("附件已删除")).toBeVisible();
+  await expect(page.getByText("暂无附件")).toBeVisible();
+
+  // 类型黑名单：.exe 拒收（422 + 服务端消息就地透出，security.md）
+  const exePath = testInfo.outputPath("e2e-evil.exe");
+  writeFileSync(exePath, "MZ fake exe", "utf8");
+  const blockedApi = expectApi("**/api/v1/projects/*/attachments");
+  await page.locator(".ant-upload input[type='file']").setInputFiles(exePath);
+  const blocked = await blockedApi;
+  expect(blocked.status).toBe(422);
+  await expect(page.getByText("不允许上传可执行文件")).toBeVisible();
+
+  // 白名单：黑名单 422 为预期业务拒绝（UI 上传路径的 fetch 失败留痕，§3.5.1 显式登记）
+  await expectNoConsoleErrors([
+    { pageUrlPattern: "/bugs/", textPattern: "status of 422", reason: "BUG-001-03 可执行文件拒收的预期 422（security.md 黑名单）" },
+  ]);
+});
+
+/** coverage-audit 回补：BUG-001 §1.2 行 6「回收站：软删→恢复/彻底删除」的彻底删除半边（恢复已有 BUG-001-02，
+ *  恢复/彻底删除为规格要求显式覆盖的二态）。期望值溯源规格 §2「彻底删除（级联删除关联与附件记录）」。 */
+test("BUG-001-04 回收站彻底删除（不可恢复）", async ({
+  authedPage,
+  page,
+  request,
+  expectNoConsoleErrors,
+  expectApi,
+}) => {
+  const { projectId } = authedPage;
+  const uniq = `P${Date.now() % 1e7}${Math.floor(Math.random() * 1e3)}`;
+  const bugTitle = `彻底删除缺陷-${uniq}`;
+
+  // API 造缺陷 → UI 软删进回收站
+  const created = await request.post(`/api/v1/projects/${projectId}/bugs`, {
+    data: { title: bugTitle },
+  });
+  expect(created.status()).toBe(201);
+  const bugId = ((await created.json()) as { data: { id: string } }).data.id;
+
+  await navFromHome(page, "缺陷管理");
+  await expect(page.getByTestId("bug-table")).toBeVisible();
+  const row = page.getByRole("row", { name: new RegExp(bugTitle) });
+  await row.getByRole("button", { name: "删除" }).click();
+  await page.locator(".ant-popover").getByRole("button", { name: /确\s*定/ }).click();
+  await expect(page.getByText("已删除（进入回收站，可恢复）")).toBeVisible({ timeout: 8000 });
+
+  // 回收站 → 彻底删除（Popconfirm okText=彻底删除，明示不可恢复与级联）
+  await page.getByTestId("tab-recycle").click();
+  await expect(row).toBeVisible();
+  const purgeApi = expectApi("**/api/v1/projects/*/bugs/*?purge=true*");
+  await row.getByRole("button", { name: "彻底删除" }).click();
+  await expect(page.locator(".ant-popover:has-text(\"不可恢复\")")).toBeVisible();
+  await page.locator(".ant-popover").getByRole("button", { name: "彻底删除" }).click();
+  const purged = await purgeApi;
+  // 接口断言：DELETE ?purge=true 200 + code=0
+  expect(purged.status).toBe(200);
+  expect(purged.code).toBe(0);
+  // UI 断言：回收站行消失 + toast；再查「全部」也不存在（物理删除）
+  await expect(page.getByText("已彻底删除")).toBeVisible({ timeout: 8000 });
+  await expect(row).toHaveCount(0);
+  await page.getByTestId("tab-all").click();
+  await expect(page.getByText(bugTitle)).toHaveCount(0);
+  // 接口断言：直查详情 404（彻底删除后不可恢复）
+  const detail = await page.request.get(`/api/v1/projects/${projectId}/bugs/${bugId}`);
+  expect(detail.status()).toBe(404);
+
+  await expectNoConsoleErrors();
+});

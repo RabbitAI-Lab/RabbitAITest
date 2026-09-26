@@ -137,3 +137,110 @@ test("DASH-001-02 时间筛选与卡片设置（布局记忆）", async ({
 
   await expectNoConsoleErrors();
 });
+
+/** coverage-audit 回补：DASH-001 §1.2 行 5「我的待办：待我评审、我的计划执行、我的缺陷」——规格 §5 T2 声明
+ *  三域（评审/执行/缺陷），现有用例只覆盖缺陷域；本用例补「待我评审」「我的执行」两域的出现→处理后消失。
+ *  期望值溯源规格 §2 待办判定：待我评审=ReviewCase.reviewers∋me 且 result=pending 且评审未结束；
+ *  我的执行=PlanCaseRef.executor=me 且 exec=pending 且计划未归档。 */
+test("DASH-001-03 待办：待我评审与我的计划执行（出现→处理后消失）", async ({
+  authedPage,
+  page,
+  request,
+  expectNoConsoleErrors,
+  expectApi,
+}) => {
+  const { projectId } = authedPage;
+  const uniq = `R${Date.now() % 1e7}${Math.floor(Math.random() * 1e3)}`;
+  const caseName = `待办评审用例-${uniq}`;
+  const reviewName = `待办评审-${uniq}`;
+  const planName = `待办执行计划-${uniq}`;
+
+  // 造数①：用例 + multi 评审（评审人=我，result=pending）→ 待我评审 1 条
+  const meRes = await request.get("/api/v1/personal/me");
+  expect(meRes.status()).toBe(200);
+  const me = ((await meRes.json()) as { data: { userId: string } }).data;
+  const caseRes = await request.post(`/api/v1/projects/${projectId}/cases`, {
+    data: { name: caseName },
+  });
+  expect(caseRes.status()).toBe(201);
+  const caseId = ((await caseRes.json()) as { data: { id: string } }).data.id;
+  const reviewRes = await request.post(`/api/v1/projects/${projectId}/reviews`, {
+    data: { name: reviewName, reviewMode: "MULTI", reviewers: [me.userId], caseIds: [caseId] },
+  });
+  expect(reviewRes.status()).toBe(201);
+  const reviewId = ((await reviewRes.json()) as { data: { id: string } }).data.id;
+
+  // 造数②：计划 + 关联用例 + 执行人=我（batch-executor）→ 我的执行 1 条（pending）
+  const planRes = await request.post(`/api/v1/projects/${projectId}/plans`, {
+    data: { name: planName },
+  });
+  expect(planRes.status()).toBe(201);
+  const planId = ((await planRes.json()) as { data: { id: string } }).data.id;
+  const linkRes = await request.post(`/api/v1/projects/${projectId}/plans/${planId}/cases`, {
+    data: { caseIds: [caseId], execUserId: me.userId },
+  });
+  expect(((await linkRes.json()) as { data: { added: number } }).data.added).toBe(1);
+
+  // 用户路径：首页（工作台）→ 我的待办
+  await page.goto("/");
+  await expect(page.getByTestId("dash-home")).toBeVisible();
+
+  // 待我评审域：kind=review 出现该评审（接口 + UI）
+  // 默认 Tab=待办且 kind=review 已随首屏发出，重复点击不重发——先切 exec 触发重挂载再回 review
+  await page.getByTestId("dash-todo-exec").click();
+  await page.waitForResponse("**/api/v1/projects/*/dashboard/todo?kind=exec*");
+  const todoReviewApi1 = expectApi("**/api/v1/projects/*/dashboard/todo?kind=review*");
+  await page.getByTestId("dash-todo-review").click();
+  const reviewTodo1 = await todoReviewApi1;
+  expect(reviewTodo1.status).toBe(200);
+  expect(reviewTodo1.code).toBe(0);
+  expect((reviewTodo1.data as { total: number }).total).toBeGreaterThanOrEqual(1);
+  await expect(page.getByTestId("dash-item").filter({ hasText: reviewName })).toBeVisible();
+
+  // 我的执行域：kind=exec 出现该计划（接口 + UI）
+  const todoExecApi1 = expectApi("**/api/v1/projects/*/dashboard/todo?kind=exec*");
+  await page.getByTestId("dash-todo-exec").click();
+  const execTodo1 = await todoExecApi1;
+  expect(execTodo1.status).toBe(200);
+  expect((execTodo1.data as { total: number }).total).toBeGreaterThanOrEqual(1);
+  await expect(page.getByTestId("dash-item").filter({ hasText: planName })).toBeVisible();
+
+  // 处理①：API 标记评审 PASS → 待我评审 -1
+  const judgeRes = await request.post(
+    `/api/v1/projects/${projectId}/reviews/${reviewId}/cases/${caseId}/judge`,
+    { data: { result: "PASS", comment: "" } },
+  );
+  expect(judgeRes.status()).toBe(200);
+  // 处理②：API 标记计划执行 PASS → 我的执行 -1
+  const planDetail = await request.get(`/api/v1/projects/${projectId}/plans/${planId}`);
+  const refId = (
+    (await planDetail.json()) as { data: { cases: { refId: string }[] } }
+  ).data.cases[0].refId;
+  const execRes = await request.post(
+    `/api/v1/projects/${projectId}/plans/${planId}/cases/${refId}/exec`,
+    { data: { status: "PASS" } },
+  );
+  expect(execRes.status()).toBe(200);
+
+  // 刷新后两域条目消失（口径：pending 清空 → total 归零回基线，列表无该条目）
+  await page.reload();
+  await expect(page.getByTestId("dash-home")).toBeVisible();
+  const todoReviewApi2 = expectApi("**/api/v1/projects/*/dashboard/todo?kind=review*");
+  await page.getByTestId("dash-todo-review").click();
+  const reviewTodo2 = await todoReviewApi2;
+  expect(reviewTodo2.code).toBe(0);
+  expect((reviewTodo2.data as { total: number }).total).toBe(
+    (reviewTodo1.data as { total: number }).total - 1,
+  );
+  await expect(page.getByTestId("dash-item").filter({ hasText: reviewName })).toHaveCount(0);
+  const todoExecApi2 = expectApi("**/api/v1/projects/*/dashboard/todo?kind=exec*");
+  await page.getByTestId("dash-todo-exec").click();
+  const execTodo2 = await todoExecApi2;
+  expect(execTodo2.code).toBe(0);
+  expect((execTodo2.data as { total: number }).total).toBe(
+    (execTodo1.data as { total: number }).total - 1,
+  );
+  await expect(page.getByTestId("dash-item").filter({ hasText: planName })).toHaveCount(0);
+
+  await expectNoConsoleErrors();
+});
