@@ -1,9 +1,22 @@
 name: ci
 
 on:
+  # 文档-only 变更（docs/规则/CHANGELOG/原型）不触发全量 CI——纯文档不可能破坏代码，
+  # 避免收尾补记证据这类提交浪费 ~7 分钟（2026-09-26 S1 收尾教训）。
+  # 代码/配置任何变更仍全量执行；main 保护语义不变。
   push:
     branches: [main]
+    paths-ignore:
+      - "docs/**"
+      - "**/*.md"
+      - "CHANGELOG.md"
+      - ".oxfmtignore"
   pull_request:
+    paths-ignore:
+      - "docs/**"
+      - "**/*.md"
+      - "CHANGELOG.md"
+      - ".oxfmtignore"
 
 concurrency:
   group: ci-${{ github.ref }}
