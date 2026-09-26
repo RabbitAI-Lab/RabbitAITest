@@ -1,5 +1,8 @@
+@import 'tailwindcss';
+
+/* 注意：不要设置 html{font-size}——Tailwind rem 类以 16px 基准对齐原型；
+   全局字号由 AntD theme.token.fontSize(13) 控制（2026-09-26 事故复盘） */
 * { box-sizing: border-box; }
-html { font-size: 13px; }
 body {
   margin: 0;
   background: #F5F6FA;

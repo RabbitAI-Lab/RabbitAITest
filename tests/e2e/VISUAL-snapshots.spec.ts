@@ -13,6 +13,9 @@ const SNAP_DIR = 'tests/visual/snapshots';
 test('VISUAL-login 登录页', async ({ page }) => {
   await page.goto('/login');
   await expect(page.getByTestId('login-form')).toBeVisible();
+  // 样式加载断言（2026-09-26 事故回归：Tailwind 未安装导致工具类全失效，录屏完全无样式）
+  const authBg = await page.evaluate(() => parseFloat(getComputedStyle(document.querySelector('.auth-bg')!).minHeight));
+  expect(authBg).toBeGreaterThanOrEqual(790); // min-h-screen 生效 ⇔ Tailwind 已加载（800px 视口解析值）
   await page.screenshot({ path: `${SNAP_DIR}/login.png` });
 });
 
@@ -20,6 +23,11 @@ test('VISUAL-dashboard 工作台', async ({ authedPage, page }) => {
   void authedPage;
   await page.goto('/');
   await expect(page.getByTestId('topbar')).toBeVisible();
+  // 样式加载断言：h-12 顶栏 = 48px；w-[208px] 侧栏 = 208px
+  const bar = await page.evaluate(() => getComputedStyle(document.querySelector('[data-testid=topbar]')!).height);
+  const nav = await page.evaluate(() => getComputedStyle(document.querySelector('[data-testid=leftnav]')!).width);
+  expect(bar).toBe('48px');
+  expect(nav).toBe('208px');
   await page.waitForTimeout(400);
   await page.screenshot({ path: `${SNAP_DIR}/dashboard.png` });
 });
