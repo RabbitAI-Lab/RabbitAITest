@@ -1,7 +1,13 @@
 import { PrismaClient } from '@prisma/client';
 
-/** 全仓唯一 PrismaClient 出口（rules/database §1.2：仅 apps/web/src/server 使用）。 */
-export const prisma = new PrismaClient();
+/**
+ * 全仓唯一 PrismaClient 出口（rules/database §1.2：仅 apps/web/src/server 使用）。
+ * globalThis 缓存：Next 生产构建按 chunk 实例化模块，不加缓存时每个 chunk 各建
+ * 一个连接池，111 路由规模下连接数爆掉 embedded PG 的 max_connections（P2037）。
+ */
+const g = globalThis as unknown as { __rabbitPrisma?: PrismaClient };
+export const prisma = g.__rabbitPrisma ?? new PrismaClient();
+g.__rabbitPrisma = prisma;
 
 /**
  * 项目内自增编号（rules/database §5.7）：

@@ -6,6 +6,7 @@ import {
   aggregateReviewResult, planPassRate,
   renderMarkdown, markdownExcerpt, escapeHtml,
 } from '../index';
+import type { FieldDefInput } from '../fields';
 
 // ── SYS-004 权限矩阵（≥12 组合契约测试，rbac §1）──
 
@@ -93,10 +94,10 @@ describe('resolvePermissionSet 并集/禁用交集', () => {
 // ── PROJ-002 buildValidator 10 类型矩阵 ──
 
 describe('buildValidator 字段引擎', () => {
-  const defs = (over: Partial<Parameters<typeof buildValidator>[0][number]> & { key: string; type: string; name?: string }) => ({
+  const defs = (over: { key: string; type: string } & Partial<FieldDefInput>): FieldDefInput => ({
     scene: 'case', name: over.name ?? over.key, required: false, options: {}, enabled: true,
     ...over,
-  }) as Parameters<typeof buildValidator>[0];
+  } as FieldDefInput);
 
   it('input 必填缺失拒绝；通过后放行', () => {
     const v = buildValidator([defs({ key: 'title', type: 'input', required: true })]);

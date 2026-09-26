@@ -322,6 +322,14 @@ export async function deleteAttachment(projectId: string, attachmentId: string) 
   return { ok: true };
 }
 
+// ── 变更历史（含 create/update/transition；CASE-003 时间线复用）──
+export async function listBugChanges(projectId: string, bugId: string) {
+  const bug = await prisma.bug.findFirst({ where: { id: bugId, projectId }, select: { id: true } });
+  if (!bug) throw new DomainError(ErrCode.BUG_NOT_FOUND, '缺陷不存在或已删除');
+  const { listChanges } = await import('../case/caseDetail.service');
+  return listChanges('bug', bugId);
+}
+
 // ── 关注（与用例同构，entityType=bug）──
 
 export async function setBugFollow(projectId: string, userId: string, bugId: string, on: boolean) {

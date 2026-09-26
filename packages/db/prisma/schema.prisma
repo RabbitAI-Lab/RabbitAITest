@@ -666,7 +666,7 @@ model PlanCaseRef {
   /// 本次执行结果 {actualResult, steps:[{status,result}], comment}（PLAN-001）
   result      Json       @default("{}")
   /// 执行历史 [{ts,userId,from,to,steps}]（PLAN-001）
-  execHistory Json       @default("[]")
+  execHistory Json       @default("[]") @map("exec_history")
 
   @@unique([planId, refType, refId])
   @@index([refType, refId])

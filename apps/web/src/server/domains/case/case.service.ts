@@ -129,8 +129,9 @@ export async function softDeleteCase(projectId: string, caseId: string, userId: 
     data: { deletedAt: new Date() },
   });
   if (r.count === 0) throw new DomainError(30404, '用例不存在或已在回收站');
+  const seq = (await prisma.changeLog.count({ where: { entityType: 'functional_case', entityId: caseId } })) + 1;
   await prisma.changeLog.create({
-    data: { entityType: 'functional_case', entityId: caseId, seq: 0, action: 'delete', userId },
+    data: { entityType: 'functional_case', entityId: caseId, seq, action: 'delete', userId },
   }).catch(() => undefined);
 }
 

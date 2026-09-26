@@ -980,6 +980,32 @@
         }
       }
     },
+    "/api/v1/projects/{projectId}/bugs/{bugId}/changes": {
+      "get": {
+        "summary": "GET /api/v1/projects/{projectId}/bugs/{bugId}/changes",
+        "tags": [
+          "项目·bugs"
+        ],
+        "x-permission": "PROJECT_BUG:READ",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/projects/{projectId}/bugs/{bugId}/follow": {
       "post": {
         "summary": "POST /api/v1/projects/{projectId}/bugs/{bugId}/follow",

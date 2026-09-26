@@ -369,6 +369,8 @@ export const bugApi = {
   },
   removeAttachment: (projectId: string, attachmentId: string) =>
     del<void>(`/api/v1/projects/${projectId}/attachments/${attachmentId}`),
+  changes: (projectId: string, bugId: string) =>
+    get<{ items: { id: string; seq: number; action: string; diff: unknown; userName: string; createdAt: string }[] }>(`/api/v1/projects/${projectId}/bugs/${bugId}/changes`),
   downloadUrl: (projectId: string, attachmentId: string) =>
     `/api/v1/projects/${projectId}/attachments/${attachmentId}/download`,
 };
