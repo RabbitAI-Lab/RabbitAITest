@@ -24,6 +24,8 @@ jobs:
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm test
+      - name: OpenAPI 快照校验（INFRA-001 勘误1：路由↔openapi.json 一致 + api-client 手写路径审计）
+        run: node scripts/gen-openapi.mjs --check
 
   build:
     name: next build

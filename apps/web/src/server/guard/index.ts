@@ -4,6 +4,7 @@ import { getSession } from '@/lib/session';
 import { getActiveUserId } from '@/server/current-user';
 import { prisma } from '@rabbit/db';
 import { permissionSetFor } from '@/server/rbac';
+import { ensureBoot } from '@/server/boot';
 
 /** api-conventions §2：统一信封 + 错误码。 */
 export function toResponse(err: unknown): NextResponse {
@@ -30,6 +31,7 @@ export function withAuth<Ctx, Args extends unknown[]>(
 ) {
   return async (...args: Args): Promise<NextResponse> => {
     try {
+      ensureBoot();
       const userId = await getActiveUserId();
       if (!userId) {
         return NextResponse.json(fail(ErrCode.UNAUTHENTICATED, ErrMsg[ErrCode.UNAUTHENTICATED]!), { status: 401 });
@@ -60,6 +62,7 @@ export function withProjectScope<Args extends unknown[]>(
 ) {
   return async (req: Request, ...args: Args): Promise<NextResponse> => {
     try {
+      ensureBoot();
       const userId = await getActiveUserId();
       if (!userId) {
         return NextResponse.json(fail(ErrCode.UNAUTHENTICATED, ErrMsg[ErrCode.UNAUTHENTICATED]!), { status: 401 });
@@ -134,6 +137,7 @@ export function withOrgScope<Args extends unknown[]>(
 ) {
   return async (req: Request, ...args: Args): Promise<NextResponse> => {
     try {
+      ensureBoot();
       const userId = await getActiveUserId();
       if (!userId) {
         return NextResponse.json(fail(ErrCode.UNAUTHENTICATED, ErrMsg[ErrCode.UNAUTHENTICATED]!), { status: 401 });

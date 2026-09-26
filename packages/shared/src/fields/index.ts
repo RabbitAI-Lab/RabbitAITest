@@ -133,7 +133,8 @@ export function buildValidator(
     if (bind && !b) continue; // 传了绑定清单则只认绑定字段
     shape[def.key] = buildOne(def, b?.required ?? def.required);
   }
-  return z.object(shape).passthrough().strip().or(z.record(z.unknown()));
+  // passthrough：实例 JSONB 可含历史字段（模板变更不回写存量）；未知键不参与校验
+  return z.object(shape).passthrough();
 }
 
 /** 前端控件映射元数据（renderKind：AntD 控件族） */

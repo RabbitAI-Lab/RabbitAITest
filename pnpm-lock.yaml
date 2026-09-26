@@ -143,6 +143,9 @@ importers:
       bullmq:
         specifier: ^5.34.0
         version: 5.81.5
+      dayjs:
+        specifier: ^1.11.23
+        version: 1.11.23
       exceljs:
         specifier: ^4.4.0
         version: 4.4.0
