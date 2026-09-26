@@ -98,7 +98,9 @@
     "/api/v1/internal/exec/{taskId}/callback": {
       "post": {
         "summary": "POST /api/v1/internal/exec/{taskId}/callback",
-        "tags": ["内部（引擎）"],
+        "tags": [
+          "内部（引擎）"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -121,7 +123,9 @@
     "/api/v1/internal/pools/register": {
       "post": {
         "summary": "POST /api/v1/internal/pools/register",
-        "tags": ["内部（引擎）"],
+        "tags": [
+          "内部（引擎）"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -144,8 +148,9 @@
     "/api/v1/orgs/{orgId}/field-defs/{id}": {
       "put": {
         "summary": "PUT /api/v1/orgs/{orgId}/field-defs/{id}",
-        "tags": ["组织"],
-        "x-permission": "ORG_TEMPLATE:UPDATE",
+        "tags": [
+          "组织"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -166,8 +171,9 @@
       },
       "delete": {
         "summary": "DELETE /api/v1/orgs/{orgId}/field-defs/{id}",
-        "tags": ["组织"],
-        "x-permission": "ORG_TEMPLATE:UPDATE",
+        "tags": [
+          "组织"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -190,8 +196,9 @@
     "/api/v1/orgs/{orgId}/field-defs": {
       "get": {
         "summary": "GET /api/v1/orgs/{orgId}/field-defs",
-        "tags": ["组织"],
-        "x-permission": "ORG_TEMPLATE:READ",
+        "tags": [
+          "组织"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -212,8 +219,9 @@
       },
       "post": {
         "summary": "POST /api/v1/orgs/{orgId}/field-defs",
-        "tags": ["组织"],
-        "x-permission": "ORG_TEMPLATE:READ",
+        "tags": [
+          "组织"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -236,8 +244,9 @@
     "/api/v1/orgs/{orgId}/groups/{id}/members/{userId}": {
       "delete": {
         "summary": "DELETE /api/v1/orgs/{orgId}/groups/{id}/members/{userId}",
-        "tags": ["组织"],
-        "x-permission": "ORG_GROUP:UPDATE",
+        "tags": [
+          "组织"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -260,8 +269,9 @@
     "/api/v1/orgs/{orgId}/groups/{id}/members": {
       "post": {
         "summary": "POST /api/v1/orgs/{orgId}/groups/{id}/members",
-        "tags": ["组织"],
-        "x-permission": "ORG_GROUP:UPDATE",
+        "tags": [
+          "组织"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -284,8 +294,9 @@
     "/api/v1/orgs/{orgId}/groups/{id}/restore-default": {
       "post": {
         "summary": "POST /api/v1/orgs/{orgId}/groups/{id}/restore-default",
-        "tags": ["组织"],
-        "x-permission": "ORG_GROUP:UPDATE",
+        "tags": [
+          "组织"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -308,8 +319,9 @@
     "/api/v1/orgs/{orgId}/groups/{id}": {
       "put": {
         "summary": "PUT /api/v1/orgs/{orgId}/groups/{id}",
-        "tags": ["组织"],
-        "x-permission": "ORG_GROUP:UPDATE",
+        "tags": [
+          "组织"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -330,8 +342,9 @@
       },
       "delete": {
         "summary": "DELETE /api/v1/orgs/{orgId}/groups/{id}",
-        "tags": ["组织"],
-        "x-permission": "ORG_GROUP:UPDATE",
+        "tags": [
+          "组织"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -354,8 +367,9 @@
     "/api/v1/orgs/{orgId}/groups": {
       "get": {
         "summary": "GET /api/v1/orgs/{orgId}/groups",
-        "tags": ["组织"],
-        "x-permission": "ORG_GROUP:READ",
+        "tags": [
+          "组织"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -376,8 +390,9 @@
       },
       "post": {
         "summary": "POST /api/v1/orgs/{orgId}/groups",
-        "tags": ["组织"],
-        "x-permission": "ORG_GROUP:READ",
+        "tags": [
+          "组织"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -400,8 +415,9 @@
     "/api/v1/orgs/{orgId}/members": {
       "get": {
         "summary": "GET /api/v1/orgs/{orgId}/members",
-        "tags": ["组织"],
-        "x-permission": "ORG_MEMBER:READ",
+        "tags": [
+          "组织"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -424,8 +440,9 @@
     "/api/v1/orgs/{orgId}/projects": {
       "get": {
         "summary": "GET /api/v1/orgs/{orgId}/projects",
-        "tags": ["组织"],
-        "x-permission": "ORG_PROJECT:READ",
+        "tags": [
+          "组织"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -446,8 +463,9 @@
       },
       "post": {
         "summary": "POST /api/v1/orgs/{orgId}/projects",
-        "tags": ["组织"],
-        "x-permission": "ORG_PROJECT:READ",
+        "tags": [
+          "组织"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -470,8 +488,9 @@
     "/api/v1/orgs/{orgId}/templates/{id}/copy": {
       "post": {
         "summary": "POST /api/v1/orgs/{orgId}/templates/{id}/copy",
-        "tags": ["组织"],
-        "x-permission": "ORG_TEMPLATE:UPDATE",
+        "tags": [
+          "组织"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -494,8 +513,9 @@
     "/api/v1/orgs/{orgId}/templates/{id}/default": {
       "post": {
         "summary": "POST /api/v1/orgs/{orgId}/templates/{id}/default",
-        "tags": ["组织"],
-        "x-permission": "ORG_TEMPLATE:UPDATE",
+        "tags": [
+          "组织"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -518,8 +538,9 @@
     "/api/v1/orgs/{orgId}/templates/{id}/fields": {
       "put": {
         "summary": "PUT /api/v1/orgs/{orgId}/templates/{id}/fields",
-        "tags": ["组织"],
-        "x-permission": "ORG_TEMPLATE:UPDATE",
+        "tags": [
+          "组织"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -542,8 +563,9 @@
     "/api/v1/orgs/{orgId}/templates/{id}": {
       "put": {
         "summary": "PUT /api/v1/orgs/{orgId}/templates/{id}",
-        "tags": ["组织"],
-        "x-permission": "ORG_TEMPLATE:UPDATE",
+        "tags": [
+          "组织"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -564,8 +586,9 @@
       },
       "delete": {
         "summary": "DELETE /api/v1/orgs/{orgId}/templates/{id}",
-        "tags": ["组织"],
-        "x-permission": "ORG_TEMPLATE:UPDATE",
+        "tags": [
+          "组织"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -588,8 +611,9 @@
     "/api/v1/orgs/{orgId}/templates": {
       "get": {
         "summary": "GET /api/v1/orgs/{orgId}/templates",
-        "tags": ["组织"],
-        "x-permission": "ORG_TEMPLATE:READ",
+        "tags": [
+          "组织"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -610,8 +634,9 @@
       },
       "post": {
         "summary": "POST /api/v1/orgs/{orgId}/templates",
-        "tags": ["组织"],
-        "x-permission": "ORG_TEMPLATE:READ",
+        "tags": [
+          "组织"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -634,7 +659,9 @@
     "/api/v1/personal/me": {
       "get": {
         "summary": "GET /api/v1/personal/me",
-        "tags": ["个人中心"],
+        "tags": [
+          "个人中心"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -657,7 +684,9 @@
     "/api/v1/personal/permissions": {
       "get": {
         "summary": "GET /api/v1/personal/permissions",
-        "tags": ["个人中心"],
+        "tags": [
+          "个人中心"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -680,7 +709,9 @@
     "/api/v1/personal/preferences/{key}": {
       "get": {
         "summary": "GET /api/v1/personal/preferences/{key}",
-        "tags": ["个人中心"],
+        "tags": [
+          "个人中心"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -701,7 +732,9 @@
       },
       "put": {
         "summary": "PUT /api/v1/personal/preferences/{key}",
-        "tags": ["个人中心"],
+        "tags": [
+          "个人中心"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -724,7 +757,9 @@
     "/api/v1/personal/projects": {
       "get": {
         "summary": "GET /api/v1/personal/projects",
-        "tags": ["个人中心"],
+        "tags": [
+          "个人中心"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -747,8 +782,9 @@
     "/api/v1/projects/{projectId}/attachments/{attachmentId}/download": {
       "get": {
         "summary": "GET /api/v1/projects/{projectId}/attachments/{attachmentId}/download",
-        "tags": ["项目·attachments"],
-        "x-permission": "PROJECT_BUG:READ",
+        "tags": [
+          "项目·attachments"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -771,8 +807,9 @@
     "/api/v1/projects/{projectId}/attachments/{attachmentId}": {
       "delete": {
         "summary": "DELETE /api/v1/projects/{projectId}/attachments/{attachmentId}",
-        "tags": ["项目·attachments"],
-        "x-permission": "PROJECT_BUG:UPDATE",
+        "tags": [
+          "项目·attachments"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -795,8 +832,9 @@
     "/api/v1/projects/{projectId}/attachments": {
       "post": {
         "summary": "POST /api/v1/projects/{projectId}/attachments",
-        "tags": ["项目·attachments"],
-        "x-permission": "PROJECT_BUG:CREATE",
+        "tags": [
+          "项目·attachments"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -819,8 +857,9 @@
     "/api/v1/projects/{projectId}/bugs/{bugId}/attachments": {
       "get": {
         "summary": "GET /api/v1/projects/{projectId}/bugs/{bugId}/attachments",
-        "tags": ["项目·bugs"],
-        "x-permission": "PROJECT_BUG:READ",
+        "tags": [
+          "项目·bugs"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -843,8 +882,9 @@
     "/api/v1/projects/{projectId}/bugs/{bugId}/cases/{caseId}": {
       "delete": {
         "summary": "DELETE /api/v1/projects/{projectId}/bugs/{bugId}/cases/{caseId}",
-        "tags": ["项目·bugs"],
-        "x-permission": "PROJECT_BUG:UPDATE",
+        "tags": [
+          "项目·bugs"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -867,8 +907,9 @@
     "/api/v1/projects/{projectId}/bugs/{bugId}/cases": {
       "get": {
         "summary": "GET /api/v1/projects/{projectId}/bugs/{bugId}/cases",
-        "tags": ["项目·bugs"],
-        "x-permission": "PROJECT_BUG:READ",
+        "tags": [
+          "项目·bugs"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -889,8 +930,9 @@
       },
       "post": {
         "summary": "POST /api/v1/projects/{projectId}/bugs/{bugId}/cases",
-        "tags": ["项目·bugs"],
-        "x-permission": "PROJECT_BUG:READ",
+        "tags": [
+          "项目·bugs"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -913,8 +955,9 @@
     "/api/v1/projects/{projectId}/bugs/{bugId}/changes": {
       "get": {
         "summary": "GET /api/v1/projects/{projectId}/bugs/{bugId}/changes",
-        "tags": ["项目·bugs"],
-        "x-permission": "PROJECT_BUG:READ",
+        "tags": [
+          "项目·bugs"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -937,8 +980,9 @@
     "/api/v1/projects/{projectId}/bugs/{bugId}/follow": {
       "post": {
         "summary": "POST /api/v1/projects/{projectId}/bugs/{bugId}/follow",
-        "tags": ["项目·bugs"],
-        "x-permission": "PROJECT_BUG:READ",
+        "tags": [
+          "项目·bugs"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -961,8 +1005,9 @@
     "/api/v1/projects/{projectId}/bugs/{bugId}/restore": {
       "post": {
         "summary": "POST /api/v1/projects/{projectId}/bugs/{bugId}/restore",
-        "tags": ["项目·bugs"],
-        "x-permission": "PROJECT_BUG:UPDATE",
+        "tags": [
+          "项目·bugs"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -985,8 +1030,9 @@
     "/api/v1/projects/{projectId}/bugs/{bugId}": {
       "get": {
         "summary": "GET /api/v1/projects/{projectId}/bugs/{bugId}",
-        "tags": ["项目·bugs"],
-        "x-permission": "PROJECT_BUG:READ",
+        "tags": [
+          "项目·bugs"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -1007,8 +1053,9 @@
       },
       "put": {
         "summary": "PUT /api/v1/projects/{projectId}/bugs/{bugId}",
-        "tags": ["项目·bugs"],
-        "x-permission": "PROJECT_BUG:READ",
+        "tags": [
+          "项目·bugs"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -1029,8 +1076,9 @@
       },
       "delete": {
         "summary": "DELETE /api/v1/projects/{projectId}/bugs/{bugId}",
-        "tags": ["项目·bugs"],
-        "x-permission": "PROJECT_BUG:READ",
+        "tags": [
+          "项目·bugs"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -1053,8 +1101,9 @@
     "/api/v1/projects/{projectId}/bugs/{bugId}/transition": {
       "post": {
         "summary": "POST /api/v1/projects/{projectId}/bugs/{bugId}/transition",
-        "tags": ["项目·bugs"],
-        "x-permission": "PROJECT_BUG:UPDATE",
+        "tags": [
+          "项目·bugs"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -1077,8 +1126,9 @@
     "/api/v1/projects/{projectId}/bugs": {
       "get": {
         "summary": "GET /api/v1/projects/{projectId}/bugs",
-        "tags": ["项目·bugs"],
-        "x-permission": "PROJECT_BUG:READ",
+        "tags": [
+          "项目·bugs"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -1099,8 +1149,9 @@
       },
       "post": {
         "summary": "POST /api/v1/projects/{projectId}/bugs",
-        "tags": ["项目·bugs"],
-        "x-permission": "PROJECT_BUG:READ",
+        "tags": [
+          "项目·bugs"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -1123,8 +1174,9 @@
     "/api/v1/projects/{projectId}/cases/{caseId}/bugs/{bugId}": {
       "delete": {
         "summary": "DELETE /api/v1/projects/{projectId}/cases/{caseId}/bugs/{bugId}",
-        "tags": ["项目·cases"],
-        "x-permission": "PROJECT_BUG:UPDATE",
+        "tags": [
+          "项目·cases"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -1147,8 +1199,9 @@
     "/api/v1/projects/{projectId}/cases/{caseId}/bugs": {
       "get": {
         "summary": "GET /api/v1/projects/{projectId}/cases/{caseId}/bugs",
-        "tags": ["项目·cases"],
-        "x-permission": "PROJECT_BUG:READ",
+        "tags": [
+          "项目·cases"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -1169,8 +1222,9 @@
       },
       "post": {
         "summary": "POST /api/v1/projects/{projectId}/cases/{caseId}/bugs",
-        "tags": ["项目·cases"],
-        "x-permission": "PROJECT_BUG:READ",
+        "tags": [
+          "项目·cases"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -1193,8 +1247,9 @@
     "/api/v1/projects/{projectId}/cases/{caseId}/changes": {
       "get": {
         "summary": "GET /api/v1/projects/{projectId}/cases/{caseId}/changes",
-        "tags": ["项目·cases"],
-        "x-permission": "PROJECT_CASE:READ",
+        "tags": [
+          "项目·cases"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -1217,8 +1272,9 @@
     "/api/v1/projects/{projectId}/cases/{caseId}/copy": {
       "post": {
         "summary": "POST /api/v1/projects/{projectId}/cases/{caseId}/copy",
-        "tags": ["项目·cases"],
-        "x-permission": "PROJECT_CASE:CREATE",
+        "tags": [
+          "项目·cases"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -1241,8 +1297,9 @@
     "/api/v1/projects/{projectId}/cases/{caseId}/dependencies/{id}": {
       "delete": {
         "summary": "DELETE /api/v1/projects/{projectId}/cases/{caseId}/dependencies/{id}",
-        "tags": ["项目·cases"],
-        "x-permission": "PROJECT_CASE:UPDATE",
+        "tags": [
+          "项目·cases"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -1265,8 +1322,9 @@
     "/api/v1/projects/{projectId}/cases/{caseId}/dependencies": {
       "get": {
         "summary": "GET /api/v1/projects/{projectId}/cases/{caseId}/dependencies",
-        "tags": ["项目·cases"],
-        "x-permission": "PROJECT_CASE:READ",
+        "tags": [
+          "项目·cases"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -1287,8 +1345,9 @@
       },
       "post": {
         "summary": "POST /api/v1/projects/{projectId}/cases/{caseId}/dependencies",
-        "tags": ["项目·cases"],
-        "x-permission": "PROJECT_CASE:READ",
+        "tags": [
+          "项目·cases"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -1311,8 +1370,9 @@
     "/api/v1/projects/{projectId}/cases/{caseId}/follow": {
       "post": {
         "summary": "POST /api/v1/projects/{projectId}/cases/{caseId}/follow",
-        "tags": ["项目·cases"],
-        "x-permission": "PROJECT_CASE:READ",
+        "tags": [
+          "项目·cases"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -1333,8 +1393,9 @@
       },
       "delete": {
         "summary": "DELETE /api/v1/projects/{projectId}/cases/{caseId}/follow",
-        "tags": ["项目·cases"],
-        "x-permission": "PROJECT_CASE:READ",
+        "tags": [
+          "项目·cases"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -1357,8 +1418,9 @@
     "/api/v1/projects/{projectId}/cases/{caseId}/plans": {
       "get": {
         "summary": "GET /api/v1/projects/{projectId}/cases/{caseId}/plans",
-        "tags": ["项目·cases"],
-        "x-permission": "PROJECT_PLAN:READ",
+        "tags": [
+          "项目·cases"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -1381,7 +1443,9 @@
     "/api/v1/projects/{projectId}/cases/{caseId}/restore": {
       "post": {
         "summary": "POST /api/v1/projects/{projectId}/cases/{caseId}/restore",
-        "tags": ["项目·cases"],
+        "tags": [
+          "项目·cases"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -1404,8 +1468,9 @@
     "/api/v1/projects/{projectId}/cases/{caseId}/reviews": {
       "get": {
         "summary": "GET /api/v1/projects/{projectId}/cases/{caseId}/reviews",
-        "tags": ["项目·cases"],
-        "x-permission": "PROJECT_CASE_REVIEW:READ",
+        "tags": [
+          "项目·cases"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -1428,8 +1493,9 @@
     "/api/v1/projects/{projectId}/cases/{caseId}": {
       "get": {
         "summary": "GET /api/v1/projects/{projectId}/cases/{caseId}",
-        "tags": ["项目·cases"],
-        "x-permission": "PROJECT_CASE:READ",
+        "tags": [
+          "项目·cases"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -1450,8 +1516,9 @@
       },
       "put": {
         "summary": "PUT /api/v1/projects/{projectId}/cases/{caseId}",
-        "tags": ["项目·cases"],
-        "x-permission": "PROJECT_CASE:READ",
+        "tags": [
+          "项目·cases"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -1472,8 +1539,9 @@
       },
       "delete": {
         "summary": "DELETE /api/v1/projects/{projectId}/cases/{caseId}",
-        "tags": ["项目·cases"],
-        "x-permission": "PROJECT_CASE:READ",
+        "tags": [
+          "项目·cases"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -1496,8 +1564,9 @@
     "/api/v1/projects/{projectId}/cases/batch-copy": {
       "post": {
         "summary": "POST /api/v1/projects/{projectId}/cases/batch-copy",
-        "tags": ["项目·cases"],
-        "x-permission": "PROJECT_CASE:CREATE",
+        "tags": [
+          "项目·cases"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -1520,8 +1589,9 @@
     "/api/v1/projects/{projectId}/cases/batch-delete": {
       "post": {
         "summary": "POST /api/v1/projects/{projectId}/cases/batch-delete",
-        "tags": ["项目·cases"],
-        "x-permission": "PROJECT_CASE:DELETE",
+        "tags": [
+          "项目·cases"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -1544,8 +1614,9 @@
     "/api/v1/projects/{projectId}/cases/batch-move": {
       "post": {
         "summary": "POST /api/v1/projects/{projectId}/cases/batch-move",
-        "tags": ["项目·cases"],
-        "x-permission": "PROJECT_CASE:UPDATE",
+        "tags": [
+          "项目·cases"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -1568,8 +1639,9 @@
     "/api/v1/projects/{projectId}/cases/batch-update": {
       "post": {
         "summary": "POST /api/v1/projects/{projectId}/cases/batch-update",
-        "tags": ["项目·cases"],
-        "x-permission": "PROJECT_CASE:UPDATE",
+        "tags": [
+          "项目·cases"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -1592,8 +1664,9 @@
     "/api/v1/projects/{projectId}/cases/export": {
       "post": {
         "summary": "POST /api/v1/projects/{projectId}/cases/export",
-        "tags": ["项目·cases"],
-        "x-permission": "PROJECT_CASE:READ",
+        "tags": [
+          "项目·cases"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -1616,8 +1689,9 @@
     "/api/v1/projects/{projectId}/cases/import": {
       "post": {
         "summary": "POST /api/v1/projects/{projectId}/cases/import",
-        "tags": ["项目·cases"],
-        "x-permission": "PROJECT_CASE:CREATE",
+        "tags": [
+          "项目·cases"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -1640,8 +1714,9 @@
     "/api/v1/projects/{projectId}/cases/import/template": {
       "get": {
         "summary": "GET /api/v1/projects/{projectId}/cases/import/template",
-        "tags": ["项目·cases"],
-        "x-permission": "PROJECT_CASE:READ",
+        "tags": [
+          "项目·cases"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -1664,8 +1739,9 @@
     "/api/v1/projects/{projectId}/cases": {
       "get": {
         "summary": "GET /api/v1/projects/{projectId}/cases",
-        "tags": ["项目·cases"],
-        "x-permission": "PROJECT_CASE:READ",
+        "tags": [
+          "项目·cases"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -1686,8 +1762,9 @@
       },
       "post": {
         "summary": "POST /api/v1/projects/{projectId}/cases",
-        "tags": ["项目·cases"],
-        "x-permission": "PROJECT_CASE:READ",
+        "tags": [
+          "项目·cases"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -1710,8 +1787,9 @@
     "/api/v1/projects/{projectId}/close": {
       "post": {
         "summary": "POST /api/v1/projects/{projectId}/close",
-        "tags": ["项目·close"],
-        "x-permission": "ORG_PROJECT:UPDATE",
+        "tags": [
+          "项目·close"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -1734,7 +1812,9 @@
     "/api/v1/projects/{projectId}/comments/{commentId}": {
       "put": {
         "summary": "PUT /api/v1/projects/{projectId}/comments/{commentId}",
-        "tags": ["项目·comments"],
+        "tags": [
+          "项目·comments"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -1755,7 +1835,9 @@
       },
       "delete": {
         "summary": "DELETE /api/v1/projects/{projectId}/comments/{commentId}",
-        "tags": ["项目·comments"],
+        "tags": [
+          "项目·comments"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -1778,8 +1860,9 @@
     "/api/v1/projects/{projectId}/comments": {
       "get": {
         "summary": "GET /api/v1/projects/{projectId}/comments",
-        "tags": ["项目·comments"],
-        "x-permission": "PROJECT_CASE:READ",
+        "tags": [
+          "项目·comments"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -1800,8 +1883,9 @@
       },
       "post": {
         "summary": "POST /api/v1/projects/{projectId}/comments",
-        "tags": ["项目·comments"],
-        "x-permission": "PROJECT_CASE:READ",
+        "tags": [
+          "项目·comments"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -1824,7 +1908,9 @@
     "/api/v1/projects/{projectId}/dashboard/created": {
       "get": {
         "summary": "GET /api/v1/projects/{projectId}/dashboard/created",
-        "tags": ["项目·dashboard"],
+        "tags": [
+          "项目·dashboard"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -1847,7 +1933,9 @@
     "/api/v1/projects/{projectId}/dashboard/followed": {
       "get": {
         "summary": "GET /api/v1/projects/{projectId}/dashboard/followed",
-        "tags": ["项目·dashboard"],
+        "tags": [
+          "项目·dashboard"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -1870,7 +1958,9 @@
     "/api/v1/projects/{projectId}/dashboard/overview": {
       "get": {
         "summary": "GET /api/v1/projects/{projectId}/dashboard/overview",
-        "tags": ["项目·dashboard"],
+        "tags": [
+          "项目·dashboard"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -1893,7 +1983,9 @@
     "/api/v1/projects/{projectId}/dashboard/todo": {
       "get": {
         "summary": "GET /api/v1/projects/{projectId}/dashboard/todo",
-        "tags": ["项目·dashboard"],
+        "tags": [
+          "项目·dashboard"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -1916,7 +2008,9 @@
     "/api/v1/projects/{projectId}/exec-tasks": {
       "get": {
         "summary": "GET /api/v1/projects/{projectId}/exec-tasks",
-        "tags": ["项目·exec-tasks"],
+        "tags": [
+          "项目·exec-tasks"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -1937,7 +2031,9 @@
       },
       "post": {
         "summary": "POST /api/v1/projects/{projectId}/exec-tasks",
-        "tags": ["项目·exec-tasks"],
+        "tags": [
+          "项目·exec-tasks"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -1960,8 +2056,9 @@
     "/api/v1/projects/{projectId}/groups/{id}/members/{userId}": {
       "delete": {
         "summary": "DELETE /api/v1/projects/{projectId}/groups/{id}/members/{userId}",
-        "tags": ["项目·groups"],
-        "x-permission": "PROJECT_GROUP:UPDATE",
+        "tags": [
+          "项目·groups"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -1984,8 +2081,9 @@
     "/api/v1/projects/{projectId}/groups/{id}/members": {
       "post": {
         "summary": "POST /api/v1/projects/{projectId}/groups/{id}/members",
-        "tags": ["项目·groups"],
-        "x-permission": "PROJECT_GROUP:UPDATE",
+        "tags": [
+          "项目·groups"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -2008,8 +2106,9 @@
     "/api/v1/projects/{projectId}/groups/{id}/restore-default": {
       "post": {
         "summary": "POST /api/v1/projects/{projectId}/groups/{id}/restore-default",
-        "tags": ["项目·groups"],
-        "x-permission": "PROJECT_GROUP:UPDATE",
+        "tags": [
+          "项目·groups"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -2032,8 +2131,9 @@
     "/api/v1/projects/{projectId}/groups/{id}": {
       "put": {
         "summary": "PUT /api/v1/projects/{projectId}/groups/{id}",
-        "tags": ["项目·groups"],
-        "x-permission": "PROJECT_GROUP:UPDATE",
+        "tags": [
+          "项目·groups"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -2054,8 +2154,9 @@
       },
       "delete": {
         "summary": "DELETE /api/v1/projects/{projectId}/groups/{id}",
-        "tags": ["项目·groups"],
-        "x-permission": "PROJECT_GROUP:UPDATE",
+        "tags": [
+          "项目·groups"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -2078,8 +2179,9 @@
     "/api/v1/projects/{projectId}/groups": {
       "get": {
         "summary": "GET /api/v1/projects/{projectId}/groups",
-        "tags": ["项目·groups"],
-        "x-permission": "PROJECT_GROUP:READ",
+        "tags": [
+          "项目·groups"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -2100,8 +2202,9 @@
       },
       "post": {
         "summary": "POST /api/v1/projects/{projectId}/groups",
-        "tags": ["项目·groups"],
-        "x-permission": "PROJECT_GROUP:READ",
+        "tags": [
+          "项目·groups"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -2124,8 +2227,9 @@
     "/api/v1/projects/{projectId}/info": {
       "get": {
         "summary": "GET /api/v1/projects/{projectId}/info",
-        "tags": ["项目·info"],
-        "x-permission": "PROJECT_MEMBER:READ",
+        "tags": [
+          "项目·info"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -2148,8 +2252,9 @@
     "/api/v1/projects/{projectId}/members/{userId}": {
       "delete": {
         "summary": "DELETE /api/v1/projects/{projectId}/members/{userId}",
-        "tags": ["项目·members"],
-        "x-permission": "PROJECT_MEMBER:UPDATE",
+        "tags": [
+          "项目·members"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -2172,8 +2277,9 @@
     "/api/v1/projects/{projectId}/members": {
       "get": {
         "summary": "GET /api/v1/projects/{projectId}/members",
-        "tags": ["项目·members"],
-        "x-permission": "PROJECT_MEMBER:READ",
+        "tags": [
+          "项目·members"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -2194,8 +2300,9 @@
       },
       "post": {
         "summary": "POST /api/v1/projects/{projectId}/members",
-        "tags": ["项目·members"],
-        "x-permission": "PROJECT_MEMBER:READ",
+        "tags": [
+          "项目·members"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -2218,8 +2325,9 @@
     "/api/v1/projects/{projectId}/modules/{id}/move": {
       "post": {
         "summary": "POST /api/v1/projects/{projectId}/modules/{id}/move",
-        "tags": ["项目·modules"],
-        "x-permission": "PROJECT_CASE:UPDATE",
+        "tags": [
+          "项目·modules"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -2242,8 +2350,9 @@
     "/api/v1/projects/{projectId}/modules/{id}": {
       "put": {
         "summary": "PUT /api/v1/projects/{projectId}/modules/{id}",
-        "tags": ["项目·modules"],
-        "x-permission": "PROJECT_CASE:UPDATE",
+        "tags": [
+          "项目·modules"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -2264,8 +2373,9 @@
       },
       "delete": {
         "summary": "DELETE /api/v1/projects/{projectId}/modules/{id}",
-        "tags": ["项目·modules"],
-        "x-permission": "PROJECT_CASE:UPDATE",
+        "tags": [
+          "项目·modules"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -2288,8 +2398,9 @@
     "/api/v1/projects/{projectId}/modules": {
       "get": {
         "summary": "GET /api/v1/projects/{projectId}/modules",
-        "tags": ["项目·modules"],
-        "x-permission": "PROJECT_CASE:READ",
+        "tags": [
+          "项目·modules"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -2310,8 +2421,9 @@
       },
       "post": {
         "summary": "POST /api/v1/projects/{projectId}/modules",
-        "tags": ["项目·modules"],
-        "x-permission": "PROJECT_CASE:READ",
+        "tags": [
+          "项目·modules"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -2334,8 +2446,9 @@
     "/api/v1/projects/{projectId}/plans/{planId}/archive": {
       "post": {
         "summary": "POST /api/v1/projects/{projectId}/plans/{planId}/archive",
-        "tags": ["项目·plans"],
-        "x-permission": "PROJECT_PLAN:UPDATE",
+        "tags": [
+          "项目·plans"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -2358,8 +2471,9 @@
     "/api/v1/projects/{projectId}/plans/{planId}/cases/{refId}/exec": {
       "post": {
         "summary": "POST /api/v1/projects/{projectId}/plans/{planId}/cases/{refId}/exec",
-        "tags": ["项目·plans"],
-        "x-permission": "PROJECT_PLAN:UPDATE",
+        "tags": [
+          "项目·plans"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -2382,8 +2496,9 @@
     "/api/v1/projects/{projectId}/plans/{planId}/cases/{refId}": {
       "delete": {
         "summary": "DELETE /api/v1/projects/{projectId}/plans/{planId}/cases/{refId}",
-        "tags": ["项目·plans"],
-        "x-permission": "PROJECT_PLAN:UPDATE",
+        "tags": [
+          "项目·plans"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -2406,8 +2521,9 @@
     "/api/v1/projects/{projectId}/plans/{planId}/cases/batch-executor": {
       "post": {
         "summary": "POST /api/v1/projects/{projectId}/plans/{planId}/cases/batch-executor",
-        "tags": ["项目·plans"],
-        "x-permission": "PROJECT_PLAN:UPDATE",
+        "tags": [
+          "项目·plans"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -2430,8 +2546,9 @@
     "/api/v1/projects/{projectId}/plans/{planId}/cases": {
       "post": {
         "summary": "POST /api/v1/projects/{projectId}/plans/{planId}/cases",
-        "tags": ["项目·plans"],
-        "x-permission": "PROJECT_PLAN:UPDATE",
+        "tags": [
+          "项目·plans"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -2454,8 +2571,9 @@
     "/api/v1/projects/{projectId}/plans/{planId}/report": {
       "get": {
         "summary": "GET /api/v1/projects/{projectId}/plans/{planId}/report",
-        "tags": ["项目·plans"],
-        "x-permission": "PROJECT_PLAN:READ",
+        "tags": [
+          "项目·plans"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -2478,8 +2596,9 @@
     "/api/v1/projects/{projectId}/plans/{planId}/report/summary": {
       "put": {
         "summary": "PUT /api/v1/projects/{projectId}/plans/{planId}/report/summary",
-        "tags": ["项目·plans"],
-        "x-permission": "PROJECT_PLAN:UPDATE",
+        "tags": [
+          "项目·plans"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -2502,8 +2621,9 @@
     "/api/v1/projects/{projectId}/plans/{planId}": {
       "get": {
         "summary": "GET /api/v1/projects/{projectId}/plans/{planId}",
-        "tags": ["项目·plans"],
-        "x-permission": "PROJECT_PLAN:READ",
+        "tags": [
+          "项目·plans"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -2524,8 +2644,9 @@
       },
       "put": {
         "summary": "PUT /api/v1/projects/{projectId}/plans/{planId}",
-        "tags": ["项目·plans"],
-        "x-permission": "PROJECT_PLAN:READ",
+        "tags": [
+          "项目·plans"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -2546,8 +2667,9 @@
       },
       "delete": {
         "summary": "DELETE /api/v1/projects/{projectId}/plans/{planId}",
-        "tags": ["项目·plans"],
-        "x-permission": "PROJECT_PLAN:READ",
+        "tags": [
+          "项目·plans"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -2570,8 +2692,9 @@
     "/api/v1/projects/{projectId}/plans/{planId}/unarchive": {
       "post": {
         "summary": "POST /api/v1/projects/{projectId}/plans/{planId}/unarchive",
-        "tags": ["项目·plans"],
-        "x-permission": "PROJECT_PLAN:UPDATE",
+        "tags": [
+          "项目·plans"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -2594,8 +2717,9 @@
     "/api/v1/projects/{projectId}/plans": {
       "get": {
         "summary": "GET /api/v1/projects/{projectId}/plans",
-        "tags": ["项目·plans"],
-        "x-permission": "PROJECT_PLAN:READ",
+        "tags": [
+          "项目·plans"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -2616,8 +2740,9 @@
       },
       "post": {
         "summary": "POST /api/v1/projects/{projectId}/plans",
-        "tags": ["项目·plans"],
-        "x-permission": "PROJECT_PLAN:READ",
+        "tags": [
+          "项目·plans"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -2640,8 +2765,9 @@
     "/api/v1/projects/{projectId}/reopen": {
       "post": {
         "summary": "POST /api/v1/projects/{projectId}/reopen",
-        "tags": ["项目·reopen"],
-        "x-permission": "ORG_PROJECT:UPDATE",
+        "tags": [
+          "项目·reopen"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -2664,7 +2790,9 @@
     "/api/v1/projects/{projectId}/reports/{taskId}": {
       "get": {
         "summary": "GET /api/v1/projects/{projectId}/reports/{taskId}",
-        "tags": ["项目·reports"],
+        "tags": [
+          "项目·reports"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -2687,8 +2815,9 @@
     "/api/v1/projects/{projectId}/restore": {
       "post": {
         "summary": "POST /api/v1/projects/{projectId}/restore",
-        "tags": ["项目·restore"],
-        "x-permission": "ORG_PROJECT:DELETE",
+        "tags": [
+          "项目·restore"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -2711,8 +2840,9 @@
     "/api/v1/projects/{projectId}/reviews/{reviewId}/cases/{caseId}/judge": {
       "post": {
         "summary": "POST /api/v1/projects/{projectId}/reviews/{reviewId}/cases/{caseId}/judge",
-        "tags": ["项目·reviews"],
-        "x-permission": "PROJECT_CASE_REVIEW:UPDATE",
+        "tags": [
+          "项目·reviews"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -2735,8 +2865,9 @@
     "/api/v1/projects/{projectId}/reviews/{reviewId}/cases/{caseId}": {
       "delete": {
         "summary": "DELETE /api/v1/projects/{projectId}/reviews/{reviewId}/cases/{caseId}",
-        "tags": ["项目·reviews"],
-        "x-permission": "PROJECT_CASE_REVIEW:UPDATE",
+        "tags": [
+          "项目·reviews"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -2759,8 +2890,9 @@
     "/api/v1/projects/{projectId}/reviews/{reviewId}/cases/batch-judge": {
       "post": {
         "summary": "POST /api/v1/projects/{projectId}/reviews/{reviewId}/cases/batch-judge",
-        "tags": ["项目·reviews"],
-        "x-permission": "PROJECT_CASE_REVIEW:UPDATE",
+        "tags": [
+          "项目·reviews"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -2783,8 +2915,9 @@
     "/api/v1/projects/{projectId}/reviews/{reviewId}/cases/batch-reviewer": {
       "post": {
         "summary": "POST /api/v1/projects/{projectId}/reviews/{reviewId}/cases/batch-reviewer",
-        "tags": ["项目·reviews"],
-        "x-permission": "PROJECT_CASE_REVIEW:UPDATE",
+        "tags": [
+          "项目·reviews"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -2807,8 +2940,9 @@
     "/api/v1/projects/{projectId}/reviews/{reviewId}/cases": {
       "post": {
         "summary": "POST /api/v1/projects/{projectId}/reviews/{reviewId}/cases",
-        "tags": ["项目·reviews"],
-        "x-permission": "PROJECT_CASE_REVIEW:UPDATE",
+        "tags": [
+          "项目·reviews"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -2831,8 +2965,9 @@
     "/api/v1/projects/{projectId}/reviews/{reviewId}/close": {
       "post": {
         "summary": "POST /api/v1/projects/{projectId}/reviews/{reviewId}/close",
-        "tags": ["项目·reviews"],
-        "x-permission": "PROJECT_CASE_REVIEW:UPDATE",
+        "tags": [
+          "项目·reviews"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -2855,8 +2990,9 @@
     "/api/v1/projects/{projectId}/reviews/{reviewId}/copy": {
       "post": {
         "summary": "POST /api/v1/projects/{projectId}/reviews/{reviewId}/copy",
-        "tags": ["项目·reviews"],
-        "x-permission": "PROJECT_CASE_REVIEW:UPDATE",
+        "tags": [
+          "项目·reviews"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -2879,8 +3015,9 @@
     "/api/v1/projects/{projectId}/reviews/{reviewId}": {
       "get": {
         "summary": "GET /api/v1/projects/{projectId}/reviews/{reviewId}",
-        "tags": ["项目·reviews"],
-        "x-permission": "PROJECT_CASE_REVIEW:READ",
+        "tags": [
+          "项目·reviews"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -2901,8 +3038,9 @@
       },
       "put": {
         "summary": "PUT /api/v1/projects/{projectId}/reviews/{reviewId}",
-        "tags": ["项目·reviews"],
-        "x-permission": "PROJECT_CASE_REVIEW:READ",
+        "tags": [
+          "项目·reviews"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -2923,8 +3061,9 @@
       },
       "delete": {
         "summary": "DELETE /api/v1/projects/{projectId}/reviews/{reviewId}",
-        "tags": ["项目·reviews"],
-        "x-permission": "PROJECT_CASE_REVIEW:READ",
+        "tags": [
+          "项目·reviews"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -2947,8 +3086,9 @@
     "/api/v1/projects/{projectId}/reviews": {
       "get": {
         "summary": "GET /api/v1/projects/{projectId}/reviews",
-        "tags": ["项目·reviews"],
-        "x-permission": "PROJECT_CASE_REVIEW:READ",
+        "tags": [
+          "项目·reviews"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -2969,8 +3109,9 @@
       },
       "post": {
         "summary": "POST /api/v1/projects/{projectId}/reviews",
-        "tags": ["项目·reviews"],
-        "x-permission": "PROJECT_CASE_REVIEW:READ",
+        "tags": [
+          "项目·reviews"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -2993,8 +3134,9 @@
     "/api/v1/projects/{projectId}": {
       "put": {
         "summary": "PUT /api/v1/projects/{projectId}",
-        "tags": ["项目"],
-        "x-permission": "ORG_PROJECT:UPDATE",
+        "tags": [
+          "项目"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -3015,8 +3157,9 @@
       },
       "delete": {
         "summary": "DELETE /api/v1/projects/{projectId}",
-        "tags": ["项目"],
-        "x-permission": "ORG_PROJECT:UPDATE",
+        "tags": [
+          "项目"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -3039,8 +3182,9 @@
     "/api/v1/projects/{projectId}/settings/case-review": {
       "get": {
         "summary": "GET /api/v1/projects/{projectId}/settings/case-review",
-        "tags": ["项目·settings"],
-        "x-permission": "PROJECT_CASE_REVIEW:READ",
+        "tags": [
+          "项目·settings"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -3061,8 +3205,9 @@
       },
       "put": {
         "summary": "PUT /api/v1/projects/{projectId}/settings/case-review",
-        "tags": ["项目·settings"],
-        "x-permission": "PROJECT_CASE_REVIEW:READ",
+        "tags": [
+          "项目·settings"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -3085,8 +3230,9 @@
     "/api/v1/projects/{projectId}/template-mode/enable": {
       "post": {
         "summary": "POST /api/v1/projects/{projectId}/template-mode/enable",
-        "tags": ["项目·template-mode"],
-        "x-permission": "PROJECT_TEMPLATE:UPDATE",
+        "tags": [
+          "项目·template-mode"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -3109,8 +3255,9 @@
     "/api/v1/projects/{projectId}/template-mode": {
       "get": {
         "summary": "GET /api/v1/projects/{projectId}/template-mode",
-        "tags": ["项目·template-mode"],
-        "x-permission": "PROJECT_TEMPLATE:READ",
+        "tags": [
+          "项目·template-mode"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -3133,8 +3280,9 @@
     "/api/v1/projects/{projectId}/templates/{id}/copy": {
       "post": {
         "summary": "POST /api/v1/projects/{projectId}/templates/{id}/copy",
-        "tags": ["项目·templates"],
-        "x-permission": "PROJECT_TEMPLATE:UPDATE",
+        "tags": [
+          "项目·templates"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -3157,8 +3305,9 @@
     "/api/v1/projects/{projectId}/templates/{id}/default": {
       "post": {
         "summary": "POST /api/v1/projects/{projectId}/templates/{id}/default",
-        "tags": ["项目·templates"],
-        "x-permission": "PROJECT_TEMPLATE:UPDATE",
+        "tags": [
+          "项目·templates"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -3181,8 +3330,9 @@
     "/api/v1/projects/{projectId}/templates/{id}/fields": {
       "put": {
         "summary": "PUT /api/v1/projects/{projectId}/templates/{id}/fields",
-        "tags": ["项目·templates"],
-        "x-permission": "PROJECT_TEMPLATE:UPDATE",
+        "tags": [
+          "项目·templates"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -3205,8 +3355,9 @@
     "/api/v1/projects/{projectId}/templates/{id}": {
       "put": {
         "summary": "PUT /api/v1/projects/{projectId}/templates/{id}",
-        "tags": ["项目·templates"],
-        "x-permission": "PROJECT_TEMPLATE:UPDATE",
+        "tags": [
+          "项目·templates"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -3227,8 +3378,9 @@
       },
       "delete": {
         "summary": "DELETE /api/v1/projects/{projectId}/templates/{id}",
-        "tags": ["项目·templates"],
-        "x-permission": "PROJECT_TEMPLATE:UPDATE",
+        "tags": [
+          "项目·templates"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -3251,8 +3403,9 @@
     "/api/v1/projects/{projectId}/templates": {
       "get": {
         "summary": "GET /api/v1/projects/{projectId}/templates",
-        "tags": ["项目·templates"],
-        "x-permission": "PROJECT_TEMPLATE:READ",
+        "tags": [
+          "项目·templates"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -3273,8 +3426,9 @@
       },
       "post": {
         "summary": "POST /api/v1/projects/{projectId}/templates",
-        "tags": ["项目·templates"],
-        "x-permission": "PROJECT_TEMPLATE:READ",
+        "tags": [
+          "项目·templates"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -3297,8 +3451,9 @@
     "/api/v1/projects/{projectId}/views/{id}": {
       "put": {
         "summary": "PUT /api/v1/projects/{projectId}/views/{id}",
-        "tags": ["项目·views"],
-        "x-permission": "PROJECT_CASE:READ",
+        "tags": [
+          "项目·views"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -3319,8 +3474,9 @@
       },
       "delete": {
         "summary": "DELETE /api/v1/projects/{projectId}/views/{id}",
-        "tags": ["项目·views"],
-        "x-permission": "PROJECT_CASE:READ",
+        "tags": [
+          "项目·views"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -3343,8 +3499,9 @@
     "/api/v1/projects/{projectId}/views": {
       "get": {
         "summary": "GET /api/v1/projects/{projectId}/views",
-        "tags": ["项目·views"],
-        "x-permission": "PROJECT_CASE:READ",
+        "tags": [
+          "项目·views"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -3365,8 +3522,9 @@
       },
       "post": {
         "summary": "POST /api/v1/projects/{projectId}/views",
-        "tags": ["项目·views"],
-        "x-permission": "PROJECT_CASE:READ",
+        "tags": [
+          "项目·views"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -3389,8 +3547,9 @@
     "/api/v1/projects/{projectId}/workflows": {
       "get": {
         "summary": "GET /api/v1/projects/{projectId}/workflows",
-        "tags": ["项目·workflows"],
-        "x-permission": "PROJECT_TEMPLATE:READ",
+        "tags": [
+          "项目·workflows"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -3413,8 +3572,9 @@
     "/api/v1/projects/{projectId}/workflows/states/{stateId}": {
       "put": {
         "summary": "PUT /api/v1/projects/{projectId}/workflows/states/{stateId}",
-        "tags": ["项目·workflows"],
-        "x-permission": "PROJECT_TEMPLATE:UPDATE",
+        "tags": [
+          "项目·workflows"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -3435,8 +3595,9 @@
       },
       "delete": {
         "summary": "DELETE /api/v1/projects/{projectId}/workflows/states/{stateId}",
-        "tags": ["项目·workflows"],
-        "x-permission": "PROJECT_TEMPLATE:UPDATE",
+        "tags": [
+          "项目·workflows"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -3459,8 +3620,9 @@
     "/api/v1/projects/{projectId}/workflows/states": {
       "post": {
         "summary": "POST /api/v1/projects/{projectId}/workflows/states",
-        "tags": ["项目·workflows"],
-        "x-permission": "PROJECT_TEMPLATE:UPDATE",
+        "tags": [
+          "项目·workflows"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -3483,8 +3645,9 @@
     "/api/v1/projects/{projectId}/workflows/transitions": {
       "put": {
         "summary": "PUT /api/v1/projects/{projectId}/workflows/transitions",
-        "tags": ["项目·workflows"],
-        "x-permission": "PROJECT_TEMPLATE:UPDATE",
+        "tags": [
+          "项目·workflows"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -3507,7 +3670,9 @@
     "/api/v1/stream/exec/{taskId}": {
       "get": {
         "summary": "GET /api/v1/stream/exec/{taskId}",
-        "tags": ["实时通道"],
+        "tags": [
+          "实时通道"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -3530,8 +3695,9 @@
     "/api/v1/system/groups/{id}/members/{userId}": {
       "delete": {
         "summary": "DELETE /api/v1/system/groups/{id}/members/{userId}",
-        "tags": ["系统设置"],
-        "x-permission": "SYSTEM_GROUP:UPDATE",
+        "tags": [
+          "系统设置"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -3554,8 +3720,9 @@
     "/api/v1/system/groups/{id}/members": {
       "post": {
         "summary": "POST /api/v1/system/groups/{id}/members",
-        "tags": ["系统设置"],
-        "x-permission": "SYSTEM_GROUP:UPDATE",
+        "tags": [
+          "系统设置"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -3578,8 +3745,9 @@
     "/api/v1/system/groups/{id}/restore-default": {
       "post": {
         "summary": "POST /api/v1/system/groups/{id}/restore-default",
-        "tags": ["系统设置"],
-        "x-permission": "SYSTEM_GROUP:UPDATE",
+        "tags": [
+          "系统设置"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -3602,8 +3770,9 @@
     "/api/v1/system/groups/{id}": {
       "put": {
         "summary": "PUT /api/v1/system/groups/{id}",
-        "tags": ["系统设置"],
-        "x-permission": "SYSTEM_GROUP:UPDATE",
+        "tags": [
+          "系统设置"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -3624,8 +3793,9 @@
       },
       "delete": {
         "summary": "DELETE /api/v1/system/groups/{id}",
-        "tags": ["系统设置"],
-        "x-permission": "SYSTEM_GROUP:UPDATE",
+        "tags": [
+          "系统设置"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -3648,8 +3818,9 @@
     "/api/v1/system/groups": {
       "get": {
         "summary": "GET /api/v1/system/groups",
-        "tags": ["系统设置"],
-        "x-permission": "SYSTEM_GROUP:READ",
+        "tags": [
+          "系统设置"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -3670,8 +3841,9 @@
       },
       "post": {
         "summary": "POST /api/v1/system/groups",
-        "tags": ["系统设置"],
-        "x-permission": "SYSTEM_GROUP:READ",
+        "tags": [
+          "系统设置"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -3694,8 +3866,9 @@
     "/api/v1/system/params/{group}": {
       "put": {
         "summary": "PUT /api/v1/system/params/{group}",
-        "tags": ["系统设置"],
-        "x-permission": "SYSTEM_PARAM:UPDATE",
+        "tags": [
+          "系统设置"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -3718,8 +3891,9 @@
     "/api/v1/system/params": {
       "get": {
         "summary": "GET /api/v1/system/params",
-        "tags": ["系统设置"],
-        "x-permission": "SYSTEM_PARAM:READ",
+        "tags": [
+          "系统设置"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -3742,8 +3916,9 @@
     "/api/v1/system/params/smtp/test": {
       "post": {
         "summary": "POST /api/v1/system/params/smtp/test",
-        "tags": ["系统设置"],
-        "x-permission": "SYSTEM_PARAM:UPDATE",
+        "tags": [
+          "系统设置"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -3766,8 +3941,9 @@
     "/api/v1/system/users/{id}/reset-password": {
       "post": {
         "summary": "POST /api/v1/system/users/{id}/reset-password",
-        "tags": ["系统设置"],
-        "x-permission": "SYSTEM_USER:UPDATE",
+        "tags": [
+          "系统设置"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -3790,8 +3966,9 @@
     "/api/v1/system/users/{id}": {
       "put": {
         "summary": "PUT /api/v1/system/users/{id}",
-        "tags": ["系统设置"],
-        "x-permission": "SYSTEM_USER:UPDATE",
+        "tags": [
+          "系统设置"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -3812,8 +3989,9 @@
       },
       "delete": {
         "summary": "DELETE /api/v1/system/users/{id}",
-        "tags": ["系统设置"],
-        "x-permission": "SYSTEM_USER:UPDATE",
+        "tags": [
+          "系统设置"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -3836,8 +4014,9 @@
     "/api/v1/system/users/{id}/status": {
       "post": {
         "summary": "POST /api/v1/system/users/{id}/status",
-        "tags": ["系统设置"],
-        "x-permission": "SYSTEM_USER:UPDATE",
+        "tags": [
+          "系统设置"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -3860,8 +4039,9 @@
     "/api/v1/system/users": {
       "get": {
         "summary": "GET /api/v1/system/users",
-        "tags": ["系统设置"],
-        "x-permission": "SYSTEM_USER:READ",
+        "tags": [
+          "系统设置"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -3882,8 +4062,9 @@
       },
       "post": {
         "summary": "POST /api/v1/system/users",
-        "tags": ["系统设置"],
-        "x-permission": "SYSTEM_USER:READ",
+        "tags": [
+          "系统设置"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -3915,7 +4096,11 @@
     "schemas": {
       "Envelope": {
         "type": "object",
-        "required": ["code", "message", "data"],
+        "required": [
+          "code",
+          "message",
+          "data"
+        ],
         "properties": {
           "code": {
             "type": "integer",
