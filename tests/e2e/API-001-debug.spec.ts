@@ -22,6 +22,8 @@ test('API-001-01 调试执行成功 → 报告展示响应与断言通过（RPT-
   await assertRows.nth(1).locator('input[placeholder="期望值"]').fill('UP');
 
   const createTaskApi = expectApi('**/api/v1/projects/*/exec-tasks');
+  // 报告详情监听与任务创建同时挂上（报告轮询在终态即停，挂晚会漏掉最后一次响应）
+  const reportPromise = expectApi('**/api/v1/projects/*/reports/*');
   await page.getByTestId('btn-execute').click();
   const created = await createTaskApi;
   expect(created.status).toBe(201);
@@ -30,9 +32,8 @@ test('API-001-01 调试执行成功 → 报告展示响应与断言通过（RPT-
 
   // 报告页（RPT-001）：SSE/轮询收敛到 SUCCESS
   await expect(page).toHaveURL(/\/reports\//, { timeout: 15000 });
-  const reportApi = expectApi('**/api/v1/projects/*/reports/*');
   await expect(page.getByTestId('report-status')).toHaveText('SUCCESS', { timeout: 30000 });
-  const report = await reportApi;
+  const report = await reportPromise;
   expect(report.code).toBe(0);
   const detail = report.data as { response?: { status: number }; asserts: { passed: boolean }[] };
   expect(detail.response?.status).toBe(200);

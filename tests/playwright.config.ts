@@ -10,7 +10,11 @@ export default defineConfig({
   reporter: [['html', { open: 'never' }], ['list']],
   use: {
     baseURL: process.env.E2E_BASE_URL ?? 'http://localhost:3100',
-    video: { mode: 'on-with-retry', size: { width: 1280, height: 720 } },
+    // E2E_VIDEO=on 时保留全部录屏（留档/评审用）；默认 on-with-retry（仅重试用例保留）
+    video: {
+      mode: (process.env.E2E_VIDEO as 'on' | 'on-with-retry' | 'off' | undefined) ?? 'on-with-retry',
+      size: { width: 1280, height: 720 },
+    },
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
     actionTimeout: 10_000,
