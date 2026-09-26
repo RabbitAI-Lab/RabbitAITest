@@ -12,10 +12,23 @@ import path from 'node:path';
 export interface ConsoleNoise { pageUrlPattern: string; textPattern: string; reason: string }
 
 export const test = base.extend<{
+  /** page 重载：每条 UI 用例结束自动整页截屏（rules/testing §3.6；fixture teardown 时机稳定生效） */
+  page: import('@playwright/test').Page;
   authedPage: { email: string; password: string; projectId: string };
   expectNoConsoleErrors: (whitelist?: ConsoleNoise[]) => Promise<void>;
   expectApi: (urlGlob: string) => Promise<{ status: number; code: number; data: unknown; body: unknown }>;
 }>({
+  page: async ({ page: basePage }, use, testInfo) => {
+    await use(basePage);
+    try {
+      if (!testInfo.titlePath.some((t) => String(t).includes('SYS-002-01'))) {
+        const dir = path.join(process.cwd(), 'test-results', 'screenshots');
+        mkdirSync(dir, { recursive: true });
+        const name = testInfo.titlePath.slice(1).join('-').replace(/[^\w\u4e00-\u9fa5-]+/g, '_').slice(0, 120);
+        await basePage.screenshot({ path: path.join(dir, `${name}.png`), fullPage: true });
+      }
+    } catch { /* 页面已关闭等场景忽略 */ }
+  },
   authedPage: async ({ request, context }, use) => {
     const email = `e2e-${Date.now()}-${Math.floor(Math.random() * 1e6)}@rabbit.test`;
     const password = 'rabbit-pass-123';
@@ -52,18 +65,6 @@ export const test = base.extend<{
       return { status: res.status(), code: body.code ?? -1, data: body.data ?? null, body };
     });
   },
-});
-
-test.afterEach(async ({ page }, testInfo) => {
-  // UI 用例截屏（无论成败）：test-results/screenshots/<用例名>.png（视觉比对与走查留档）
-  try {
-    if (!testInfo.titlePath.some((t) => String(t).includes('SYS-002-01'))) {
-      const dir = path.join('..', 'test-results', 'screenshots');
-      mkdirSync(dir, { recursive: true });
-      const name = testInfo.titlePath.slice(1).join('-').replace(/[^\w\u4e00-\u9fa5-]+/g, '_').slice(0, 120);
-      await page.screenshot({ path: path.join(dir, `${name}.png`), fullPage: true });
-    }
-  } catch { /* 页面已关闭等场景忽略 */ }
 });
 
 
