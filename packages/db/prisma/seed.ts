@@ -83,11 +83,14 @@ async function main() {
   });
   if (sysAdminGroup) await addGroupMember(prisma, sysAdminGroup.id, admin.id);
 
-  // 4) 存量组织/项目回填（老库升级：预置组 + 默认模板 + bug 模块 + 既有成员入项目成员组）
-  const orgs = await prisma.organization.findMany({ select: { id: true } });
+  // 4) 存量组织/项目回填（老库升级：预置组 + 默认模板 + bug 模块 + 权限治愈——
+  //    org owner → 组织管理员组；项目 OWNER → 项目管理员组；其余成员 → 项目成员组）
+  const orgs = await prisma.organization.findMany({ select: { id: true, ownerId: true } });
   for (const org of orgs) {
     await ensureOrgPresetGroups(prisma, org.id);
     await ensureDefaultTemplates(prisma, org.id);
+    const orgAdminGroup = await prisma.group.findFirst({ where: { scope: 'org', orgId: org.id, name: '组织管理员' }, select: { id: true } });
+    if (orgAdminGroup) await addGroupMember(prisma, orgAdminGroup.id, org.ownerId);
   }
   const projects = await prisma.project.findMany({ select: { id: true } });
   for (const project of projects) {
