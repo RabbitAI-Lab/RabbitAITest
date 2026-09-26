@@ -16,3 +16,4 @@ apps/web/tsconfig.tsbuildinfo
 
 # 视觉比对生成物（原型渲染 PNG / 快照 / 报告，CI artifact 上传留档）
 tests/visual/
+dump.rdb
