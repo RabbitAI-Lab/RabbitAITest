@@ -12,7 +12,7 @@
 6. **API 纪律**：遵循 `docs/architecture/api-conventions.md`；schema 用 zod 定义于 `packages/shared`；前端只用 `packages/api-client` 生成客户端。
 7. **范围红线**：P0-P2 不做 ENTP（企业版）功能；标准版不做 UI/性能测试。
 8. **阅读顺序**：AGENTS.md → docs/README.md → docs/architecture/tech-stack.md → docs/architecture/test-domain-model.md → 当前 sprint-overview → 功能规格 → 按工作内容读 rules/（完整规范地图见 AGENTS.md §2：react-nextjs / testing / database / engine / security / typescript / git-workflow / observability / ai-collaboration）。
-9. **Playwright UI 用例必须录屏**（video: on-with-retry）+ trace（retain-on-failure）+ 失败截图；CI artifact 上传，评审失败用例必须看录屏/trace 定位。
+9. **Playwright UI 用例必须录屏**（video: on-with-retry）+ trace（retain-on-failure）+ 失败截图 + **每用例自动整页截屏**；另须产出视觉快照（`pnpm test:visual`）并用 **GLM-5.3-Flash 多模态比对高保真还原度**（`pnpm visual:diff`，≥80 通过，报告入 PR）。
 10. **远程 CI 与 Sprint 交付**：以 GitHub Actions 远端结果为准（本地过 ≠ 完成）；main 必须保持绿（变红 stop the line）；**每个 Sprint 收尾必须 commit + push 到远程且远端 CI 全绿**（流程：rules/git-workflow.md §8），禁止代码只留本地。
 
 @rules/typescript.md

@@ -70,6 +70,20 @@ Playwright 全局配置（`playwright.config.ts`，禁止用例级关闭）：
 2. CI 产物保留 30 天；PR 失败时在检查摘要附报告链接——**评审失败的 UI 用例必须看录屏/trace 定位，禁止只看断言消息**。
 3. Bug 单必须附失败用例的录屏或 trace 链接（复现证据链）。
 
+### 3.6 UI 截屏（每条 UI 用例必备，2026-09-26 新增）
+
+1. **自动截屏**：fixtures 对每条 UI 用例结束时自动整页截屏（无论成败），存 `test-results/screenshots/<用例名>.png`，与录屏/trace 一同作为走查与人工评审证据。
+2. **视觉快照**：`VISUAL-snapshots.spec.ts` 为每个有高保真原型的页面产出稳定态截图（视口 1280×800 对齐原型画布、无 toast/loading、贴近原型示例数据），存 `tests/visual/snapshots/*.png`；命令：`pnpm test:visual`。
+3. 截屏缺失的 UI 用例视为交付不完整（与录屏同等要求）。
+
+### 3.7 视觉还原度比对（高保真 ↔ 实现，多模态评审）
+
+1. **流程**：`pnpm visual:diff`（`scripts/visual-diff.mjs`）——渲染 `docs/design/**` 原型为 PNG → 与 §3.6 快照成对送 **GLM-5.3-Flash（多模态）** 对比 → 产出 `tests/visual/report.md`（还原度总分 + 布局/颜色/细节分项 + 差异清单 + 建议）。
+2. **判定**：similarity ≥80 pass；60–79 warn（登记差异，允许带伤通过并在走查记录）；<60 fail。CI 在配置了 `GLM_API_KEY` 时以 `--enforce` 运行，低于阈值阻塞合并（key 未配置时跳过并在日志说明）。
+3. **时机**：UI 功能 PR 必附快照与比对报告；走查（AGENTS 门禁 2）以该报告为客观输入，人工确认仍不可省略。
+4. **环境**：`GLM_API_KEY`（或 `ZHIPUAI_API_KEY`）、`GLM_VISION_MODEL`（默认 glm-5.3-flash）、`GLM_VISUAL_THRESHOLD`（默认 80）、`GLM_BASE_URL`（默认智谱开放平台）。
+5. 示例数据内容差异不计入扣分，只评估视觉/布局/样式（提示词内置该约定）。
+
 ### 3.4 执行与 CI
 
 - 本地：`pnpm test:e2e`（自动起 web + engine + mock + embedded-postgres，Playwright 全量）。

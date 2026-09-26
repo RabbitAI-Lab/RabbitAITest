@@ -22,7 +22,7 @@ RabbitAITest：复刻 MeterSphere v3.x 社区版功能面的开源一站式测�
 - 确认后如交互变更，须更新原型并**重新确认**，状态回到 `待确认`
 - 纯后端/引擎类规格（INFRA/EXEC/QA 等）以「接口契约评审」替代高保真：OpenAPI/事件流 schema 人工确认后视为通过
 - **实现完成 ≠ 与高保真一致**：UI 功能交付前必须与原型**逐项走查**（布局/交互/各状态/边界/裁剪），走查批次编号登记（走查①②③…）；发现差异要么回改实现、要么更新原型并登记「勘误 N」（勘误记在原型目录 README，可追溯）——RabbitProjects 实践中约 1/3 的 UI 缺陷（布局裁剪、漏挂组件、下拉被裁切）由走查环节暴露
-- 走查结论与录屏证据（rules/testing.md §3.3）一并归档进 PR 描述
+- 走查结论、录屏（§3.3）与**视觉还原度报告**（§3.7：GLM-5.3-Flash 多模态比对高保真↔实现截图，`pnpm visual:diff`）一并归档进 PR 描述
 
 ### 门禁 3：一次建齐数据模型
 核心域表在 `packages/db/prisma/schema.prisma` 一次性建齐全部列（含未启用列），后续迭代只做「开关 + 种子 + 索引」。新增列必须说明为何无法初期建齐并经架构评审（见 `docs/architecture/test-domain-model.md` §6）。
@@ -84,7 +84,7 @@ RabbitAITest：复刻 MeterSphere v3.x 社区版功能面的开源一站式测�
 | 规则文件 | 适用场景 |
 | --- | --- |
 | [rules/react-nextjs.md](./rules/react-nextjs.md) | React 19 / Next.js App Router 编码（组件边界、数据获取、Route Handler、状态） |
-| [rules/testing.md](./rules/testing.md) | 自动化测试：Vitest 单测、JMeter 接口（四类场景×四项断言）、Playwright UI（**三类断言 + 录屏/trace**）、产物管理 |
+| [rules/testing.md](./rules/testing.md) | 自动化测试：Vitest 单测、JMeter 接口（四类场景×四项断言）、Playwright UI（**三类断言 + 录屏/trace + 每用例截屏**）、**GLM-5.3-Flash 视觉还原度比对**（§3.6/§3.7） |
 | [rules/database.md](./rules/database.md) | PostgreSQL/Prisma：命名、类型、索引、查询、迁移纪律、embedded-postgres |
 | [rules/engine.md](./rules/engine.md) | 执行引擎：状态机、事件流、kernel 纯函数、采样器、沙箱、本地模式 |
 | [rules/security.md](./rules/security.md) | 安全：认证、输入校验、注入与越权、SSRF 边界、密钥、依赖供应链 |
@@ -111,6 +111,8 @@ pnpm install && pnpm dev        # 启动 web（含 embedded-postgres 自动初�
 pnpm test                       # Vitest 单测
 pnpm test:api                   # JMeter 接口自动化（对本地服务执行，校验 jtl 失败数=0）
 pnpm test:e2e                   # Playwright UI 自动化（自动起全套服务）
+pnpm test:visual                # 视觉快照（tests/visual/snapshots，供还原度比对）
+pnpm visual:diff                # 高保真↔实现 多模态还原度比对（需 GLM_API_KEY）
 pnpm lint && pnpm format        # oxlint / oxfmt
 pnpm db:migrate && pnpm db:seed # Prisma 迁移与种子
 ```

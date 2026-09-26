@@ -1,4 +1,6 @@
 import { test as base, expect } from '@playwright/test';
+import { mkdirSync } from 'node:fs';
+import path from 'node:path';
 
 /**
  * rules/testing.md §3.1 三类断言公共夹具：
@@ -51,5 +53,18 @@ export const test = base.extend<{
     });
   },
 });
+
+test.afterEach(async ({ page }, testInfo) => {
+  // UI 用例截屏（无论成败）：test-results/screenshots/<用例名>.png（视觉比对与走查留档）
+  try {
+    if (!testInfo.titlePath.some((t) => String(t).includes('SYS-002-01'))) {
+      const dir = path.join('..', 'test-results', 'screenshots');
+      mkdirSync(dir, { recursive: true });
+      const name = testInfo.titlePath.slice(1).join('-').replace(/[^\w\u4e00-\u9fa5-]+/g, '_').slice(0, 120);
+      await page.screenshot({ path: path.join(dir, `${name}.png`), fullPage: true });
+    }
+  } catch { /* 页面已关闭等场景忽略 */ }
+});
+
 
 export { expect };

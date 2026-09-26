@@ -88,5 +88,5 @@ RabbitAITest 是一套**复刻 [MeterSphere](https://metersphere.io) v3.x 社区
 | [glossary.md](./glossary.md) | 术语表（含模型映射） |
 | [plan/迭代架构设计与功能规格拆解.md](./plan/迭代架构设计与功能规格拆解.md) | 文档拆解计划：方法论、目录树、统一模板、执行阶段、依赖链、质量控制 |
 | [MeterSphere功能清单.md](./MeterSphere功能清单.md) | 对标基线（调研产物，只读） |
-| [../rules/](../rules/) | 研发规范细则（8 份，AGENTS.md 引用）：`typescript`（通用编码）、`react-nextjs`、`database`（PG/Prisma/SQL/迁移）、`engine`（执行引擎）、`testing`（JMeter + Playwright 三类断言与录屏）、`security`、`git-workflow`（分支/PR/CI/发布）、`observability`（日志/链路）、`ai-collaboration`（人+AI 协作） |
+| [../rules/](../rules/) | 研发规范细则（8 份，AGENTS.md 引用）：`typescript`（通用编码）、`react-nextjs`、`database`（PG/Prisma/SQL/迁移）、`engine`（执行引擎）、`testing`（JMeter + Playwright 三类断言/录屏/截屏 + GLM-5.3-Flash 视觉还原度比对）、`security`、`git-workflow`（分支/PR/CI/发布）、`observability`（日志/链路）、`ai-collaboration`（人+AI 协作） |
 | design/ | 高保真原型（随迭代产出，暂空） |

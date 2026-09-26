@@ -20,7 +20,9 @@
     "db:seed": "pnpm --filter @rabbit/db seed",
     "prepare": "husky",
     "postinstall": "node scripts/fix-embedded-pg.mjs || true",
-    "lint:boundaries": "node scripts/check-boundaries.mjs"
+    "lint:boundaries": "node scripts/check-boundaries.mjs",
+    "test:visual": "playwright test -c tests/playwright.config.ts VISUAL",
+    "visual:diff": "node scripts/visual-diff.mjs --enforce"
   },
   "devDependencies": {
     "@commitlint/config-conventional": "^19.6.0",

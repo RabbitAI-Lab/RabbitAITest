@@ -96,6 +96,7 @@ jobs:
       E2E_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/rabbit_e2e
       E2E_REDIS_URL: redis://127.0.0.1:6379
       E2E_MOCK_URL: http://127.0.0.1:4000/hello
+      GLM_API_KEY: ${{ secrets.GLM_API_KEY }}
       CI: "true"
     steps:
       - uses: actions/checkout@v4
@@ -106,8 +107,16 @@ jobs:
       - run: pnpm --filter @rabbit/db generate
       - run: pnpm --filter web build
       - run: pnpm exec playwright install --with-deps chromium
-      - name: run e2e
+      - name: run e2e（含每用例截屏）
         run: pnpm test:e2e
+      - name: 视觉快照 + GLM-5.3-Flash 还原度比对（配置 GLM_API_KEY 时启用并强制阈值）
+        if: env.GLM_API_KEY != ''
+        run: |
+          pnpm test:visual
+          pnpm visual:diff
+      - name: 还原度比对跳过提示（未配置 GLM_API_KEY）
+        if: env.GLM_API_KEY == ''
+        run: echo 'GLM_API_KEY 未配置，跳过视觉还原度比对（rules/testing §3.7.2）'
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -115,6 +124,7 @@ jobs:
           path: |
             playwright-report/
             test-results/
+            tests/visual/
           retention-days: 30
           if-no-files-found: ignore
 
