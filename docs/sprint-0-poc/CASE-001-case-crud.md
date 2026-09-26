@@ -5,7 +5,7 @@
 | 文档编号 | CASE-001 |
 | 所属迭代 | Sprint 0 — POC |
 | 优先级 | P0 |
-| 文档状态 | Implemented（Sprint 0 交付，验收自查见 sprint-overview §7） |
+| 文档状态 | Verified（用户验收通过 2026-09-26） |
 | 最后更新日期 | 2026-09-26 |
 | 上游依赖 | SYS-002/003、INFRA-003 |
 | 下游消费 | Sprint 1 CASE-002~005 全系列、PLAN-001 |

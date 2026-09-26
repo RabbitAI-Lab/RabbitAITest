@@ -7,7 +7,7 @@
 | 周期 | 第 1-2 周（10 个工作日） |
 | 覆盖优先级 | **P0 全量**（P1 及以上一律不进入本迭代） |
 | 文档数 | 10 份（3 INFRA + 3 SYS + 1 CASE + 1 API + 1 EXEC + 1 RPT） |
-| 文档状态 | Implemented（交付自查见 §7；高保真确认仍待人工，见 §8 遗留） |
+| 文档状态 | **Verified**（用户验收通过 2026-09-26；CI 绿 run 36220893639） |
 | 上游依据 | [需求文档](../需求文档.md) §五（P0 范围）、§七（M1 里程碑） |
 | 前置迭代 | 无（仅依赖 9 份架构文档） |
 | 阻塞下游 | Sprint 1 全量 → 进而阻塞 Sprint 2-9 |
@@ -100,6 +100,11 @@
 | 7. schema 与域模型一致；跨域静态检查 | ✅ | Prisma 45 实体一次建齐；`pnpm lint:boundaries` PASS（engine 不依赖 db/web 等） |
 | 8. 自动化测试齐备 | ✅ | Playwright **11/11 全绿**（每条 UI+Console+接口三类断言；video on-with-retry/trace/截图/HTML 报告）；JMeter **3 计划全断言通过**（SYS-001/CASE-001/API-001，四类场景×四项断言）；Vitest 13 单测绿 |
 | 9. push 远程 + 远端 CI 全绿 | 见提交记录 | GitHub Actions（lint/typecheck/unit/build/迁移重放/e2e/jmeter/audit） |
+
+## 7.1 用户验收记录
+
+- **2026-09-26：S0 验收通过**（用户在本地全栈实操走查：注册登录/组织项目/用例 CRUD/调试/报告等页面动线；录屏与截屏留档 test-results/）
+- 遗留高保真原型同步（§8.1）不阻塞验收——实现现为视觉基线
 
 ## 8. 遗留项与风险（去向登记）
 

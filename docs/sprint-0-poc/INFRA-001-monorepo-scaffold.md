@@ -6,7 +6,7 @@
 | 所属迭代 | Sprint 0 — POC 技术验证（第 1-2 周） |
 | 优先级 | P0（POC 阻塞级 · 迭代起点） |
 | 所属模块 | M0-INFRA |
-| 文档状态 | Implemented（Sprint 0 交付，验收自查见 sprint-overview §7） |
+| 文档状态 | Verified（用户验收通过 2026-09-26） |
 | 最后更新日期 | 2026-09-26 |
 | 上游依赖 | 架构文档 tech-stack / monorepo-structure |
 | 下游消费 | 全部 Sprint 0 文档（INFRA-002/003 首当其冲） |

@@ -42,7 +42,7 @@ RabbitAITest 是一套**复刻 [MeterSphere](https://metersphere.io) v3.x 社区
 
 | 里程碑 | 周 | Sprint | 主题 | 文档数 | 状态 |
 | --- | --- | --- | --- | --- | --- |
-| M1 | W1-2 | [sprint-0-poc](./sprint-0-poc/sprint-overview.md) | POC 技术验证（P0） | 10 | **已交付**（2026-09-26：E2E 11/11、JMeter 3/3、engine --local 通过；高保真人工确认待补） |
+| M1 | W1-2 | [sprint-0-poc](./sprint-0-poc/sprint-overview.md) | POC 技术验证（P0） | 10 | **已验收 ✅**（2026-09-26 用户验收通过；E2E 17/17、JMeter 3/3、CI 六阶段绿；tag v0.1.0） |
 | M2 | W3-5 | [sprint-1-mvp-test-mgmt](./sprint-1-mvp-test-mgmt/sprint-overview.md) | 测试管理 MVP（P1） | 11 | 概览 + 11 份规格已产出（Draft 待评审） |
 | M3 | W6-8 | sprint-2-api-core | 接口测试核心（P1/P2） | 10 | 待产出 |
 | M4 | W9-11 | sprint-3-scenario-automation | 场景自动化（P2） | 7 | 待产出 |

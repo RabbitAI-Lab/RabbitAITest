@@ -5,7 +5,7 @@
 | 文档编号 | API-001 |
 | 所属迭代 | Sprint 0 — POC |
 | 优先级 | P0 |
-| 文档状态 | Implemented（Sprint 0 交付，验收自查见 sprint-overview §7） |
+| 文档状态 | Verified（用户验收通过 2026-09-26） |
 | 最后更新日期 | 2026-09-26 |
 | 上游依赖 | SYS-002、EXEC-001（执行链路）、RPT-001（报告渲染） |
 | 下游消费 | Sprint 2 API-002~005（定义/CASE/Mock 建立在调试之上） |
