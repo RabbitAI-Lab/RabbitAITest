@@ -487,3 +487,46 @@ export async function setBugFollow(projectId: string, userId: string, bugId: str
   }
   return { following: on };
 }
+
+// ── P-4：批量删除 + 导出（coverage-audit §10，BUG-001 §1.2 行 4）──
+
+export async function batchDeleteBugs(projectId: string, ids: string[]) {
+  const r = await prisma.bug.updateMany({
+    where: { id: { in: ids }, projectId, deletedAt: null },
+    data: { deletedAt: new Date() },
+  });
+  return { affected: r.count };
+}
+
+export async function exportBugs(projectId: string): Promise<{ buffer: Buffer; filename: string; contentType: string }> {
+  const bugs = await prisma.bug.findMany({
+    where: { projectId, deletedAt: null },
+    orderBy: { num: 'desc' },
+    select: { num: true, title: true, status: true, handleUserId: true, tags: true, createdAt: true, updatedAt: true },
+  });
+  const users = await prisma.user.findMany({ select: { id: true, name: true } });
+  const nameOf = new Map(users.map((u) => [u.id, u.name]));
+  const ExcelJS = (await import('exceljs')).default;
+  const wb = new ExcelJS.Workbook();
+  const ws = wb.addWorksheet('缺陷');
+  ws.addRow(['ID', '标题', '状态', '处理人', '标签', '创建时间', '更新时间']);
+  for (const b of bugs) {
+    ws.addRow([
+      `B-${String(b.num).padStart(4, '0')}`,
+      b.title,
+      b.status,
+      b.handleUserId ? (nameOf.get(b.handleUserId) ?? '—') : '—',
+      ((b.tags as string[]) ?? []).join(','),
+      b.createdAt.toISOString().slice(0, 10),
+      b.updatedAt.toISOString().slice(0, 10),
+    ]);
+  }
+  const project = await prisma.project.findFirst({ where: { id: projectId }, select: { name: true } });
+  const stamp = new Date().toISOString().replace(/[-:T]/g, '').slice(0, 12);
+  const buf = await wb.xlsx.writeBuffer();
+  return {
+    buffer: Buffer.from(buf as ArrayBuffer),
+    filename: `${project?.name ?? '项目'}-缺陷-${stamp}.xlsx`,
+    contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  };
+}

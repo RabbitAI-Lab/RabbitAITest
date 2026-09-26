@@ -2026,6 +2026,78 @@ export const GET = withAuth(async (ctx, req: Request) => {
   }),
 });
 
+
+route('api/v1/orgs/[orgId]/member-candidates/route.ts', {
+  GET: h('org', {
+    perm: 'ORG_MEMBER:UPDATE', svc: 'project/project.service', fn: 'orgMemberCandidates', query: 'orgMemberQuerySchema', argExprs: ['ctx.orgId', 'q'],
+  }),
+});
+route('api/v1/orgs/[orgId]/members-add/route.ts', {
+  POST: h('org', {
+    perm: 'ORG_MEMBER:UPDATE', svc: 'project/project.service', fn: 'addOrgMembers', body: 'projectMembersAddSchema', argExprs: ['ctx.orgId', 'body.userIds'], status: 201,
+  }),
+});
+route('api/v1/orgs/[orgId]/members/[userId]/route.ts', {
+  DELETE: h('org', {
+    perm: 'ORG_MEMBER:UPDATE', svc: 'project/project.service', fn: 'removeOrgMember', params: ['userId'], argExprs: ['ctx.orgId', 'userId'],
+  }),
+});
+route('api/v1/public/login-banner/route.ts', {
+  GET: h('auth', {
+    fn: '', svc: '', argExprs: [],
+    custom: `import { NextResponse } from 'next/server';
+import { ok } from '@rabbit/shared';
+import { publicLoginBanner } from '@/server/domains/system/param.service';
+
+export async function GET(): Promise<NextResponse> {
+  // 公开端点：登录页未登录可读（无敏感信息，仅 base.loginBanner）
+  const banner = await publicLoginBanner().catch(() => '');
+  return NextResponse.json(ok({ banner }));
+}
+`,
+  }),
+});
+route('api/v1/projects/[projectId]/bugs/batch-delete/route.ts', {
+  POST: h('project', {
+    perm: 'PROJECT_BUG:DELETE', writable: true, svc: 'bug/bug.service', fn: 'batchDeleteBugs',
+    custom: `import { toResponse, okResponse, withProjectScope } from '@/server/guard';
+import * as svc from '@/server/domains/bug/bug.service';
+
+export const POST = withProjectScope(async (ctx, req) => {
+  try {
+    ctx.requirePerm('PROJECT_BUG:DELETE');
+    ctx.requireWritable();
+    const body = (await req.json()) as { ids?: string[] };
+    if (!Array.isArray(body.ids) || body.ids.length === 0) {
+      return okResponse({ ok: false, message: '缺少 ids' }, 422);
+    }
+    return okResponse(await svc.batchDeleteBugs(ctx.projectId, body.ids));
+  } catch (err) { return toResponse(err); }
+});
+`,
+  }),
+});
+route('api/v1/projects/[projectId]/bugs/export/route.ts', {
+  POST: h('project', {
+    perm: 'PROJECT_BUG:READ', svc: 'bug/bug.service', fn: 'exportBugs', argExprs: [],
+    custom: `import { toResponse, withProjectScope } from '@/server/guard';
+import * as svc from '@/server/domains/bug/bug.service';
+
+export const POST = withProjectScope(async (ctx) => {
+  try {
+    ctx.requirePerm('PROJECT_BUG:READ');
+    const { buffer, filename, contentType } = await svc.exportBugs(ctx.projectId);
+    const res = new Response(new Uint8Array(buffer), {
+      status: 200,
+      headers: { 'Content-Type': contentType, 'Content-Disposition': "attachment; filename=" + JSON.stringify(encodeURIComponent(filename)) },
+    });
+    return res as unknown as import('next/server').NextResponse;
+  } catch (err) { return toResponse(err); }
+});
+`,
+  }),
+});
+
 // ── 落盘 ──
 let written = 0,
   skipped = 0;

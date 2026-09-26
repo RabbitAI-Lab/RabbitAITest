@@ -153,6 +153,17 @@
 
 ---
 
+## 11.0 产品缺口收口（2026-09-27 凌晨，全部修复并有回归用例）
+
+| # | 缺口 | 修复 | 回归用例 |
+| --- | --- | --- | --- |
+| P-1 | 登录横幅未渲染 | 公开端点 GET /api/v1/public/login-banner + login 页 LoginBanner 组件 | SYS-005-02（配置→登出→登录页渲染→复位） |
+| P-2 | 组织成员加入流程缺失 | POST /orgs/{org}/members-add、DELETE .../members/{userId}（owner 保护+项目联动清除）、GET .../member-candidates（作用域正确候选源）+ /org/members 页（左导航 nav-org-members） | PROJ-001-03（未入组 422 → 组织拉人 → 项目添加 201 全链路） |
+| P-3 | 用户编辑无 UI 入口 | system/users 行内「编辑」Modal（姓名/手机） | SYS-004-07 |
+| P-4 | 缺陷批量删除/导出/标签筛选缺失 | POST /bugs/batch-delete、POST /bugs/export（Excel）+ 列表 rowSelection/批量条/导出按钮/标签/严重程度筛选 | BUG-001-05 |
+
+全量 56/56 绿（Playwright）；远端 CI 见 main 最新提交。
+
 ## 11. 汇总与处置登记
 
 ### 11.1 本次回补（12 条，全部 Playwright，编号沿用文件序号）

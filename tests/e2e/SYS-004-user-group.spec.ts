@@ -335,3 +335,34 @@ test("SYS-004-06 重置密码、禁用（会话失效）与软删除用户", asy
   await victimCtx.close();
   await expectNoConsoleErrors();
 });
+
+/** P-3 回归（coverage-audit §10）：用户编辑（姓名/手机）——SYS-004 §1.2 行 1「编辑（姓名/手机）」。 */
+test("SYS-004-07 编辑用户姓名与手机（P-3）", async ({
+  request,
+  context,
+  page,
+}) => {
+  await loginSeedAdmin(request, context);
+  const stamp = Date.now() % 100000;
+  const email = `p3-edit-${stamp}@rabbit.test`;
+  const reg = await request.post("/api/v1/auth/register", {
+    data: { email, password: "rabbit-pass-123" },
+  });
+  expect(reg.status()).toBe(201);
+
+  await page.goto("/");
+  await page.getByTestId("nav-system-users").click();
+  // 定位到目标行（列表按创建时间倒序，用搜索收敛）
+  await page.getByTestId("input-user-keyword").fill(email.split("@")[0]);
+  await page.keyboard.press("Enter");
+  await expect(page.getByText(email).first()).toBeVisible({ timeout: 8000 });
+  await page.getByTestId(`btn-edit-user-${email}`).click();
+  const newName = `编辑后姓名${stamp}`;
+  await page.getByTestId("input-edit-user-name").fill(newName);
+  await page.getByTestId("input-edit-user-phone").fill("13900001111");
+  const putApi = page.waitForResponse((r) => r.url().includes("/api/v1/system/users/") && r.request().method() === "PUT");
+  await page.getByRole("button", { name: /保\s*存/ }).click();
+  const put = await putApi;
+  expect(put.status()).toBe(200);
+  await expect(page.getByText(newName).first()).toBeVisible();
+});

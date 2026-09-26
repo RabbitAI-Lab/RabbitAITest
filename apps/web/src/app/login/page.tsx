@@ -3,8 +3,8 @@
 import { Button, Form, Input } from "antd";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Suspense, useState } from "react";
 import { authApi, ApiError } from "@rabbit/api-client";
+import { Suspense, useEffect, useState } from "react";
 import { useApp } from "@/hooks/useApp";
 
 function LoginForm() {
@@ -58,10 +58,31 @@ function LoginForm() {
   );
 }
 
+function LoginBanner() {
+  const [banner, setBanner] = useState("");
+  useEffect(() => {
+    // SYS-005 base.loginBanner（公开端点，未登录可读；失败静默——横幅非关键路径）
+    fetch("/api/v1/public/login-banner")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((b: { data?: { banner?: string } } | null) => setBanner(b?.data?.banner ?? ""))
+      .catch(() => undefined);
+  }, []);
+  if (!banner) return null;
+  return (
+    <div
+      data-testid="login-banner"
+      className="mb-3 text-[13px] text-[#574BFF] bg-[#574BFF]/[.06] border border-[#574BFF]/20 rounded-lg px-3 py-2"
+    >
+      {banner}
+    </div>
+  );
+}
+
 export default function LoginPage() {
   return (
     <main className="auth-bg" data-testid="login-page">
       <div className="w-[400px] bg-white rounded-2xl border border-[#ECEEF1] shadow-[0_8px_30px_rgba(31,35,41,.08)] px-8 pt-8 pb-6">
+        <LoginBanner />
         <div className="flex items-center gap-2.5 mb-1.5">
           <span className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#6F63FF] to-[#574BFF] text-white grid place-items-center font-bold shadow-sm">
             R

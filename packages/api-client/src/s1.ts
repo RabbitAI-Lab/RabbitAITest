@@ -145,6 +145,12 @@ export const orgApi = {
     get<PageOf<OrgProjectRow>>(`/api/v1/orgs/${orgId}/projects${qs(q ?? {})}`),
   createProject: (orgId: string, body: { name: string; description?: string }) =>
     post<{ id: string; name: string }>(`/api/v1/orgs/${orgId}/projects`, body),
+  memberCandidates: (orgId: string, q: { keyword?: string; page?: number; pageSize?: number }) =>
+    get<PageOf<{ id: string; email: string; name: string }>>(`/api/v1/orgs/${orgId}/member-candidates${qs(q)}`),
+  addMembers: (orgId: string, userIds: string[]) =>
+    post<{ added: number }>(`/api/v1/orgs/${orgId}/members-add`, { userIds }),
+  removeMember: (orgId: string, userId: string) =>
+    del<void>(`/api/v1/orgs/${orgId}/members/${userId}`),
   members: (orgId: string, q: { keyword?: string; page?: number; pageSize?: number }) =>
     get<
       PageOf<{ id: string; email: string; name: string; phone: string | null; joinedAt: string }>
@@ -713,6 +719,10 @@ export const bugApi = {
         createdAt: string;
       }[];
     }>(`/api/v1/projects/${projectId}/bugs/${bugId}/changes`),
+  batchDelete: (projectId: string, ids: string[]) =>
+    post<{ affected: number }>(`/api/v1/projects/${projectId}/bugs/batch-delete`, { ids }),
+  exportBugs: (projectId: string) =>
+    downloadRaw(`/api/v1/projects/${projectId}/bugs/export`),
   downloadUrl: (projectId: string, attachmentId: string) =>
     `/api/v1/projects/${projectId}/attachments/${attachmentId}/download`,
 };

@@ -155,3 +155,9 @@ export async function siteUrl(): Promise<string> {
 }
 
 export { encryptSecret, decryptSecret };
+
+/** 登录页横幅（公开端点消费，P-1；无敏感信息）。 */
+export async function publicLoginBanner(): Promise<string> {
+  const base = await readParam("base");
+  return String(base.loginBanner ?? "");
+}

@@ -122,3 +122,52 @@ test("PROJ-001-02 成员管理：注册创建者即项目成员", async ({
 
   await expectNoConsoleErrors();
 });
+
+/** P-2 回归（coverage-audit §10）：组织管理员拉系统用户进组织 → 项目成员添加（基线三级链路打通）。 */
+test("PROJ-001-03 组织成员加入 → 项目成员添加（P-2）", async ({
+  authedPage,
+  request,
+  page,
+}) => {
+  const { projectId } = authedPage;
+  // 候选用户：另注册一个（自建组织），对本组织是"系统用户"
+  const email = `p2-org-${Date.now() % 100000}@rabbit.test`;
+  // 隔离上下文注册（同 fixture 注册会覆写 ras 会话，劫持后续请求的身份）
+  const { request: pwRequest } = await import("@playwright/test");
+  const iso = await pwRequest.newContext();
+  const reg = await iso.post("/api/v1/auth/register", {
+    data: { email, password: "rabbit-pass-123" },
+  });
+  expect(reg.status()).toBe(201);
+  const uid = ((await reg.json()) as { data: { userId: string } }).data.userId;
+  await iso.dispose();
+  const info = await request.get(`/api/v1/projects/${projectId}/info`);
+  const orgId = ((await info.json()) as { data: { org: { id: string } } }).data.org.id;
+
+  // 未加入组织前：项目成员添加应被拒（仅可添加组织成员）
+  const pre = await request.post(`/api/v1/projects/${projectId}/members`, {
+    data: { userIds: [uid] },
+  });
+  expect(pre.status()).toBe(422);
+
+  // 用户路径：组织 › 成员管理 → 搜索添加
+  await page.goto("/");
+  await page.getByTestId("nav-org-members").click();
+  await page.getByTestId("org-member-candidate-select").click();
+  await page.keyboard.type(email.split("@")[0]);
+  await page.locator(`.ant-select-item-option[title*="${email}"]`).first().click();
+  const addApi = page.waitForResponse((r) => r.url().includes("/members-add") && r.request().method() === "POST");
+  await page.getByTestId("btn-add-org-member").click();
+  const added = await addApi;
+  expect(added.status()).toBe(201);
+  await expect(page.getByTestId(`org-member-${email}`)).toBeVisible();
+
+  // 组织成员进项目：设置 › 成员管理 添加成功（此前 422 → 现 200）
+  const post = await request.post(`/api/v1/projects/${projectId}/members`, {
+    data: { userIds: [uid] },
+  });
+  expect(post.status()).toBe(201);
+  const members = await request.get(`/api/v1/projects/${projectId}/members`);
+  const list = ((await members.json()) as { data: { items: { email: string }[] } }).data.items;
+  expect(list.some((m) => m.email === email)).toBe(true);
+});

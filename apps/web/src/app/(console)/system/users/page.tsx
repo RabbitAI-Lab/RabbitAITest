@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Drawer, Input, Modal, Popconfirm, Select, Switch, Table, Tag } from "antd";
+import { Button, Drawer, Input, Modal, Popconfirm, Switch, Table, Tag } from "antd";
 import { Plus, Search } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { userApi, type UserRow } from "@rabbit/api-client";
@@ -16,6 +16,7 @@ export default function SystemUsersPage() {
   const [page, setPage] = useState(1);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [form, setForm] = useState({ email: "", name: "", phone: "", password: "" });
+  const [editing, setEditing] = useState<{ id: string; name: string; phone: string } | null>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ["system-users", keyword, page],
@@ -45,6 +46,15 @@ export default function SystemUsersPage() {
       });
     },
     onError: (e) => message.error(e instanceof Error ? e.message : "创建失败"),
+  });
+  const update = useMutation({
+    mutationFn: () => userApi.update(editing!.id, { name: editing!.name.trim(), phone: editing!.phone.trim() || null }),
+    onSuccess: () => {
+      invalidate();
+      setEditing(null);
+      message.success("用户信息已更新");
+    },
+    onError: (e) => message.error(e instanceof Error ? e.message : "更新失败"),
   });
   const reset = useMutation({
     mutationFn: (id: string) => userApi.resetPassword(id),
@@ -159,6 +169,15 @@ export default function SystemUsersPage() {
                     type="link"
                     size="small"
                     className="!px-0"
+                    onClick={() => setEditing({ id: row.id, name: row.name, phone: row.phone ?? "" })}
+                    data-testid={`btn-edit-user-${row.email}`}
+                  >
+                    编辑
+                  </Button>
+                  <Button
+                    type="link"
+                    size="small"
+                    className="!px-0"
                     onClick={() => reset.mutate(row.id)}
                     data-testid={`btn-reset-${row.email}`}
                   >
@@ -180,6 +199,28 @@ export default function SystemUsersPage() {
           ]}
         />
       </div>
+      <Modal
+        title="编辑用户"
+        open={Boolean(editing)}
+        onCancel={() => setEditing(null)}
+        onOk={() => update.mutate()}
+        confirmLoading={update.isPending}
+        okText="保存"
+        okButtonProps={{ disabled: !editing?.name.trim() }}
+      >
+        {editing && (
+          <div className="space-y-4 pt-2">
+            <div>
+              <label className="block text-[13px] mb-1">姓名 *</label>
+              <Input value={editing.name} onChange={(e) => setEditing({ ...editing, name: e.target.value })} data-testid="input-edit-user-name" />
+            </div>
+            <div>
+              <label className="block text-[13px] mb-1">手机</label>
+              <Input value={editing.phone} onChange={(e) => setEditing({ ...editing, phone: e.target.value })} data-testid="input-edit-user-phone" />
+            </div>
+          </div>
+        )}
+      </Modal>
       <Drawer title="新建用户" open={drawerOpen} onClose={() => setDrawerOpen(false)} width={420}>
         <div className="space-y-4">
           <div>

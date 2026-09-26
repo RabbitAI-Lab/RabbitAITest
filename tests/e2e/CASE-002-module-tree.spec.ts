@@ -311,8 +311,20 @@ test("CASE-002-03 批量移动与模块计数、批量编辑、行分享、默�
     });
   };
   await clickNodeStable(defaultNode).catch(() => {});
-  await defaultNode.click({ button: "right" });
-  await page.getByRole("menuitem", { name: "重命名" }).click();
+  // antd 树 titleRender 重渲染会重建右键菜单（元素解析到但瞬时不可见）——重试式打开+点击
+  const renameItem = page.getByRole("menuitem", { name: "重命名" });
+  let renamedOpened = false;
+  for (let i = 0; i < 4 && !renamedOpened; i++) {
+    await defaultNode.click({ button: "right" });
+    try {
+      await renameItem.click({ timeout: 2500 });
+      renamedOpened = true;
+    } catch {
+      await page.keyboard.press("Escape").catch(() => {});
+      await page.waitForTimeout(400);
+    }
+  }
+  expect(renamedOpened, "右键菜单「重命名」应在重试内可点开").toBe(true);
   const renamed = `未规划改名${uniq}`;
   const dialog = page.getByRole("dialog");
   await dialog.getByPlaceholder("模块名称").fill(renamed);

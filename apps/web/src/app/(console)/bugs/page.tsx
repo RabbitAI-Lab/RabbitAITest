@@ -41,6 +41,10 @@ export default function BugListPage() {
   const [moduleId, setModuleId] = useState<string | null>(null);
   const [includeChildren, setIncludeChildren] = useState(false);
   const [page, setPage] = useState(1);
+  const [tags, setTags] = useState("");
+  const [severity, setSeverity] = useState<string>();
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  void severity; // 严重程度筛选（fields.severity 动态字段，经 fields JSON 传入）
 
   const wfQ = useQuery({
     queryKey: ["workflow", projectId],
@@ -67,6 +71,8 @@ export default function BugListPage() {
       handler,
       moduleId,
       includeChildren,
+      tags,
+      severity,
       page,
     ],
     queryFn: () =>
@@ -203,6 +209,30 @@ export default function BugListPage() {
               }}
               data-testid="select-bug-status"
             />
+            <Input
+              className="w-40"
+              allowClear
+              placeholder="标签（逗号分隔）"
+              value={tags}
+              onChange={(e) => {
+                setTags(e.target.value);
+                setPage(1);
+              }}
+              data-testid="input-bug-tags"
+            />
+            <Select
+              className="w-36"
+              allowClear
+              virtual={false}
+              placeholder="严重程度：全部"
+              value={severity}
+              options={["致命", "严重", "一般", "轻微"].map((v) => ({ value: v, label: v }))}
+              onChange={(v) => {
+                setSeverity(v);
+                setPage(1);
+              }}
+              data-testid="select-bug-severity"
+            />
             {!recycled && (
               <MemberSelect
                 projectId={projectId!}
@@ -214,12 +244,65 @@ export default function BugListPage() {
                 placeholder="处理人：全部"
               />
             )}
+            {!recycled && (
+              <div className="ml-auto flex gap-2">
+                {selectedIds.length > 0 && (
+                  <Popconfirm
+                    title={`删除选中的 ${selectedIds.length} 条缺陷？`}
+                    description="进入回收站，可恢复"
+                    okText="删除"
+                    okButtonProps={{ danger: true }}
+                    onConfirm={async () => {
+                      try {
+                        const r = await bugApi.batchDelete(projectId!, selectedIds);
+                        message.success(`已删除 ${r.affected} 条缺陷`);
+                        setSelectedIds([]);
+                        invalidate();
+                      } catch (e) {
+                        message.error(e instanceof Error ? e.message : "批量删除失败");
+                      }
+                    }}
+                  >
+                    <Button danger data-testid="btn-batch-delete-bugs">
+                      删除选中（{selectedIds.length}）
+                    </Button>
+                  </Popconfirm>
+                )}
+                <Button
+                  data-testid="btn-export-bugs"
+                  onClick={async () => {
+                    try {
+                      const { blob, filename } = await bugApi.exportBugs(projectId!);
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement("a");
+                      a.href = url;
+                      a.download = decodeURIComponent(filename);
+                      a.click();
+                      URL.revokeObjectURL(url);
+                      message.success("缺陷已导出");
+                    } catch (e) {
+                      message.error(e instanceof Error ? e.message : "导出失败");
+                    }
+                  }}
+                >
+                  导出 Excel
+                </Button>
+              </div>
+            )}
           </div>
           <Table<BugRow>
             rowKey="id"
             loading={listQ.isLoading}
             dataSource={listQ.data?.items ?? []}
             data-testid="bug-table"
+            rowSelection={
+              recycled
+                ? undefined
+                : {
+                    selectedRowKeys: selectedIds,
+                    onChange: (keys) => setSelectedIds(keys as string[]),
+                  }
+            }
             pagination={{
               current: page,
               pageSize: 20,

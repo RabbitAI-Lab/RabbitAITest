@@ -97,6 +97,13 @@ export function LeftNav() {
           testid: "nav-org-projects",
         },
         {
+          href: "/org/members",
+          label: "成员管理",
+          icon: <Users size={15} strokeWidth={1.8} />,
+          perm: "ORG_MEMBER:READ",
+          testid: "nav-org-members",
+        },
+        {
           href: "/org/groups",
           label: "用户组",
           icon: <UserSquare2 size={15} strokeWidth={1.8} />,

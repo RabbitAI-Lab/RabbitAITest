@@ -270,3 +270,45 @@ test("BUG-001-04 回收站彻底删除（不可恢复）", async ({
 
   await expectNoConsoleErrors();
 });
+
+/** P-4 回归（coverage-audit §10）：批量删除 + 标签筛选 + 导出（BUG-001 §1.2 行 4）。 */
+test("BUG-001-05 批量删除、标签筛选与导出（P-4）", async ({
+  authedPage,
+  page,
+  request,
+}) => {
+  const { projectId } = authedPage;
+  const uniq = `P4-${Date.now() % 100000}`;
+  const ids: string[] = [];
+  for (const title of [`${uniq}-甲`, `${uniq}-乙`]) {
+    const r = await request.post(`/api/v1/projects/${projectId}/bugs`, {
+      data: { title, description: "", tags: ["批量P4"], fields: {} },
+    });
+    expect(r.status()).toBe(201);
+    ids.push(((await r.json()) as { data: { id: string } }).data.id);
+  }
+
+  // 标签筛选：命中 2 条
+  await page.goto("/");
+  await page.getByTestId("leftnav").getByRole("link", { name: "缺陷管理" }).click();
+  await page.getByTestId("input-bug-tags").fill("批量P4");
+  await page.keyboard.press("Enter");
+  await expect(page.getByText(`${uniq}-甲`)).toBeVisible({ timeout: 8000 });
+
+  // 导出（二进制 200）
+  const exp = await page.request.post(`/api/v1/projects/${projectId}/bugs/export`);
+  expect(exp.status()).toBe(200);
+
+  // 勾选 2 条 → 批量删除 → 回收站 2 条
+  await page.getByRole("row", { name: new RegExp(`${uniq}-甲`) }).locator('input[type="checkbox"]').first().check();
+  await page.getByRole("row", { name: new RegExp(`${uniq}-乙`) }).locator('input[type="checkbox"]').first().check();
+  await page.getByTestId("btn-batch-delete-bugs").click();
+  const delApi = page.waitForResponse((r) => r.url().includes("/bugs/batch-delete") && r.request().method() === "POST");
+  await page.locator(".ant-popover .ant-btn-dangerous, .ant-popconfirm .ant-btn-dangerous").first().click();
+  const del = await delApi;
+  expect(del.status()).toBe(200);
+  await expect(page.getByText(/已删除 2 条缺陷/)).toBeVisible({ timeout: 8000 });
+  await page.getByTestId("tab-recycle").click();
+  await expect(page.getByText(`${uniq}-甲`)).toBeVisible({ timeout: 8000 });
+  await expect(page.getByText(`${uniq}-乙`)).toBeVisible();
+});

@@ -441,3 +441,62 @@ export async function removeProjectMember(projectId: string, actorId: string, us
     .catch(() => undefined);
   return { removed: r.count };
 }
+
+// ── P-2：组织成员加入/移出（coverage-audit §10；对齐基线：组织管理员拉系统用户进组织）──
+
+/** 批量添加组织成员（ORG_MEMBER:UPDATE）：校验用户存在且未入组织。 */
+export async function addOrgMembers(orgId: string, userIds: string[]) {
+  const org = await prisma.organization.findFirst({ where: { id: orgId, deletedAt: null }, select: { id: true } });
+  if (!org) throw new DomainError(ErrCode.PROJECT_NOT_FOUND, '组织不存在或无权访问');
+  const users = await prisma.user.findMany({ where: { id: { in: userIds }, deletedAt: null }, select: { id: true } });
+  if (users.length !== userIds.length) throw new DomainError(ErrCode.VALIDATION_FAILED, '含不存在或已删除的用户');
+  const existing = await prisma.orgMember.findMany({ where: { orgId, userId: { in: userIds } }, select: { userId: true } });
+  const existingSet = new Set(existing.map((e) => e.userId));
+  let added = 0;
+  for (const u of users) {
+    if (existingSet.has(u.id)) continue;
+    await prisma.orgMember.create({ data: { orgId, userId: u.id } });
+    added += 1;
+  }
+  return { added };
+}
+
+/** 移出组织成员：组织 owner 不可移除；联动清除其项目内成员与项目组（保持一致性）。 */
+export async function removeOrgMember(orgId: string, userId: string) {
+  const org = await prisma.organization.findFirst({ where: { id: orgId }, select: { ownerId: true } });
+  if (!org) throw new DomainError(ErrCode.PROJECT_NOT_FOUND, '组织不存在或无权访问');
+  if (org.ownerId === userId) throw new DomainError(ErrCode.VALIDATION_FAILED, '组织所有者不可移除');
+  const r = await prisma.orgMember.deleteMany({ where: { orgId, userId } });
+  if (r.count === 0) throw new DomainError(ErrCode.VALIDATION_FAILED, '该用户不是组织成员');
+  // 联动：清除该组织项目内此人的成员关系与项目组成员资格
+  const projects = await prisma.project.findMany({ where: { orgId }, select: { id: true } });
+  const pids = projects.map((p) => p.id);
+  if (pids.length) {
+    await prisma.projectMember.deleteMany({ where: { projectId: { in: pids }, userId } });
+    await prisma.groupMember.deleteMany({ where: { userId, group: { projectId: { in: pids } } } });
+  }
+  return { removed: r.count };
+}
+
+/** P-2：可加入组织的候选用户（系统用户 - 已在组织；ORG_MEMBER:UPDATE 可调，不暴露系统管理端点）。 */
+export async function orgMemberCandidates(orgId: string, q: { keyword?: string; page: number; pageSize: number }) {
+  const where = {
+    deletedAt: null,
+    ...(q.keyword
+      ? { OR: [{ email: { contains: q.keyword, mode: 'insensitive' as const } }, { name: { contains: q.keyword, mode: 'insensitive' as const } }] }
+      : {}),
+  };
+  const [total, users] = await Promise.all([
+    prisma.user.count({ where }),
+    prisma.user.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      skip: (q.page - 1) * q.pageSize,
+      take: q.pageSize,
+      select: { id: true, email: true, name: true, phone: true },
+    }),
+  ]);
+  const members = await prisma.orgMember.findMany({ where: { orgId }, select: { userId: true } });
+  const memberSet = new Set(members.map((m) => m.userId));
+  return { total, items: users.filter((u) => !memberSet.has(u.id)) };
+}

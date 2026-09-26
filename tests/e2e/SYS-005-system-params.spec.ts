@@ -71,3 +71,30 @@ test("SYS-005-01 参数保存与测试连接（管理员）", async ({
 
   await expectNoConsoleErrors();
 });
+
+/** P-1 回归（coverage-audit §10）：登录横幅配置 → 登出 → 登录页渲染（SYS-005 §1.2 行 1）。 */
+test("SYS-005-02 登录横幅配置并渲染（P-1）", async ({
+  request,
+  context,
+  page,
+}) => {
+  await loginSeedAdmin(request, context);
+  const banner = `欢迎来到 Rabbit 测试平台 ${Date.now() % 100000}`;
+  const put = await request.put("/api/v1/system/params/basic", {
+    data: { group: "basic", value: { siteUrl: "http://localhost:3100", loginBanner: banner } },
+  });
+  expect(put.status()).toBe(200);
+
+  // 登出后登录页应渲染横幅（公开端点 /public/login-banner）
+  // 注意：request 登出只清 request 上下文 cookie——浏览器 cookie 需显式清除，否则 /login 被守卫重定向
+  await request.post("/api/v1/auth/logout");
+  await context.clearCookies();
+  await page.goto("/login");
+  await expect(page.getByTestId("login-banner")).toBeVisible();
+  await expect(page.getByTestId("login-banner")).toHaveText(banner);
+  // 复位（避免影响 VISUAL-login 快照）
+  await loginSeedAdmin(request, context);
+  await request.put("/api/v1/system/params/basic", {
+    data: { group: "basic", value: { siteUrl: "http://localhost:3100", loginBanner: "" } },
+  });
+});
