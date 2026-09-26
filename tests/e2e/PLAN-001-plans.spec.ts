@@ -289,7 +289,7 @@ test("PLAN-001-03 重复关联开关开启二态与批量改执行人", async ({
   await expect(linkModal).toBeVisible();
   await page.getByTestId("link-cases-keyword").fill(uniq);
   for (const row of await linkModal.getByRole("row").all()) {
-    const box = row.locator('input[type="checkbox"]');
+    const box = row.locator('input[type="checkbox"]').first(); // 展开箭头+勾选可能各含 input
     if (await box.count()) await box.check();
   }
   const relinkApi = expectApi("**/api/v1/projects/*/plans/*/cases");
@@ -308,6 +308,7 @@ test("PLAN-001-03 重复关联开关开启二态与批量改执行人", async ({
     await page
       .getByRole("row", { name: new RegExp(name) })
       .locator('input[type="checkbox"]')
+      .first()
       .check();
   }
   await expect(page.getByTestId("btn-batch-executor")).toBeEnabled();

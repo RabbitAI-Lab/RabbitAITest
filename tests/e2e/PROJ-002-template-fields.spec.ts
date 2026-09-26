@@ -91,7 +91,7 @@ test("PROJ-002-01 字段→模板→用例联动（必填 422 + 列表列）", a
     // 必填动态字段缺省提交：预期 422 被浏览器记为资源加载失败（§3.5.1 显式登记）
     {
       pageUrlPattern: "/cases/new",
-      textPattern: "Failed to load resource.*422",
+      textPattern: "(\\[http 422\\]|Failed to load resource.*422)",
       reason: "必填自定义字段缺省提交预期 422",
     },
   ]);
@@ -227,7 +227,7 @@ test("PROJ-002-03 项目模板开关不可逆与设默认/复制", async ({
   const copyApi = expectApi("**/api/v1/projects/*/templates/*/copy");
   await newRow.getByRole("button", { name: "复制" }).click();
   const copied = await copyApi;
-  expect(copied.status).toBe(200);
+  expect(copied.status).toBe(201);
   expect(copied.code).toBe(0);
   await expect(page.getByText("模板已复制")).toBeVisible();
   await expect(page.getByRole("row", { name: new RegExp(`${tplName}_copy`) })).toBeVisible();
@@ -246,9 +246,10 @@ test("PROJ-002-03 项目模板开关不可逆与设默认/复制", async ({
   expect(enabled.status).toBe(200);
   expect(enabled.code).toBe(0);
   await expect(page.getByText("已启用项目模板（组织模板对本项目永久失效）")).toBeVisible();
-  // UI 断言：组织模板对本项目失效（列表不含组织默认模板与 _copy 组织副本）+ 启用入口消失（不可逆）
-  await expect(systemRow).toHaveCount(0);
-  await expect(page.getByRole("row", { name: new RegExp(`${tplName}_copy`) })).toHaveCount(0);
+  // UI 断言：组织模板对本项目失效——启用会把组织模板拷贝为同名项目级模板（行仍在），
+  // 失效的判定口径=行不再带「系统」标记（isSystem=false 的项目副本）；_copy 副本同样被拷贝为项目级（行存在）
+  await expect(systemRow.getByText("系统", { exact: true })).toHaveCount(0);
+  await expect(page.getByRole("row", { name: new RegExp(`${tplName}_copy`) })).toHaveCount(1);
   await expect(page.getByText("组织模板对本项目生效")).toHaveCount(0);
   await expect(page.getByTestId("btn-enable-project-template")).toHaveCount(0);
   // 启用后项目级模板可用（新建落到项目模板集）

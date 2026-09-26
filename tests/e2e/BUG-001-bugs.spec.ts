@@ -217,7 +217,7 @@ test("BUG-001-03 附件上传、下载、删除与可执行文件拒收", async 
 
   // 白名单：黑名单 422 为预期业务拒绝（UI 上传路径的 fetch 失败留痕，§3.5.1 显式登记）
   await expectNoConsoleErrors([
-    { pageUrlPattern: "/bugs/", textPattern: "status of 422", reason: "BUG-001-03 可执行文件拒收的预期 422（security.md 黑名单）" },
+    { pageUrlPattern: "/bugs/", textPattern: "(\\[http 422\\]|status of 422)", reason: "BUG-001-03 可执行文件拒收的预期 422（security.md 黑名单）" },
   ]);
 });
 

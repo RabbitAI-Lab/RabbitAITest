@@ -146,60 +146,22 @@ test("CASE-004-02 导入失败行报告（原子不落库）与跳过模式", as
 
   // 生成导入文件①：3 个数据行，第 3 行（Excel 行号 4）等级非法
   const headers = ["ID", "所属模块", "用例名称", "前置条件", "步骤描述", "预期结果", "用例等级", "标签"];
-  // 最小合法 xlsx（无压缩 zip：[Content_Types].xml + workbook + rels + sheet1，共享字符串内联）
-  // 零三方依赖（exceljs 目录导入在 ESM 下不可用，rules/testing §3.5.2 fixture 自造）
+  // fixture 自造（rules/testing §3.5.2）：exceljs 经 createRequire 从 web 工作区加载（ESM 目录导入不可用）
   async function buildXlsx(rows: (string | number)[][]): Promise<string> {
-    const { writeFileSync } = await import("node:fs");
-    const esc = (v: string) => v.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    const cell = (v: string | number) =>
-      typeof v === "number"
-        ? `<c t="n"><v>${v}</v></c>`
-        : `<c t="inlineStr"><is><t xml:space="preserve">${esc(String(v))}</t></is></c>`;
-    const rowXml = rows
-      .map((r, i) => `<row r="${i + 2}">${r.map((v, c) => `<c r="${String.fromCharCode(65 + c)}${i + 2}"${typeof v === "number" ? "" : ""}>${String(cell(v)).replace(/<c r="[A-Z]\d+"[^>]*>/, "<c>")}</c>`).join("")}</row>`)
-      .join("");
-    const sheet1 = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData><row r="1">${headers.map((h, c) => `<c r="${String.fromCharCode(65 + c)}1" t="inlineStr"><is><t>${h}</t></is></c>`).join("")}</row>${rowXml}</sheetData></worksheet>`;
-    const content = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>`;
-    const workbook = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="用例" sheetId="1" r:id="rId1"/></sheets></workbook>`;
-    const rels = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>`;
-    const rootRels = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`;
-    const files: [string, string][] = [
-      ["[Content_Types].xml", content],
-      ["_rels/.rels", rootRels],
-      ["xl/workbook.xml", workbook],
-      ["xl/_rels/workbook.xml.rels", rels],
-      ["xl/worksheets/sheet1.xml", sheet1],
-    ];
-    // 无压缩（store）zip：crc32 自实现
-    const crcTable: number[] = [];
-    for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1; crcTable[n] = c >>> 0; }
-    const crc32 = (buf: Buffer) => { let c = 0xffffffff; for (const b of buf) c = crcTable[(c ^ b) & 0xff] ^ (c >>> 8); return (c ^ 0xffffffff) >>> 0; };
-    const chunks: Buffer[] = [];
-    const central: Buffer[] = [];
-    for (const [name, xml] of files) {
-      const nameB = Buffer.from(name, "utf8");
-      const data = Buffer.from(xml, "utf8");
-      const crc = crc32(data);
-      const off = chunks.reduce((n, b) => n + b.length, 0);
-      const head = Buffer.alloc(30);
-      head.writeUInt32LE(0x04034b50, 0); head.writeUInt16LE(20, 4); head.writeUInt16LE(0, 6); head.writeUInt16LE(0, 8);
-      head.writeUInt16LE(0, 10); head.writeUInt16LE(0, 12); head.writeUInt32LE(crc, 14);
-      head.writeUInt32LE(data.length, 18); head.writeUInt32LE(data.length, 22); head.writeUInt16LE(nameB.length, 26);
-      chunks.push(head, nameB, data);
-      const ce = Buffer.alloc(46);
-      ce.writeUInt32LE(0x02014b50, 0); ce.writeUInt16LE(20, 4); ce.writeUInt16LE(20, 6); ce.writeUInt32LE(crc, 16);
-      ce.writeUInt32LE(data.length, 20); ce.writeUInt32LE(data.length, 24); ce.writeUInt16LE(nameB.length, 28);
-      ce.writeUInt32LE(off, 42);
-      central.push(ce, nameB);
-    }
-    const end = Buffer.alloc(22);
-    end.writeUInt32LE(0x06054b50, 0); end.writeUInt16LE(files.length, 8); end.writeUInt16LE(files.length, 10);
-    end.writeUInt32LE(central.reduce((n, b) => n + b.length, 0), 12);
-    end.writeUInt32LE(chunks.reduce((n, b) => n + b.length, 0), 16);
+    const { createRequire } = await import("node:module");
+    // Playwright 将 spec 以 CJS 转译，import.meta 不可用——以 cwd 为基准构造 require
+    const req = createRequire(process.cwd() + "/tests/e2e/__spec__.js");
+    const ExcelJS = req("../../apps/web/node_modules/exceljs");
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet("用例");
+    ws.addRow(headers);
+    for (const r of rows) ws.addRow(r);
     const path = testInfo.outputPath(`import-${rows.length}-${uniq}.xlsx`);
-    writeFileSync(path, Buffer.concat([...chunks, ...central, end]));
+    const { writeFileSync } = await import("node:fs");
+    writeFileSync(path, Buffer.from(await wb.xlsx.writeBuffer()));
     return path;
   }
+
 
   // 用户路径：首页 → 测试用例
   await navFromHome(page, "测试用例");

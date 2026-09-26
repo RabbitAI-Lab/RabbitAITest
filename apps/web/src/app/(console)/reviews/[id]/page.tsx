@@ -72,7 +72,9 @@ export default function ReviewDetailPage({ params }: { params: Promise<{ id: str
     () =>
       filter === "ALL"
         ? cases
-        : cases.filter((c) => (filter === "PENDING" ? !c.result : c.result === filter)),
+        : cases.filter((c) =>
+            filter === "PENDING" ? !c.result || c.result === "PENDING" : c.result === filter,
+          ),
     [cases, filter],
   );
   const selected =
@@ -112,7 +114,7 @@ export default function ReviewDetailPage({ params }: { params: Promise<{ id: str
       if (autoNext) {
         const idx = cases.findIndex((c) => c.caseId === p.caseId);
         const next = [...cases.slice(idx + 1), ...cases.slice(0, idx + 1)].find(
-          (c) => !c.result && c.caseId !== p.caseId,
+          (c) => (!c.result || c.result === "PENDING") && c.caseId !== p.caseId,
         );
         if (next) setSelectedCaseId(next.caseId);
         else message.info("全部用例已评审");

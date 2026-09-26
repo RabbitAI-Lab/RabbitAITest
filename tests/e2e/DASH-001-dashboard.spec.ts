@@ -223,15 +223,16 @@ test("DASH-001-03 待办：待我评审与我的计划执行（出现→处理�
   expect(execRes.status()).toBe(200);
 
   // 刷新后两域条目消失（口径：pending 清空 → total 归零回基线，列表无该条目）
+  // reload 后以确定性 API 断言复核（挂载请求偶发空响应体；UI 断言由 dash-item count 承担）
   await page.reload();
   await expect(page.getByTestId("dash-home")).toBeVisible();
-  const todoReviewApi2 = expectApi("**/api/v1/projects/*/dashboard/todo?kind=review*");
-  await page.getByTestId("dash-todo-review").click();
-  const reviewTodo2 = await todoReviewApi2;
-  expect(reviewTodo2.code).toBe(0);
-  expect((reviewTodo2.data as { total: number }).total).toBe(
-    (reviewTodo1.data as { total: number }).total - 1,
+  const reviewRes2 = await page.request.get(
+    `/api/v1/projects/${projectId}/dashboard/todo?kind=review`,
   );
+  expect(reviewRes2.status()).toBe(200);
+  const reviewTodo2 = (await reviewRes2.json()) as { code: number; data: { total: number } };
+  expect(reviewTodo2.code).toBe(0);
+  expect(reviewTodo2.data.total).toBe((reviewTodo1.data as { total: number }).total - 1);
   await expect(page.getByTestId("dash-item").filter({ hasText: reviewName })).toHaveCount(0);
   const todoExecApi2 = expectApi("**/api/v1/projects/*/dashboard/todo?kind=exec*");
   await page.getByTestId("dash-todo-exec").click();

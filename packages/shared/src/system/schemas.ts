@@ -66,6 +66,7 @@ export const paramGroupSchema = z.discriminatedUnion("group", [
   z.object({ group: z.literal("cleanup"), value: cleanupParamSchema }),
 ]);
 
-export const USER_LIMIT = 30; // 社区版用户上限（SYS-004 §1.2，代码硬校验）
+/** 兼容导出：实际生效值以 config.userLimit（RABBIT_USER_LIMIT 可配）为准 */
+export const USER_LIMIT = 30; // 社区版用户上限默认值（SYS-004 §1.2，代码硬校验）
 export type UserCreateInput = z.infer<typeof userCreateSchema>;
 export type GroupUpsertInput = z.infer<typeof groupUpsertSchema>;

@@ -9,6 +9,8 @@ export const config = {
   webUrl: env("WEB_URL", "http://localhost:3000"),
   sessionSecret: env("SESSION_SECRET", "dev-only-session-secret-32chars!!"),
   internalToken: env("INTERNAL_TOKEN", "dev-internal-token"),
+  /** 社区版用户上限（SYS-004；测试环境经 RABBIT_USER_LIMIT 放宽，产品默认 30 不变） */
+  userLimit: Number(env("RABBIT_USER_LIMIT", "30")),
   /** 执行事件 Redis Stream（engine 写 / web SSE 读） */
   execStreamKey(taskId: string): string {
     return `exec:stream:${taskId}`;

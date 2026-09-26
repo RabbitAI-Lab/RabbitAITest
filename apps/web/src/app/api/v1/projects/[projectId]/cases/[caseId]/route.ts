@@ -25,6 +25,11 @@ export const DELETE = withProjectScope(async (ctx, req, seg) => {
     ctx.requirePerm('PROJECT_CASE:DELETE');
     ctx.requireWritable();
     const { caseId } = await (seg as { params: Promise<{ caseId: string }> }).params;
+    const purge = new URL(req.url).searchParams.get('purge') === 'true';
+    if (purge) {
+      const { purgeCase } = await import('@/server/domains/case/case.service');
+      return okResponse(await purgeCase(ctx.projectId, caseId));
+    }
     return okResponse(await svc.deleteCaseV2(ctx.projectId, caseId, ctx.userId));
   } catch (err) { return toResponse(err); }
 });

@@ -53,7 +53,7 @@ test("SYS-001-02 重复注册 → 就地透出服务端错误（10101）", async
   await expectNoConsoleErrors([
     {
       pageUrlPattern: "/register",
-      textPattern: "Failed to load resource.*400",
+      textPattern: "(\\[http 400\\]|Failed to load resource.*400)",
       reason: "重复注册预期 400",
     },
   ]);

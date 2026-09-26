@@ -174,6 +174,13 @@ export function withSystemPerm(point: string) {
   };
 }
 
+/** 恢复类端点专用：允许作用于已软删项目（成员校验与防枚举语义不变）。 */
+export function withProjectScopeAllowDeleted<Args extends unknown[]>(
+  handler: (ctx: ProjectCtx, req: Request, ...args: Args) => Promise<NextResponse>,
+) {
+  return withProjectScope(handler, { allowDeleted: true });
+}
+
 export interface OrgCtx extends AuthedCtx {
   orgId: string;
   permissions: Set<string>;

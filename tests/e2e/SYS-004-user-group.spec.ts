@@ -136,7 +136,7 @@ test("SYS-004-02 无系统权限用户 403（菜单隐藏 + code 10003）", asyn
     // 普通用户打开用户管理页：列表接口预期 403，浏览器记为资源加载失败（§3.5.1 显式登记）
     {
       pageUrlPattern: "/system/users",
-      textPattern: "Failed to load resource.*403",
+      textPattern: "(\\[http 403\\]|Failed to load resource.*403)",
       reason: "普通用户无 SYSTEM_USER:READ，列表预期 403",
     },
   ]);

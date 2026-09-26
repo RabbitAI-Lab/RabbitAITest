@@ -116,6 +116,7 @@ export function ModuleTreePanel({
       content: (
         <Input
           defaultValue={node.name}
+          placeholder="模块名称"
           onChange={(e) => {
             value = e.target.value;
           }}
@@ -203,7 +204,8 @@ export function ModuleTreePanel({
                           },
                         ]
                       : []),
-                    ...(canEdit && n && !n.isDefault
+                    // 规格口径：默认模块「不可删、名可改」（CASE-002 §1.2）
+                    ...(canEdit && n
                       ? [{ key: "rename", label: "重命名", onClick: () => n && promptRename(n) }]
                       : []),
                     ...(canEdit && n && !n.isDefault

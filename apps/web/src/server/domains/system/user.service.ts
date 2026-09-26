@@ -1,6 +1,9 @@
 /** SYS-004：系统用户管理（创建/编辑/重置密码/启停/软删/列表）。 */
 import { randomBytes } from "node:crypto";
-import { DomainError, ErrCode, USER_LIMIT } from "@rabbit/shared";
+import { DomainError, ErrCode, config } from "@rabbit/shared";
+
+/** 上限运行时可配（e2e 经 RABBIT_USER_LIMIT 放宽；产品默认 30） */
+const USER_LIMIT = config.userLimit;
 import type { UserCreateInput } from "@rabbit/shared";
 import { prisma } from "@rabbit/db";
 import { hashPassword } from "./auth.service";

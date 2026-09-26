@@ -418,6 +418,16 @@ route("api/v1/projects/[projectId]/restore/route.ts", {
     svc: "project/project.service",
     fn: "restoreProject",
     argExprs: ["ctx.projectId", "ctx.userId"],
+    custom: `import { toResponse, okResponse, withProjectScopeAllowDeleted } from '@/server/guard';
+import * as svc from '@/server/domains/project/project.service';
+
+export const POST = withProjectScopeAllowDeleted(async (ctx) => {
+  try {
+    ctx.requirePerm('ORG_PROJECT:DELETE');
+    return okResponse(await svc.restoreProject(ctx.projectId, ctx.userId));
+  } catch (err) { return toResponse(err); }
+});
+`,
   }),
 });
 route("api/v1/projects/[projectId]/members/route.ts", {
@@ -905,6 +915,23 @@ route("api/v1/projects/[projectId]/cases/[caseId]/route.ts", {
     fn: "deleteCaseV2",
     params: ["caseId"],
     argExprs: ["ctx.projectId", "caseId", "ctx.userId"],
+    custom: `import { toResponse, okResponse, withProjectScope } from '@/server/guard';
+import * as svc from '@/server/domains/case/caseV2.service';
+
+export const DELETE = withProjectScope(async (ctx, req, seg) => {
+  try {
+    ctx.requirePerm('PROJECT_CASE:DELETE');
+    ctx.requireWritable();
+    const { caseId } = await (seg as { params: Promise<{ caseId: string }> }).params;
+    const purge = new URL(req.url).searchParams.get('purge') === 'true';
+    if (purge) {
+      const { purgeCase } = await import('@/server/domains/case/case.service');
+      return okResponse(await purgeCase(ctx.projectId, caseId));
+    }
+    return okResponse(await svc.deleteCaseV2(ctx.projectId, caseId, ctx.userId));
+  } catch (err) { return toResponse(err); }
+});
+`,
   }),
 });
 route("api/v1/projects/[projectId]/cases/[caseId]/copy/route.ts", {
@@ -1795,7 +1822,7 @@ route("api/v1/projects/[projectId]/plans/[planId]/route.ts", {
     writable: true,
     svc: "plan/plan.service",
     fn: "updatePlan",
-    body: "planUpsertSchema",
+    body: "planUpdateSchema",
     params: ["planId"],
     argExprs: ["ctx.projectId", "planId", "body"],
   }),
