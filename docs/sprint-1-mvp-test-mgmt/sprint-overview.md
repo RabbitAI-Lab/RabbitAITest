@@ -104,7 +104,7 @@
 | 6. 计划执行→失败建缺陷带出步骤→通过率→归档只读               | ✅   | PLAN-001-01/02 + MAINFLOW-s1（E2E）；jmx 10008/10009                                                                                                                            |
 | 7. 工作台数字与各域一致、时间筛选生效                        | ✅   | DASH-001-01/02（E2E：待办出现→处理后消失、range=3d 请求断言）                                                                                                                   |
 | 8. 自动化测试齐备                                            | ✅   | Vitest 49（权限并集/禁用交集、字段引擎、聚合、Markdown 转义）；JMeter 11 计划（四类×四断言）全绿；Playwright 38 用例全绿（每条 UI+Console+接口三类断言；含 MAINFLOW-s1 主链路） |
-| 9. 收尾交付（门禁 9）                                        | ✅   | commit+push 远程、远端 CI 全绿（见下方记录）、本表更新、CHANGELOG v0.2.0                                                                                                        |
+| 9. 收尾交付（门禁 9）                                        | ✅   | push main 48328d2→a8288e7；远端 CI run 36245485222 六 job 全绿（审计/lint+typecheck+unit+OpenAPI 快照/build/迁移重放/JMeter 14/Playwright 38）；CHANGELOG v0.2.0                                                                                                        |
 
 ### 7.1 工程债清偿（S0 遗留）
 
