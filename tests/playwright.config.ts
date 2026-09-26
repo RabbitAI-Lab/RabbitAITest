@@ -34,6 +34,7 @@ export default defineConfig({
       "SESSION_SECRET=e2e-session-secret-32chars-ok!!!!!",
       "INTERNAL_TOKEN=e2e-internal-token",
       "SESSION_COOKIE_SECURE=false",
+      "RABBIT_USER_LIMIT=200",
       "PORT=3100;",
       "pnpm --filter web start'",
     ].join(" "),

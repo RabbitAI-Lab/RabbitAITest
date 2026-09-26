@@ -71,6 +71,7 @@ async function ensureRedis() {
     await waitPort(port, "127.0.0.1", 20000);
   }
   process.env.E2E_REDIS_URL = `redis://127.0.0.1:${port}`;
+  process.env.RABBIT_USER_LIMIT = '200'; // 全量套件注册用户数 >30，测试环境放宽（产品默认 30 不变）
   log(`redis(e2e) :${port}`);
 }
 
