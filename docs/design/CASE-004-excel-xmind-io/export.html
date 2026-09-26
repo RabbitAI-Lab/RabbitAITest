@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<title>CASE-004 用例导出（Excel / Xmind）</title>
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 text-slate-800">
+<!-- 顶栏 48px：左 Logo + 项目 chip；右 帮助 / 消息 / 用户头像 -->
+<header class="h-12 bg-white border-b flex items-center px-4 gap-3 text-sm shrink-0">
+  <span class="font-semibold">RabbitAITest</span>
+  <span class="border rounded px-2 py-0.5 text-slate-600">演示项目 #1</span>
+  <div class="ml-auto flex items-center gap-4 text-slate-500">
+    <span class="w-5 h-5 border rounded-full grid place-items-center text-[10px]">?</span>
+    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg>
+    <span class="w-6 h-6 rounded-full bg-[#574BFF]/80 text-white grid place-items-center text-xs">徐</span>
+  </div>
+</header>
+<div class="flex">
+  <!-- 左导航 208px：分组 工作区 / 测试管理 / 项目设置；当前页：测试用例 -->
+  <aside class="w-[208px] shrink-0 bg-white border-r text-sm py-2">
+    <p class="px-5 pt-2 pb-1 text-xs text-slate-400">工作区</p>
+    <p class="mx-2 px-3 py-1.5 rounded text-slate-600">工作台</p>
+    <p class="px-5 pt-4 pb-1 text-xs text-slate-400">测试管理</p>
+    <p class="mx-2 px-3 py-1.5 rounded bg-[#574BFF]/[.08] text-[#574BFF] font-medium">测试用例</p>
+    <p class="mx-2 px-3 py-1.5 rounded text-slate-600">用例评审</p>
+    <p class="mx-2 px-3 py-1.5 rounded text-slate-600">测试计划</p>
+    <p class="mx-2 px-3 py-1.5 rounded text-slate-600">缺陷管理</p>
+    <div class="border-t my-2 mx-2"></div>
+    <p class="mx-2 px-3 py-1.5 rounded text-slate-600">项目设置</p>
+  </aside>
+  <main class="flex-1 min-w-0 p-6">
+    <!-- 入口：列表工具栏「导出」按钮（高亮示意），或批量操作条「导出」（范围自动=勾选行）；点击弹出导出 Modal -->
+    <div class="flex items-center gap-3 mb-2">
+      <h1 class="text-lg font-medium">功能用例</h1>
+      <div class="ml-auto flex gap-2 text-sm">
+        <button class="border rounded px-3 py-1.5 bg-white">导入</button>
+        <button class="border-2 border-[#574BFF] bg-[#574BFF]/[.05] text-[#574BFF] rounded px-3 py-1.5">导出</button>
+      </div>
+    </div>
+    <p class="text-xs text-slate-400 mb-6">导出 Modal（居中 + 背景遮罩，此处省略遮罩）</p>
+    <div class="max-w-xl mx-auto bg-white border rounded-lg shadow-lg">
+      <div class="flex items-center justify-between px-5 h-12 border-b"><span class="font-medium">导出用例</span><span class="text-slate-400">✕</span></div>
+      <div class="px-5 py-5 space-y-5 text-sm">
+        <!-- 1) 导出格式：Excel 默认=每用例一行；Excel 拆分=步骤按单元格纵向拆分；Xmind=按模块树结构（标记承载前置、备注承载预期） -->
+        <div>
+          <p class="text-slate-600 mb-2">导出格式</p>
+          <div class="grid grid-cols-3 gap-3">
+            <label class="border-2 border-[#574BFF] bg-[#574BFF]/[.05] rounded p-3 flex gap-2">
+              <input type="radio" name="fmt" checked class="mt-1">
+              <span><span class="block font-medium">Excel 默认</span><span class="text-xs text-slate-400">每用例一行</span></span>
+            </label>
+            <label class="border-2 rounded p-3 flex gap-2">
+              <input type="radio" name="fmt" class="mt-1">
+              <span><span class="block font-medium">Excel 拆分</span><span class="text-xs text-slate-400">步骤单元格纵向拆分</span></span>
+            </label>
+            <label class="border-2 rounded p-3 flex gap-2">
+              <input type="radio" name="fmt" class="mt-1">
+              <span><span class="block font-medium">Xmind</span><span class="text-xs text-slate-400">按模块树结构</span></span>
+            </label>
+          </div>
+          <!-- 选中 Xmind 时：字段勾选区整体禁用置灰（结构固定：模块 → 用例 → 步骤，标记=前置条件、备注=预期结果、优先级图标=等级） -->
+        </div>
+        <!-- 2) 导出字段：分组勾选（基础 / 步骤 / 动态字段），动态字段列表来自项目用例模板 -->
+        <div>
+          <p class="text-slate-600 mb-2">导出字段</p>
+          <div class="space-y-2">
+            <div class="flex items-center gap-4 flex-wrap"><span class="text-xs text-slate-400 w-16">基础字段</span>
+              <label class="flex items-center gap-1"><input type="checkbox" checked>编号</label>
+              <label class="flex items-center gap-1"><input type="checkbox" checked>名称</label>
+              <label class="flex items-center gap-1"><input type="checkbox" checked>模块</label>
+              <label class="flex items-center gap-1"><input type="checkbox" checked>等级</label>
+              <label class="flex items-center gap-1"><input type="checkbox" checked>标签</label>
+              <label class="flex items-center gap-1"><input type="checkbox" checked>状态</label>
+              <label class="flex items-center gap-1"><input type="checkbox" checked>前置条件</label>
+              <label class="flex items-center gap-1"><input type="checkbox">创建人</label>
+              <label class="flex items-center gap-1"><input type="checkbox">更新时间</label>
+            </div>
+            <div class="flex items-center gap-4 flex-wrap"><span class="text-xs text-slate-400 w-16">步骤</span>
+              <label class="flex items-center gap-1"><input type="checkbox" checked>操作步骤</label>
+              <label class="flex items-center gap-1"><input type="checkbox" checked>预期结果</label>
+            </div>
+            <div class="flex items-center gap-4 flex-wrap"><span class="text-xs text-slate-400 w-16">动态字段</span>
+              <label class="flex items-center gap-1"><input type="checkbox" checked>测试类型</label>
+              <label class="flex items-center gap-1"><input type="checkbox">执行人</label>
+              <label class="flex items-center gap-1"><input type="checkbox">是否自动化</label>
+            </div>
+          </div>
+        </div>
+        <!-- 3) 导出范围：当前筛选结果（带出当前模块 + 筛选条件计数）/ 已勾选行（仅从批量条进入时可选） -->
+        <div>
+          <p class="text-slate-600 mb-2">导出范围</p>
+          <div class="space-y-1.5">
+            <label class="flex items-center gap-2"><input type="radio" name="scope" checked>当前筛选结果（模块：登录模块（含子级），共 12 条）</label>
+            <label class="flex items-center gap-2"><input type="radio" name="scope">已勾选行（3 条）</label>
+          </div>
+        </div>
+        <!-- 交互（静态不可表达，走查说明）：点击「导出」→ 按钮转 loading → 浏览器下载文件，toast「导出成功」；
+             文件名 = {项目名}-用例-{yyyyMMddHHmm}.xlsx / .xmind；导出动作记录操作日志；
+             超 5000 行 → 422 提示「超出同步导出上限，异步大导出将于后续开放（Sprint 6 任务中心）」 -->
+      </div>
+      <div class="flex justify-end gap-2 px-5 py-3 border-t">
+        <button class="border rounded px-4 py-1.5 text-sm">取消</button>
+        <button class="bg-[#574BFF] text-white rounded px-4 py-1.5 text-sm">导出</button>
+      </div>
+    </div>
+  </main>
+</div>
+</body>
+</html>

@@ -1,6 +1,6 @@
 import { hash, verify } from '@node-rs/argon2';
 import { DomainError, ErrCode } from '@rabbit/shared';
-import { prisma } from '@rabbit/db';
+import { prisma, initOrgAndProjectPresets } from '@rabbit/db';
 
 const ARGON_OPTS = { memoryCost: 19456, timeCost: 2, parallelism: 1 } as const;
 
@@ -24,7 +24,7 @@ export async function registerUser(email: string, password: string, userId?: str
     });
     await tx.orgMember.create({ data: { orgId: org.id, userId: user.id } });
     const maxNum = await tx.$queryRawUnsafe<{ n: bigint | number }[]>(
-      'SELECT COALESCE(MAX(num), 0) + 1 AS n FROM projects WHERE "orgId" = $1',
+      'SELECT COALESCE(MAX(num), 0) + 1 AS n FROM projects WHERE org_id = $1',
       org.id,
     );
     const row = maxNum[0];
@@ -40,6 +40,8 @@ export async function registerUser(email: string, password: string, userId?: str
         data: { projectId: project.id, scene, name, isDefault: true },
       });
     }
+    // Sprint 1：三级预置组 + 默认模板（含缺陷工作流）+ bug 模块 + 创建者入管理员组（SYS-003/004、PROJ-002）
+    await initOrgAndProjectPresets(tx, org.id, project.id, user.id);
     return { user, projectId: project.id };
   });
 }

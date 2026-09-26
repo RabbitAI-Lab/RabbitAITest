@@ -1,0 +1,118 @@
+<!doctype html><html lang="zh"><head><meta charset="utf-8"><title>PLAN-001 计划详情</title><script src="https://cdn.tailwindcss.com"></script></head>
+<body class="bg-slate-50 text-slate-800">
+<!-- 顶栏 48px：左 Logo + 项目 chip；右 帮助 / 消息 / 用户头像 -->
+<header class="h-12 bg-white border-b flex items-center px-4 gap-3 text-sm">
+  <span class="font-semibold">RabbitAITest</span><span class="border rounded px-2 py-0.5 text-slate-600">演示项目 #1</span>
+  <div class="ml-auto flex items-center gap-3 text-slate-500"><span>帮助</span><span>消息</span><span class="w-6 h-6 rounded-full bg-[#574BFF]/20 text-[#574BFF] text-xs grid place-items-center font-medium">徐</span></div>
+</header>
+<div class="flex">
+  <!-- 左导航 208px：分组 工作区 / 测试管理 / 项目设置 -->
+  <aside class="w-[208px] bg-white border-r p-2 text-sm shrink-0">
+    <p class="px-3 pt-4 pb-1 text-xs text-slate-400">工作区</p>
+    <p class="px-3 py-2 rounded text-slate-600">工作台</p>
+    <p class="px-3 pt-4 pb-1 text-xs text-slate-400">测试管理</p>
+    <p class="px-3 py-2 rounded text-slate-600">测试用例</p>
+    <p class="px-3 py-2 rounded text-slate-600">用例评审</p>
+    <p class="px-3 py-2 rounded bg-[#574BFF]/10 text-[#574BFF] font-medium">测试计划</p>
+    <p class="px-3 py-2 rounded text-slate-600">缺陷管理</p>
+    <p class="px-3 py-2 rounded text-slate-600 mt-4 border-t border-slate-100">项目设置</p>
+  </aside>
+  <main class="flex-1 p-6 min-w-0">
+    <!-- 头部：名称 + 状态 + 通过率环形 + 更多设置入口 + 归档按钮 -->
+    <div class="flex items-center gap-3 flex-wrap">
+      <a class="text-slate-400 text-sm" href="list.html">‹ 测试计划</a>
+      <h1 class="text-lg font-medium">冒烟回归-Sprint 1</h1>
+      <span class="rounded-full bg-[#1677FF]/10 text-[#1677FF] text-xs px-2 py-0.5 font-medium">进行中</span>
+      <span class="text-xs text-slate-400">09-22 ~ 09-28 · 模块 认证登录</span>
+      <div class="ml-auto flex items-center gap-2">
+        <div class="flex items-center gap-2.5 border rounded px-3 py-1.5 bg-white">
+          <div class="relative w-9 h-9 shrink-0"><svg class="w-9 h-9" viewBox="0 0 36 36"><circle cx="18" cy="18" r="15" fill="none" stroke="#E2E8F0" stroke-width="5"></circle><circle cx="18" cy="18" r="15" fill="none" stroke="#52C41A" stroke-width="5" stroke-linecap="round" stroke-dasharray="83.9 94.2" transform="rotate(-90 18 18)"></circle></svg><span class="absolute inset-0 grid place-items-center text-[10px] font-semibold text-[#52C41A]">89%</span></div>
+          <div class="text-xs leading-4"><p>通过率<span class="text-slate-400">（已执行口径）</span></p><p class="text-slate-400">阈值 80% · <span class="text-[#52C41A]">达标</span></p></div>
+        </div>
+        <button class="border rounded px-3 py-1.5 text-sm text-slate-600">⚙ 更多设置</button>
+        <button class="border rounded px-3 py-1.5 text-sm text-slate-600">归档</button>
+      </div>
+    </div>
+    <!-- Tab：用例清单 / 报告 -->
+    <div class="flex items-center gap-5 text-sm border-b mb-4 mt-4">
+      <span class="pb-2 -mb-px border-b-2 border-[#574BFF] text-[#574BFF] font-medium">用例清单（12）</span>
+      <span class="pb-2 text-slate-500">报告</span>
+    </div>
+    <div class="bg-white border rounded">
+      <!-- 工具条：关联用例 / 批量改执行人 / 筛选（状态·执行人·模块）+ 执行配置占位 -->
+      <div class="flex gap-2 items-center p-3 border-b flex-wrap">
+        <button class="bg-[#574BFF] text-white rounded px-3 py-1.5 text-sm">＋ 关联用例</button>
+        <button class="border rounded px-3 py-1.5 text-sm text-slate-600">批量改执行人</button>
+        <span class="w-px h-5 bg-slate-200"></span>
+        <select class="border rounded px-2 py-1 text-sm"><option>状态：全部</option><option>未执行</option><option>通过</option><option>失败</option><option>阻塞</option><option>跳过</option></select>
+        <select class="border rounded px-2 py-1 text-sm"><option>执行人：全部</option><option>张伟</option><option>李倩</option><option>王芳</option></select>
+        <select class="border rounded px-2 py-1 text-sm"><option>模块：全部</option><option>认证登录</option><option>手机号登录</option></select>
+        <select class="border rounded px-2 py-1 text-sm text-slate-400" disabled><option>资源池（引擎联动后启用）</option></select>
+        <select class="border rounded px-2 py-1 text-sm text-slate-400" disabled><option>环境（PROJ-003 后启用）</option></select>
+        <span class="ml-auto text-xs text-slate-400">已执行 10/12 · 通过 8 · 失败 1 · 阻塞 0 · 跳过 1 · 未执行 2</span>
+      </div>
+      <table class="w-full text-sm">
+        <thead class="text-slate-400 text-xs"><tr class="border-b"><th class="p-3 w-8"><input type="checkbox"></th><th class="text-left p-3">编号</th><th class="text-left p-3">用例名称</th><th class="text-left p-3">等级</th><th class="text-left p-3">执行人</th><th class="text-left p-3">执行状态</th><th class="text-left p-3">最近执行</th><th class="text-left p-3">操作</th></tr></thead>
+        <tbody>
+          <tr class="border-b hover:bg-slate-50"><td class="p-3"><input type="checkbox"></td><td class="p-3 text-slate-500">C-0001</td><td class="p-3"><a class="text-[#574BFF]" href="#">登录成功场景</a></td><td class="p-3"><span class="text-red-500 text-xs font-medium">P0</span></td><td class="p-3"><span class="w-6 h-6 rounded-full bg-blue-100 text-blue-600 text-xs grid place-items-center" title="张伟">张</span></td><td class="p-3 whitespace-nowrap"><span class="inline-block w-2 h-2 rounded-full bg-[#52C41A] mr-1.5 align-middle"></span><span class="text-[#52C41A]">通过 ▾</span></td><td class="p-3 text-slate-500 text-xs whitespace-nowrap">09-26 10:12 张伟</td><td class="p-3 text-slate-500 text-xs whitespace-nowrap">缺陷 · 评论 · 展开 ▾</td></tr>
+          <tr class="border-b bg-red-50/40"><td class="p-3"><input type="checkbox" checked></td><td class="p-3 text-slate-500">C-0005</td><td class="p-3"><a class="text-[#574BFF]" href="#">密码错误提示</a></td><td class="p-3"><span class="text-red-500 text-xs font-medium">P0</span></td><td class="p-3"><span class="w-6 h-6 rounded-full bg-purple-100 text-purple-600 text-xs grid place-items-center" title="李倩">李</span></td><td class="p-3 whitespace-nowrap"><span class="inline-block w-2 h-2 rounded-full bg-[#FF4D4F] mr-1.5 align-middle"></span><span class="text-[#FF4D4F]">失败 ▾</span></td><td class="p-3 text-slate-500 text-xs whitespace-nowrap">09-26 11:02 李倩</td><td class="p-3 text-slate-500 text-xs whitespace-nowrap">缺陷(1) · 评论 · 收起 ▴</td></tr>
+          <!-- 行展开：步骤级执行面板（每步：结果三态按钮组 + 实际结果输入） -->
+          <tr class="border-b"><td colspan="8" class="p-0">
+            <div class="bg-slate-50 p-4 space-y-3">
+              <p class="text-xs text-slate-400">步骤级执行（与 FunctionalCase.steps 逐条对位；失败步骤标红，作为「新建缺陷」带出内容）</p>
+              <div class="bg-white border border-red-200 rounded p-3 flex items-center gap-3">
+                <span class="w-6 h-6 rounded bg-red-100 text-red-500 grid place-items-center text-xs shrink-0">1</span>
+                <div class="flex-1 min-w-0 text-xs text-slate-500 leading-5"><p>步骤：输入错误密码，点击「登录」</p><p>期望：提示「账号或密码错误」</p></div>
+                <div class="flex gap-1 shrink-0"><button class="border rounded px-2 py-1 text-xs text-slate-500">✓ 通过</button><button class="rounded px-2 py-1 text-xs bg-[#FF4D4F] text-white">✗ 失败</button><button class="border rounded px-2 py-1 text-xs text-slate-500">⊘ 阻塞</button></div>
+                <input class="border rounded px-2 py-1 text-xs w-52 shrink-0" value="提示文案为英文（i18n 缺失）">
+              </div>
+              <div class="bg-white border rounded p-3 flex items-center gap-3">
+                <span class="w-6 h-6 rounded bg-slate-100 text-slate-500 grid place-items-center text-xs shrink-0">2</span>
+                <div class="flex-1 min-w-0 text-xs text-slate-500 leading-5"><p>步骤：连续 5 次输错密码</p><p>期望：锁定 10 分钟并提示剩余次数</p></div>
+                <div class="flex gap-1 shrink-0"><button class="border rounded px-2 py-1 text-xs text-slate-500">✓ 通过</button><button class="border rounded px-2 py-1 text-xs text-slate-500">✗ 失败</button><button class="border rounded px-2 py-1 text-xs text-slate-500">⊘ 阻塞</button></div>
+                <input class="border rounded px-2 py-1 text-xs w-52 shrink-0" placeholder="实际结果（选填）">
+              </div>
+              <div class="flex justify-end gap-2"><button class="border rounded px-3 py-1.5 text-sm text-slate-600">执行评论</button><button class="bg-[#574BFF] text-white rounded px-3 py-1.5 text-sm">保存执行结果</button></div>
+            </div>
+          </td></tr>
+          <tr class="border-b hover:bg-slate-50"><td class="p-3"><input type="checkbox"></td><td class="p-3 text-slate-500">C-0008</td><td class="p-3"><a class="text-[#574BFF]" href="#">会话过期自动跳转</a></td><td class="p-3"><span class="text-orange-500 text-xs font-medium">P1</span></td><td class="p-3"><span class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 text-xs grid place-items-center" title="王芳">王</span></td><td class="p-3 whitespace-nowrap"><span class="inline-block w-2 h-2 rounded-full bg-[#FA8C16] mr-1.5 align-middle"></span><span class="text-[#FA8C16]">阻塞 ▾</span></td><td class="p-3 text-slate-500 text-xs whitespace-nowrap">09-26 13:05 王芳</td><td class="p-3 text-slate-500 text-xs whitespace-nowrap">缺陷 · 评论 · 展开 ▾</td></tr>
+          <tr class="border-b hover:bg-slate-50"><td class="p-3"><input type="checkbox"></td><td class="p-3 text-slate-500">C-0012</td><td class="p-3"><a class="text-[#574BFF]" href="#">记住密码自动回填</a></td><td class="p-3"><span class="text-blue-500 text-xs font-medium">P2</span></td><td class="p-3"><span class="w-6 h-6 rounded-full bg-blue-100 text-blue-600 text-xs grid place-items-center" title="张伟">张</span></td><td class="p-3 whitespace-nowrap"><span class="inline-block w-2 h-2 rounded-full bg-slate-300 mr-1.5 align-middle"></span><span class="text-slate-500">跳过 ▾</span></td><td class="p-3 text-slate-500 text-xs whitespace-nowrap">09-25 17:20 张伟</td><td class="p-3 text-slate-500 text-xs whitespace-nowrap">缺陷 · 评论 · 展开 ▾</td></tr>
+          <tr class="hover:bg-slate-50"><td class="p-3"><input type="checkbox"></td><td class="p-3 text-slate-500">C-0013</td><td class="p-3"><a class="text-[#574BFF]" href="#">手机号找回密码</a></td><td class="p-3"><span class="text-orange-500 text-xs font-medium">P1</span></td><td class="p-3"><span class="w-6 h-6 rounded-full bg-purple-100 text-purple-600 text-xs grid place-items-center" title="李倩">李</span></td><td class="p-3 whitespace-nowrap"><span class="inline-block w-2 h-2 rounded-full bg-slate-200 mr-1.5 align-middle"></span><span class="text-slate-400">未执行 ▾</span></td><td class="p-3 text-slate-400 text-xs">—</td><td class="p-3 text-slate-500 text-xs whitespace-nowrap">缺陷 · 评论 · 展开 ▾</td></tr>
+        </tbody>
+      </table>
+      <div class="flex justify-end items-center gap-2 p-3 text-sm"><span class="text-slate-400 text-xs">共 12 条</span><button class="border rounded px-2 py-0.5">‹</button><span class="px-2">1 / 1</span><button class="border rounded px-2 py-0.5">›</button></div>
+    </div>
+    <div class="mt-8 flex items-center gap-3 text-xs text-slate-400"><div class="h-px bg-slate-200 flex-1"></div>以下为「报告」Tab 切换后的内容<div class="h-px bg-slate-200 flex-1"></div></div>
+    <!-- 报告 Tab：通过率卡 + 结果汇总表 + 总结编辑 -->
+    <div class="grid grid-cols-4 gap-4 mt-4 text-sm">
+      <div class="bg-white border rounded p-4"><p class="text-xs text-slate-400">通过率（阈值 80%）</p><p class="text-2xl font-semibold mt-1 text-[#52C41A]">89% <span class="text-xs">达标</span></p></div>
+      <div class="bg-white border rounded p-4"><p class="text-xs text-slate-400">已执行 / 总数</p><p class="text-2xl font-semibold mt-1">10 <span class="text-sm text-slate-400">/ 12</span></p></div>
+      <div class="bg-white border rounded p-4"><p class="text-xs text-slate-400">通过 / 失败</p><p class="text-2xl font-semibold mt-1"><span class="text-[#52C41A]">8</span> <span class="text-sm text-slate-400">/</span> <span class="text-[#FF4D4F]">1</span></p></div>
+      <div class="bg-white border rounded p-4"><p class="text-xs text-slate-400">阻塞 / 跳过</p><p class="text-2xl font-semibold mt-1"><span class="text-[#FA8C16]">0</span> <span class="text-sm text-slate-400">/</span> 1</p></div>
+    </div>
+    <div class="bg-white border rounded mt-4">
+      <p class="p-3 border-b text-sm font-medium">用例结果汇总 <span class="text-xs text-slate-400 font-normal">共 12 条 · 按执行时间倒序</span></p>
+      <table class="w-full text-sm"><thead class="text-xs text-slate-400"><tr class="border-b"><th class="text-left p-2">编号</th><th class="text-left p-2">用例名称</th><th class="text-left p-2">执行人</th><th class="text-left p-2">结果</th><th class="text-left p-2">实际结果摘要</th><th class="text-left p-2">执行时间</th></tr></thead>
+        <tbody>
+          <tr class="border-b"><td class="p-2 text-slate-500">C-0001</td><td class="p-2">登录成功场景</td><td class="p-2">张伟</td><td class="p-2 text-[#52C41A]">通过</td><td class="p-2 text-slate-500 text-xs">—</td><td class="p-2 text-slate-500 text-xs">09-26 10:12</td></tr>
+          <tr class="border-b bg-red-50/50"><td class="p-2 text-slate-500">C-0005</td><td class="p-2">密码错误提示</td><td class="p-2">李倩</td><td class="p-2 text-[#FF4D4F]">失败</td><td class="p-2 text-slate-500 text-xs">步骤 1：提示文案为英文（i18n 缺失）</td><td class="p-2 text-slate-500 text-xs">09-26 11:02</td></tr>
+          <tr><td class="p-2 text-slate-500">C-0013</td><td class="p-2">手机号找回密码</td><td class="p-2">李倩</td><td class="p-2 text-slate-400">未执行</td><td class="p-2 text-slate-400 text-xs">—</td><td class="p-2 text-slate-400 text-xs">—</td></tr>
+        </tbody></table>
+    </div>
+    <div class="bg-white border rounded mt-4 p-4">
+      <div class="flex items-center gap-2 mb-2"><p class="text-sm font-medium">总结</p><span class="text-xs text-slate-400">Markdown</span><button class="ml-auto bg-[#574BFF] text-white rounded px-3 py-1 text-xs">保存</button></div>
+      <textarea class="w-full border rounded p-3 text-sm h-20 leading-6">冒烟 12 条中已执行 10 条，通过率 89%（达标）。失败 1 条：C-0005 提示文案 i18n 缺失，已新建 BUG-0006 跟进；剩余 2 条明日补齐。</textarea>
+    </div>
+    <!-- 交互说明（静态不可表达部分）：
+      · 行内执行状态下拉：点击「通过 ▾」→ 五态菜单（未执行/通过/失败/阻塞/跳过，快捷键 N/P/F/B/S）；任意终态可「重新执行」回到未执行再次标记，每次标记记执行历史（时间+人+旧→新+步骤结果）。
+      · 缺陷图标：菜单「关联已有缺陷（搜索弹窗）/ 新建缺陷（弹窗内嵌 BUG-001 表单，预填标题+失败步骤+用例关联）」；已关联显示角标数。
+      · 评论图标：右侧抽屉——该用例执行评论时间线 + 输入框。
+      · 关联用例：弹窗复用 CASE-002 选择器（模块树+筛选+勾选批量关联）；重复关联受「更多设置-允许重复关联」开关控制（关闭时 422 code 10009）。
+      · 批量改执行人：勾选行后工具条按钮生效 → 弹窗选择成员批量指派。
+      · 更多设置（抽屉）：允许重复关联开关 / 自动更新状态开关（P1 仅存配置，随 CASE-006 激活）/ 通过阈值 %（0-100）；执行配置区：串行/并行与失败停止（人工模式=提示口径）、资源池与环境选择器占位禁用。
+      · 归档：确认 Modal「归档后只读（写操作 422 code 10008 PLAN_ARCHIVED）」；归档后详情页顶部黄色横幅「该计划已归档，仅可查看」，工具条与编辑入口隐藏、报告只读。
+      · 头部通过率环形随执行实时刷新；阈值判定=通过率 ≥ 阈值 → 绿「达标」，否则红「未达标」；通过率口径 pass/(pass+fail+blocked)，跳过不计分母。 -->
+  </main>
+</div>
+</body>
+</html>

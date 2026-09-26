@@ -2,7 +2,7 @@
 // 规范：rules/database.md（snake_case 复数表名 / UUID 主键 / 软删 deletedAt / 乐观锁 version / 状态列 String+应用层 zod）
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
   // native=构建机；linux-*=Docker/CI（bookworm/ubuntu 均为 openssl 3）
   binaryTargets = ["native", "linux-arm64-openssl-3.0.x", "linux-arm64-openssl-1.1.x", "debian-openssl-3.0.x"]
 }
@@ -15,51 +15,51 @@ datasource db {
 // ───────────────────────── system 域 ─────────────────────────
 
 model User {
-  id           String   @id @default(uuid())
-  email        String   @unique @db.VarChar(256)
-  name         String   @db.VarChar(128)
-  phone        String?  @db.VarChar(32)
-  passwordHash String   @db.VarChar(512)
-  status       String   @default("ACTIVE") @db.VarChar(32) // ACTIVE | DISABLED
-  source       String   @default("LOCAL") @db.VarChar(32) // LOCAL | INVITE | LDAP...（ENTP 用）
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  deletedAt    DateTime?
+  id           String    @id @default(uuid())
+  email        String    @unique @db.VarChar(256)
+  name         String    @db.VarChar(128)
+  phone        String?   @db.VarChar(32)
+  passwordHash String    @map("password_hash") @db.VarChar(512)
+  status       String    @default("ACTIVE") @db.VarChar(32) // ACTIVE | DISABLED
+  source       String    @default("LOCAL") @db.VarChar(32) // LOCAL | INVITE | LDAP...（ENTP 用）
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  deletedAt    DateTime? @map("deleted_at")
 
-  orgMemberships  OrgMember[]
+  orgMemberships     OrgMember[]
   ownedOrganizations Organization[]
-  projectMembers  ProjectMember[]
-  groupMembers    GroupMember[]
-  apiKeys         ApiKey[]
-  follows         Follow[]
-  comments        Comment[]
-  changeLogs      ChangeLog[]
-  auditLogs       AuditLog[]
-  notifications   Notification[]
+  projectMembers     ProjectMember[]
+  groupMembers       GroupMember[]
+  apiKeys            ApiKey[]
+  follows            Follow[]
+  comments           Comment[]
+  changeLogs         ChangeLog[]
+  auditLogs          AuditLog[]
+  notifications      Notification[]
 }
 
 model Organization {
   id          String    @id @default(uuid())
   name        String    @db.VarChar(128)
   description String?   @db.VarChar(512)
-  ownerId     String
+  ownerId     String    @map("owner_id")
   owner       User      @relation(fields: [ownerId], references: [id])
   status      String    @default("ACTIVE") @db.VarChar(32) // ACTIVE | ENDED
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  deletedAt   DateTime?
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
 
-  members OrgMember[]
+  members  OrgMember[]
   projects Project[]
 }
 
 model OrgMember {
-  id        String   @id @default(uuid())
-  orgId     String
+  id        String       @id @default(uuid())
+  orgId     String       @map("org_id")
   org       Organization @relation(fields: [orgId], references: [id])
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  createdAt DateTime @default(now())
+  userId    String       @map("user_id")
+  user      User         @relation(fields: [userId], references: [id])
+  createdAt DateTime     @default(now()) @map("created_at")
 
   @@unique([orgId, userId])
   @@index([userId])
@@ -67,39 +67,40 @@ model OrgMember {
 }
 
 model Project {
-  id          String   @id @default(uuid())
-  orgId       String
+  id          String       @id @default(uuid())
+  orgId       String       @map("org_id")
   org         Organization @relation(fields: [orgId], references: [id])
-  name        String   @db.VarChar(128)
+  name        String       @db.VarChar(128)
   num         Int // 组织内递增编号（advisory lock 分配）
-  description String?  @db.VarChar(512)
+  description String?      @db.VarChar(512)
   /// 开启的模块开关（Sprint 1 应用设置用；P0 全默认）
-  modules     Json     @default("{\"case\":true,\"api\":true,\"plan\":true,\"bug\":true}")
-  status      String   @default("ENABLED") @db.VarChar(32) // ENABLED | DISABLED | ENDED
-  deletedAt   DateTime?
-  purgeAt     DateTime? // 软删后 30 天物理删除（Sprint 1）
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  modules     Json         @default("{\"case\":true,\"api\":true,\"plan\":true,\"bug\":true}")
+  status      String       @default("ENABLED") @db.VarChar(32) // ENABLED | DISABLED | ENDED
+  deletedAt   DateTime?    @map("deleted_at")
+  purgeAt     DateTime?    @map("purge_at") // 软删后 30 天物理删除（Sprint 1）
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
 
-  members          ProjectMember[]
-  moduleNodes      ModuleNode[]
-  cases            FunctionalCase[]
-  apiDefinitions   ApiDefinition[]
-  apiCases         ApiCase[]
-  scenarios        Scenario[]
-  testPlans        TestPlan[]
-  bugs             Bug[]
-  environments     Environment[]
-  envGroups        EnvGroup[]
-  globalParams     GlobalParam[]
-  fileItems        FileItem[]
-  fileRepos        FileRepo[]
-  publicScripts    PublicScript[]
-  falseAlarmRules  FalseAlarmRule[]
-  appSettings      AppSetting[]
-  execTasks        ExecTask[]
-  reports          Report[]
-  robots           Robot[]
+  members         ProjectMember[]
+  moduleNodes     ModuleNode[]
+  cases           FunctionalCase[]
+  apiDefinitions  ApiDefinition[]
+  apiCases        ApiCase[]
+  scenarios       Scenario[]
+  testPlans       TestPlan[]
+  bugs            Bug[]
+  environments    Environment[]
+  envGroups       EnvGroup[]
+  globalParams    GlobalParam[]
+  fileItems       FileItem[]
+  fileRepos       FileRepo[]
+  publicScripts   PublicScript[]
+  falseAlarmRules FalseAlarmRule[]
+  appSettings     AppSetting[]
+  execTasks       ExecTask[]
+  reports         Report[]
+  robots          Robot[]
+  attachments     Attachment[]
 
   @@unique([orgId, num])
   @@index([deletedAt])
@@ -108,12 +109,12 @@ model Project {
 
 model ProjectMember {
   id        String   @id @default(uuid())
-  projectId String
+  projectId String   @map("project_id")
   project   Project  @relation(fields: [projectId], references: [id])
-  userId    String
+  userId    String   @map("user_id")
   user      User     @relation(fields: [userId], references: [id])
   role      String   @default("MEMBER") @db.VarChar(32) // OWNER | ADMIN | MEMBER（P0 简化角色；Sprint 1 换用户组）
-  createdAt DateTime @default(now())
+  createdAt DateTime @default(now()) @map("created_at")
 
   @@unique([projectId, userId])
   @@index([userId])
@@ -124,43 +125,47 @@ model Group {
   id          String   @id @default(uuid())
   name        String   @db.VarChar(128)
   scope       String   @db.VarChar(16) // system | org | project
-  orgId       String?
-  projectId   String?
-  isSystem    Boolean  @default(false)
-  permissions Json     @default("[]") // 权限点数组（Sprint 1 SYS-004 启用）
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  orgId       String?  @map("org_id")
+  projectId   String?  @map("project_id")
+  isSystem    Boolean  @default(false) @map("is_system")
+  permissions Json     @default("[]") // 权限点数组（SYS-004）
+  disabled    Json     @default("[]") // 禁用资源清单（rbac §1：任一所在组禁用即整体禁用）
+  description String?  @db.VarChar(512)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
 
   members GroupMember[]
+
   @@index([scope])
   @@map("groups")
 }
 
 model GroupMember {
-  id        String  @id @default(uuid())
-  groupId   String
-  group     Group   @relation(fields: [groupId], references: [id])
-  userId    String
-  user      User    @relation(fields: [userId], references: [id])
+  id      String @id @default(uuid())
+  groupId String @map("group_id")
+  group   Group  @relation(fields: [groupId], references: [id])
+  userId  String @map("user_id")
+  user    User   @relation(fields: [userId], references: [id])
 
   @@unique([groupId, userId])
   @@map("group_members")
 }
 
 model ResourcePool {
-  id             String   @id @default(uuid())
-  name           String   @db.VarChar(128)
-  type           String   @default("NODE") @db.VarChar(16) // NODE | K8S（ENTP）
-  isDefault      Boolean  @default(false)
-  maxConcurrency Int      @default(4)
+  id             String    @id @default(uuid())
+  name           String    @db.VarChar(128)
+  type           String    @default("NODE") @db.VarChar(16) // NODE | K8S（ENTP）
+  isDefault      Boolean   @default(false) @map("is_default")
+  maxConcurrency Int       @default(4) @map("max_concurrency")
   /// 心跳与节点信息（P0 单节点：nodeId/version/slots/ts）
-  nodes          Json     @default("[]")
-  lastBeatAt     DateTime?
-  status         String   @default("ACTIVE") @db.VarChar(32)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  nodes          Json      @default("[]")
+  lastBeatAt     DateTime? @map("last_beat_at")
+  status         String    @default("ACTIVE") @db.VarChar(32)
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
 
   execTasks ExecTask[]
+
   @@map("resource_pools")
 }
 
@@ -169,74 +174,80 @@ model Plugin {
   name        String   @db.VarChar(128)
   kind        String   @db.VarChar(32) // protocol | platform | driver
   version     String   @db.VarChar(32)
-  storageKey  String   @db.VarChar(512)
-  orgScope    Json     @default("\"ALL\"") // ALL | [orgId]
+  storageKey  String   @map("storage_key") @db.VarChar(512)
+  orgScope    Json     @default("\"ALL\"") @map("org_scope") // ALL | [orgId]
   description String?  @db.VarChar(512)
   enabled     Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
   @@map("plugins")
 }
 
 model AuditLog {
-  id          String   @id @default(uuid())
-  userId      String?
-  user        User?    @relation(fields: [userId], references: [id])
-  scope       String   @db.VarChar(16) // system | org | project
-  projectId   String?
-  action      String   @db.VarChar(64)
-  objectType  String   @db.VarChar(64)
-  objectId    String?  @db.VarChar(64)
-  detail      Json?
-  ip          String?  @db.VarChar(64)
-  createdAt   DateTime @default(now())
+  id         String   @id @default(uuid())
+  userId     String?  @map("user_id")
+  user       User?    @relation(fields: [userId], references: [id])
+  scope      String   @db.VarChar(16) // system | org | project
+  projectId  String?  @map("project_id")
+  action     String   @db.VarChar(64)
+  objectType String   @map("object_type") @db.VarChar(64)
+  objectId   String?  @map("object_id") @db.VarChar(64)
+  detail     Json?
+  ip         String?  @db.VarChar(64)
+  createdAt  DateTime @default(now()) @map("created_at")
+
   @@index([projectId, createdAt])
   @@index([userId, createdAt])
   @@map("audit_logs")
 }
 
 model Notification {
-  id        String   @id @default(uuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  type      String   @db.VarChar(64)
-  title     String   @db.VarChar(256)
-  content   String   @db.VarChar(2048)
-  readAt    DateTime?
-  createdAt DateTime @default(now())
+  id        String    @id @default(uuid())
+  userId    String    @map("user_id")
+  user      User      @relation(fields: [userId], references: [id])
+  type      String    @db.VarChar(64)
+  title     String    @db.VarChar(256)
+  content   String    @db.VarChar(2048)
+  readAt    DateTime? @map("read_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
   @@index([userId, createdAt])
   @@map("notifications")
 }
 
 model Robot {
-  id          String   @id @default(uuid())
-  projectId   String
-  project     Project  @relation(fields: [projectId], references: [id])
-  name        String   @db.VarChar(128)
-  channel     String   @db.VarChar(32) // inapp | email | wecom | dingtalk | feishu
-  webhook     String?  @db.VarChar(1024)
-  enabled     Boolean  @default(true)
-  createdAt   DateTime @default(now())
+  id        String   @id @default(uuid())
+  projectId String   @map("project_id")
+  project   Project  @relation(fields: [projectId], references: [id])
+  name      String   @db.VarChar(128)
+  channel   String   @db.VarChar(32) // inapp | email | wecom | dingtalk | feishu
+  webhook   String?  @db.VarChar(1024)
+  enabled   Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+
   @@map("robots")
 }
 
 model ApiKey {
-  id        String   @id @default(uuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  name      String   @db.VarChar(128)
-  prefix    String   @db.VarChar(16)
-  keyHash   String   @db.VarChar(128)
-  lastUsedAt DateTime?
-  createdAt DateTime @default(now())
-  revokedAt DateTime?
+  id         String    @id @default(uuid())
+  userId     String    @map("user_id")
+  user       User      @relation(fields: [userId], references: [id])
+  name       String    @db.VarChar(128)
+  prefix     String    @db.VarChar(16)
+  keyHash    String    @map("key_hash") @db.VarChar(128)
+  lastUsedAt DateTime? @map("last_used_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  revokedAt  DateTime? @map("revoked_at")
+
   @@map("api_keys")
 }
 
 model SystemParam {
   key       String   @id @db.VarChar(64)
   value     Json
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime @updatedAt @map("updated_at")
+
   @@map("system_params")
 }
 
@@ -245,155 +256,167 @@ model License {
   code      String   @db.VarChar(4096)
   status    String   @default("NONE") @db.VarChar(32) // NONE | VALID | EXPIRED（ENTP-007）
   payload   Json?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
   @@map("licenses")
 }
 
 // ───────────────────────── project 域 ─────────────────────────
 
 model ModuleNode {
-  id        String   @id @default(uuid())
-  projectId String
-  project   Project  @relation(fields: [projectId], references: [id])
-  scene     String   @db.VarChar(16) // case | api | scenario | bug | file
-  parentId  String?
-  parent    ModuleNode?  @relation("ModuleTree", fields: [parentId], references: [id])
-  children  ModuleNode[] @relation("ModuleTree")
-  name      String   @db.VarChar(128)
-  isDefault Boolean  @default(false) // 默认根「未规划用例/接口」
-  order     Int      @default(0)
+  id             String           @id @default(uuid())
+  projectId      String           @map("project_id")
+  project        Project          @relation(fields: [projectId], references: [id])
+  scene          String           @db.VarChar(16) // case | api | scenario | bug | file
+  parentId       String?          @map("parent_id")
+  parent         ModuleNode?      @relation("ModuleTree", fields: [parentId], references: [id])
+  children       ModuleNode[]     @relation("ModuleTree")
+  name           String           @db.VarChar(128)
+  isDefault      Boolean          @default(false) @map("is_default") // 默认根「未规划用例/接口」
+  order          Int              @default(0)
   cases          FunctionalCase[]
   apiDefinitions ApiDefinition[]
   scenarios      Scenario[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt      DateTime         @default(now()) @map("created_at")
+  updatedAt      DateTime         @updatedAt @map("updated_at")
+
   @@index([projectId, scene])
   @@map("module_nodes")
 }
 
 model FieldDef {
-  id          String   @id @default(uuid())
-  orgId       String
-  projectId   String?
-  scene       String   @db.VarChar(16) // case | bug | api
-  name        String   @db.VarChar(128)
-  key         String   @db.VarChar(64)
-  type        String   @db.VarChar(32) // input|textarea|number|date|single_select|multi_select|checkbox|radio|member|url
-  required    Boolean  @default(false)
-  options     Json     @default("{}")
-  isSystem    Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(uuid())
+  orgId     String   @map("org_id")
+  projectId String?  @map("project_id")
+  scene     String   @db.VarChar(16) // case | bug | api
+  name      String   @db.VarChar(128)
+  key       String   @db.VarChar(64)
+  type      String   @db.VarChar(32) // input|textarea|number|date|single_select|multi_select|checkbox|radio|member|url
+  required  Boolean  @default(false)
+  options   Json     @default("{}")
+  isSystem  Boolean  @default(false) @map("is_system")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
   @@unique([scene, key, orgId])
   @@map("field_defs")
 }
 
 model Template {
-  id         String   @id @default(uuid())
-  orgId      String
-  projectId  String?
-  scene      String   @db.VarChar(16)
-  name       String   @db.VarChar(128)
-  isDefault  Boolean  @default(false)
-  isSystem   Boolean  @default(false)
-  fields     Json     @default("[]") // [{fieldKey, required, visibleInList}]
-  platformBinding Json @default("{}")
-  bugs       Bug[]
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id              String   @id @default(uuid())
+  orgId           String   @map("org_id")
+  projectId       String?  @map("project_id")
+  scene           String   @db.VarChar(16)
+  name            String   @db.VarChar(128)
+  isDefault       Boolean  @default(false) @map("is_default")
+  isSystem        Boolean  @default(false) @map("is_system")
+  fields          Json     @default("[]") // [{fieldKey, required, visibleInList}]
+  platformBinding Json     @default("{}") @map("platform_binding")
+  bugs            Bug[]
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
   @@index([scene, projectId])
   @@map("templates")
 }
 
 model WorkflowState {
-  id        String  @id @default(uuid())
-  templateId String
-  scene     String  @db.VarChar(16)
-  serial    String  @db.VarChar(64)
-  isStart   Boolean @default(false)
-  isEnd     Boolean @default(false)
-  transitions WorkflowTransition[] @relation("FromState")
+  id            String               @id @default(uuid())
+  templateId    String               @map("template_id")
+  scene         String               @db.VarChar(16)
+  serial        String               @db.VarChar(64)
+  isStart       Boolean              @default(false) @map("is_start")
+  isEnd         Boolean              @default(false) @map("is_end")
+  transitions   WorkflowTransition[] @relation("FromState")
   toTransitions WorkflowTransition[] @relation("ToState")
+
+  @@unique([templateId, serial])
   @@map("workflow_states")
 }
 
 model WorkflowTransition {
-  id          String  @id @default(uuid())
-  fromStateId String
+  id          String        @id @default(uuid())
+  fromStateId String        @map("from_state_id")
   fromState   WorkflowState @relation("FromState", fields: [fromStateId], references: [id])
-  toStateId   String
+  toStateId   String        @map("to_state_id")
   toState     WorkflowState @relation("ToState", fields: [toStateId], references: [id])
+
   @@unique([fromStateId, toStateId])
   @@map("workflow_transitions")
 }
 
 model Environment {
-  id        String   @id @default(uuid())
-  projectId String
-  project   Project  @relation(fields: [projectId], references: [id])
-  name      String   @db.VarChar(128)
+  id        String    @id @default(uuid())
+  projectId String    @map("project_id")
+  project   Project   @relation(fields: [projectId], references: [id])
+  name      String    @db.VarChar(128)
   config    Json // {vars, http[], database[], hosts, prePost, asserts, tcp}
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  deletedAt DateTime?
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
   @@index([projectId, deletedAt])
   @@map("environments")
 }
 
 model EnvGroup {
-  id           String   @id @default(uuid())
-  projectId    String
-  project      Project  @relation(fields: [projectId], references: [id])
-  name         String   @db.VarChar(128)
-  environmentIds Json   @default("[]")
-  createdAt    DateTime @default(now())
+  id             String   @id @default(uuid())
+  projectId      String   @map("project_id")
+  project        Project  @relation(fields: [projectId], references: [id])
+  name           String   @db.VarChar(128)
+  environmentIds Json     @default("[]") @map("environment_ids")
+  createdAt      DateTime @default(now()) @map("created_at")
+
   @@map("env_groups")
 }
 
 model GlobalParam {
   id        String   @id @default(uuid())
-  projectId String
+  projectId String   @map("project_id")
   project   Project  @relation(fields: [projectId], references: [id])
   params    Json     @default("{}")
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime @updatedAt @map("updated_at")
+
   @@unique([projectId])
   @@map("global_params")
 }
 
 model FileItem {
   id         String    @id @default(uuid())
-  projectId  String
+  projectId  String    @map("project_id")
   project    Project   @relation(fields: [projectId], references: [id])
-  moduleId   String?
+  moduleId   String?   @map("module_id")
   name       String    @db.VarChar(256)
-  storageKey String    @db.VarChar(512)
+  storageKey String    @map("storage_key") @db.VarChar(512)
   size       Int
   mime       String?   @db.VarChar(128)
-  jarEnabled Boolean   @default(false)
-  repoId     String?
+  jarEnabled Boolean   @default(false) @map("jar_enabled")
+  repoId     String?   @map("repo_id")
   repo       FileRepo? @relation(fields: [repoId], references: [id])
-  deletedAt  DateTime?
-  createdAt  DateTime  @default(now())
+  deletedAt  DateTime? @map("deleted_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+
   @@index([projectId, deletedAt])
   @@map("file_items")
 }
 
 model FileRepo {
-  id        String   @id @default(uuid())
-  projectId String
-  project   Project  @relation(fields: [projectId], references: [id])
-  platform  String   @db.VarChar(32) // gitea | github | gitlab | gitee
-  url       String   @db.VarChar(1024)
-  token     String?  @db.VarChar(512)
-  createdAt DateTime @default(now())
+  id        String     @id @default(uuid())
+  projectId String     @map("project_id")
+  project   Project    @relation(fields: [projectId], references: [id])
+  platform  String     @db.VarChar(32) // gitea | github | gitlab | gitee
+  url       String     @db.VarChar(1024)
+  token     String?    @db.VarChar(512)
+  createdAt DateTime   @default(now()) @map("created_at")
   files     FileItem[]
+
   @@map("file_repos")
 }
 
 model PublicScript {
   id        String    @id @default(uuid())
-  projectId String
+  projectId String    @map("project_id")
   project   Project   @relation(fields: [projectId], references: [id])
   name      String    @db.VarChar(128)
   language  String    @default("javascript") @db.VarChar(32)
@@ -401,108 +424,133 @@ model PublicScript {
   tags      Json      @default("[]")
   params    Json      @default("[]")
   content   String
-  deletedAt DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  deletedAt DateTime? @map("deleted_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
   @@map("public_scripts")
 }
 
 model FalseAlarmRule {
   id        String   @id @default(uuid())
-  projectId String
+  projectId String   @map("project_id")
   project   Project  @relation(fields: [projectId], references: [id])
   name      String   @db.VarChar(128)
   matcher   Json // {status?, bodyContains?...}
   enabled   Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
   @@map("false_alarm_rules")
 }
 
 model AppSetting {
-  projectId String
-  project   Project @relation(fields: [projectId], references: [id])
-  key       String  @db.VarChar(64)
+  projectId String   @map("project_id")
+  project   Project  @relation(fields: [projectId], references: [id])
+  key       String   @db.VarChar(64)
   value     Json
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime @updatedAt @map("updated_at")
+
   @@id([projectId, key])
   @@map("app_settings")
+}
+
+/// 用户偏好（CASE-002 视图/列配置、CASE-003 Tab 记忆、DASH-001 卡片布局；projectId="" 为全局）
+model UserPreference {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  projectId String   @default("") @map("project_id")
+  key       String   @db.VarChar(64) // case_views | case_columns | case_tab | dash_cards
+  value     Json
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([userId, projectId, key])
+  @@map("user_preferences")
 }
 
 // ───────────────────────── case 域 ─────────────────────────
 
 model FunctionalCase {
-  id           String    @id @default(uuid())
-  projectId    String
-  project      Project   @relation(fields: [projectId], references: [id])
-  moduleId     String
+  id           String     @id @default(uuid())
+  projectId    String     @map("project_id")
+  project      Project    @relation(fields: [projectId], references: [id])
+  moduleId     String     @map("module_id")
   module       ModuleNode @relation(fields: [moduleId], references: [id])
   num          Int
-  name         String    @db.VarChar(512)
-  precondition String    @db.VarChar(4000)
-  steps        Json      @default("[]") // [{desc, expect}]
-  level        String    @default("P2") @db.VarChar(8)
-  status       String    @default("PREPARING") @db.VarChar(32)
-  tags         Json      @default("[]")
-  templateId   String?
-  fields       Json      @default("{}") // 自定义字段值（Sprint 1）
-  version      Int       @default(1)
-  deletedAt    DateTime?
-  createdBy    String
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  name         String     @db.VarChar(512)
+  precondition String     @db.VarChar(4000)
+  steps        Json       @default("[]") // [{desc, expect}]
+  level        String     @default("P2") @db.VarChar(8)
+  status       String     @default("PREPARING") @db.VarChar(32)
+  tags         Json       @default("[]")
+  templateId   String?    @map("template_id")
+  fields       Json       @default("{}") // 自定义字段值（Sprint 1）
+  version      Int        @default(1)
+  deletedAt    DateTime?  @map("deleted_at")
+  createdBy    String     @map("created_by")
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
 
   reviewCases ReviewCase[]
+
   @@unique([projectId, num])
   @@index([projectId, deletedAt, name])
   @@index([projectId, deletedAt, level])
+  @@index([moduleId, deletedAt])
   @@map("functional_cases")
 }
 
 model CaseReview {
-  id          String    @id @default(uuid())
-  projectId   String
-  name        String    @db.VarChar(256)
-  reviewMode  String    @default("SINGLE") @db.VarChar(16) // SINGLE | MULTI
-  reviewers   Json      @default("[]")
-  startAt     DateTime?
-  endAt       DateTime?
-  status      String    @default("UNDERWAY") @db.VarChar(32)
-  deletedAt   DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id          String       @id @default(uuid())
+  projectId   String       @map("project_id")
+  name        String       @db.VarChar(256)
+  description String?      @db.VarChar(2000)
+  reviewMode  String       @default("SINGLE") @map("review_mode") @db.VarChar(16) // SINGLE | MULTI
+  reviewers   Json         @default("[]")
+  startAt     DateTime?    @map("start_at")
+  endAt       DateTime?    @map("end_at")
+  status      String       @default("UNDERWAY") @db.VarChar(32)
+  deletedAt   DateTime?    @map("deleted_at")
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
   cases       ReviewCase[]
+
   @@map("case_reviews")
 }
 
 model ReviewCase {
-  id        String     @id @default(uuid())
-  reviewId  String
-  review    CaseReview @relation(fields: [reviewId], references: [id])
-  caseId    String
-  case      FunctionalCase @relation(fields: [caseId], references: [id])
-  reviewer  String?    @db.VarChar(64)
-  result    String?    @db.VarChar(32)
-  reSubmit  Boolean    @default(false)
-  commentedAt DateTime?
+  id          String         @id @default(uuid())
+  reviewId    String         @map("review_id")
+  review      CaseReview     @relation(fields: [reviewId], references: [id])
+  caseId      String         @map("case_id")
+  case        FunctionalCase @relation(fields: [caseId], references: [id])
+  reviewer    String?        @db.VarChar(64)
+  result      String?        @db.VarChar(32)
+  /// 逐评审人标记 [{userId,result,comment,ts}]（multi 模式聚合，CASE-005）
+  results     Json           @default("[]")
+  reSubmit    Boolean        @default(false) @map("re_submit")
+  commentedAt DateTime?      @map("commented_at")
+
   @@unique([reviewId, caseId])
   @@map("review_cases")
 }
 
 model CaseDependency {
-  id          String @id @default(uuid())
-  preCaseId   String
-  postCaseId  String
+  id         String @id @default(uuid())
+  preCaseId  String @map("pre_case_id")
+  postCaseId String @map("post_case_id")
+
   @@unique([preCaseId, postCaseId])
   @@map("case_dependencies")
 }
 
 model CaseDemandRef {
   id         String @id @default(uuid())
-  caseId     String
+  caseId     String @map("case_id")
   platform   String @db.VarChar(32) // jira | zentao | tapd
-  demandKey  String @db.VarChar(128)
-  demandJson Json?
+  demandKey  String @map("demand_key") @db.VarChar(128)
+  demandJson Json?  @map("demand_json")
+
   @@unique([caseId, platform, demandKey])
   @@map("case_demand_refs")
 }
@@ -511,30 +559,32 @@ model CaseDemandRef {
 
 model Comment {
   id         String    @id @default(uuid())
-  entityType String    @db.VarChar(64)
-  entityId   String
-  userId     String
+  entityType String    @map("entity_type") @db.VarChar(64)
+  entityId   String    @map("entity_id")
+  userId     String    @map("user_id")
   user       User      @relation(fields: [userId], references: [id])
   content    String    @db.VarChar(4000)
   mentions   Json      @default("[]")
-  parentId   String?
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-  deletedAt  DateTime?
+  parentId   String?   @map("parent_id")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+  deletedAt  DateTime? @map("deleted_at")
+
   @@index([entityType, entityId, createdAt])
   @@map("comments")
 }
 
 model ChangeLog {
   id         String   @id @default(uuid())
-  entityType String   @db.VarChar(64)
-  entityId   String
+  entityType String   @map("entity_type") @db.VarChar(64)
+  entityId   String   @map("entity_id")
   seq        Int
   action     String   @db.VarChar(32) // create | update | delete | restore
   diff       Json?
-  userId     String?
+  userId     String?  @map("user_id")
   user       User?    @relation(fields: [userId], references: [id])
-  createdAt  DateTime @default(now())
+  createdAt  DateTime @default(now()) @map("created_at")
+
   @@unique([entityType, entityId, seq])
   @@index([entityType, entityId, createdAt])
   @@map("change_logs")
@@ -542,11 +592,12 @@ model ChangeLog {
 
 model Follow {
   id         String   @id @default(uuid())
-  userId     String
+  userId     String   @map("user_id")
   user       User     @relation(fields: [userId], references: [id])
-  entityType String   @db.VarChar(64)
-  entityId   String
-  createdAt  DateTime @default(now())
+  entityType String   @map("entity_type") @db.VarChar(64)
+  entityId   String   @map("entity_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+
   @@unique([userId, entityType, entityId])
   @@map("follows")
 }
@@ -554,58 +605,65 @@ model Follow {
 // ───────────────────────── plan 域 ─────────────────────────
 
 model TestPlan {
-  id          String    @id @default(uuid())
-  projectId   String
-  project     Project   @relation(fields: [projectId], references: [id])
+  id          String        @id @default(uuid())
+  projectId   String        @map("project_id")
+  project     Project       @relation(fields: [projectId], references: [id])
   /// 计划组：groupId 指向同表 type=GROUP 记录（xpack 语义列，P0 建齐不启用）
-  groupId     String?
-  type        String    @default("PLAN") @db.VarChar(8) // PLAN | GROUP
-  name        String    @db.VarChar(256)
-  description String?   @db.VarChar(2000)
-  moduleId    String?
-  startAt     DateTime?
-  endAt       DateTime?
-  tags        Json      @default("[]")
-  settings    Json      @default("{}") // {threshold, allowDuplicate, autoUpdateStatus}
-  status      String    @default("NOT_STARTED") @db.VarChar(32)
-  archivedAt  DateTime?
-  deletedAt   DateTime?
-  createdBy   String
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  groupId     String?       @map("group_id")
+  type        String        @default("PLAN") @db.VarChar(8) // PLAN | GROUP
+  name        String        @db.VarChar(256)
+  description String?       @db.VarChar(2000)
+  moduleId    String?       @map("module_id")
+  startAt     DateTime?     @map("start_at")
+  endAt       DateTime?     @map("end_at")
+  tags        Json          @default("[]")
+  settings    Json          @default("{}") // {threshold, allowDuplicate, autoUpdateStatus}
+  status      String        @default("NOT_STARTED") @db.VarChar(32)
+  archivedAt  DateTime?     @map("archived_at")
+  deletedAt   DateTime?     @map("deleted_at")
+  createdBy   String        @map("created_by")
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
   points      TestPoint[]
   caseRefs    PlanCaseRef[]
+
   @@index([projectId, deletedAt])
   @@map("test_plans")
 }
 
 model TestPoint {
-  id         String     @id @default(uuid())
-  planId     String
-  plan       TestPlan   @relation(fields: [planId], references: [id])
-  parentId   String?
-  parent     TestPoint? @relation("PointTree", fields: [parentId], references: [id])
-  children   TestPoint[] @relation("PointTree")
-  name       String     @db.VarChar(256)
-  inheritConfig Boolean @default(true)
-  config     Json       @default("{}")
-  order      Int        @default(0)
-  caseRefs   PlanCaseRef[]
+  id            String        @id @default(uuid())
+  planId        String        @map("plan_id")
+  plan          TestPlan      @relation(fields: [planId], references: [id])
+  parentId      String?       @map("parent_id")
+  parent        TestPoint?    @relation("PointTree", fields: [parentId], references: [id])
+  children      TestPoint[]   @relation("PointTree")
+  name          String        @db.VarChar(256)
+  inheritConfig Boolean       @default(true) @map("inherit_config")
+  config        Json          @default("{}")
+  order         Int           @default(0)
+  caseRefs      PlanCaseRef[]
+
   @@map("test_points")
 }
 
 /// 多态引用：refType ∈ functional_case | api_case | scenario（跨域经 Provider，test-domain-model §3）
 model PlanCaseRef {
-  id          String   @id @default(uuid())
-  planId      String
-  plan        TestPlan @relation(fields: [planId], references: [id])
-  pointId     String?
+  id          String     @id @default(uuid())
+  planId      String     @map("plan_id")
+  plan        TestPlan   @relation(fields: [planId], references: [id])
+  pointId     String?    @map("point_id")
   point       TestPoint? @relation(fields: [pointId], references: [id])
-  refType     String   @db.VarChar(32)
-  refId       String
-  config      Json     @default("{}") // {envId, poolId, serial, stopOnFail}
-  execUserId  String?
-  status      String   @default("NOT_RUN") @db.VarChar(32)
+  refType     String     @map("ref_type") @db.VarChar(32)
+  refId       String     @map("ref_id")
+  config      Json       @default("{}") // {envId, poolId, serial, stopOnFail}
+  execUserId  String?    @map("exec_user_id")
+  status      String     @default("NOT_RUN") @db.VarChar(32) // NOT_RUN|PASS|FAIL|BLOCKED|SKIPPED
+  /// 本次执行结果 {actualResult, steps:[{status,result}], comment}（PLAN-001）
+  result      Json       @default("{}")
+  /// 执行历史 [{ts,userId,from,to,steps}]（PLAN-001）
+  execHistory Json       @default("[]")
+
   @@unique([planId, refType, refId])
   @@index([refType, refId])
   @@map("plan_case_refs")
@@ -614,151 +672,184 @@ model PlanCaseRef {
 // ───────────────────────── bug 域 ─────────────────────────
 
 model Bug {
-  id          String    @id @default(uuid())
-  projectId   String
-  project     Project   @relation(fields: [projectId], references: [id])
-  templateId  String?
-  num         Int
-  title       String    @db.VarChar(512)
-  description String    @db.VarChar(8000)
-  fields      Json      @default("{}")
-  platform    String    @default("LOCAL") @db.VarChar(32)
-  platformKey String?   @db.VarChar(128)
-  syncState   String    @default("NONE") @db.VarChar(32)
-  template    Template? @relation(fields: [templateId], references: [id])
-  version     Int       @default(1)
-  deletedAt   DateTime?
-  createdBy   String
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  caseRefs    BugCaseRef[]
+  id           String       @id @default(uuid())
+  projectId    String       @map("project_id")
+  project      Project      @relation(fields: [projectId], references: [id])
+  templateId   String?      @map("template_id")
+  num          Int
+  title        String       @db.VarChar(512)
+  description  String       @db.VarChar(8000)
+  fields       Json         @default("{}")
+  /// 当前工作流状态（WorkflowState.serial；模板内 serial 唯一——BUG-001）
+  status       String       @default("") @db.VarChar(64)
+  handleUserId String?      @map("handle_user_id") // 处理人（BUG-001）
+  moduleId     String?      @map("module_id") // bug 场景模块树（BUG-001）
+  tags         Json         @default("[]")
+  platform     String       @default("LOCAL") @db.VarChar(32)
+  platformKey  String?      @map("platform_key") @db.VarChar(128)
+  syncState    String       @default("NONE") @map("sync_state") @db.VarChar(32)
+  template     Template?    @relation(fields: [templateId], references: [id])
+  version      Int          @default(1)
+  deletedAt    DateTime?    @map("deleted_at")
+  createdBy    String       @map("created_by")
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
+  caseRefs     BugCaseRef[]
+
   @@unique([projectId, num])
   @@index([projectId, deletedAt])
   @@map("bugs")
 }
 
+/// 通用附件横切（BUG-001；entityType 形如 bug:{id}）
+model Attachment {
+  id         String    @id @default(uuid())
+  projectId  String    @map("project_id")
+  project    Project   @relation(fields: [projectId], references: [id])
+  entityType String    @map("entity_type") @db.VarChar(64)
+  entityId   String    @map("entity_id")
+  name       String    @db.VarChar(256)
+  storageKey String    @map("storage_key") @db.VarChar(512)
+  size       Int
+  mime       String?   @db.VarChar(128)
+  createdBy  String    @map("created_by")
+  deletedAt  DateTime? @map("deleted_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+
+  @@index([entityType, entityId])
+  @@index([projectId, deletedAt])
+  @@map("attachments")
+}
+
 model BugCaseRef {
   id      String @id @default(uuid())
-  bugId   String
+  bugId   String @map("bug_id")
   bug     Bug    @relation(fields: [bugId], references: [id])
-  refType String @db.VarChar(32)
-  refId   String
+  refType String @map("ref_type") @db.VarChar(32)
+  refId   String @map("ref_id")
+
   @@unique([bugId, refType, refId])
   @@map("bug_case_refs")
 }
 
 model PlatformSyncConfig {
   id         String   @id @default(uuid())
-  projectId String   @unique
+  projectId  String   @unique @map("project_id")
   platform   String   @db.VarChar(32)
-  projectKey String?  @db.VarChar(128)
-  bugTypes   Json     @default("[]")
+  projectKey String?  @map("project_key") @db.VarChar(128)
+  bugTypes   Json     @default("[]") @map("bug_types")
   mode       String   @default("INCREMENT") @db.VarChar(16)
   cron       String?  @db.VarChar(64)
   enabled    Boolean  @default(false)
-  updatedAt  DateTime @updatedAt
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
   @@map("platform_sync_configs")
 }
 
 // ───────────────────────── api_test 域 ─────────────────────────
 
 model ApiDefinition {
-  id        String    @id @default(uuid())
-  projectId String
-  project   Project   @relation(fields: [projectId], references: [id])
-  moduleId  String
+  id        String     @id @default(uuid())
+  projectId String     @map("project_id")
+  project   Project    @relation(fields: [projectId], references: [id])
+  moduleId  String     @map("module_id")
   module    ModuleNode @relation(fields: [moduleId], references: [id])
   num       Int
-  protocol  String    @default("HTTP") @db.VarChar(32)
-  method    String    @db.VarChar(16)
-  path      String    @db.VarChar(1024)
-  name      String    @db.VarChar(512)
-  status    String    @default("DEBUG") @db.VarChar(32)
-  version   Int       @default(1)
+  protocol  String     @default("HTTP") @db.VarChar(32)
+  method    String     @db.VarChar(16)
+  path      String     @db.VarChar(1024)
+  name      String     @db.VarChar(512)
+  status    String     @default("DEBUG") @db.VarChar(32)
+  version   Int        @default(1)
   request   Json
-  response  Json      @default("{}")
-  deletedAt DateTime?
-  createdBy String
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  response  Json       @default("{}")
+  deletedAt DateTime?  @map("deleted_at")
+  createdBy String     @map("created_by")
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
   cases     ApiCase[]
   mocks     ApiMock[]
+
   @@unique([projectId, num])
   @@index([projectId, deletedAt, name])
   @@map("api_definitions")
 }
 
 model ApiCase {
-  id        String    @id @default(uuid())
-  apiId     String
+  id        String        @id @default(uuid())
+  apiId     String        @map("api_id")
   api       ApiDefinition @relation(fields: [apiId], references: [id])
-  projectId String
-  project   Project   @relation(fields: [projectId], references: [id])
+  projectId String        @map("project_id")
+  project   Project       @relation(fields: [projectId], references: [id])
   num       Int
-  name      String    @db.VarChar(512)
-  level     String    @default("P2") @db.VarChar(8)
-  status    String    @default("UNDERWAY") @db.VarChar(32)
-  tags      Json      @default("[]")
+  name      String        @db.VarChar(512)
+  level     String        @default("P2") @db.VarChar(8)
+  status    String        @default("UNDERWAY") @db.VarChar(32)
+  tags      Json          @default("[]")
   request   Json // 差量覆盖
-  version   Int       @default(1)
-  deletedAt DateTime?
-  createdBy String
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  version   Int           @default(1)
+  deletedAt DateTime?     @map("deleted_at")
+  createdBy String        @map("created_by")
+  createdAt DateTime      @default(now()) @map("created_at")
+  updatedAt DateTime      @updatedAt @map("updated_at")
+
   @@unique([projectId, num])
   @@map("api_cases")
 }
 
 model ApiMock {
-  id         String   @id @default(uuid())
-  apiId      String
-  api        ApiDefinition @relation(fields: [apiId], references: [id])
-  name       String   @db.VarChar(256)
-  matchers   Json
-  response   Json
-  followApi  Boolean  @default(false)
-  enabled    Boolean  @default(true)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id        String        @id @default(uuid())
+  apiId     String        @map("api_id")
+  api       ApiDefinition @relation(fields: [apiId], references: [id])
+  name      String        @db.VarChar(256)
+  matchers  Json
+  response  Json
+  followApi Boolean       @default(false) @map("follow_api")
+  enabled   Boolean       @default(true)
+  createdAt DateTime      @default(now()) @map("created_at")
+  updatedAt DateTime      @updatedAt @map("updated_at")
+
   @@map("api_mocks")
 }
 
 model Scenario {
-  id        String    @id @default(uuid())
-  projectId String
-  project   Project   @relation(fields: [projectId], references: [id])
-  moduleId  String
-  module    ModuleNode @relation(fields: [moduleId], references: [id])
+  id        String         @id @default(uuid())
+  projectId String         @map("project_id")
+  project   Project        @relation(fields: [projectId], references: [id])
+  moduleId  String         @map("module_id")
+  module    ModuleNode     @relation(fields: [moduleId], references: [id])
   num       Int
-  name      String    @db.VarChar(512)
-  level     String    @default("P2") @db.VarChar(8)
-  status    String    @default("UNDERWAY") @db.VarChar(32)
-  tags      Json      @default("[]")
+  name      String         @db.VarChar(512)
+  level     String         @default("P2") @db.VarChar(8)
+  status    String         @default("UNDERWAY") @db.VarChar(32)
+  tags      Json           @default("[]")
   /// 五配置区：params / prePost / asserts / settings（步骤在 ScenarioStep 树）
-  config    Json      @default("{}")
-  version   Int       @default(1)
-  deletedAt DateTime?
-  createdBy String
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  config    Json           @default("{}")
+  version   Int            @default(1)
+  deletedAt DateTime?      @map("deleted_at")
+  createdBy String         @map("created_by")
+  createdAt DateTime       @default(now()) @map("created_at")
+  updatedAt DateTime       @updatedAt @map("updated_at")
   steps     ScenarioStep[]
+
   @@unique([projectId, num])
   @@map("scenarios")
 }
 
 model ScenarioStep {
-  id         String        @id @default(uuid())
-  scenarioId String
-  scenario   Scenario      @relation(fields: [scenarioId], references: [id])
-  parentId   String?
-  parent     ScenarioStep? @relation("StepTree", fields: [parentId], references: [id])
+  id         String         @id @default(uuid())
+  scenarioId String         @map("scenario_id")
+  scenario   Scenario       @relation(fields: [scenarioId], references: [id])
+  parentId   String?        @map("parent_id")
+  parent     ScenarioStep?  @relation("StepTree", fields: [parentId], references: [id])
   children   ScenarioStep[] @relation("StepTree")
-  stepType   String        @db.VarChar(32) // ref_api|ref_case|ref_scenario|custom|loop|condition|once|script|wait
-  refId      String?
-  name       String        @db.VarChar(256)
-  config     Json          @default("{}")
-  enabled    Boolean       @default(true)
-  order      Int           @default(0)
+  stepType   String         @map("step_type") @db.VarChar(32) // ref_api|ref_case|ref_scenario|custom|loop|condition|once|script|wait
+  refId      String?        @map("ref_id")
+  name       String         @db.VarChar(256)
+  config     Json           @default("{}")
+  enabled    Boolean        @default(true)
+  order      Int            @default(0)
+
   @@index([scenarioId, parentId])
   @@map("scenario_steps")
 }
@@ -766,28 +857,28 @@ model ScenarioStep {
 // ───────────────────────── exec / report 域 ─────────────────────────
 
 model ExecTask {
-  id           String   @id @default(uuid())
-  projectId    String
-  project      Project  @relation(fields: [projectId], references: [id])
-  type         String   @db.VarChar(32) // api_debug | api_case | scenario | plan
-  refType      String?  @db.VarChar(32)
-  refId        String?  @db.VarChar(64)
-  status       String   @default("PENDING") @db.VarChar(16)
-  clientTaskId String?  @db.VarChar(128)
-  poolId       String?
-  pool         ResourcePool? @relation(fields: [poolId], references: [id])
-  envId        String?
-  payload      Json // 执行定义（request/asserts 等）
-  failureKind  String?  @db.VarChar(32)
-  message      String?  @db.VarChar(2000)
-  startedAt    DateTime?
-  finishedAt   DateTime?
-  durationMs   Int?
-  createdBy    String
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  items        ExecItem[]
-  reports      Report[]
+  id             String          @id @default(uuid())
+  projectId      String          @map("project_id")
+  project        Project         @relation(fields: [projectId], references: [id])
+  type           String          @db.VarChar(32) // api_debug | api_case | scenario | plan
+  refType        String?         @map("ref_type") @db.VarChar(32)
+  refId          String?         @map("ref_id") @db.VarChar(64)
+  status         String          @default("PENDING") @db.VarChar(16)
+  clientTaskId   String?         @map("client_task_id") @db.VarChar(128)
+  poolId         String?         @map("pool_id")
+  pool           ResourcePool?   @relation(fields: [poolId], references: [id])
+  envId          String?         @map("env_id")
+  payload        Json // 执行定义（request/asserts 等）
+  failureKind    String?         @map("failure_kind") @db.VarChar(32)
+  message        String?         @db.VarChar(2000)
+  startedAt      DateTime?       @map("started_at")
+  finishedAt     DateTime?       @map("finished_at")
+  durationMs     Int?            @map("duration_ms")
+  createdBy      String          @map("created_by")
+  createdAt      DateTime        @default(now()) @map("created_at")
+  updatedAt      DateTime        @updatedAt @map("updated_at")
+  items          ExecItem[]
+  reports        Report[]
   falseAlarmHits FalseAlarmHit[]
 
   @@unique([projectId, clientTaskId])
@@ -797,67 +888,72 @@ model ExecTask {
 }
 
 model ExecItem {
-  id         String    @id @default(uuid())
-  taskId     String
-  task       ExecTask  @relation(fields: [taskId], references: [id])
-  refType    String    @db.VarChar(32)
-  refId      String
-  status     String    @default("PENDING") @db.VarChar(16)
-  result     Json? // 汇总摘要（通过率等在此冗余列聚合）
-  startedAt  DateTime?
-  finishedAt DateTime?
+  id          String           @id @default(uuid())
+  taskId      String           @map("task_id")
+  task        ExecTask         @relation(fields: [taskId], references: [id])
+  refType     String           @map("ref_type") @db.VarChar(32)
+  refId       String           @map("ref_id")
+  status      String           @default("PENDING") @db.VarChar(16)
+  result      Json? // 汇总摘要（通过率等在此冗余列聚合）
+  startedAt   DateTime?        @map("started_at")
+  finishedAt  DateTime?        @map("finished_at")
   stepResults ExecStepResult[]
+
   @@index([taskId])
   @@map("exec_items")
 }
 
 model ExecStepResult {
   id        String   @id @default(uuid())
-  itemId    String
+  itemId    String   @map("item_id")
   item      ExecItem @relation(fields: [itemId], references: [id])
   seq       Int
   frame     Json // 事件帧原样持久化（报告=事件视图）
-  createdAt DateTime @default(now())
+  createdAt DateTime @default(now()) @map("created_at")
+
   @@unique([itemId, seq])
   @@map("exec_step_results")
 }
 
 model Report {
-  id        String    @id @default(uuid())
-  taskId    String
-  task      ExecTask  @relation(fields: [taskId], references: [id])
-  projectId String
-  project   Project   @relation(fields: [projectId], references: [id])
-  planId    String?
-  reportType String   @db.VarChar(32) // api_case | scenario | plan
-  name      String    @db.VarChar(256)
-  summary   String?   @db.VarChar(4000)
-  snapshot  Json? // 分享快照（P0 不启用）
-  createdBy String
-  createdAt DateTime  @default(now())
-  shares    ReportShare[]
+  id             String          @id @default(uuid())
+  taskId         String          @map("task_id")
+  task           ExecTask        @relation(fields: [taskId], references: [id])
+  projectId      String          @map("project_id")
+  project        Project         @relation(fields: [projectId], references: [id])
+  planId         String?         @map("plan_id")
+  reportType     String          @map("report_type") @db.VarChar(32) // api_case | scenario | plan
+  name           String          @db.VarChar(256)
+  summary        String?         @db.VarChar(4000)
+  snapshot       Json? // 分享快照（P0 不启用）
+  createdBy      String          @map("created_by")
+  createdAt      DateTime        @default(now()) @map("created_at")
+  shares         ReportShare[]
   falseAlarmHits FalseAlarmHit[]
+
   @@index([projectId, createdAt])
   @@map("reports")
 }
 
 model ReportShare {
   id        String   @id @default(uuid())
-  reportId  String
+  reportId  String   @map("report_id")
   report    Report   @relation(fields: [reportId], references: [id])
   token     String   @unique @db.VarChar(128)
-  expireAt  DateTime
-  createdAt DateTime @default(now())
+  expireAt  DateTime @map("expire_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
   @@map("report_shares")
 }
 
 model FalseAlarmHit {
-  id        String  @id @default(uuid())
-  reportId  String
-  report    Report @relation(fields: [reportId], references: [id])
-  taskId    String
+  id        String   @id @default(uuid())
+  reportId  String   @map("report_id")
+  report    Report   @relation(fields: [reportId], references: [id])
+  taskId    String   @map("task_id")
   task      ExecTask @relation(fields: [taskId], references: [id])
-  ruleId    String  @db.VarChar(64)
-  createdAt DateTime @default(now())
+  ruleId    String   @map("rule_id") @db.VarChar(64)
+  createdAt DateTime @default(now()) @map("created_at")
+
   @@map("false_alarm_hits")
 }

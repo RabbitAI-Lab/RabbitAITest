@@ -1,0 +1,61 @@
+<!doctype html><html lang="zh"><head><meta charset="utf-8"><title>SYS-004 用户组管理</title><script src="https://cdn.tailwindcss.com"></script></head>
+<body class="bg-slate-50 text-slate-800">
+<header class="h-12 bg-white border-b flex items-center px-4 gap-3 text-sm shrink-0"><span class="font-semibold">RabbitAITest</span><span class="border rounded px-2 py-0.5 text-slate-600">默认组织</span><div class="ml-auto flex items-center gap-3 text-slate-500"><span class="w-6 h-6 rounded-full border grid place-items-center text-xs">?</span><span class="relative">消息<span class="absolute -top-1.5 -right-2.5 bg-[#FF4D4F] text-white text-[10px] rounded-full px-1">3</span></span><span class="w-6 h-6 rounded-full bg-[#574BFF] text-white grid place-items-center text-xs">许</span></div></header>
+<div class="flex"><aside class="w-[208px] bg-white border-r p-2 text-sm shrink-0">
+  <p class="px-3 pt-2 pb-1 text-xs text-slate-400">组织</p><p class="px-3 py-2 rounded">项目管理</p><p class="px-3 py-2 rounded">模板管理</p><p class="px-3 py-2 rounded">用户组管理</p>
+  <p class="px-3 pt-3 pb-1 text-xs text-slate-400">系统设置</p><p class="px-3 py-2 rounded">用户管理</p><p class="px-3 py-2 rounded bg-[#574BFF]/10 text-[#574BFF] font-medium">用户组管理</p><p class="px-3 py-2 rounded">系统参数</p>
+</aside>
+<main class="flex-1 p-6">
+  <div class="flex items-center gap-3 mb-4"><h1 class="text-lg font-medium">用户组管理</h1><span class="text-xs text-slate-400">三级复用：系统 / 组织 › 用户组 / 项目 › 用户组（本页为系统级）</span></div>
+  <div class="flex gap-4 items-start">
+    <div class="w-64 shrink-0 bg-white border rounded">
+      <div class="flex items-center p-3 border-b"><span class="font-medium text-sm">组列表</span><button class="ml-auto text-sm text-[#574BFF]">＋ 新建组</button></div>
+      <p class="px-3 pt-3 pb-1 text-xs text-slate-400">预置组（只读）</p>
+      <!-- 预置组行：锁标=只读，选中时右侧详情只读 -->
+      <p class="px-3 py-2 mx-1 rounded text-sm flex items-center gap-2 text-slate-600 hover:bg-slate-50">系统管理员<svg viewBox="0 0 24 24" class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span class="ml-auto text-xs text-slate-400">3 人</span></p>
+      <p class="px-3 py-2 mx-1 rounded text-sm flex items-center gap-2 text-slate-600 hover:bg-slate-50">系统成员<svg viewBox="0 0 24 24" class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span class="ml-auto text-xs text-slate-400">12 人</span></p>
+      <p class="px-3 py-2 mx-1 rounded text-sm flex items-center gap-2 text-slate-600 hover:bg-slate-50">组织管理员<svg viewBox="0 0 24 24" class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span class="ml-auto text-xs text-slate-400">2 人</span></p>
+      <p class="px-3 py-2 mx-1 rounded text-sm flex items-center gap-2 text-slate-600 hover:bg-slate-50">组织成员<svg viewBox="0 0 24 24" class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span class="ml-auto text-xs text-slate-400">18 人</span></p>
+      <p class="px-3 py-2 mx-1 rounded text-sm flex items-center gap-2 text-slate-600 hover:bg-slate-50">项目管理员<svg viewBox="0 0 24 24" class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span class="ml-auto text-xs text-slate-400">6 人</span></p>
+      <p class="px-3 py-2 mx-1 rounded text-sm flex items-center gap-2 text-slate-600 hover:bg-slate-50">项目成员<svg viewBox="0 0 24 24" class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span class="ml-auto text-xs text-slate-400">24 人</span></p>
+      <p class="px-3 pt-4 pb-1 text-xs text-slate-400">自定义组</p>
+      <p class="px-3 py-2 mx-1 rounded text-sm flex items-center gap-2 bg-[#574BFF]/10 text-[#574BFF] font-medium">只读访客<span class="ml-auto text-xs">5 人</span></p>
+      <p class="px-3 py-2 mx-1 rounded text-sm flex items-center gap-2 text-slate-600 hover:bg-slate-50">外包测试组<span class="ml-auto text-xs text-slate-400">3 人</span></p>
+    </div>
+    <div class="flex-1 space-y-4 min-w-0">
+      <div class="bg-white border rounded">
+        <div class="p-4 border-b flex items-center gap-3"><span class="font-medium">只读访客</span><span class="text-xs bg-slate-100 rounded px-1.5 py-0.5">自定义组</span><span class="text-xs text-slate-400">仅可查看项目内用例与报告，不可修改</span><div class="ml-auto flex gap-2 text-sm"><button class="border rounded px-2.5 py-1">重命名</button><button class="border rounded px-2.5 py-1">恢复默认</button><button class="border border-[#FF4D4F] text-[#FF4D4F] rounded px-2.5 py-1">删除</button></div></div>
+        <div class="p-4 border-b">
+          <div class="flex items-center gap-2 mb-3 text-sm font-medium">成员（5）<input class="ml-auto border rounded px-2 py-1 text-sm w-56" placeholder="搜索用户邮箱 / 姓名添加（可多选）"><button class="bg-[#574BFF] text-white rounded px-3 py-1.5 text-sm">添加成员</button></div>
+          <table class="w-full text-sm"><thead class="text-slate-400 text-xs"><tr class="border-b"><th class="text-left p-2">姓名</th><th class="text-left p-2">邮箱</th><th class="text-left p-2">加入时间</th><th class="text-left p-2">操作</th></tr></thead>
+          <tbody>
+            <tr class="border-b"><td class="p-2">王芳</td><td class="p-2 text-slate-500">wangfang@rabbit.test</td><td class="p-2 text-slate-500">2026-09-18</td><td class="p-2"><button class="text-[#574BFF]">移除</button></td></tr>
+            <tr class="border-b"><td class="p-2">赵敏</td><td class="p-2 text-slate-500">zhaomin@rabbit.test</td><td class="p-2 text-slate-500">2026-09-19</td><td class="p-2"><button class="text-[#574BFF]">移除</button></td></tr>
+            <tr><td class="p-2">周洁</td><td class="p-2 text-slate-500">zhoujie@rabbit.test</td><td class="p-2 text-slate-500">2026-09-22</td><td class="p-2"><button class="text-[#574BFF]">移除</button></td></tr>
+          </tbody></table>
+        </div>
+        <div class="p-4">
+          <div class="flex items-center gap-2 mb-3 text-sm font-medium">权限点<span class="text-xs text-slate-400 font-normal">按 资源 分组，动作复选；判定 = 各组并集 − 任一组禁用交集</span><button class="ml-auto bg-[#574BFF] text-white rounded px-3 py-1.5 text-sm">保存权限配置</button></div>
+          <div class="border rounded divide-y text-sm">
+            <div class="p-3"><div class="flex items-center gap-2 font-medium">▾ 用例<span class="text-xs text-slate-400 font-normal">PROJECT_CASE</span><label class="ml-auto text-xs text-slate-500 font-normal"><input type="checkbox"> 全选</label></div>
+              <div class="flex gap-5 mt-2"><label class="flex items-center gap-1"><input type="checkbox" checked>读取</label><label class="flex items-center gap-1"><input type="checkbox">创建</label><label class="flex items-center gap-1"><input type="checkbox" checked>更新</label><label class="flex items-center gap-1"><input type="checkbox">删除</label></div></div>
+            <div class="p-3"><div class="flex items-center gap-2 font-medium">▾ 测试计划<span class="text-xs text-slate-400 font-normal">PROJECT_PLAN</span><label class="ml-auto text-xs text-slate-500 font-normal"><input type="checkbox"> 全选</label></div>
+              <div class="flex gap-5 mt-2"><label class="flex items-center gap-1"><input type="checkbox" checked>读取</label><label class="flex items-center gap-1"><input type="checkbox">创建</label><label class="flex items-center gap-1"><input type="checkbox">更新</label><label class="flex items-center gap-1"><input type="checkbox">删除</label></div></div>
+            <div class="p-3"><div class="flex items-center gap-2 font-medium">▾ 缺陷<span class="text-xs text-slate-400 font-normal">PROJECT_BUG</span><label class="ml-auto text-xs text-slate-500 font-normal"><input type="checkbox"> 全选</label></div>
+              <div class="flex gap-5 mt-2"><label class="flex items-center gap-1"><input type="checkbox" checked>读取</label><label class="flex items-center gap-1"><input type="checkbox">创建</label><label class="flex items-center gap-1"><input type="checkbox">更新</label><label class="flex items-center gap-1"><input type="checkbox">删除</label></div></div>
+            <p class="p-3 text-slate-500">▸ 接口测试<span class="text-xs text-slate-400">　PROJECT_API（未勾选任何动作）</span></p>
+            <p class="p-3 text-slate-500">▸ 系统用户<span class="text-xs text-slate-400">　SYSTEM_USER（未勾选任何动作）</span></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- 新建组 Modal（「＋ 新建组」触发）：名称*、描述；scope 由入口决定（系统/组织/项目三级复用本组件，权限点清单与范围不同） -->
+  <!-- 预置组选中态：右侧只读——勾选框全部置灰、顶部提示条「预置组不可修改」、重命名/恢复默认/删除按钮隐藏；服务端对预置组 PUT 返回 403 -->
+  <!-- 恢复默认（自定义组）：确认「将清空自定义勾选并恢复初始权限」→ Toast「已恢复默认权限」 -->
+  <!-- 删除组：组内有成员 → 422「请先移出 N 名成员」；空组 → 确认 Modal 后删除；预置组无删除入口 -->
+  <!-- 添加成员：输入框下拉搜索系统用户（多选、排除已在组成员）→ 批量添加 Toast；成员表支持多选批量移除 -->
+  <!-- 保存权限：Toast「权限已保存并即时生效」（withPermission 检查链全量生效，权限并集 / 禁用交集） -->
+  <!-- 权限态：无 SYSTEM_GROUP:READ → 本菜单不出现；有读无写 → 新建组/重命名/删除/勾选全部置灰或隐藏 -->
+  <!-- 空态：未选组时右侧显示「请在左侧选择一个用户组」 -->
+</main></div></body></html>

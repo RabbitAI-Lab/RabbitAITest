@@ -1,0 +1,117 @@
+<!doctype html><html lang="zh"><head><meta charset="utf-8"><title>DASH-001 工作台首页</title><script src="https://cdn.tailwindcss.com"></script></head>
+<body class="bg-slate-50 text-slate-800">
+<!-- 顶栏 48px：左 Logo + 项目 chip；右 帮助 / 消息 / 用户头像 -->
+<header class="h-12 bg-white border-b flex items-center px-4 gap-3 text-sm">
+  <span class="font-semibold">RabbitAITest</span><span class="border rounded px-2 py-0.5 text-slate-600">演示项目 #1</span>
+  <div class="ml-auto flex items-center gap-3 text-slate-500"><span>帮助</span><span>消息</span><span class="w-6 h-6 rounded-full bg-[#574BFF]/20 text-[#574BFF] text-xs grid place-items-center font-medium">徐</span></div>
+</header>
+<div class="flex">
+  <!-- 左导航 208px：分组 工作区 / 测试管理 / 项目设置 -->
+  <aside class="w-[208px] bg-white border-r p-2 text-sm shrink-0">
+    <p class="px-3 pt-4 pb-1 text-xs text-slate-400">工作区</p>
+    <p class="px-3 py-2 rounded bg-[#574BFF]/10 text-[#574BFF] font-medium">工作台</p>
+    <p class="px-3 pt-4 pb-1 text-xs text-slate-400">测试管理</p>
+    <p class="px-3 py-2 rounded text-slate-600">测试用例</p>
+    <p class="px-3 py-2 rounded text-slate-600">用例评审</p>
+    <p class="px-3 py-2 rounded text-slate-600">测试计划</p>
+    <p class="px-3 py-2 rounded text-slate-600">缺陷管理</p>
+    <p class="px-3 py-2 rounded text-slate-600 mt-4 border-t border-slate-100">项目设置</p>
+  </aside>
+  <main class="flex-1 p-6 min-w-0">
+    <div class="flex items-center gap-3 mb-4">
+      <h1 class="text-lg font-medium">工作台</h1>
+      <span class="text-xs text-slate-400">演示项目 #1 · 2026-09-26</span>
+      <!-- 时间筛选 Segmented（作用于「新增」类指标）+ 卡片设置齿轮 -->
+      <div class="ml-auto flex items-center gap-3">
+        <div class="flex bg-slate-100 rounded p-0.5 text-xs">
+          <button class="px-3 py-1 rounded text-slate-500">近 3 天</button>
+          <button class="px-3 py-1 rounded bg-white shadow text-slate-800">近 7 天</button>
+          <button class="px-3 py-1 rounded text-slate-500">自定义</button>
+        </div>
+        <button class="w-8 h-8 border rounded grid place-items-center text-slate-500" title="卡片设置">⚙</button>
+      </div>
+    </div>
+    <!-- 看板栅格 2 列：每卡=标题+主数字+副指标+趋势箭头；半屏=1 格 / 全屏=2 格 / 不展示=隐藏（⚙ Popover 三态单选，user_preference 持久化） -->
+    <div class="grid grid-cols-2 gap-4">
+      <div class="bg-white border rounded p-4">
+        <div class="flex items-center justify-between"><p class="text-sm text-slate-500">用例总数</p><span class="text-xs text-[#52C41A]">↑ 8%</span></div>
+        <p class="text-3xl font-semibold mt-2">128</p>
+        <p class="text-xs text-slate-400 mt-1">近 7 天新增 <span class="text-slate-600 font-medium">+12</span></p>
+      </div>
+      <div class="bg-white border rounded p-4">
+        <div class="flex items-center justify-between"><p class="text-sm text-slate-500">评审通过率</p><span class="text-xs text-[#52C41A]">↑ 3%</span></div>
+        <p class="text-3xl font-semibold mt-2">92%</p>
+        <p class="text-xs text-slate-400 mt-1">已评 45 · 待评 3 · 未结束评审 4 场</p>
+      </div>
+      <div class="bg-white border rounded p-4">
+        <div class="flex items-center justify-between"><p class="text-sm text-slate-500">计划执行进度 Top3</p><span class="text-xs text-slate-400">进行中计划</span></div>
+        <div class="mt-3 space-y-2.5">
+          <div><div class="flex justify-between text-xs mb-1"><a class="text-[#574BFF]" href="#">冒烟回归-Sprint 1</a><span class="text-slate-500">10/12 · 83%</span></div><div class="h-1.5 bg-slate-100 rounded"><div class="h-1.5 bg-[#574BFF] rounded" style="width:83%"></div></div></div>
+          <div><div class="flex justify-between text-xs mb-1"><a class="text-[#574BFF]" href="#">全量功能回归</a><span class="text-slate-500">18/46 · 39%</span></div><div class="h-1.5 bg-slate-100 rounded"><div class="h-1.5 bg-[#574BFF] rounded" style="width:39%"></div></div></div>
+          <div><div class="flex justify-between text-xs mb-1"><a class="text-[#574BFF]" href="#">接口冒烟 P0</a><span class="text-slate-500">0/8 · 0%</span></div><div class="h-1.5 bg-slate-100 rounded"><div class="h-1.5 bg-[#574BFF] rounded" style="width:0%"></div></div></div>
+        </div>
+      </div>
+      <div class="bg-white border rounded p-4">
+        <div class="flex items-center justify-between"><p class="text-sm text-slate-500">缺陷待处理</p><span class="text-xs text-[#FF4D4F]">↑ 25%</span></div>
+        <p class="text-3xl font-semibold mt-2">18</p>
+        <p class="text-xs text-slate-400 mt-1">近 7 天新增 <span class="text-slate-600 font-medium">+6</span> · 非结束态口径</p>
+      </div>
+    </div>
+    <!-- 三视图 Tabs：我的待办（红点计数）/ 我关注的 / 我创建的 + 域筛选 chips -->
+    <div class="mt-6 flex items-center gap-4 text-sm border-b">
+      <span class="pb-2 -mb-px border-b-2 border-[#574BFF] text-[#574BFF] font-medium">我的待办 <span class="ml-1 inline-grid place-items-center min-w-4 h-4 px-1 rounded-full bg-[#FF4D4F] text-white text-[10px] align-middle">5</span></span>
+      <span class="pb-2 text-slate-500">我关注的</span>
+      <span class="pb-2 text-slate-500">我创建的</span>
+      <div class="ml-auto mb-1 flex gap-1.5 text-xs">
+        <button class="rounded-full bg-[#574BFF]/10 text-[#574BFF] px-2.5 py-1">全部</button>
+        <button class="rounded-full bg-slate-100 text-slate-500 px-2.5 py-1">用例</button>
+        <button class="rounded-full bg-slate-100 text-slate-500 px-2.5 py-1">评审</button>
+        <button class="rounded-full bg-slate-100 text-slate-500 px-2.5 py-1">计划</button>
+        <button class="rounded-full bg-slate-100 text-slate-500 px-2.5 py-1">缺陷</button>
+      </div>
+    </div>
+    <div class="bg-white border rounded mt-4 divide-y">
+      <div class="flex items-center gap-3 p-3.5 text-sm hover:bg-slate-50">
+        <span class="w-9 h-9 rounded-lg bg-blue-50 text-blue-500 grid place-items-center text-xs font-medium shrink-0">评审</span>
+        <a class="text-[#574BFF]" href="#">登录模块批量评审 R-0002 · 待评 6 条</a>
+        <span class="text-xs rounded bg-blue-50 text-blue-500 px-1.5 py-0.5 whitespace-nowrap">用例评审</span>
+        <span class="text-xs text-[#1677FF]">待我评审</span>
+        <span class="ml-auto text-xs text-slate-400 whitespace-nowrap">09-26 10:12</span>
+      </div>
+      <div class="flex items-center gap-3 p-3.5 text-sm hover:bg-slate-50">
+        <span class="w-9 h-9 rounded-lg bg-purple-50 text-purple-500 grid place-items-center text-xs font-medium shrink-0">计划</span>
+        <a class="text-[#574BFF]" href="#">冒烟回归-Sprint 1 · C-0013 手机号找回密码</a>
+        <span class="text-xs rounded bg-purple-50 text-purple-500 px-1.5 py-0.5 whitespace-nowrap">测试计划</span>
+        <span class="text-xs text-[#1677FF]">待执行（我）</span>
+        <span class="ml-auto text-xs text-slate-400 whitespace-nowrap">09-26 09:30</span>
+      </div>
+      <div class="flex items-center gap-3 p-3.5 text-sm hover:bg-slate-50">
+        <span class="w-9 h-9 rounded-lg bg-red-50 text-red-500 grid place-items-center text-xs font-medium shrink-0">缺陷</span>
+        <a class="text-[#574BFF]" href="#">BUG-0007 工作台卡片数字不刷新</a>
+        <span class="text-xs rounded bg-red-50 text-red-500 px-1.5 py-0.5 whitespace-nowrap">缺陷</span>
+        <span class="text-xs text-[#1677FF]">处理中（我）</span>
+        <span class="ml-auto text-xs text-slate-400 whitespace-nowrap">09-26 14:20</span>
+      </div>
+      <div class="flex items-center gap-3 p-3.5 text-sm hover:bg-slate-50">
+        <span class="w-9 h-9 rounded-lg bg-red-50 text-red-500 grid place-items-center text-xs font-medium shrink-0">缺陷</span>
+        <a class="text-[#574BFF]" href="#">BUG-0004 回收站恢复后模块树计数不减</a>
+        <span class="text-xs rounded bg-red-50 text-red-500 px-1.5 py-0.5 whitespace-nowrap">缺陷</span>
+        <span class="text-xs text-[#FF4D4F]">待处理（我）</span>
+        <span class="ml-auto text-xs text-slate-400 whitespace-nowrap">09-25 18:44</span>
+      </div>
+      <p class="p-2.5 text-center text-xs text-slate-400">查看更多（共 5 条待办）</p>
+    </div>
+    <!-- 交互说明（静态不可表达部分）：
+      · 时间筛选：近 3 天 / 近 7 天 / 自定义（自定义 → 区间选择 Popover，range=custom&from&to）；作用于各卡「新增」类副指标，切换后数字动画过渡（AntD Statistic）。
+      · 卡片设置 ⚙：Popover 列出 4 张卡，每卡三态单选（不展示 / 半屏 / 全屏）——半屏占 1 格、全屏跨 2 格、不展示即隐藏；布局记忆持久化（user_preference）。
+      · 看板数据单请求聚合返回（GET /dashboard/overview?range=7d，避免 N+1）；无读权限的域该卡返回 null 时前端隐藏。
+      · 三视图 Tabs：
+        我关注的示例行——C-0001 登录成功场景 [用例] 已通过 · 09-26 10:12；冒烟回归-Sprint 1 [计划] 进行中 83% · 09-26 11:02；BUG-0003 [缺陷] 已解决 · 09-25 17:30（带最近变更时间）。
+        我创建的示例行——C-0014 记住密码回填校验 [用例] 草稿 · 09-26 15:40；R-0002 [评审] 评审中 · 09-26 10:00；BUG-0006 [缺陷] 处理中 · 09-26 10:58。
+        行点击直跳各域详情；域筛选 chips 过滤当前列表；分页「查看更多」。
+      · 处理一条待办（完成评审 / 标记执行 / 流转缺陷）→ 刷新后红点计数 -1。
+      · 空态（新项目无数据）：三视图区替换为引导卡，三入口「新建用例」「新建计划」「邀请成员」。 -->
+  </main>
+</div>
+</body>
+</html>

@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<title>CASE-002 模块树与用例列表（完整版）</title>
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 text-slate-800">
+<!-- 顶栏 48px：左 Logo + 项目 chip（点击切换项目）；右 帮助 / 消息 / 用户头像 -->
+<header class="h-12 bg-white border-b flex items-center px-4 gap-3 text-sm shrink-0">
+  <span class="font-semibold">RabbitAITest</span>
+  <span class="border rounded px-2 py-0.5 text-slate-600">演示项目 #1</span>
+  <div class="ml-auto flex items-center gap-4 text-slate-500">
+    <span class="w-5 h-5 border rounded-full grid place-items-center text-[10px]">?</span>
+    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg>
+    <span class="w-6 h-6 rounded-full bg-[#574BFF]/80 text-white grid place-items-center text-xs">徐</span>
+  </div>
+</header>
+<div class="flex">
+  <!-- 左导航 208px：分组 工作区 / 测试管理 / 项目设置；当前页：测试用例 -->
+  <aside class="w-[208px] shrink-0 bg-white border-r text-sm py-2">
+    <p class="px-5 pt-2 pb-1 text-xs text-slate-400">工作区</p>
+    <p class="mx-2 px-3 py-1.5 rounded text-slate-600">工作台</p>
+    <p class="px-5 pt-4 pb-1 text-xs text-slate-400">测试管理</p>
+    <p class="mx-2 px-3 py-1.5 rounded bg-[#574BFF]/[.08] text-[#574BFF] font-medium">测试用例</p>
+    <p class="mx-2 px-3 py-1.5 rounded text-slate-600">用例评审</p>
+    <p class="mx-2 px-3 py-1.5 rounded text-slate-600">测试计划</p>
+    <p class="mx-2 px-3 py-1.5 rounded text-slate-600">缺陷管理</p>
+    <div class="border-t my-2 mx-2"></div>
+    <p class="mx-2 px-3 py-1.5 rounded text-slate-600">项目设置</p>
+  </aside>
+  <main class="flex-1 min-w-0 p-6">
+    <div class="flex items-stretch gap-4">
+      <!-- 左：模块树面板 240px；选中「登录模块」→ 右侧列表按模块过滤（含子级） -->
+      <div class="w-[240px] shrink-0 bg-white border rounded flex flex-col">
+        <div class="flex items-center justify-between px-3 h-10 border-b">
+          <span class="text-sm font-medium">模块</span>
+          <span class="flex items-center gap-2 text-xs text-slate-500">
+            <button title="新建同级模块">＋同级</button>
+            <button title="在选中节点下新建子模块">＋子级</button>
+            <button title="刷新计数">⟳</button>
+            <button title="收起面板">‹</button>
+          </span>
+        </div>
+        <div class="flex-1 p-2 text-sm">
+          <p class="flex items-center gap-1.5 px-2 py-1.5 rounded text-slate-600"><span class="text-xs text-slate-400 w-3">▾</span><span class="flex-1">默认模块</span><span class="text-xs text-slate-400">1</span></p>
+          <p class="flex items-center gap-1.5 px-2 py-1.5 rounded bg-[#574BFF]/[.08] text-[#574BFF] font-medium"><span class="text-xs w-3">▾</span><span class="flex-1">登录模块</span><span class="text-xs">5</span></p>
+          <p class="flex items-center gap-1.5 pl-9 pr-2 py-1.5 rounded text-slate-600"><span class="flex-1">账号密码登录</span><span class="text-xs text-slate-400">3</span></p>
+          <p class="flex items-center gap-1.5 pl-9 pr-2 py-1.5 rounded text-slate-600"><span class="flex-1">扫码登录</span><span class="text-xs text-slate-400">2</span></p>
+          <p class="flex items-center gap-1.5 px-2 py-1.5 rounded text-slate-600"><span class="text-xs text-slate-400 w-3">▸</span><span class="flex-1">支付模块</span><span class="text-xs text-slate-400">4</span></p>
+          <p class="flex items-center gap-1.5 px-2 py-1.5 rounded text-slate-600"><span class="text-xs text-slate-400 w-3">▸</span><span class="flex-1">稳定性与异常</span><span class="text-xs text-slate-400">2</span></p>
+        </div>
+        <!-- 树交互（静态不可表达，走查说明）：节点右键 → 菜单（重命名 / 删除 / 同级排序）；拖拽节点移动整个子树（不可拖入自身或后代，环检测 422）；计数徽标 = 本节点 + 子树用例数；删除含用例节点 → 确认弹窗「子树内用例将移至默认模块」；默认模块不可删、名可改；空树时显示「＋ 新建第一个模块」引导；「‹」收起面板为纯列表腾宽 -->
+        <div class="border-t px-3 py-2 text-xs text-slate-500 flex items-center justify-between">
+          <span>6 个模块 · 12 条用例</span>
+          <label class="flex items-center gap-1"><input type="checkbox" checked>含子级</label>
+        </div>
+      </div>
+      <!-- 右：列表区 -->
+      <div class="flex-1 min-w-0 bg-white border rounded">
+        <!-- 首行：视图 Tabs + 搜索 + 高级筛选开关 + 列设置 + 导入/导出入口 -->
+        <div class="flex items-center gap-3 px-3 h-12 border-b text-sm">
+          <span class="border-b-2 border-[#574BFF] text-[#574BFF] pb-2.5 pt-3">全部（12）</span>
+          <span class="text-slate-500 pb-2.5 pt-3 border-b-2 border-transparent">我关注的（3）</span>
+          <span class="text-slate-500 pb-2.5 pt-3 border-b-2 border-transparent">我创建的（5）</span>
+          <span class="text-slate-500 pb-2.5 pt-3 border-b-2 border-transparent">冒烟集（4）</span>
+          <!-- ＋：将当前筛选组合另存为自定义视图（Modal：视图命名 + 设为默认；每用户每场景上限 10 个；视图支持切换 / 删除，删除后回退「全部」） -->
+          <button class="text-[#574BFF]" title="保存当前筛选为视图">＋</button>
+          <input class="ml-auto border rounded px-2 py-1 text-sm w-52 bg-white" placeholder="搜索名称 / 编号，回车查询">
+          <button class="text-[#574BFF] text-sm" title="展开 / 收起高级筛选">高级筛选 ▴</button>
+          <!-- 齿轮 → 列设置下拉：勾选显示列（静态列 + 动态字段列「测试类型 / 执行人」，按模板 visible_in_list），记用户偏好 -->
+          <button class="border rounded p-1.5 text-slate-500" title="列设置">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33h.01a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51h.01a1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82v.01a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+          </button>
+          <button class="border rounded px-2 py-1 text-sm">导入</button>
+          <button class="border rounded px-2 py-1 text-sm">导出</button>
+        </div>
+        <!-- 次行：高级筛选展开态（等级 / 标签 / 状态 / 创建人 / 更新时间区间 / 动态字段，按模板 visible_in_list 渲染） -->
+        <div class="flex flex-wrap items-center gap-2 px-3 py-2.5 border-b bg-slate-50/60 text-sm">
+          <select class="border rounded px-2 py-1 bg-white"><option>等级：全部</option><option>P0</option><option>P1</option><option>P2</option><option>P3</option></select>
+          <select class="border rounded px-2 py-1 bg-white"><option>标签：全部</option><option>冒烟</option><option>回归</option></select>
+          <select class="border rounded px-2 py-1 bg-white"><option>状态：全部</option><option>未开始</option><option>进行中</option><option>已完成</option></select>
+          <select class="border rounded px-2 py-1 bg-white"><option>创建人：全部</option><option>张伟</option><option>李静</option><option>王强</option></select>
+          <span class="border rounded px-2 py-1 bg-white text-slate-500">更新时间：2026-09-01 ~ 2026-09-26</span>
+          <select class="border rounded px-2 py-1 bg-white"><option>测试类型（动态字段）：全部</option><option>功能测试</option><option>接口测试</option></select>
+          <button class="bg-[#574BFF] text-white rounded px-3 py-1">查询</button>
+          <button class="border rounded px-3 py-1 bg-white">重置</button>
+        </div>
+        <!-- 批量操作条：勾选行后浮现（未勾选时隐藏）；批量编辑 → Modal（等级 / 标签 / 执行人）；移动 → 模块树选择 Modal，成功 toast「已移动 3 条」且目标模块计数 +3；删除 → 确认「移入回收站」；导出 → 转导入导出 Modal（范围=勾选行） -->
+        <div class="flex items-center gap-3 px-3 py-2 border-b bg-[#574BFF]/[.05] text-sm">
+          <span class="text-[#574BFF] font-medium">已选 3 项</span>
+          <button class="text-[#574BFF]">移动</button>
+          <button class="text-[#574BFF]">复制</button>
+          <button class="text-[#FF4D4F]">删除</button>
+          <button class="text-[#574BFF]">导出</button>
+          <button class="text-[#574BFF]">批量编辑</button>
+          <button class="ml-auto text-slate-400">取消选择</button>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead class="text-slate-400 text-xs bg-slate-50/60"><tr class="border-b">
+              <th class="w-8 p-3"><input type="checkbox" checked></th>
+              <th class="text-left p-3">编号</th><th class="text-left p-3">用例名称</th><th class="text-left p-3">模块</th><th class="text-left p-3">等级</th><th class="text-left p-3">标签</th><th class="text-left p-3">状态</th><th class="text-left p-3">创建人</th><th class="text-left p-3">更新时间</th><th class="text-left p-3">操作</th>
+            </tr></thead>
+            <tbody>
+              <tr class="border-b"><td class="p-3"><input type="checkbox" checked></td><td class="p-3 text-slate-500">C-0001</td><td class="p-3"><a class="text-[#574BFF]" href="#">登录成功场景</a><span class="text-yellow-500 text-xs ml-1" title="已关注，点击取消关注">★</span></td><td class="p-3 text-slate-500">账号密码登录</td><td class="p-3"><span class="text-red-500 text-xs font-medium">P0</span></td><td class="p-3"><span class="bg-slate-100 rounded px-1.5 text-xs">冒烟</span></td><td class="p-3"><span class="text-[#1677FF] text-xs">进行中</span></td><td class="p-3 text-slate-500">张伟</td><td class="p-3 text-slate-500">2026-09-26</td><td class="p-3 text-slate-500">编辑 · <button class="text-slate-500">更多 ▾</button></td></tr>
+              <tr class="border-b"><td class="p-3"><input type="checkbox" checked></td><td class="p-3 text-slate-500">C-0002</td><td class="p-3"><a class="text-[#574BFF]" href="#">密码错误提示</a></td><td class="p-3 text-slate-500">账号密码登录</td><td class="p-3"><span class="text-orange-500 text-xs font-medium">P1</span></td><td class="p-3 text-slate-400">—</td><td class="p-3"><span class="text-slate-400 text-xs">未开始</span></td><td class="p-3 text-slate-500">张伟</td><td class="p-3 text-slate-500">2026-09-25</td><td class="p-3 text-slate-500">编辑 · <button class="text-slate-500">更多 ▾</button></td></tr>
+              <tr class="border-b"><td class="p-3"><input type="checkbox" checked></td><td class="p-3 text-slate-500">C-0007</td><td class="p-3"><a class="text-[#574BFF]" href="#">支付宝支付金额校验</a></td><td class="p-3 text-slate-500">支付模块</td><td class="p-3"><span class="text-orange-500 text-xs font-medium">P1</span></td><td class="p-3"><span class="bg-slate-100 rounded px-1.5 text-xs">回归</span></td><td class="p-3"><span class="text-[#1677FF] text-xs">进行中</span></td><td class="p-3 text-slate-500">李静</td><td class="p-3 text-slate-500">2026-09-24</td><td class="p-3 text-slate-500">编辑 · <button class="text-slate-500">更多 ▾</button></td></tr>
+              <tr><td class="p-3"><input type="checkbox"></td><td class="p-3 text-slate-500">C-0009</td><td class="p-3"><a class="text-[#574BFF]" href="#">扫码登录二维码过期</a></td><td class="p-3 text-slate-500">扫码登录</td><td class="p-3"><span class="text-blue-500 text-xs font-medium">P2</span></td><td class="p-3 text-slate-400">—</td><td class="p-3"><span class="text-[#52C41A] text-xs">已完成</span></td><td class="p-3 text-slate-500">王强</td><td class="p-3 text-slate-500">2026-09-22</td><td class="p-3 text-slate-500">编辑 · <button class="text-slate-500">更多 ▾</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <!-- 行内「更多 ▾」菜单：关注 / 取关、分享（复制链接，含 module&view&filters 参数，未登录访问先登录再还原）、复制（名称 +「_copy」、新编号、状态=草稿、字段深拷贝、关联关系不复制）、删除（软删至回收站，toast「已移入回收站」） -->
+        <!-- 空态：模块为空 →「该模块暂无用例，去新建或导入」；有筛选无结果 →「无匹配结果，调整筛选或清空条件」 -->
+        <div class="flex justify-between items-center gap-2 p-3 text-sm">
+          <span class="text-slate-400 text-xs">模块：登录模块（含子级）</span>
+          <div class="flex items-center gap-2"><span class="text-slate-400 text-xs">共 12 条 · 每页 10 条</span><button class="border rounded px-2 py-0.5">‹</button><span class="px-1">1 / 2</span><button class="border rounded px-2 py-0.5">›</button></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+</body>
+</html>

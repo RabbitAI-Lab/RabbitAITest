@@ -1,0 +1,72 @@
+<!doctype html><html lang="zh"><head><meta charset="utf-8"><title>BUG-001 缺陷列表</title><script src="https://cdn.tailwindcss.com"></script></head>
+<body class="bg-slate-50 text-slate-800">
+<!-- 顶栏 48px：左 Logo + 项目 chip；右 帮助 / 消息 / 用户头像 -->
+<header class="h-12 bg-white border-b flex items-center px-4 gap-3 text-sm">
+  <span class="font-semibold">RabbitAITest</span><span class="border rounded px-2 py-0.5 text-slate-600">演示项目 #1</span>
+  <div class="ml-auto flex items-center gap-3 text-slate-500"><span>帮助</span><span>消息</span><span class="w-6 h-6 rounded-full bg-[#574BFF]/20 text-[#574BFF] text-xs grid place-items-center font-medium">徐</span></div>
+</header>
+<div class="flex">
+  <!-- 左导航 208px：分组 工作区 / 测试管理 / 项目设置 -->
+  <aside class="w-[208px] bg-white border-r p-2 text-sm shrink-0">
+    <p class="px-3 pt-4 pb-1 text-xs text-slate-400">工作区</p>
+    <p class="px-3 py-2 rounded text-slate-600">工作台</p>
+    <p class="px-3 pt-4 pb-1 text-xs text-slate-400">测试管理</p>
+    <p class="px-3 py-2 rounded text-slate-600">测试用例</p>
+    <p class="px-3 py-2 rounded text-slate-600">用例评审</p>
+    <p class="px-3 py-2 rounded text-slate-600">测试计划</p>
+    <p class="px-3 py-2 rounded bg-[#574BFF]/10 text-[#574BFF] font-medium">缺陷管理</p>
+    <p class="px-3 py-2 rounded text-slate-600 mt-4 border-t border-slate-100">项目设置</p>
+  </aside>
+  <main class="flex-1 p-6 min-w-0">
+    <div class="flex items-center gap-3 mb-4">
+      <h1 class="text-lg font-medium">缺陷管理</h1>
+      <span class="text-xs border-b-2 border-[#574BFF] text-[#574BFF] pb-0.5">全部（46）</span>
+      <span class="text-xs text-slate-400 pb-0.5 border-b-2 border-transparent">回收站（3）</span>
+      <div class="ml-auto flex gap-2"><button class="border rounded px-3 py-1.5 text-sm text-slate-600">导出 Excel</button><button class="border rounded px-3 py-1.5 text-sm text-slate-600">批量删除</button><button class="bg-[#574BFF] text-white rounded px-3 py-1.5 text-sm">＋ 新建缺陷</button></div>
+    </div>
+    <div class="flex gap-4 items-start">
+      <!-- 左：bug 模块树（scene=bug，复用 CASE-002 模块树组件，点击过滤右侧列表） -->
+      <div class="w-44 shrink-0 bg-white border rounded p-2 text-sm">
+        <p class="px-2 py-1.5 rounded bg-[#574BFF]/10 text-[#574BFF]">全部缺陷 <span class="text-xs">46</span></p>
+        <p class="px-2 py-1.5 rounded text-slate-600">认证登录 <span class="text-xs text-slate-400">21</span></p>
+        <p class="pl-6 py-1.5 text-slate-500">手机号登录 <span class="text-xs text-slate-400">6</span></p>
+        <p class="px-2 py-1.5 rounded text-slate-600">工作台看板 <span class="text-xs text-slate-400">12</span></p>
+        <p class="px-2 py-1.5 rounded text-slate-600">计划执行 <span class="text-xs text-slate-400">9</span></p>
+        <p class="px-2 py-1.5 rounded text-slate-400">未指定模块 <span class="text-xs">4</span></p>
+        <button class="px-2 py-1.5 text-xs text-[#574BFF]">＋ 新建子模块</button>
+      </div>
+      <!-- 右：缺陷列表（列=编号/标题/状态/处理人/严重程度/标签/更新时间/操作） -->
+      <div class="flex-1 min-w-0 bg-white border rounded">
+        <div class="flex gap-2 p-3 border-b flex-wrap">
+          <input class="border rounded px-2 py-1 text-sm w-52" placeholder="标题 / 编号搜索">
+          <select class="border rounded px-2 py-1 text-sm"><option>状态：全部</option><option>待处理</option><option>处理中</option><option>已解决</option><option>已拒绝</option><option>已关闭</option></select>
+          <select class="border rounded px-2 py-1 text-sm"><option>处理人：全部</option><option>张伟</option><option>李倩</option><option>王芳</option></select>
+          <select class="border rounded px-2 py-1 text-sm"><option>严重程度：全部</option><option>致命</option><option>严重</option><option>一般</option><option>轻微</option></select>
+          <select class="border rounded px-2 py-1 text-sm"><option>标签：全部</option><option>登录</option><option>Sprint1</option></select>
+          <button class="border rounded px-2 py-1 text-sm ml-auto text-slate-600">排序：更新时间 ↓</button>
+        </div>
+        <table class="w-full text-sm">
+          <thead class="text-slate-400 text-xs"><tr class="border-b">
+            <th class="p-3 w-8"><input type="checkbox"></th><th class="text-left p-3">编号</th><th class="text-left p-3">标题</th><th class="text-left p-3">状态</th><th class="text-left p-3">处理人</th><th class="text-left p-3">严重程度</th><th class="text-left p-3">标签</th><th class="text-left p-3">更新时间</th><th class="text-left p-3">操作</th>
+          </tr></thead>
+          <tbody>
+            <tr class="border-b hover:bg-slate-50"><td class="p-3"><input type="checkbox"></td><td class="p-3 text-slate-500">BUG-0007</td><td class="p-3"><a class="text-[#574BFF]" href="detail.html">工作台卡片数字不刷新</a></td><td class="p-3 whitespace-nowrap"><span class="inline-block w-2 h-2 rounded-full bg-[#1677FF] mr-1.5 align-middle"></span>处理中</td><td class="p-3"><span class="w-6 h-6 rounded-full bg-blue-100 text-blue-600 text-xs grid place-items-center" title="张伟">张</span></td><td class="p-3"><span class="text-[#1677FF] text-xs font-medium">一般</span></td><td class="p-3"><span class="bg-slate-100 rounded px-1.5 text-xs">看板</span></td><td class="p-3 text-slate-500 text-xs whitespace-nowrap">09-26 14:20</td><td class="p-3 text-slate-500 text-xs whitespace-nowrap">编辑 · 关注 · 分享 · 删除</td></tr>
+            <tr class="border-b hover:bg-slate-50"><td class="p-3"><input type="checkbox"></td><td class="p-3 text-slate-500">BUG-0006</td><td class="p-3"><a class="text-[#574BFF]" href="detail.html">手机验证码倒计时结束后按钮未重置</a></td><td class="p-3 whitespace-nowrap"><span class="inline-block w-2 h-2 rounded-full bg-[#1677FF] mr-1.5 align-middle"></span>处理中</td><td class="p-3"><span class="w-6 h-6 rounded-full bg-purple-100 text-purple-600 text-xs grid place-items-center" title="李倩">李</span></td><td class="p-3"><span class="text-[#FA8C16] text-xs font-medium">严重</span></td><td class="p-3 whitespace-nowrap"><span class="bg-slate-100 rounded px-1.5 text-xs">登录</span> <span class="bg-slate-100 rounded px-1.5 text-xs">Sprint1</span></td><td class="p-3 text-slate-500 text-xs whitespace-nowrap">09-26 11:02</td><td class="p-3 text-slate-500 text-xs whitespace-nowrap">编辑 · 关注 · 分享 · 删除</td></tr>
+            <tr class="border-b hover:bg-slate-50"><td class="p-3"><input type="checkbox"></td><td class="p-3 text-slate-500">BUG-0005</td><td class="p-3"><a class="text-[#574BFF]" href="#">导出 Excel 缺少严重程度列</a></td><td class="p-3 whitespace-nowrap"><span class="inline-block w-2 h-2 rounded-full bg-[#52C41A] mr-1.5 align-middle"></span>已解决</td><td class="p-3"><span class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 text-xs grid place-items-center" title="王芳">王</span></td><td class="p-3"><span class="text-slate-400 text-xs">轻微</span></td><td class="p-3 text-slate-400 text-xs">—</td><td class="p-3 text-slate-500 text-xs whitespace-nowrap">09-26 09:41</td><td class="p-3 text-slate-500 text-xs whitespace-nowrap">编辑 · 关注 · 分享 · 删除</td></tr>
+            <tr class="border-b hover:bg-slate-50"><td class="p-3"><input type="checkbox"></td><td class="p-3 text-slate-500">BUG-0004</td><td class="p-3"><a class="text-[#574BFF]" href="#">回收站恢复后模块树计数不减</a></td><td class="p-3 whitespace-nowrap"><span class="inline-block w-2 h-2 rounded-full bg-[#FF4D4F] mr-1.5 align-middle"></span>待处理</td><td class="p-3"><span class="w-6 h-6 rounded-full bg-blue-100 text-blue-600 text-xs grid place-items-center" title="张伟">张</span></td><td class="p-3"><span class="text-slate-400 text-xs">轻微</span></td><td class="p-3"><span class="bg-slate-100 rounded px-1.5 text-xs">回收站</span></td><td class="p-3 text-slate-500 text-xs whitespace-nowrap">09-25 18:44</td><td class="p-3 text-slate-500 text-xs whitespace-nowrap">编辑 · 关注 · 分享 · 删除</td></tr>
+            <tr class="hover:bg-slate-50"><td class="p-3"><input type="checkbox"></td><td class="p-3 text-slate-500">BUG-0002</td><td class="p-3"><a class="text-[#574BFF]" href="#">并发编辑用例冲突 409 未提示</a></td><td class="p-3 whitespace-nowrap"><span class="inline-block w-2 h-2 rounded-full bg-slate-300 mr-1.5 align-middle"></span>已关闭</td><td class="p-3"><span class="w-6 h-6 rounded-full bg-purple-100 text-purple-600 text-xs grid place-items-center" title="李倩">李</span></td><td class="p-3"><span class="text-[#FA8C16] text-xs font-medium">严重</span></td><td class="p-3 text-slate-400 text-xs">—</td><td class="p-3 text-slate-500 text-xs whitespace-nowrap">09-25 16:10</td><td class="p-3 text-slate-500 text-xs whitespace-nowrap">编辑 · 关注 · 分享 · 删除</td></tr>
+          </tbody>
+        </table>
+        <div class="flex justify-end items-center gap-2 p-3 text-sm"><span class="text-slate-400 text-xs">共 46 条</span><button class="border rounded px-2 py-0.5">‹</button><span class="px-2">1 / 4</span><button class="border rounded px-2 py-0.5">›</button></div>
+      </div>
+    </div>
+    <!-- 交互说明（Modal/Toast/Tab 切换等静态不可表达部分）：
+      · 回收站 Tab：点击「回收站（3）」→ 左侧模块树隐藏，列表换为软删数据，操作列变「恢复 · 彻底删除」；彻底删除 → Modal「确认彻底删除？该操作不可恢复（级联删除关联与附件记录）」[取消][彻底删除(红)]；恢复 → Toast「已恢复至原模块」。
+      · 关注：切换 ☆/★ + Toast「已关注，变更将提醒」；分享：复制只读链接（登录态内）→ Toast「链接已复制」。
+      · 删除（软删）：确认 Modal「删除后进入回收站，可恢复」；批量删除需先勾选行。
+      · 新建缺陷：全页表单——模板选择器（默认模板预选，切换重置动态字段区）/ 标题 / 描述（受限 Markdown）/ 动态字段（严重程度·优先级·复现概率，必填缺失红字提示）/ 处理人（成员选择）/ 标签 / 附件拖拽上传区（单文件 ≤50MB，.exe/.sh 等黑名单拒收 Toast）。
+      · 状态色配置化（跟随工作流状态定义）：待处理 #FF4D4F / 处理中 #1677FF / 已解决 #52C41A / 已拒绝 #FA8C16 / 已关闭 灰。 -->
+  </main>
+</div>
+</body>
+</html>

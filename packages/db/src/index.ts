@@ -17,7 +17,7 @@ export async function nextNum(
 ): Promise<number> {
   await tx.$executeRawUnsafe('SELECT pg_advisory_xact_lock(hashtext($1), hashtext($2))', table, projectId);
   const rows = (await tx.$queryRawUnsafe(
-    `SELECT COALESCE(MAX(num), 0) + 1 AS n FROM "${table}" WHERE "projectId" = $1`,
+    `SELECT COALESCE(MAX(num), 0) + 1 AS n FROM "${table}" WHERE project_id = $1`,
     projectId,
   )) as { n: bigint | number }[];
   const first = rows[0];
@@ -26,4 +26,5 @@ export async function nextNum(
 }
 
 export { Prisma } from '@prisma/client';
+export * from './presets';
 export type * from '@prisma/client';
