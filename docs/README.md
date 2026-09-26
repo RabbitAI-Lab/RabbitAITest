@@ -43,7 +43,7 @@ RabbitAITest 是一套**复刻 [MeterSphere](https://metersphere.io) v3.x 社区
 | 里程碑 | 周 | Sprint | 主题 | 文档数 | 状态 |
 | --- | --- | --- | --- | --- | --- |
 | M1 | W1-2 | [sprint-0-poc](./sprint-0-poc/sprint-overview.md) | POC 技术验证（P0） | 10 | **已交付**（2026-09-26：E2E 11/11、JMeter 3/3、engine --local 通过；高保真人工确认待补） |
-| M2 | W3-5 | sprint-1-mvp-test-mgmt | 测试管理 MVP（P1） | 11 | 待产出 |
+| M2 | W3-5 | [sprint-1-mvp-test-mgmt](./sprint-1-mvp-test-mgmt/sprint-overview.md) | 测试管理 MVP（P1） | 11 | 概览 + 11 份规格已产出（Draft 待评审） |
 | M3 | W6-8 | sprint-2-api-core | 接口测试核心（P1/P2） | 10 | 待产出 |
 | M4 | W9-11 | sprint-3-scenario-automation | 场景自动化（P2） | 7 | 待产出 |
 | M5 | W12-14 | sprint-4-plan-mindmap | 计划完整与脑图（P2） | 7 | 待产出 |
@@ -77,7 +77,10 @@ RabbitAITest 是一套**复刻 [MeterSphere](https://metersphere.io) v3.x 社区
 ### Sprint 0 — POC（P0 · 10 份 · **已交付**）
 [INFRA-001](./sprint-0-poc/INFRA-001-monorepo-scaffold.md) monorepo 脚手架｜[INFRA-002](./sprint-0-poc/INFRA-002-docker-compose.md) docker-compose｜[INFRA-003](./sprint-0-poc/INFRA-003-domain-models-init.md) 数据模型基线｜[SYS-001](./sprint-0-poc/SYS-001-registration-login.md) 注册登录｜[SYS-002](./sprint-0-poc/SYS-002-route-guard-isolation.md) 路由守卫与隔离｜[SYS-003](./sprint-0-poc/SYS-003-org-project-init.md) 组织项目初始化｜[CASE-001](./sprint-0-poc/CASE-001-case-crud.md) 用例 CRUD｜[API-001](./sprint-0-poc/API-001-http-debug.md) HTTP 调试｜[EXEC-001](./sprint-0-poc/EXEC-001-engine-kernel-v0.md) 引擎内核 v0｜[RPT-001](./sprint-0-poc/RPT-001-execution-report-mvp.md) 最小执行报告
 
-### Sprint 1-10 与远期
+### Sprint 1 — 测试管理 MVP（P1 · 11 份 · Draft 待评审）
+[SYS-004](./sprint-1-mvp-test-mgmt/SYS-004-user-group-management.md) 用户与三级用户组｜[SYS-005](./sprint-1-mvp-test-mgmt/SYS-005-system-params.md) 系统参数｜[PROJ-001](./sprint-1-mvp-test-mgmt/PROJ-001-project-permission.md) 项目成员与权限｜[PROJ-002](./sprint-1-mvp-test-mgmt/PROJ-002-template-custom-fields.md) 模板与自定义字段（含缺陷工作流）｜[CASE-002](./sprint-1-mvp-test-mgmt/CASE-002-module-tree-list.md) 模块树与列表完整版｜[CASE-003](./sprint-1-mvp-test-mgmt/CASE-003-case-detail-association.md) 用例详情与关联｜[CASE-004](./sprint-1-mvp-test-mgmt/CASE-004-excel-xmind-io.md) Excel/Xmind 导入导出｜[CASE-005](./sprint-1-mvp-test-mgmt/CASE-005-case-review.md) 用例评审｜[BUG-001](./sprint-1-mvp-test-mgmt/BUG-001-local-bug-management.md) 本地缺陷管理｜[PLAN-001](./sprint-1-mvp-test-mgmt/PLAN-001-test-plan-basic.md) 测试计划基础｜[DASH-001](./sprint-1-mvp-test-mgmt/DASH-001-workbench-home.md) 工作台首页
+
+### Sprint 2-10 与远期
 见 [plan §二完整目录树](./plan/迭代架构设计与功能规格拆解.md)（Sprint 1：SYS-004~005 / PROJ-001~002 / CASE-002~005 / BUG-001 / PLAN-001 / DASH-001；Sprint 2：API-002~005 / PROJ-003~004 / EXEC-002 / SYS-006 / RPT-002 / CASE-006；Sprint 3：API-006~010 / EXEC-003 / RPT-003；Sprint 4：PLAN-002~005 / CASE-007~008 / DASH-002；Sprint 5：MSG-001 / BUG-002 / PROJ-005~006 / FILE-001 / SYS-007；Sprint 6：PLUG-001~002 / INTG-001~003 / API-011 / SYS-008；Sprint 7：AI-001~005；Sprint 8：QA-001~002 / INFRA-004；Sprint 9：ENTP-001~008；P4：LOAD-001~002 / UIT-001 / PLUG-003 / TOOL-001~002 / RPT-004 / EXEC-004）
 
 ## 七、支撑文档

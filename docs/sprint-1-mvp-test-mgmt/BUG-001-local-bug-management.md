@@ -1,0 +1,76 @@
+# 本地缺陷管理（模板+工作流+关联）
+
+| 元信息项 | 内容 |
+| --- | --- |
+| 文档编号 | BUG-001 |
+| 所属迭代 | Sprint 1 — 测试管理 MVP |
+| 优先级 | P1 |
+| 所属模块 | 缺陷管理（bug 域） |
+| 文档状态 | Draft（待评审） |
+| 最后更新日期 | 2026-09-26 |
+| 上游依赖 | PROJ-002（缺陷模板+自定义字段+工作流）、CASE-003（详情组件复用+关联来源）、SYS-005（附件上限）、INFRA-002（MinIO） |
+| 下游消费 | PLAN-001（执行建缺陷入口）、DASH-001（缺陷统计）、Sprint 5 BUG-002（协作与回收站增强）、Sprint 6 INTG（三方同步） |
+| 上游依据 | 需求文档 M5（本地缺陷）；功能清单 §七（缺陷管理本地部分） |
+| 对标基线 | 功能清单 §七：模板创建（自定义字段）、附件 50MB、列表（同步/复制/编辑/导出/删除）、详情（分享/关注/关联用例/评论/变更历史）、回收站（恢复/彻底删除）；工作流见 §8.2 |
+| 关联架构文档 | dynamic-template-fields.md（工作流矩阵）、test-domain-model.md §2.5 |
+| 高保真确认 | 待确认（docs/design/BUG-001-local-bug-management/，原型待产出） |
+| 工作量估算 | 后端 3.5 人日 / 前端 4 人日 / 联调 1 人日 |
+
+## 1. 概述
+
+### 1.1 功能定位
+缺陷域首个功能：本地缺陷全流程（模板创建→工作流流转→关联用例→评论协作→回收站）。详情页复用 CASE-003 的 Tab/评论/历史组件；三方平台同步整体延后。
+
+### 1.2 范围边界
+
+| 能力 | P1 ✅ | 后续 |
+| --- | --- | --- |
+| 创建：选模板（默认带入）→ 标题/描述（受限 Markdown）/动态字段（buildValidator 校验）/处理人/标签 | ✅ | AI 生成缺陷描述（AI 域） |
+| 附件：多文件上传、单文件上限（SYS-005 参数，默认 50MB）、下载/删除 | ✅ | 图片粘贴 |
+| 工作流流转：当前状态→目标状态（Transition 白名单）、流转可附评论；状态色与「待处理」统计口径（非结束态） | ✅ | 流转触发通知/同步（MSG/INTG） |
+| 列表：模块（bug 树复用）/状态/处理人/严重程度（动态字段示例）/标签筛选、排序、批量删除、导出 Excel | ✅ | 高级筛选保存视图（与 CASE-002 组件对齐后补） |
+| 详情：详情（编辑）/关联用例/评论/变更历史 四 Tab + 关注/分享 | ✅ | 需求关联（INTG） |
+| 回收站：软删→恢复/彻底删除 | ✅ | — |
+| 三方平台（Jira/禅道/TAPD）：同步、platform_key、模板映射 | ❌ | BUG-002（Sprint 5 协作）/INTG-001~002（Sprint 6） |
+
+### 1.3 前置依赖
+PROJ-002 工作流与字段引擎冻结；MinIO 可用（INFRA-002 服务位）。
+
+### 1.4 对标基线核对
+基线 §七本地部分全复刻（模板/附件/列表/详情/回收站）。基线列表「同步」操作与导出中三方相关部分 ❌→INTG；基线详情「分享」= 复制只读链接（登录态内分享，公开链接有效期→RPT-003 模式统一，Sprint 4 评估扩展到缺陷——本迭代登录内分享）。
+
+## 2. 业务逻辑
+
+- 创建：nextNum(bugs) → 按默认模板校验动态字段 → 初始工作流状态（start）→ ChangeLog(create)。
+- 流转：校验 Transition(from,to) 存在，否则 422（code 10006）；流转写 ChangeLog(action=transition, from/to) + 可选评论；结束态后编辑仍允许（对齐基线），但「待处理」统计排除。
+- 关联用例：BugCaseRef 多态；从计划执行进入的创建自动带出（PLAN-001 联动）。
+- 附件：MinIO 存储（storage_key）、上传校验大小/类型黑名单（security.md：可执行文件拒收）、下载走预签名 URL。
+- 回收站与彻底删除：同 CASE-001 模式（软删/恢复/物理删级联横切表）。
+
+## 3. UI/UX 设计（高保真 docs/design/BUG-001-local-bug-management/）
+
+- 左导航「缺陷管理」：布局同 CASE-002（左 bug 模块树 + 右列表）；列表列=编号/标题/状态（色点+文本）/处理人头像/严重程度/标签/更新时间/操作（编辑·关注·分享·删除）。
+- 新建/编辑：全页表单（模板选择器（默认模板预选，切换重置动态区）、动态字段区、附件上传区（拖拽+列表+进度）、处理人成员选择）。
+- 详情页：头部（标题+状态徽标+流转按钮组（按矩阵显示允许的目标状态）+关注/分享）；Tab=详情/关联用例/评论/变更历史（组件复用 CASE-003）。
+- 流转弹窗：目标状态确认 + 意见输入；流转后状态徽标动画。
+- 回收站：与 CASE-001 回收站交互一致（tab 切换 + 恢复/彻底删除确认）。
+
+## 4. 技术架构
+
+- 数据模型（已建齐）：Bug(template/fields JSONB/platform=local/status/num/handle_user)、BugCaseRef、Attachment（通用附件表 storage_key/size/name）、ModuleNode(scene=bug)。
+- 端点：`GET/POST /api/v1/projects/{pid}/bugs`、`GET/PUT/DELETE .../bugs/{id}`、`POST .../bugs/{id}/restore`、`DELETE .../bugs/{id}?purge=true`、`POST .../bugs/{id}/transition`（body: toState+comment）；`GET/POST .../bugs/{id}/cases`（关联/解绑同 CASE-003 模式）；附件横切 `POST /api/v1/projects/{pid}/attachments`（entity=bug:{id}）、`GET .../attachments/{id}/download`（预签名）。
+- zod：bugUpsertSchema（动态字段经 buildValidator）、bugTransitionSchema、attachmentSchema（大小≤SYS-005 参数、类型黑名单）。
+- 权限点：PROJECT_BUG:READ|CREATE|UPDATE|DELETE；流转=UPDATE。
+- 前端：`/bugs/*` 路由组；流转按钮组 hook `useAllowedTransitions`；状态色映射配置化（跟随工作流状态定义）。
+
+## 5. 测试用例
+- BUG-001-T1（jmx 四类）：CRUD/transition/附件；401/403/404；非法流转 422（10006）、超限附件 422；分页信封。
+- BUG-001-T2（spec 主链路）：按模板建缺陷（含必填动态字段缺失被拦）→ 上传附件 → 流转到「处理中」→ 评论 → 变更历史含 transition 记录（UI+接口+Console）。
+- BUG-001-T3（spec）：回收站恢复；关联用例后用例详情缺陷 Tab 出现（与 CASE-003 联调双向断言）。
+- 单测：工作流矩阵判定、附件黑名单、待处理统计口径。
+
+## 6. 竞品深度对标
+基线 §七本地能力全对齐；三方同步按基线社区版口径延后至插件（INTG-001/002），与基线「Jira=企业版插件、禅道/TAPD=社区版插件」的插件化架构一致。附件 50MB 默认值对齐基线。
+
+## 7. 里程碑与验收
+DoD 前置：高保真人工确认。验收对应 sprint-overview 验收 3/6 缺陷侧；与 PLAN-001 的「执行建缺陷」联调为关键路径。
