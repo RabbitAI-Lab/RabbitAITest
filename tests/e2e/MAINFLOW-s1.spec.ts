@@ -48,8 +48,20 @@ test("MAINFLOW-s1 Sprint1 主链路（模块树→用例→评审→计划→执
   expect(modRoot.code).toBe(0);
   await expect(page.getByTestId(`module-node-${rootName}`)).toBeVisible();
 
-  await page.getByTestId(`module-node-${rootName}`).click({ button: "right" });
-  await page.getByRole("menuitem", { name: "新建子模块" }).click();
+  // antd 树 titleRender 重渲染会重建右键菜单（CI 慢机更易触发）——重试式打开+点击
+  const addSubItem = page.getByRole("menuitem", { name: "新建子模块" });
+  let addSubOpened = false;
+  for (let i = 0; i < 4 && !addSubOpened; i++) {
+    await page.getByTestId(`module-node-${rootName}`).click({ button: "right" });
+    try {
+      await addSubItem.click({ timeout: 2500 });
+      addSubOpened = true;
+    } catch {
+      await page.keyboard.press("Escape").catch(() => {});
+      await page.waitForTimeout(400);
+    }
+  }
+  expect(addSubOpened, "右键菜单「新建子模块」应在重试内可点开").toBe(true);
   const modChildApi = expectApi("**/api/v1/projects/*/modules?scene=case");
   await page.locator('.ant-modal input[placeholder="模块名称"]').fill(childName);
   await page
