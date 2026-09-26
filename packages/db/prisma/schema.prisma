@@ -505,6 +505,8 @@ model CaseReview {
   projectId   String       @map("project_id")
   name        String       @db.VarChar(256)
   description String?      @db.VarChar(2000)
+  /// 创建人（「我创建的」视图口径，CASE-005）
+  createdBy   String       @default("") @map("created_by")
   reviewMode  String       @default("SINGLE") @map("review_mode") @db.VarChar(16) // SINGLE | MULTI
   reviewers   Json         @default("[]")
   startAt     DateTime?    @map("start_at")
@@ -528,6 +530,8 @@ model ReviewCase {
   result      String?        @db.VarChar(32)
   /// 逐评审人标记 [{userId,result,comment,ts}]（multi 模式聚合，CASE-005）
   results     Json           @default("[]")
+  /// 该用例的评审人（批量改评审人；缺省继承评审级 reviewers，CASE-005）
+  reviewers   Json           @default("[]")
   reSubmit    Boolean        @default(false) @map("re_submit")
   commentedAt DateTime?      @map("commented_at")
 

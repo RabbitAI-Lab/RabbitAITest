@@ -1,3 +1,4 @@
+export * from './s1';
 import type { AssertSpec, DebugRequest, TaskStatus } from '@rabbit/shared';
 import type { CaseCreateInput, CaseDetail, CaseListQuery } from '@rabbit/shared';
 import { get, post, put, del } from './client';

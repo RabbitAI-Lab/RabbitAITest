@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { DomainError, ErrCode, ErrMsg, fail, ok } from '@rabbit/shared';
 import { getSession } from '@/lib/session';
+import { getActiveUserId } from '@/server/current-user';
 import { prisma } from '@rabbit/db';
 import { permissionSetFor } from '@/server/rbac';
 
@@ -9,12 +10,12 @@ export function toResponse(err: unknown): NextResponse {
   if (err instanceof DomainError) {
     const status = err.code === ErrCode.UNAUTHENTICATED ? 401
       : err.code === ErrCode.FORBIDDEN ? 403
-        : [ErrCode.PROJECT_NOT_FOUND, ErrCode.TASK_NOT_FOUND, ErrCode.USER_NOT_FOUND, ErrCode.GROUP_NOT_FOUND,
+        : ([ErrCode.PROJECT_NOT_FOUND, ErrCode.TASK_NOT_FOUND, ErrCode.USER_NOT_FOUND, ErrCode.GROUP_NOT_FOUND,
           ErrCode.TEMPLATE_NOT_FOUND, ErrCode.CASE_NOT_FOUND, ErrCode.MODULE_NOT_FOUND, ErrCode.REVIEW_NOT_FOUND,
-          ErrCode.PLAN_NOT_FOUND, ErrCode.BUG_NOT_FOUND].includes(err.code) ? 404
+          ErrCode.PLAN_NOT_FOUND, ErrCode.BUG_NOT_FOUND] as number[]).includes(err.code) ? 404
           : err.code === ErrCode.VERSION_CONFLICT ? 409
             : err.code === ErrCode.VALIDATION_FAILED
-              || [ErrCode.PROJECT_ENDED, ErrCode.WORKFLOW_DENIED, ErrCode.REVIEW_ENDED, ErrCode.PLAN_ARCHIVED, ErrCode.DUP_ASSOC].includes(err.code) ? 422 : 400;
+              || ([ErrCode.PROJECT_ENDED, ErrCode.WORKFLOW_DENIED, ErrCode.REVIEW_ENDED, ErrCode.PLAN_ARCHIVED, ErrCode.DUP_ASSOC] as number[]).includes(err.code) ? 422 : 400;
     return NextResponse.json(fail(err.code, err.message ?? ErrMsg[err.code] ?? '业务错误'), { status });
   }
   console.error('[unhandled]', err);
@@ -29,11 +30,12 @@ export function withAuth<Ctx, Args extends unknown[]>(
 ) {
   return async (...args: Args): Promise<NextResponse> => {
     try {
-      const session = await getSession();
-      if (!session.userId) {
+      const userId = await getActiveUserId();
+      if (!userId) {
         return NextResponse.json(fail(ErrCode.UNAUTHENTICATED, ErrMsg[ErrCode.UNAUTHENTICATED]!), { status: 401 });
       }
-      const ctx = { userId: session.userId, email: session.email } as AuthedCtx & Ctx;
+      const session = await getSession();
+      const ctx = { userId, email: session.email } as AuthedCtx & Ctx;
       return await handler(ctx, ...args);
     } catch (err) {
       return toResponse(err);
@@ -58,14 +60,14 @@ export function withProjectScope<Args extends unknown[]>(
 ) {
   return async (req: Request, ...args: Args): Promise<NextResponse> => {
     try {
-      const session = await getSession();
-      if (!session.userId) {
+      const userId = await getActiveUserId();
+      if (!userId) {
         return NextResponse.json(fail(ErrCode.UNAUTHENTICATED, ErrMsg[ErrCode.UNAUTHENTICATED]!), { status: 401 });
       }
       const seg = args[0] as { params: Promise<{ projectId: string }> } | undefined;
       const projectId = seg ? (await seg.params).projectId : '';
       const member = await prisma.projectMember.findFirst({
-        where: { projectId, userId: session.userId },
+        where: { projectId, userId },
         select: { id: true },
       });
       const project = member
@@ -77,9 +79,10 @@ export function withProjectScope<Args extends unknown[]>(
       if (!project) {
         return NextResponse.json(fail(ErrCode.PROJECT_NOT_FOUND, ErrMsg[ErrCode.PROJECT_NOT_FOUND]!), { status: 404 });
       }
-      const permissions = await permissionSetFor(session.userId, { orgId: project.orgId, projectId });
+      const permissions = await permissionSetFor(userId, { orgId: project.orgId, projectId });
+      const session = await getSession();
       const ctx: ProjectCtx = {
-        userId: session.userId,
+        userId,
         email: session.email,
         projectId,
         orgId: project.orgId,
@@ -106,15 +109,16 @@ export function withSystemPerm(point: string) {
   ) {
     return async (req: Request, ...args: Args): Promise<NextResponse> => {
       try {
-        const session = await getSession();
-        if (!session.userId) {
+        const userId = await getActiveUserId();
+        if (!userId) {
           return NextResponse.json(fail(ErrCode.UNAUTHENTICATED, ErrMsg[ErrCode.UNAUTHENTICATED]!), { status: 401 });
         }
-        const perms = await permissionSetFor(session.userId);
+        const perms = await permissionSetFor(userId);
         if (!perms.has(point)) {
           return NextResponse.json(fail(ErrCode.FORBIDDEN, `缺少权限点 ${point}`), { status: 403 });
         }
-        return await handler({ userId: session.userId, email: session.email }, req, ...args);
+        const session = await getSession();
+        return await handler({ userId, email: session.email }, req, ...args);
       } catch (err) {
         return toResponse(err);
       }
@@ -130,20 +134,21 @@ export function withOrgScope<Args extends unknown[]>(
 ) {
   return async (req: Request, ...args: Args): Promise<NextResponse> => {
     try {
-      const session = await getSession();
-      if (!session.userId) {
+      const userId = await getActiveUserId();
+      if (!userId) {
         return NextResponse.json(fail(ErrCode.UNAUTHENTICATED, ErrMsg[ErrCode.UNAUTHENTICATED]!), { status: 401 });
       }
       const seg = args[0] as { params: Promise<{ orgId: string }> } | undefined;
       const orgId = seg ? (await seg.params).orgId : '';
-      const member = await prisma.orgMember.findFirst({ where: { orgId, userId: session.userId }, select: { id: true } });
+      const member = await prisma.orgMember.findFirst({ where: { orgId, userId }, select: { id: true } });
       if (!member) {
         return NextResponse.json(fail(ErrCode.PROJECT_NOT_FOUND, '组织不存在或无权访问'), { status: 404 });
       }
-      const permissions = await permissionSetFor(session.userId, { orgId });
+      const permissions = await permissionSetFor(userId, { orgId });
+      const session = await getSession();
       return await handler(
         {
-          userId: session.userId,
+          userId,
           email: session.email,
           orgId,
           permissions,

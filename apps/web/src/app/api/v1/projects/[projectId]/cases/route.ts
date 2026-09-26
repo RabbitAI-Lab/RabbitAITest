@@ -1,25 +1,20 @@
-import { NextResponse } from 'next/server';
-import { ok, caseCreateSchema, caseListQuerySchema } from '@rabbit/shared';
-import { withProjectScope } from '@/server/guard';
-import { createCase, listCases } from '@/server/domains/case/case.service';
+import { withProjectScope, toResponse, okResponse } from '@/server/guard';
+import { caseListQueryV2Schema, caseCreateV2Schema } from '@rabbit/shared';
+import * as svc from '@/server/domains/case/caseV2.service';
 
-export const runtime = 'nodejs';
-
-export const GET = withProjectScope(async (ctx, req) => {
-  const url = new URL(req.url);
-  const q = Object.fromEntries(url.searchParams.entries());
-  const parsed = caseListQuerySchema.safeParse(q);
-  if (!parsed.success) {
-    return NextResponse.json({ code: 20422, message: '查询参数校验失败', data: null }, { status: 422 });
-  }
-  return NextResponse.json(ok(await listCases(ctx.projectId, parsed.data)));
+export const GET = withProjectScope(async (ctx, req, _seg) => {
+  try {
+    ctx.requirePerm('PROJECT_CASE:READ');
+    const q = caseListQueryV2Schema.parse(Object.fromEntries(new URL(req.url).searchParams));
+    return okResponse(await svc.listCasesV2(ctx.projectId, q, ctx.userId));
+  } catch (err) { return toResponse(err); }
 });
 
-export const POST = withProjectScope(async (ctx, req) => {
-  const parsed = caseCreateSchema.safeParse(await req.json());
-  if (!parsed.success) {
-    return NextResponse.json({ code: 20422, message: parsed.error.issues[0]?.message ?? '参数校验失败', data: null }, { status: 422 });
-  }
-  const created = await createCase(ctx.projectId, ctx.userId, parsed.data);
-  return NextResponse.json(ok(created), { status: 201 });
+export const POST = withProjectScope(async (ctx, req, _seg) => {
+  try {
+    ctx.requirePerm('PROJECT_CASE:CREATE');
+    ctx.requireWritable();
+    const body = caseCreateV2Schema.parse(await req.json());
+    return okResponse(await svc.createCaseV2(ctx.projectId, ctx.orgId, ctx.userId, body), 201);
+  } catch (err) { return toResponse(err); }
 });
