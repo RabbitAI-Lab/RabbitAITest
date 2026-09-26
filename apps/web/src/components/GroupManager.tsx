@@ -358,14 +358,14 @@ export function GroupManager({ scope, scopeId }: { scope: GroupScope; scopeId?: 
               )}
             </div>
             {readonly && (
-              <Alert type="info" showIcon banner message="预置组不可修改，仅可查看成员与权限" />
+              <Alert type="info" showIcon banner message="预置组权限不可修改（对齐基线）；成员可正常管理" />
             )}
 
-            {/* 成员区 */}
+            {/* 成员区（预置组同样可管理成员——SYS-004 §1.2：组成员添加/移除独立于权限只读） */}
             <div className="p-4 border-b border-[#F0F1F3]">
               <div className="flex items-center gap-2 mb-3 flex-wrap">
                 <span className="text-[13px] font-medium">成员（{selected.memberCount}）</span>
-                {!readonly && canUpdate && (
+                {canUpdate && (
                   <>
                     <Select
                       className="ml-auto min-w-[260px]"
@@ -411,7 +411,7 @@ export function GroupManager({ scope, scopeId }: { scope: GroupScope; scopeId?: 
                     key: "op",
                     width: 90,
                     render: (_, m) =>
-                      !readonly && canUpdate ? (
+                      canUpdate ? (
                         <Popconfirm
                           title={`将「${m.name}」移出该组？`}
                           okText="移除"
