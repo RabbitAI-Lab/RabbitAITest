@@ -41,9 +41,12 @@ async function startEmbeddedPostgres() {
   }
   const dataDir = path.join(root, '.pgdata');
   const port = 5433;
+  // 仅复用有效 PGDATA（有 PG_VERSION）；半初始化残留目录清空重建，避免 initdb 报「目录已存在」
+  if (existsSync(dataDir) && !existsSync(path.join(dataDir, 'PG_VERSION'))) {
+    rmSync(dataDir, { recursive: true, force: true });
+  }
   const mod = await import('embedded-postgres');
   const EmbeddedPostgres = mod.default ?? mod.EmbeddedPostgres ?? mod;
-  if (!existsSync(dataDir)) rmSync(dataDir, { recursive: true, force: true });
   const pg = new EmbeddedPostgres({
     databaseDir: dataDir,
     user: 'postgres',
