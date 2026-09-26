@@ -103,7 +103,8 @@ test('PROJ-002-02 工作流矩阵与非法流转', async ({ authedPage, page, ex
   await page.getByTestId('btn-new-state').click();
   await page.getByRole('dialog').getByPlaceholder('状态名称（如：挂起）').fill('挂起');
   const stateApi = expectApi('**/api/v1/projects/*/workflows/states');
-  await page.getByRole('dialog').getByRole('button', { name: '确定' }).click();
+  // modal.confirm okText=确定（2 字主按钮渲染「确 定」），正则兼容
+  await page.getByRole('dialog').getByRole('button', { name: /确\s*定/ }).click();
   const state = await stateApi;
   expect(state.status).toBe(201);
   expect(state.code).toBe(0);

@@ -238,6 +238,7 @@ export default function ReviewListPage() {
               <label className="block text-[13px] mb-1">模式</label>
               <Select
                 className="w-full"
+                virtual={false}
                 value={form.reviewMode}
                 onChange={(v) => setForm({ ...form, reviewMode: v })}
                 options={[
@@ -255,6 +256,7 @@ export default function ReviewListPage() {
                 value={form.reviewers}
                 onChange={(v) => setForm({ ...form, reviewers: v as string[] })}
                 placeholder="选择评审人（可多选）"
+                testId="select-reviewers"
               />
             </div>
           </div>

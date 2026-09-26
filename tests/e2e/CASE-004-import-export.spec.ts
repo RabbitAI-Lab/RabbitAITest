@@ -53,7 +53,8 @@ test('CASE-004-01 导入向导三步', async ({ authedPage, page, request, expec
   await expect(exportDialog.getByText('导出用例')).toBeVisible();
   const exportApi = expectApi('**/api/v1/projects/*/cases/export');
   const downloadPromise = page.waitForEvent('download');
-  await exportDialog.getByRole('button', { name: '导出', exact: true }).click();
+  // Modal okText=导出（2 字主按钮渲染「导 出」），正则兼容
+  await exportDialog.getByRole('button', { name: /导\s*出/ }).click();
   const exported = await exportApi;
   // 接口断言：导出为 xlsx 二进制流（非 JSON 信封），断言状态码；内容正确性由下方导入 roundtrip 验证
   expect(exported.status).toBe(200);
@@ -61,9 +62,9 @@ test('CASE-004-01 导入向导三步', async ({ authedPage, page, request, expec
   const exportPath = testInfo.outputPath('case-export.xlsx');
   await download.saveAs(exportPath);
   expect(statSync(exportPath).size).toBeGreaterThan(0);
-  // UI 断言：导出成功 toast + 弹窗关闭
+  // UI 断言：导出成功 toast + 弹窗关闭（antd 关闭后仍保留隐藏标题 DOM → 按可访问性 dialog 角色断言）
   await expect(page.getByText('导出成功')).toBeVisible({ timeout: 8000 });
-  await expect(page.getByText('导出用例')).toHaveCount(0);
+  await expect(page.getByRole('dialog')).toHaveCount(0);
 
   // ── 导入向导 步骤①：上传文件（含模板下载） ──
   await page.getByTestId('btn-import').click();
@@ -101,10 +102,11 @@ test('CASE-004-01 导入向导三步', async ({ authedPage, page, request, expec
   await expect(page.getByTestId('import-step-report')).toBeVisible();
   await expect(page.getByTestId('import-step-report').getByText('导入成功')).toBeVisible();
 
-  // 完成 → 列表仍 1 条（覆盖不新增，记录数不变）
-  await importDialog.getByRole('button', { name: '完成' }).click();
+  // 完成 → 列表仍 1 条（覆盖不新增，记录数不变）；「完成」按钮 2 字渲染「完 成」
+  await importDialog.getByRole('button', { name: /完\s*成/ }).click();
   await expect(page.getByTestId('case-table')).toBeVisible();
-  await expect(page.getByText('共 1 条')).toBeVisible({ timeout: 8000 });
+  // exact：排除导出弹窗 radio 文案「当前筛选结果（共 1 条）」的子串命中
+  await expect(page.getByText('共 1 条', { exact: true })).toBeVisible({ timeout: 8000 });
   await expect(page.getByText(caseName)).toHaveCount(1);
 
   await expectNoConsoleErrors();

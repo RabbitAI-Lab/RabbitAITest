@@ -47,7 +47,8 @@ test('MAINFLOW-s1 Sprint1 主链路（模块树→用例→评审→计划→执
   const modChild = await modChildApi;
   expect(modChild.status).toBe(201);
   expect(modChild.code).toBe(0);
-  await expect(page.getByText('模块已创建')).toBeVisible({ timeout: 8000 });
+  // 连续两次建模块：前一次的「模块已创建」toast 可能未消失 → 取第一条（strict mode 规避）
+  await expect(page.getByText('模块已创建').first()).toBeVisible({ timeout: 8000 });
   // defaultExpandAll 仅作用于初始渲染：根模块最初是叶子，新增子级后需展开其 switcher 才可见（已在展开态则跳过）
   const childNode = page.getByTestId(`module-node-${childName}`);
   if (!(await childNode.isVisible())) {
@@ -80,7 +81,8 @@ test('MAINFLOW-s1 Sprint1 主链路（模块树→用例→评审→计划→执
   await navFromHome(page, '用例评审');
   await page.getByTestId('btn-new-review').click();
   await page.getByTestId('input-review-name').fill(reviewName);
-  await page.locator('.ant-modal').getByText('选择评审人（可多选）').click();
+  // antd 多选 Select 的 placeholder 点击会被 selection-overflow 拦截 → 点击挂了 testid 的 Select 根节点
+  await page.getByTestId('select-reviewers').click();
   await page.getByRole('option').filter({ hasText: authedPage.email }).click();
   // 点击他处收起成员下拉（不用 Escape，避免误关 Modal）
   await page.getByTestId('input-review-name').click();
@@ -153,17 +155,23 @@ test('MAINFLOW-s1 Sprint1 主链路（模块树→用例→评审→计划→执
   const executedA = await execA;
   expect(executedA.code).toBe(0);
   expect((executedA.data as { status: string }).status).toBe('PASS');
+  // 等待保存后的列表刷新落定（行内执行状态回显「通过」）再收起 A：
+  // 否则收起点击会撞上 refetch 重渲染（按钮节点被替换）导致 toggle 丢失、面板残留
+  await expect(rowA).toContainText('通过');
   await rowA.getByRole('button', { name: '步骤执行' }).click(); // 收起 A，保证面板唯一
 
   const rowB = page.getByRole('row', { name: new RegExp(caseBName) });
   await rowB.getByRole('button', { name: '步骤执行' }).click();
-  await expect(page.getByTestId('step-exec-panel')).toBeVisible();
-  await page.getByTestId('step-btn-PASS-1').click();
-  await page.getByTestId('step-btn-FAIL-2').click();
-  await page.getByTestId('step-actual-2').fill(stepBFailActual);
+  // 收起 A 后 antd 仍保留其展开行 DOM（隐藏不卸载）→ 全局 testid 会命中两份面板，
+  // 按 B 的步骤文本（提交订单）圈定唯一面板再操作
+  const panelB = page.getByTestId('step-exec-panel').filter({ hasText: '提交订单' });
+  await expect(panelB).toBeVisible();
+  await panelB.getByTestId('step-btn-PASS-1').click();
+  await panelB.getByTestId('step-btn-FAIL-2').click();
+  await panelB.getByTestId('step-actual-2').fill(stepBFailActual);
   const execB = expectApi('**/api/v1/projects/*/plans/*/cases/*/exec');
   const execBRaw = page.waitForResponse('**/api/v1/projects/*/plans/*/cases/*/exec');
-  await page.getByTestId('step-exec-panel').getByRole('button', { name: '保存执行结果' }).click();
+  await panelB.getByRole('button', { name: '保存执行结果' }).click();
   const executedB = await execB;
   expect(executedB.code).toBe(0);
   expect((executedB.data as { status: string }).status).toBe('FAIL');

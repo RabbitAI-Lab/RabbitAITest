@@ -663,7 +663,7 @@ export default function TemplateSettingsPage() {
           <div className="flex items-center gap-2 mt-3">
             <span className="text-[13px]">添加字段：</span>
             <Select
-              className="w-56" placeholder="选择字段" showSearch optionFilterProp="label"
+              className="w-56" placeholder="选择字段" showSearch optionFilterProp="label" virtual={false}
               value={undefined}
               options={bindableDefs.map((d) => ({ value: d.key, label: `${d.name}（${d.key}）` }))}
               onChange={(key) => { if (typeof key === 'string') setBindings([...bindings, { fieldKey: key }]); }}

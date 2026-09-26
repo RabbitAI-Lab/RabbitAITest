@@ -21,9 +21,12 @@ export async function request<T>(
   path: string,
   init: RequestInit = {},
 ): Promise<T> {
+  // FormData（导入/附件上传）必须保留浏览器自动生成的 multipart 边界头，
+  // 强设 application/json 会让服务端 req.formData() 抛错（CASE-004 导入 500 的根因）
+  const isFormData = typeof FormData !== 'undefined' && init.body instanceof FormData;
   const res = await fetch(`${baseUrl()}${path}`, {
     ...init,
-    headers: { 'Content-Type': 'application/json', ...init.headers },
+    headers: { ...(isFormData ? {} : { 'Content-Type': 'application/json' }), ...init.headers },
     credentials: 'same-origin',
   });
   let body: Envelope<T> | null = null;

@@ -6,7 +6,7 @@
 | 所属迭代 | Sprint 1 — 测试管理 MVP |
 | 优先级 | P1 |
 | 所属模块 | 项目管理（project 域） |
-| 文档状态 | Approved（2026-09-26 评审通过：AI 会话内按需求文档/架构文档一致性自评审；用户终审随 Sprint 验收——沿用 S0 §8.1 目标授权先例） |
+| 文档状态 | Implemented（2026-09-26 代码合并：单测 49 + JMeter 11 计划 + Playwright 38 用例全绿；高保真人工确认与走查待用户验收——S0 §8.1 先例） |
 | 最后更新日期 | 2026-09-26 |
 | 上游依赖 | PROJ-001（项目设置入口与权限）、dynamic-template-fields.md（模型定稿） |
 | 下游消费 | CASE-002/003（用例表单/列表/详情动态字段）、BUG-001（缺陷模板+工作流）、CASE-005（评审字段展示）、Sprint 6 INTG-001（platform_binding） |
@@ -74,3 +74,6 @@ PROJ-001 项目设置路由；字段引擎 zod 动态校验器为 B/C 线表单�
 
 ## 7. 里程碑与验收
 DoD 前置：高保真人工确认。验收对应 sprint-overview 验收 2/3；字段引擎第 8 天冻结联调。
+
+## 8. 勘误登记
+- 勘误 1（2026-09-26）：S1 首迁移漏建规格声明列（ReviewCase.results/reviewers、CaseReview.created_by 等），已以补齐迁移收口（列名以本规格 §4 为准）。

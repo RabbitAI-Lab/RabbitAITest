@@ -38,7 +38,9 @@ export function CommentThread({ projectId, entity, canModeratePerm, currentUserI
     onError: (e) => message.error(e instanceof Error ? e.message : '删除失败'),
   });
   const items = data?.items ?? [];
-  const mains = items.filter((c) => !c.parentId);
+  // 流转自动写入的【流转 x→y】评论不进主列表（BUG-001：流转记录在「变更历史」Tab 展示，评论 Tab 计数同口径）
+  const FLOW_PREFIX = '【流转 ';
+  const mains = items.filter((c) => !c.parentId && !c.content.startsWith(FLOW_PREFIX));
   const repliesOf = (id: string) => items.filter((c) => c.parentId === id);
   const render = (c: CommentDto, isReply = false) => (
     <div key={c.id} className={isReply ? 'ml-8 mt-2 border-l-2 border-[#F0F1F3] pl-3' : 'mt-3'}>
@@ -154,10 +156,10 @@ export function MarkdownView({ md, className }: { md: string; className?: string
   );
 }
 
-/** 成员选择器（处理人/评审人/执行人）。 */
-export function MemberSelect({ projectId, value, onChange, mode, placeholder }: {
+/** 成员选择器（处理人/评审人/执行人）。testId 可选：同页多实例时由调用方区分（如 select-reviewers）。 */
+export function MemberSelect({ projectId, value, onChange, mode, placeholder, testId }: {
   projectId: string; value?: string | string[]; onChange: (v: string | string[]) => void;
-  mode?: 'multiple'; placeholder?: string;
+  mode?: 'multiple'; placeholder?: string; testId?: string;
 }) {
   const { data } = useQuery({
     queryKey: ['members', projectId],
@@ -175,9 +177,11 @@ export function MemberSelect({ projectId, value, onChange, mode, placeholder }: 
       placeholder={placeholder ?? '选择成员'}
       showSearch
       optionFilterProp="label"
+      virtual={false}
       options={(data?.items ?? []).map((m) => ({ value: m.id, label: `${m.name}（${m.email}）` }))}
       className="min-w-40"
       allowClear
+      data-testid={testId}
     />
   );
 }

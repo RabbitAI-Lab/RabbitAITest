@@ -64,7 +64,8 @@ test('CASE-003-01 详情七 Tab 与依赖双向', async ({ authedPage, page, req
   await expect(page.getByRole('option', { name: optionLabelB })).toBeVisible({ timeout: 8000 });
   await page.getByRole('option', { name: optionLabelB }).click();
   const depApi = expectApi('**/api/v1/projects/*/cases/*/dependencies');
-  await page.getByRole('button', { name: '添加', exact: true }).click();
+  // Modal okText=添加（2 字主按钮渲染「添 加」），限定弹窗作用域（页面另有「＋ 添加前置依赖」按钮）
+  await page.getByRole('dialog').getByRole('button', { name: /添\s*加/ }).click();
   const dep = await depApi;
   // 接口断言：POST dependencies 201 + code=0
   expect(dep.status).toBe(201);
@@ -89,22 +90,25 @@ test('CASE-003-01 详情七 Tab 与依赖双向', async ({ authedPage, page, req
   await expect(page.getByTestId('case-title')).toHaveText(nameA);
   await page.getByTestId('tab-comments').click();
   await page.getByTestId('comment-input').fill('首条评论');
-  const cmtApi = expectApi('**/api/v1/projects/*/comments?entity=*');
+  // glob 无法区分方法（Tab 挂载 GET 与 POST 同 URL）→ 按 method=POST 圈定（rules/testing §3.5.1 断言作用域化）
+  const postComment = () =>
+    page.waitForResponse((r) => r.request().method() === 'POST' && /\/api\/v1\/projects\/[^/]+\/comments\?/.test(r.url()));
+  const cmtRaw = postComment();
   await page.getByTestId('comment-submit').click();
-  const cmt = await cmtApi;
+  const cmtRes = await cmtRaw;
   // 接口断言：POST comments 201 + code=0
-  expect(cmt.status).toBe(201);
-  expect(cmt.code).toBe(0);
+  expect(cmtRes.status()).toBe(201);
+  expect(((await cmtRes.json()) as { code: number }).code).toBe(0);
   await expect(page.getByTestId('comment-content').filter({ hasText: '首条评论' })).toBeVisible();
 
   await page.getByRole('button', { name: '回复', exact: true }).click();
   await page.getByTestId('comment-input').fill('回复内容');
-  const replyApi = expectApi('**/api/v1/projects/*/comments?entity=*');
+  const replyRaw = postComment();
   await page.getByTestId('comment-submit').click();
-  const reply = await replyApi;
+  const replyRes = await replyRaw;
   // 接口断言：回复 POST 201 + code=0（服务端 parentId 挂主楼）
-  expect(reply.status).toBe(201);
-  expect(reply.code).toBe(0);
+  expect(replyRes.status()).toBe(201);
+  expect(((await replyRes.json()) as { code: number }).code).toBe(0);
   // UI 断言：两级评论共 2 条
   await expect(page.getByTestId('comment-content')).toHaveCount(2);
   await expect(page.getByTestId('comment-content').filter({ hasText: '回复内容' })).toBeVisible();

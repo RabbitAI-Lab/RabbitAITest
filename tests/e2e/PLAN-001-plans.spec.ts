@@ -88,8 +88,9 @@ test('PLAN-001-01 计划执行与缺陷带出', async ({ authedPage, page, reque
   expect(execPayload.steps[0].status).toBe('PASS');
   expect(execPayload.steps[1]).toMatchObject({ status: 'FAIL', result: stepFailActual });
 
-  // 通过率环 = 50%（plan-circle）+ 未达标徽标（阈值 80，plan-pass-rate-box）
-  await expect(page.getByTestId('plan-circle')).toContainText('50%');
+  // 通过率环 = 0%（规格 PLAN-001 §3：pass/(pass+fail+blocked) 用例级口径，本计划 1 条用例 FAIL）
+  // + 未达标徽标（阈值 80，plan-pass-rate-box）
+  await expect(page.getByTestId('plan-circle')).toContainText('0%');
   await expect(page.getByTestId('plan-pass-rate-box')).toContainText('阈值 80%');
   await expect(page.getByTestId('plan-pass-rate-box')).toContainText('未达标');
 

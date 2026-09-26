@@ -56,9 +56,11 @@ export interface ProjectCtx extends AuthedCtx {
   requireWritable(): void;
 }
 
-/** SYS-002/PROJ-001：项目作用域守卫（成员校验；不存在/越域一律 404 防枚举）+ RBAC 权限集注入。 */
+/** SYS-002/PROJ-001：项目作用域守卫（成员校验；不存在/越域一律 404 防枚举）+ RBAC 权限集注入。
+ *  opts.allowDeleted：恢复类端点（restore）需作用于已软删项目，跳过 deletedAt 过滤（PROJ-001 §3）。 */
 export function withProjectScope<Args extends unknown[]>(
   handler: (ctx: ProjectCtx, req: Request, ...args: Args) => Promise<NextResponse>,
+  opts: { allowDeleted?: boolean } = {},
 ) {
   return async (req: Request, ...args: Args): Promise<NextResponse> => {
     try {
@@ -75,7 +77,7 @@ export function withProjectScope<Args extends unknown[]>(
       });
       const project = member
         ? await prisma.project.findFirst({
-            where: { id: projectId, deletedAt: null },
+            where: { id: projectId, ...(opts.allowDeleted ? {} : { deletedAt: null }) },
             select: { id: true, orgId: true, status: true },
           })
         : null;

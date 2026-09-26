@@ -29,9 +29,9 @@ export function DynamicFieldInput({
     case 'DatePicker':
       return <DatePicker value={value ? dayjs(String(value)) : null} disabled={disabled} onChange={(d: Dayjs | null) => onChange(d ? d.format('YYYY-MM-DD') : undefined)} className="w-full" data-testid={`dyn-${def.key}`} />;
     case 'Select':
-      return <Select value={value as string} disabled={disabled} allowClear options={optionsOf(def).map((o) => ({ value: o, label: o }))} onChange={(v) => onChange(v)} className="w-full" data-testid={`dyn-${def.key}`} />;
+      return <Select value={value as string} disabled={disabled} allowClear virtual={false} options={optionsOf(def).map((o) => ({ value: o, label: o }))} onChange={(v) => onChange(v)} className="w-full" data-testid={`dyn-${def.key}`} />;
     case 'SelectMultiple':
-      return <Select mode="multiple" value={(value as string[]) ?? []} disabled={disabled} allowClear options={optionsOf(def).map((o) => ({ value: o, label: o }))} onChange={(v) => onChange(v)} className="w-full" data-testid={`dyn-${def.key}`} />;
+      return <Select mode="multiple" virtual={false} value={(value as string[]) ?? []} disabled={disabled} allowClear options={optionsOf(def).map((o) => ({ value: o, label: o }))} onChange={(v) => onChange(v)} className="w-full" data-testid={`dyn-${def.key}`} />;
     case 'Checkbox':
       return <Checkbox checked={Boolean(value)} disabled={disabled} onChange={(e) => onChange(e.target.checked)} data-testid={`dyn-${def.key}`}>{def.name}</Checkbox>;
     case 'RadioGroup':
@@ -77,6 +77,7 @@ export function DynamicFieldForm({
                 value={value[def.key] as string}
                 disabled={disabled}
                 allowClear
+                virtual={false}
                 mode={(def.options as { multiple?: boolean } | undefined)?.multiple ? 'multiple' : undefined}
                 showSearch
                 optionFilterProp="label"

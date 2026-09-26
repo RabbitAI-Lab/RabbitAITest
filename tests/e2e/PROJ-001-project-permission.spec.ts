@@ -49,7 +49,8 @@ test('PROJ-001-01 模块开关与删除撤销', async ({ authedPage, page, expec
   await page.getByTestId('btn-new-project').click();
   await page.getByTestId('input-new-project-name').fill(projectName);
   const createApi = expectApi('**/api/v1/orgs/*/projects');
-  await page.getByRole('dialog').getByRole('button', { name: '创建' }).click();
+  // Modal okText=创建（2 字主按钮渲染「创 建」），正则兼容
+  await page.getByRole('dialog').getByRole('button', { name: /创\s*建/ }).click();
   const created = await createApi;
   expect(created.status).toBe(201);
   expect(created.code).toBe(0);

@@ -58,9 +58,9 @@ test('CASE-005-01 多人评审聚合与重新提审', async ({ authedPage, page,
   await page.getByTestId('input-review-name').fill(reviewName);
   await page.getByTestId('select-review-mode').click();
   await page.getByRole('option', { name: '多人（全员通过才通过）' }).click();
-  // MemberSelect（crosscut.tsx）无 data-testid；antd v5 Select 的 placeholder 是覆盖层 div 而非 input 属性，
-  // 点击 placeholder 文本（位于 Select 点击区内）即可展开下拉
-  await page.getByText('选择评审人（可多选）').click();
+  // MemberSelect（crosscut.tsx）已挂 data-testid=select-reviewers（同页多实例由调用方区分）；
+  // antd 5.29 多选 Select 的 placeholder 覆盖层会被 selection-overflow 容器拦截点击 → 点击 Select 根节点展开
+  await page.getByTestId('select-reviewers').click();
   await page.getByRole('option', { name: new RegExp(escapeRegExp(authedPage.email)) }).click();
   const createApi = expectApi('**/api/v1/projects/*/reviews');
   await page.getByTestId('btn-submit-review').click();

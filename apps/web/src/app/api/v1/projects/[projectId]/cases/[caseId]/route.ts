@@ -25,6 +25,12 @@ export const DELETE = withProjectScope(async (ctx, req, seg) => {
     ctx.requirePerm('PROJECT_CASE:DELETE');
     ctx.requireWritable();
     const { caseId } = await (seg as { params: Promise<{ caseId: string }> }).params;
+    // ?purge=true：回收站内彻底删除（物理删除，与 bugs 路由同款约定；否则软删进回收站）
+    const purge = new URL(req.url).searchParams.get('purge') === 'true';
+    if (purge) {
+      const { purgeCase } = await import('@/server/domains/case/case.service');
+      return okResponse(await purgeCase(ctx.projectId, caseId));
+    }
     return okResponse(await svc.deleteCaseV2(ctx.projectId, caseId, ctx.userId));
   } catch (err) { return toResponse(err); }
 });

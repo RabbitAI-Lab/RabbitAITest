@@ -57,6 +57,10 @@ export const templateUpsertSchema = z.object({
   name: z.string().min(1).max(128),
   fields: z.array(templateFieldBindingSchema).default([]),
 });
+/** PUT /templates/{id}/fields 请求体（仅更新字段绑定；templateApi.updateFields 契约） */
+export const templateFieldsUpdateSchema = z.object({
+  fields: z.array(templateFieldBindingSchema).default([]),
+});
 export const BUG_TEMPLATE_LIMIT = 20; // 缺陷模板上限（对齐基线 §8.2）
 
 // ── 工作流（PROJ-002，bug scene）──

@@ -133,6 +133,7 @@ export default function ReviewDetailPage({ params }: { params: Promise<{ id: str
           size={80}
           percent={stats.passRate}
           strokeColor="#52C41A"
+          format={(p) => `${p ?? 0}%`}
           data-testid="review-circle"
         />
         {can('PROJECT_CASE_REVIEW:UPDATE') && !ended && (

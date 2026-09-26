@@ -35,9 +35,14 @@ test('SYS-004-01 用户管理与用户组管理主链路（管理员）', async 
   await page.goto('/');
   await page.getByTestId('nav-system-users').click();
   // UI 断言：用户表可见（种子管理员在列，system/users/page.tsx user-email）
+  // 全量轮次中系统用户表逐用例累积（每用例注册独立用户）且按创建时间倒序——admin 不在第 1 页，
+  // 用页面搜索框定位（真实用户路径），断言强度不变
+  await page.getByTestId('input-user-keyword').fill('admin@rabbit.test');
   await expect(page.getByTestId('user-email').filter({ hasText: 'admin@rabbit.test' })).toBeVisible();
 
   // 新建用户：抽屉填邮箱/姓名 → 提交（接口断言 POST /api/v1/system/users）
+  // （先清空搜索词：创建后需在「全部」列表断言新用户在列——新用户创建时间最新、必在第 1 页）
+  await page.getByTestId('input-user-keyword').fill('');
   await page.getByTestId('btn-new-user').click();
   await page.getByTestId('input-user-email').fill(newUserEmail);
   await page.getByTestId('input-user-name').fill(newUserName);
@@ -64,7 +69,8 @@ test('SYS-004-01 用户管理与用户组管理主链路（管理员）', async 
   await page.getByTestId('btn-new-group').click();
   await page.getByTestId('input-new-group-name').fill(groupName);
   const createGroupApi = expectApi('**/api/v1/system/groups');
-  await page.getByRole('dialog').getByRole('button', { name: '创建' }).click();
+  // Modal okText=创建（2 字主按钮渲染「创 建」），正则兼容
+  await page.getByRole('dialog').getByRole('button', { name: /创\s*建/ }).click();
   const group = await createGroupApi;
   expect(group.status).toBe(201);
   expect(group.code).toBe(0);

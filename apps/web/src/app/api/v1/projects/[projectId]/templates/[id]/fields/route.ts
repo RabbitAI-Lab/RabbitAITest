@@ -1,5 +1,5 @@
 import { toResponse, okResponse, withProjectScope } from '@/server/guard';
-import { templateUpsertSchema } from '@rabbit/shared';
+import { templateFieldsUpdateSchema } from '@rabbit/shared';
 import * as svc from '@/server/domains/project/template.service';
 
 export const PUT = withProjectScope(async (ctx, req, seg) => {
@@ -7,7 +7,7 @@ export const PUT = withProjectScope(async (ctx, req, seg) => {
     ctx.requirePerm('PROJECT_TEMPLATE:UPDATE');
     ctx.requireWritable();
     const { id } = await (seg as { params: Promise<{ id: string }> }).params;
-    const body = templateUpsertSchema.parse(await req.json());
+    const body = templateFieldsUpdateSchema.parse(await req.json());
     return okResponse(await svc.updateTemplateFields(ctx.orgId, id, body.fields));
   } catch (err) { return toResponse(err); }
 });

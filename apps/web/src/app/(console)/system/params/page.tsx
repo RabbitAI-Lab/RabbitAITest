@@ -224,10 +224,10 @@ export default function SystemParamsPage() {
             <div className="flex items-center gap-2">
               <InputNumber
                 className="w-28"
-                min={7}
                 max={3650}
                 value={cleanup.logRetentionDays}
                 onChange={(v) => setCleanup({ ...cleanup, logRetentionDays: v ?? 90 })}
+                status={cleanup.logRetentionDays < 7 ? 'error' : undefined}
                 data-testid="input-log-retention"
               />
               <span className="text-[13px] text-[#646A73]">天（下限 7 天）</span>
@@ -238,10 +238,10 @@ export default function SystemParamsPage() {
             <div className="flex items-center gap-2">
               <InputNumber
                 className="w-28"
-                min={7}
                 max={3650}
                 value={cleanup.changeLogRetentionDays}
                 onChange={(v) => setCleanup({ ...cleanup, changeLogRetentionDays: v ?? 90 })}
+                status={cleanup.changeLogRetentionDays < 7 ? 'error' : undefined}
                 data-testid="input-changelog-retention"
               />
               <span className="text-[13px] text-[#646A73]">天（下限 7 天）</span>

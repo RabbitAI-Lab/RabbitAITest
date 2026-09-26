@@ -534,6 +534,7 @@ function CaseDetailInner() {
           placeholder="选择前置用例（本用例将依赖它执行）"
           showSearch
           optionFilterProp="label"
+          virtual={false}
           value={depTarget}
           onChange={setDepTarget}
           options={depCandidates.map((c) => ({ value: c.id, label: `C-${String(c.num).padStart(4, '0')} ${c.name}` }))}

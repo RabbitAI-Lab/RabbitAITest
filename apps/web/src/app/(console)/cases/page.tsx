@@ -432,7 +432,8 @@ export default function CaseListPage() {
         )}
         <div className="rabbit-card flex-1 min-w-0 flex flex-col">
           {/* 首行：视图 Tabs + 搜索 + 高级筛选 + 列设置 + 导入导出 */}
-          <div className="flex items-center gap-3 px-3 h-12 border-b border-[#F0F1F3] text-[13px] flex-wrap">
+          {/* min-h-12（非固定 h-12）：视图 Tab 增多时允许换行增高，避免内容溢出遮挡表格（CASE-002-02 走查暴露） */}
+          <div className="flex items-center gap-3 px-3 min-h-12 border-b border-[#F0F1F3] text-[13px] flex-wrap">
             {!recycled ? (
               <div className="flex items-center gap-4 min-w-0 overflow-x-auto">
                 {viewTabs.map((t) => (
@@ -544,7 +545,7 @@ export default function CaseListPage() {
           {advancedOpen && !recycled && (
             <div className="flex flex-wrap items-center gap-2 px-3 py-2.5 border-b border-[#F0F1F3] bg-[#F7F8FA]/60" data-testid="advanced-filter-panel">
               <Select
-                className="w-28" allowClear placeholder="等级：全部"
+                className="w-28" allowClear placeholder="等级：全部" virtual={false}
                 value={filters.level}
                 options={['P0', 'P1', 'P2', 'P3'].map((l) => ({ value: l, label: `等级 ${l}` }))}
                 onChange={(v) => { setFilters((f) => ({ ...f, level: v as CaseLevel | undefined })); setPage(1); }}
