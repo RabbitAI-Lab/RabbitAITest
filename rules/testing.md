@@ -103,6 +103,20 @@ Playwright 全局配置（`playwright.config.ts`，禁止用例级关闭）：
 - CI：PR 触发「新增/变更用例 + 主链路冒烟」，main 每日全量；失败即阻塞合并。
 - **Release Gate**：主链路 E2E（docs/需求文档.md §二）+ 全量 tests/ 绿。
 
+### 3.4.2 修复循环的环境复用（2026-09-27 新增，效率铁律）
+
+逐条修复 × 每轮重建环境的循环**预计或实际超过 30 分钟**，必须切换为环境复用模式，禁止每轮重复 initdb/迁移/起栈：
+
+1. **持久化 e2e 栈**：`node scripts/pg-e2e.mjs &`（常驻 :5434/rabbit_e2e，幂等：已有 PGDATA 直接 start）+ 本机 Redis :6381；跑用例带：
+   ```bash
+   E2E_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5434/rabbit_e2e \
+   E2E_REDIS_URL=redis://127.0.0.1:6381 \
+   pnpm exec playwright test -c tests/playwright.config.ts <files> --reporter=list
+   ```
+   global-setup 检测到 `E2E_*` 即跳过全新建库（单轮 2-4 分钟 → 30-60 秒；批量模式再省：连修 3-4 条跑一次）。
+2. **代价与边界**：持久库有脏数据累积——用例必须数据隔离（§3.2 第 2 条，本就是规范）；**收尾必须跑一次全新口径**（不带 E2E_* 的 `pnpm test:e2e`）与 CI 一致；跑全新口径前杀 5434 残留（`pkill -f pg-e2e.mjs` + `lsof -ti :5434 | xargs kill -9`，否则 initdb 端口冲突）。
+3. **通用化**：任何修复-验证循环超 30 分钟先审查固定开销（重建/全量跑/重启），能增量就增量、能复用就复用；互不依赖的问题并行修。实测教训：S1 e2e 修复循环全量重建模式 ~70 分钟，切持久库+批量后 ~15 分钟。
+
 ### 3.5 断言与 fixture 质量（源自 RabbitProjects 实践教训）
 
 1. **断言作用域化**：接口断言只针对本用例触发的请求（URL 模式圈定），console 断言异常必须定位到本用例操作——全局断言会把别人页面的错误算进本用例造成误报；确需豁免的 console 噪声显式登记白名单并注明来源。

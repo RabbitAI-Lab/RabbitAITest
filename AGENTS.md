@@ -127,6 +127,14 @@ pnpm lint && pnpm format        # oxlint / oxfmt
 pnpm db:migrate && pnpm db:seed # Prisma 迁移与种子
 ```
 
+### 4.1 环境复用优先（修复循环效率铁律，2026-09-27 新增）
+
+**逐条修复 × 每轮重建环境**的循环，预计或实际超过 **30 分钟**时，必须停下来评估：环境能否复用就复用，禁止无脑每轮全量重建（initdb/迁移/起栈的固定开销 30-60 秒/轮，是修复循环最大的时间黑洞）。
+
+- **已内置工具**：`node scripts/pg-e2e.mjs`（常驻 e2e 库 :5434，跳过 initdb）；跑 e2e 时带 `E2E_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5434/rabbit_e2e E2E_REDIS_URL=redis://127.0.0.1:6381`，global-setup 检测到即跳过重建直接复用（单轮验证 2-4 分钟 → 30-60 秒）
+- **边界**：持久库累积脏数据，依赖用例自身数据隔离（本就是规范）；**最终验收必须跑一次全新口径**（不带 E2E_* 的 `pnpm test:e2e`）保证与 CI 一致；跑全新口径前先杀 5434 残留（`pkill -f pg-e2e.mjs; lsof -ti :5434 | xargs kill -9`）
+- **通用原则**：任何「修复-验证」循环超 30 分钟，先审查固定开销（环境重建/全量跑），能增量就增量、能复用就复用；同时考虑并行修复（多问题互不依赖时并行处理，串行只用于有依赖时）
+
 ## 5. 协作与提交
 
 - 分支：main 保护；feature 分支命名 `{MODULE}-NNN-{slug}`（与文档编号一致）

@@ -15,6 +15,8 @@
 9. **Playwright UI 用例必须录屏**（video: on-with-retry）+ trace（retain-on-failure）+ 失败截图 + **每用例自动整页截屏**；另须产出视觉快照（`pnpm test:visual`）并用 **GLM-5.3-Flash 多模态比对高保真还原度**（`pnpm visual:diff`，≥80 通过，报告入 PR）。
 10. **远程 CI 与 Sprint 交付**：以 GitHub Actions 远端结果为准（本地过 ≠ 完成）；main 必须保持绿（变红 stop the line）；**每个 Sprint 收尾必须 commit + push 到远程且远端 CI 全绿**（流程：rules/git-workflow.md §8），禁止代码只留本地。
 
+11. **环境复用优先（修复循环效率铁律）**：「逐条修复×每轮重建环境」预计/实际超 **30 分钟**必须评估复用：e2e 用 `scripts/pg-e2e.mjs` 常驻库 + `E2E_DATABASE_URL/E2E_REDIS_URL` 跳过重建（单轮 2-4 分钟 → 30-60 秒）；最终验收跑一次全新口径保证与 CI 一致；能增量就增量、能复用就复用（细则 AGENTS.md §4.1 / rules/testing §3.4.2）。
+
 @rules/typescript.md
 
 @rules/react-nextjs.md
