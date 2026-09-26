@@ -4,13 +4,13 @@
 
 ## 1. 分支模型
 
-| 分支 | 用途 | 规则 |
-| --- | --- | --- |
-| `main` | 唯一长期分支，始终可发布 | 保护：≥1 approve + CI 全绿 + squash merge |
-| `feat/{MODULE}-NNN-{slug}` | 功能开发 | 与规格文档编号一一对应；生命周期 ≤1 个 sprint |
-| `fix/{MODULE}-NNN-{slug}` | 缺陷修复 | 必须先有失败用例复现（rules/testing.md §5.3） |
-| `hotfix/{slug}` | 生产紧急修复 | 从 main 拉出，修复合入后同步 tag；须补审计事件说明 |
-| `docs/{slug}` / `chore/{slug}` | 文档/工程 | 不触碰 apps/packages 代码 |
+| 分支                           | 用途                     | 规则                                               |
+| ------------------------------ | ------------------------ | -------------------------------------------------- |
+| `main`                         | 唯一长期分支，始终可发布 | 保护：≥1 approve + CI 全绿 + squash merge          |
+| `feat/{MODULE}-NNN-{slug}`     | 功能开发                 | 与规格文档编号一一对应；生命周期 ≤1 个 sprint      |
+| `fix/{MODULE}-NNN-{slug}`      | 缺陷修复                 | 必须先有失败用例复现（rules/testing.md §5.3）      |
+| `hotfix/{slug}`                | 生产紧急修复             | 从 main 拉出，修复合入后同步 tag；须补审计事件说明 |
+| `docs/{slug}` / `chore/{slug}` | 文档/工程                | 不触碰 apps/packages 代码                          |
 
 ## 2. Commit 规范
 
@@ -80,11 +80,11 @@ lint(oxlint) → typecheck(tsc) → unit(vitest, 含覆盖率阈值)
 
 按顺序执行，全部完成才算 Sprint 交付（AGENTS.md 门禁 9.3）：
 
-| # | 步骤 | 标准 |
-| --- | --- | --- |
-| 1 | 合并与推送 | 未合并的功能分支完成 review 合入 main（或确需延期的以 feature 分支 push 远程并登记原因）；**所有代码已 push 到 GitHub，本地无未提交/未推送内容**（`git status` 干净） |
-| 2 | 远端 CI 确认 | GitHub Actions 在 main（或对应分支）最新 commit 上**全绿**；红灯未解决不得宣布 Sprint 完成 |
-| 3 | 验收核对 | sprint-overview「验收标准」逐条跑通并更新交付表状态；规格文档状态流转（Implemented/Verified） |
-| 4 | 文档与 changelog | 用户可见变更追加 changelog；覆盖率映射表（清单章节 → 文档编号）同步 |
-| 5 | 里程碑产物 | 到达里程碑（M1-M10）时打 tag 并出 release PR；远端 CI 绿后归档 |
-| 6 | 交接说明 | 在 sprint-overview 追加「遗留项与风险」小节，未完成项指向去向 Sprint/文档编号 |
+| #   | 步骤             | 标准                                                                                                                                                                  |
+| --- | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | 合并与推送       | 未合并的功能分支完成 review 合入 main（或确需延期的以 feature 分支 push 远程并登记原因）；**所有代码已 push 到 GitHub，本地无未提交/未推送内容**（`git status` 干净） |
+| 2   | 远端 CI 确认     | GitHub Actions 在 main（或对应分支）最新 commit 上**全绿**；红灯未解决不得宣布 Sprint 完成                                                                            |
+| 3   | 验收核对         | sprint-overview「验收标准」逐条跑通并更新交付表状态；规格文档状态流转（Implemented/Verified）                                                                         |
+| 4   | 文档与 changelog | 用户可见变更追加 changelog；覆盖率映射表（清单章节 → 文档编号）同步                                                                                                   |
+| 5   | 里程碑产物       | 到达里程碑（M1-M10）时打 tag 并出 release PR；远端 CI 绿后归档                                                                                                        |
+| 6   | 交接说明         | 在 sprint-overview 追加「遗留项与风险」小节，未完成项指向去向 Sprint/文档编号                                                                                         |

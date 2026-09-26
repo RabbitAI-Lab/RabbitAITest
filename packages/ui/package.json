@@ -4,6 +4,9 @@
   "private": true,
   "type": "module",
   "main": "./src/index.tsx",
+  "exports": {
+    ".": "./src/index.tsx"
+  },
   "scripts": {
     "lint": "oxlint src",
     "typecheck": "tsc --noEmit",
@@ -11,17 +14,14 @@
     "build": "tsc --noEmit"
   },
   "dependencies": {
+    "@rabbit/shared": "workspace:*",
     "antd": "^5.23.0",
-    "react": "^19.0.0",
-    "@rabbit/shared": "workspace:*"
+    "react": "^19.0.0"
   },
   "devDependencies": {
-    "typescript": "^5.7.2",
+    "@types/node": "^22.10.0",
     "@types/react": "^19.0.0",
     "oxlint": "^0.15.0",
-    "@types/node": "^22.10.0"
-  },
-  "exports": {
-    ".": "./src/index.tsx"
+    "typescript": "^5.7.2"
   }
 }

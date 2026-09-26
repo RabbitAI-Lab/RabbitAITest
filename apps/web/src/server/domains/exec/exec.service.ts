@@ -1,8 +1,8 @@
-import { DomainError, ErrCode, config } from '@rabbit/shared';
-import type { AssertSpec, DebugRequest, EventFrame, ExecCallback } from '@rabbit/shared';
-import { eventFrameSchema } from '@rabbit/shared';
-import { prisma } from '@rabbit/db';
-import { execQueue, redis } from '@/server/redis';
+import { DomainError, ErrCode, config } from "@rabbit/shared";
+import type { AssertSpec, DebugRequest, EventFrame, ExecCallback } from "@rabbit/shared";
+import { eventFrameSchema } from "@rabbit/shared";
+import { prisma } from "@rabbit/db";
+import { execQueue, redis } from "@/server/redis";
 
 /** EXEC 编排：创建任务 → 入队；回调终态 → 事件流落库 + 报告生成。 */
 
@@ -15,7 +15,9 @@ export async function createDebugTask(
 ) {
   const task = await prisma.execTask.create({
     data: {
-      projectId, type: 'api_debug', status: 'PENDING',
+      projectId,
+      type: "api_debug",
+      status: "PENDING",
       clientTaskId: clientTaskId ?? null,
       poolId: config.defaultPoolId,
       payload: { request, asserts },
@@ -23,9 +25,17 @@ export async function createDebugTask(
     },
     select: { id: true, clientTaskId: true },
   });
-  await execQueue().add('exec', {
-    taskId: task.id, projectId, type: 'api_debug', request, asserts,
-  }, { jobId: task.id, attempts: 2, backoff: { type: 'exponential', delay: 2000 } });
+  await execQueue().add(
+    "exec",
+    {
+      taskId: task.id,
+      projectId,
+      type: "api_debug",
+      request,
+      asserts,
+    },
+    { jobId: task.id, attempts: 2, backoff: { type: "exponential", delay: 2000 } },
+  );
   return { taskId: task.id };
 }
 
@@ -35,22 +45,24 @@ export async function handleCallback(taskId: string, cb: ExecCallback) {
     where: { id: taskId },
     select: { id: true, status: true, projectId: true, type: true },
   });
-  if (!task) throw new DomainError(ErrCode.TASK_NOT_FOUND, '任务不存在');
-  if (task.status === 'SUCCESS' || task.status === 'FAILED') {
+  if (!task) throw new DomainError(ErrCode.TASK_NOT_FOUND, "任务不存在");
+  if (task.status === "SUCCESS" || task.status === "FAILED") {
     return { idempotent: true }; // 终态幂等（rules/engine §2.1）
   }
   // 读取事件流（与 SSE 同源）
   const frames = await readStream(taskId);
-  const stepResult = frames.find((f) => f.type === 'step-result');
+  const stepResult = frames.find((f) => f.type === "step-result");
   const startedAt = frames[0];
-  const final = frames.find((f): f is Extract<EventFrame, { type: 'task-final' }> => f.type === 'task-final');
+  const final = frames.find(
+    (f): f is Extract<EventFrame, { type: "task-final" }> => f.type === "task-final",
+  );
   const durationMs = startedAt && final ? final.ts - startedAt.ts : null;
 
   await prisma.$transaction(async (tx) => {
     await tx.execTask.update({
       where: { id: taskId },
       data: {
-        status: cb.outcome === 'success' ? 'SUCCESS' : 'FAILED',
+        status: cb.outcome === "success" ? "SUCCESS" : "FAILED",
         failureKind: cb.failureKind ?? null,
         message: cb.message || null,
         startedAt: startedAt ? new Date(startedAt.ts) : null,
@@ -59,7 +71,12 @@ export async function handleCallback(taskId: string, cb: ExecCallback) {
       },
     });
     const item = await tx.execItem.create({
-      data: { taskId, refType: 'api_debug', refId: '', status: cb.outcome === 'success' ? 'SUCCESS' : 'FAILED' },
+      data: {
+        taskId,
+        refType: "api_debug",
+        refId: "",
+        status: cb.outcome === "success" ? "SUCCESS" : "FAILED",
+      },
     });
     if (frames.length > 0) {
       await tx.execStepResult.createMany({
@@ -68,9 +85,13 @@ export async function handleCallback(taskId: string, cb: ExecCallback) {
     }
     await tx.report.create({
       data: {
-        taskId, projectId: task.projectId,
-        reportType: 'api_case',
-        name: stepResult?.type === 'step-result' ? `${stepResult.requestSnapshot.method} ${shortUrl(stepResult.requestSnapshot.url)}` : `任务 ${taskId.slice(0, 8)}`,
+        taskId,
+        projectId: task.projectId,
+        reportType: "api_case",
+        name:
+          stepResult?.type === "step-result"
+            ? `${stepResult.requestSnapshot.method} ${shortUrl(stepResult.requestSnapshot.url)}`
+            : `任务 ${taskId.slice(0, 8)}`,
         createdBy: task.id,
       },
     });
@@ -88,10 +109,10 @@ function shortUrl(url: string): string {
 }
 
 async function readStream(taskId: string): Promise<EventFrame[]> {
-  const raw = await redis().xrange(config.execStreamKey(taskId), '-', '+');
+  const raw = await redis().xrange(config.execStreamKey(taskId), "-", "+");
   const frames: EventFrame[] = [];
   for (const [, fields] of raw) {
-    const json = fields[fields.indexOf('data') + 1];
+    const json = fields[fields.indexOf("data") + 1];
     if (!json) continue;
     try {
       frames.push(eventFrameSchema.parse(JSON.parse(json as string)));
@@ -107,33 +128,48 @@ export async function reportDetail(projectId: string, taskId: string) {
   const task = await prisma.execTask.findFirst({
     where: { id: taskId, projectId },
     select: {
-      id: true, status: true, type: true, failureKind: true, message: true,
-      durationMs: true, createdAt: true, payload: true,
+      id: true,
+      status: true,
+      type: true,
+      failureKind: true,
+      message: true,
+      durationMs: true,
+      createdAt: true,
+      payload: true,
     },
   });
-  if (!task) throw new DomainError(ErrCode.TASK_NOT_FOUND, '任务不存在');
+  if (!task) throw new DomainError(ErrCode.TASK_NOT_FOUND, "任务不存在");
   const item = await prisma.execItem.findFirst({
     where: { taskId },
     select: { id: true },
   });
   const frames = item
-    ? (await prisma.execStepResult.findMany({
-        where: { itemId: item.id },
-        orderBy: { seq: 'asc' },
-        select: { frame: true },
-      })).map((r) => r.frame as unknown as EventFrame)
+    ? (
+        await prisma.execStepResult.findMany({
+          where: { itemId: item.id },
+          orderBy: { seq: "asc" },
+          select: { frame: true },
+        })
+      ).map((r) => r.frame as unknown as EventFrame)
     : await readStream(taskId);
-  const stepResult = frames.find((f): f is Extract<EventFrame, { type: 'step-result' }> => f.type === 'step-result');
+  const stepResult = frames.find(
+    (f): f is Extract<EventFrame, { type: "step-result" }> => f.type === "step-result",
+  );
   const payload = task.payload as { request?: DebugRequest; asserts?: AssertSpec[] };
   return {
-    taskId: task.id, status: task.status, type: task.type,
-    failureKind: task.failureKind ?? undefined, message: task.message ?? undefined,
+    taskId: task.id,
+    status: task.status,
+    type: task.type,
+    failureKind: task.failureKind ?? undefined,
+    message: task.message ?? undefined,
     durationMs: task.durationMs ?? undefined,
     createdAt: task.createdAt.toISOString(),
     request: payload.request
       ? {
-          method: payload.request.method, url: payload.request.url,
-          headers: payload.request.headers, body: payload.request.body.content,
+          method: payload.request.method,
+          url: payload.request.url,
+          headers: payload.request.headers,
+          body: payload.request.body.content,
         }
       : undefined,
     response: stepResult
@@ -147,7 +183,7 @@ export async function reportDetail(projectId: string, taskId: string) {
       : undefined,
     asserts: stepResult?.asserts ?? [],
     logs: frames
-      .filter((f): f is Extract<EventFrame, { type: 'log' }> => f.type === 'log')
+      .filter((f): f is Extract<EventFrame, { type: "log" }> => f.type === "log")
       .map((f) => ({ ts: f.ts, level: f.level, message: f.message })),
   };
 }
@@ -155,10 +191,10 @@ export async function reportDetail(projectId: string, taskId: string) {
 /** 调试历史。 */
 export async function debugHistory(projectId: string, pageSize = 20) {
   const [total, tasks] = await Promise.all([
-    prisma.execTask.count({ where: { projectId, type: 'api_debug' } }),
+    prisma.execTask.count({ where: { projectId, type: "api_debug" } }),
     prisma.execTask.findMany({
-      where: { projectId, type: 'api_debug' },
-      orderBy: { createdAt: 'desc' },
+      where: { projectId, type: "api_debug" },
+      orderBy: { createdAt: "desc" },
       take: pageSize,
       select: { id: true, status: true, payload: true, createdAt: true },
     }),
@@ -168,9 +204,10 @@ export async function debugHistory(projectId: string, pageSize = 20) {
     items: tasks.map((t) => {
       const p = t.payload as { request?: { method: string; url: string } };
       return {
-        id: t.id, status: t.status,
-        method: p.request?.method ?? 'GET',
-        url: p.request?.url ?? '',
+        id: t.id,
+        status: t.status,
+        method: p.request?.method ?? "GET",
+        url: p.request?.url ?? "",
         createdAt: t.createdAt.toISOString(),
       };
     }),

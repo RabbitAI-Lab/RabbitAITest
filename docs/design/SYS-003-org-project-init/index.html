@@ -1,33 +1,71 @@
-<!doctype html><html lang="zh"><head><meta charset="utf-8"><title>SYS-003 顶栏与项目切换</title><script src="https://cdn.tailwindcss.com"></script></head>
-<body class="bg-slate-50 text-slate-800">
-<!-- 顶栏：Logo + 项目切换（左） / 帮助·消息·用户（右） -->
-<header class="h-12 bg-white border-b flex items-center px-4 gap-4">
-  <div class="flex items-center gap-2"><div class="w-6 h-6 rounded bg-[#574BFF] text-white grid place-items-center text-xs font-bold">R</div><span class="font-semibold">RabbitAITest</span></div>
-  <!-- 项目切换下拉（展开态示意） -->
-  <div class="relative">
-    <button class="flex items-center gap-2 border rounded px-3 py-1 text-sm"><span class="w-2 h-2 rounded-full bg-[#574BFF]"></span>演示项目 <span class="text-slate-400 text-xs">#1</span><svg class="w-3 h-3" viewBox="0 0 12 12"><path d="M2 4l4 4 4-4" stroke="currentColor" fill="none"/></svg></button>
-    <div class="absolute top-9 left-0 w-64 bg-white border rounded shadow p-2">
-      <p class="text-xs text-slate-400 px-2 py-1">当前项目</p>
-      <div class="px-2 py-2 rounded bg-slate-100 flex justify-between items-center"><span class="text-sm font-medium">演示项目</span><span class="text-[10px] border rounded px-1">OWNER</span></div>
-      <p class="text-xs text-slate-400 px-2 pt-2">切换项目</p>
-      <div class="px-2 py-2 rounded hover:bg-slate-50 text-sm text-slate-500">（Sprint 1 起支持多项目）</div>
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="utf-8" />
+    <title>SYS-003 顶栏与项目切换</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-slate-50 text-slate-800">
+    <!-- 顶栏：Logo + 项目切换（左） / 帮助·消息·用户（右） -->
+    <header class="h-12 bg-white border-b flex items-center px-4 gap-4">
+      <div class="flex items-center gap-2">
+        <div
+          class="w-6 h-6 rounded bg-[#574BFF] text-white grid place-items-center text-xs font-bold"
+        >
+          R
+        </div>
+        <span class="font-semibold">RabbitAITest</span>
+      </div>
+      <!-- 项目切换下拉（展开态示意） -->
+      <div class="relative">
+        <button class="flex items-center gap-2 border rounded px-3 py-1 text-sm">
+          <span class="w-2 h-2 rounded-full bg-[#574BFF]"></span>演示项目
+          <span class="text-slate-400 text-xs">#1</span
+          ><svg class="w-3 h-3" viewBox="0 0 12 12">
+            <path d="M2 4l4 4 4-4" stroke="currentColor" fill="none" />
+          </svg>
+        </button>
+        <div class="absolute top-9 left-0 w-64 bg-white border rounded shadow p-2">
+          <p class="text-xs text-slate-400 px-2 py-1">当前项目</p>
+          <div class="px-2 py-2 rounded bg-slate-100 flex justify-between items-center">
+            <span class="text-sm font-medium">演示项目</span
+            ><span class="text-[10px] border rounded px-1">OWNER</span>
+          </div>
+          <p class="text-xs text-slate-400 px-2 pt-2">切换项目</p>
+          <div class="px-2 py-2 rounded hover:bg-slate-50 text-sm text-slate-500">
+            （Sprint 1 起支持多项目）
+          </div>
+        </div>
+      </div>
+      <div class="ml-auto flex items-center gap-3 text-slate-500 text-sm">
+        <span>帮助</span><span>🔔</span
+        ><span class="w-6 h-6 rounded-full bg-slate-300 grid place-items-center text-xs">徐</span>
+      </div>
+    </header>
+    <div class="flex">
+      <aside class="w-[200px] bg-white border-r min-h-[calc(100vh-48px)] p-2 text-sm">
+        <p class="px-3 py-2 rounded bg-[#574BFF]/10 text-[#574BFF] font-medium">工作台</p>
+        <p class="px-3 py-2 rounded hover:bg-slate-50">测试用例</p>
+        <p class="px-3 py-2 rounded hover:bg-slate-50 text-slate-400">测试计划（S1）</p>
+        <p class="px-3 py-2 rounded hover:bg-slate-50 text-slate-400">缺陷管理（S1）</p>
+      </aside>
+      <main class="flex-1 p-6">
+        <h1 class="text-lg font-medium mb-2">工作台</h1>
+        <div class="grid grid-cols-3 gap-4">
+          <div class="bg-white border rounded p-4">
+            <p class="text-xs text-slate-400">功能用例</p>
+            <p class="text-2xl font-semibold">0</p>
+          </div>
+          <div class="bg-white border rounded p-4">
+            <p class="text-xs text-slate-400">调试执行</p>
+            <p class="text-2xl font-semibold">0</p>
+          </div>
+          <div class="bg-white border rounded p-4">
+            <p class="text-xs text-slate-400">默认组织</p>
+            <p class="text-sm font-medium mt-2">徐建良的组织</p>
+          </div>
+        </div>
+      </main>
     </div>
-  </div>
-  <div class="ml-auto flex items-center gap-3 text-slate-500 text-sm"><span>帮助</span><span>🔔</span><span class="w-6 h-6 rounded-full bg-slate-300 grid place-items-center text-xs">徐</span></div>
-</header>
-<div class="flex">
-  <aside class="w-[200px] bg-white border-r min-h-[calc(100vh-48px)] p-2 text-sm">
-    <p class="px-3 py-2 rounded bg-[#574BFF]/10 text-[#574BFF] font-medium">工作台</p>
-    <p class="px-3 py-2 rounded hover:bg-slate-50">测试用例</p>
-    <p class="px-3 py-2 rounded hover:bg-slate-50 text-slate-400">测试计划（S1）</p>
-    <p class="px-3 py-2 rounded hover:bg-slate-50 text-slate-400">缺陷管理（S1）</p>
-  </aside>
-  <main class="flex-1 p-6">
-    <h1 class="text-lg font-medium mb-2">工作台</h1>
-    <div class="grid grid-cols-3 gap-4">
-      <div class="bg-white border rounded p-4"><p class="text-xs text-slate-400">功能用例</p><p class="text-2xl font-semibold">0</p></div>
-      <div class="bg-white border rounded p-4"><p class="text-xs text-slate-400">调试执行</p><p class="text-2xl font-semibold">0</p></div>
-      <div class="bg-white border rounded p-4"><p class="text-xs text-slate-400">默认组织</p><p class="text-sm font-medium mt-2">徐建良的组织</p></div>
-    </div>
-  </main>
-</div></body></html>
+  </body>
+</html>

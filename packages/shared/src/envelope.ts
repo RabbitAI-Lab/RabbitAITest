@@ -12,12 +12,12 @@ export class DomainError extends Error {
     readonly data?: unknown,
   ) {
     super(message);
-    this.name = 'DomainError';
+    this.name = "DomainError";
   }
 }
 
 export function ok<T>(data: T): Envelope<T> {
-  return { code: 0, message: 'ok', data };
+  return { code: 0, message: "ok", data };
 }
 
 export function fail(code: number, message: string): Envelope<null> {
@@ -57,27 +57,27 @@ export const ErrCode = {
 } as const;
 
 export const ErrMsg: Record<number, string> = {
-  [ErrCode.UNAUTHENTICATED]: '未登录或会话已过期',
-  [ErrCode.FORBIDDEN]: '无操作权限',
-  [ErrCode.USER_NOT_FOUND]: '用户不存在',
-  [ErrCode.GROUP_NOT_FOUND]: '用户组不存在',
-  [ErrCode.PROJECT_ENDED]: '项目已结束，禁止修改',
-  [ErrCode.WORKFLOW_DENIED]: '该状态流转不被工作流允许',
-  [ErrCode.REVIEW_ENDED]: '评审已结束，禁止操作',
-  [ErrCode.PLAN_ARCHIVED]: '计划已归档，只读',
-  [ErrCode.DUP_ASSOC]: '重复关联',
-  [ErrCode.TEMPLATE_NOT_FOUND]: '模板不存在',
-  [ErrCode.CASE_NOT_FOUND]: '用例不存在或已删除',
-  [ErrCode.MODULE_NOT_FOUND]: '模块不存在',
-  [ErrCode.REVIEW_NOT_FOUND]: '评审不存在或已删除',
-  [ErrCode.PLAN_NOT_FOUND]: '计划不存在或已删除',
-  [ErrCode.BUG_NOT_FOUND]: '缺陷不存在或已删除',
-  [ErrCode.EMAIL_EXISTS]: '该邮箱已注册',
-  [ErrCode.BAD_CREDENTIALS]: '邮箱或密码错误',
-  [ErrCode.USER_TOO_MANY]: '超出用户数上限',
-  [ErrCode.PROJECT_NOT_FOUND]: '项目不存在或无权访问',
-  [ErrCode.VALIDATION_FAILED]: '参数校验失败',
-  [ErrCode.VERSION_CONFLICT]: '内容已被他人修改，请刷新后重试',
-  [ErrCode.TASK_NOT_FOUND]: '任务不存在或无权访问',
-  [ErrCode.ENGINE_CALLBACK_INVALID]: '引擎回调校验失败',
+  [ErrCode.UNAUTHENTICATED]: "未登录或会话已过期",
+  [ErrCode.FORBIDDEN]: "无操作权限",
+  [ErrCode.USER_NOT_FOUND]: "用户不存在",
+  [ErrCode.GROUP_NOT_FOUND]: "用户组不存在",
+  [ErrCode.PROJECT_ENDED]: "项目已结束，禁止修改",
+  [ErrCode.WORKFLOW_DENIED]: "该状态流转不被工作流允许",
+  [ErrCode.REVIEW_ENDED]: "评审已结束，禁止操作",
+  [ErrCode.PLAN_ARCHIVED]: "计划已归档，只读",
+  [ErrCode.DUP_ASSOC]: "重复关联",
+  [ErrCode.TEMPLATE_NOT_FOUND]: "模板不存在",
+  [ErrCode.CASE_NOT_FOUND]: "用例不存在或已删除",
+  [ErrCode.MODULE_NOT_FOUND]: "模块不存在",
+  [ErrCode.REVIEW_NOT_FOUND]: "评审不存在或已删除",
+  [ErrCode.PLAN_NOT_FOUND]: "计划不存在或已删除",
+  [ErrCode.BUG_NOT_FOUND]: "缺陷不存在或已删除",
+  [ErrCode.EMAIL_EXISTS]: "该邮箱已注册",
+  [ErrCode.BAD_CREDENTIALS]: "邮箱或密码错误",
+  [ErrCode.USER_TOO_MANY]: "超出用户数上限",
+  [ErrCode.PROJECT_NOT_FOUND]: "项目不存在或无权访问",
+  [ErrCode.VALIDATION_FAILED]: "参数校验失败",
+  [ErrCode.VERSION_CONFLICT]: "内容已被他人修改，请刷新后重试",
+  [ErrCode.TASK_NOT_FOUND]: "任务不存在或无权访问",
+  [ErrCode.ENGINE_CALLBACK_INVALID]: "引擎回调校验失败",
 };

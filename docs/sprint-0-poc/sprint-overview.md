@@ -1,16 +1,16 @@
 # Sprint 0 — POC 技术验证 · 迭代概览
 
-| 元信息项 | 内容 |
-| --- | --- |
-| 迭代编号 | Sprint 0 |
-| 迭代名称 | POC 技术验证（Proof of Concept） |
-| 周期 | 第 1-2 周（10 个工作日） |
-| 覆盖优先级 | **P0 全量**（P1 及以上一律不进入本迭代） |
-| 文档数 | 10 份（3 INFRA + 3 SYS + 1 CASE + 1 API + 1 EXEC + 1 RPT） |
-| 文档状态 | **Verified**（用户验收通过 2026-09-26；CI 绿 run 36220893639） |
-| 上游依据 | [需求文档](../需求文档.md) §五（P0 范围）、§七（M1 里程碑） |
-| 前置迭代 | 无（仅依赖 9 份架构文档） |
-| 阻塞下游 | Sprint 1 全量 → 进而阻塞 Sprint 2-9 |
+| 元信息项   | 内容                                                           |
+| ---------- | -------------------------------------------------------------- |
+| 迭代编号   | Sprint 0                                                       |
+| 迭代名称   | POC 技术验证（Proof of Concept）                               |
+| 周期       | 第 1-2 周（10 个工作日）                                       |
+| 覆盖优先级 | **P0 全量**（P1 及以上一律不进入本迭代）                       |
+| 文档数     | 10 份（3 INFRA + 3 SYS + 1 CASE + 1 API + 1 EXEC + 1 RPT）     |
+| 文档状态   | **Verified**（用户验收通过 2026-09-26；CI 绿 run 36220893639） |
+| 上游依据   | [需求文档](../需求文档.md) §五（P0 范围）、§七（M1 里程碑）    |
+| 前置迭代   | 无（仅依赖 9 份架构文档）                                      |
+| 阻塞下游   | Sprint 1 全量 → 进而阻塞 Sprint 2-9                            |
 
 ---
 
@@ -27,28 +27,28 @@
 
 三条成功判定：
 
-| 维度 | 目标 | 判定方式 |
-| --- | --- | --- |
-| 技术可行性 | web（含内嵌 PG）+ engine + mock + redis + minio 全链路跑通 | `docker compose up` 后全部容器 healthy，主线可完成 |
-| 架构正确性 | 测试域模型一次建齐全部列；Provider 解耦、三级权限、API 信封在代码真实落地 | Prisma schema 快照对照 test-domain-model §2；跨域引用静态检查通过 |
-| 引擎可行性 | 自研 Node.js 内核（undici 采样）完成 HTTP 采样 + 断言 + 事件流回传（本项目最大技术风险） | 一次调试请求产生完整 step 事件流并渲染报告 |
+| 维度       | 目标                                                                                     | 判定方式                                                          |
+| ---------- | ---------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| 技术可行性 | web（含内嵌 PG）+ engine + mock + redis + minio 全链路跑通                               | `docker compose up` 后全部容器 healthy，主线可完成                |
+| 架构正确性 | 测试域模型一次建齐全部列；Provider 解耦、三级权限、API 信封在代码真实落地                | Prisma schema 快照对照 test-domain-model §2；跨域引用静态检查通过 |
+| 引擎可行性 | 自研 Node.js 内核（undici 采样）完成 HTTP 采样 + 断言 + 事件流回传（本项目最大技术风险） | 一次调试请求产生完整 step 事件流并渲染报告                        |
 
 **本迭代不追求**：UI 精细度、模块树、导入导出、环境体系（URL 直填）、性能与覆盖率。
 
 ## 2. 交付范围（10 项）
 
-| # | 交付项 | 内容 | 文档 |
-| --- | --- | --- | --- |
-| 1 | Monorepo 骨架 | pnpm+Turborepo 纯 TS 仓；apps/web（全栈 Next.js）·engine·mock·plugin-runner + packages/ui·api-client·shared·db | `INFRA-001` |
-| 2 | Docker Compose 一键启动 | web/engine/mock/redis/minio + embedded-postgres 自动初始化 + Prisma migrate + 种子数据（默认组织/管理员） | `INFRA-002` |
-| 3 | 数据模型基线 | `packages/db` Prisma schema：test-domain-model §2 全实体建模（含未启用列）；编号 advisory lock（$queryRaw）；通用横切（软删/变更历史/评论/关注） | `INFRA-003` |
-| 4 | 注册登录 | 邮箱注册/登录/退出；Session；Argon2 | `SYS-001` |
-| 5 | 路由守卫与隔离 | 前端菜单守卫 + 后端 401/403/404；ProjectScopedViewSet 强制 project 过滤 | `SYS-002` |
-| 6 | 组织/项目初始化 | 注册即建默认组织+默认项目；项目切换器（左上角，对齐基线交互） | `SYS-003` |
-| 7 | 功能用例 CRUD | 名称/前置/步骤/预期/等级/标签；列表+详情页；回收站软删 | `CASE-001` |
-| 8 | HTTP 接口调试 | 新建请求（方法/URL/头/体）+ 断言（状态码/响应体 JSONPath）；服务端执行；响应四视图（体/头/实际请求/控制台） | `API-001` |
-| 9 | 引擎内核 v0 | BullMQ 消费 → HttpSampler（undici）→ 断言 → Redis Stream 事件流 → 回调状态机；`--local` CLI 模式 | `EXEC-001` |
-| 10 | 最小执行报告 | 事件流渲染单请求报告页（请求/响应/断言结果/耗时）；SSE 实时日志 | `RPT-001` |
+| #   | 交付项                  | 内容                                                                                                                                             | 文档        |
+| --- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | ----------- |
+| 1   | Monorepo 骨架           | pnpm+Turborepo 纯 TS 仓；apps/web（全栈 Next.js）·engine·mock·plugin-runner + packages/ui·api-client·shared·db                                   | `INFRA-001` |
+| 2   | Docker Compose 一键启动 | web/engine/mock/redis/minio + embedded-postgres 自动初始化 + Prisma migrate + 种子数据（默认组织/管理员）                                        | `INFRA-002` |
+| 3   | 数据模型基线            | `packages/db` Prisma schema：test-domain-model §2 全实体建模（含未启用列）；编号 advisory lock（$queryRaw）；通用横切（软删/变更历史/评论/关注） | `INFRA-003` |
+| 4   | 注册登录                | 邮箱注册/登录/退出；Session；Argon2                                                                                                              | `SYS-001`   |
+| 5   | 路由守卫与隔离          | 前端菜单守卫 + 后端 401/403/404；ProjectScopedViewSet 强制 project 过滤                                                                          | `SYS-002`   |
+| 6   | 组织/项目初始化         | 注册即建默认组织+默认项目；项目切换器（左上角，对齐基线交互）                                                                                    | `SYS-003`   |
+| 7   | 功能用例 CRUD           | 名称/前置/步骤/预期/等级/标签；列表+详情页；回收站软删                                                                                           | `CASE-001`  |
+| 8   | HTTP 接口调试           | 新建请求（方法/URL/头/体）+ 断言（状态码/响应体 JSONPath）；服务端执行；响应四视图（体/头/实际请求/控制台）                                      | `API-001`   |
+| 9   | 引擎内核 v0             | BullMQ 消费 → HttpSampler（undici）→ 断言 → Redis Stream 事件流 → 回调状态机；`--local` CLI 模式                                                 | `EXEC-001`  |
+| 10  | 最小执行报告            | 事件流渲染单请求报告页（请求/响应/断言结果/耗时）；SSE 实时日志                                                                                  | `RPT-001`   |
 
 ## 3. 范围排除（防蔓延红线）
 
@@ -70,36 +70,35 @@
 
 ## 5. 团队与并行节奏
 
-| 并行线 | 内容 | 关键同步点 |
-| --- | --- | --- |
+| 并行线       | 内容                                           | 关键同步点                                 |
+| ------------ | ---------------------------------------------- | ------------------------------------------ |
 | A 线（平台） | INFRA-001/002/003 → SYS-001/002/003 → CASE-001 | INFRA-003 schema 建模评审必须第 3 天前完成 |
-| B 线（引擎） | EXEC-001 → API-001 → RPT-001 | 事件流 schema 第 4 天前冻结（RPT 依赖） |
-| C 线（文档） | Sprint 0 十份规格补齐 + Sprint 1 概览 | 与代码并行，评审滞后不超过 2 天 |
+| B 线（引擎） | EXEC-001 → API-001 → RPT-001                   | 事件流 schema 第 4 天前冻结（RPT 依赖）    |
+| C 线（文档） | Sprint 0 十份规格补齐 + Sprint 1 概览          | 与代码并行，评审滞后不超过 2 天            |
 
 ## 6. 风险与预案
 
-| 风险 | 预案 |
-| --- | --- |
-| 引擎事件流与报告渲染联调超期 | 事件流 schema 先冻结（JSON Schema + 契约测试），报告侧用录制样本先行开发 |
+| 风险                                                   | 预案                                                                                 |
+| ------------------------------------------------------ | ------------------------------------------------------------------------------------ |
+| 引擎事件流与报告渲染联调超期                           | 事件流 schema 先冻结（JSON Schema + 契约测试），报告侧用录制样本先行开发             |
 | embedded-postgres 平台兼容性（macOS arm64 / Linux CI） | 第 1 天双环境验证启动与迁移；异常则 CI 降级为外接 PG service container（不阻塞主线） |
-| httpbin 外网依赖 | compose 内置本地 httpbin 容器作为默认调试目标 |
-
+| httpbin 外网依赖                                       | compose 内置本地 httpbin 容器作为默认调试目标                                        |
 
 ---
 
 ## 7. 交付自查（Sprint 收尾，2026-09-26）
 
-| 验收标准 | 结果 | 证据 |
-| --- | --- | --- |
-| 1. 一键起全栈，5 分钟可操作 | ✅ | `docker compose -f deploy/docker-compose.yml up -d`（构建后启动）；本地 `pnpm dev` 零 Docker 依赖亦可达 ready |
-| 2. 注册→登录→默认项目；未登录跳转 | ✅ | SYS-001-01/03、SYS-002-01（E2E 绿） |
-| 3. 用例创建→列表→回收站→恢复→彻底删除 | ✅ | CASE-001-01（E2E 绿，含 3 步骤表单） |
-| 4. 调试执行成功展示响应与断言 | ✅ | API-001-01/04（E2E 绿；目标为本地 mock /hello 保证确定性，httpbin 可手动演示） |
-| 5. 断言失败报告 FAILED+红行明细 | ✅ | API-001-02（E2E 绿） |
-| 6. engine --local 本地执行上报 | ✅ | `scripts/demo-local-exec.sh`：PENDING→local 执行→报告 SUCCESS |
-| 7. schema 与域模型一致；跨域静态检查 | ✅ | Prisma 45 实体一次建齐；`pnpm lint:boundaries` PASS（engine 不依赖 db/web 等） |
-| 8. 自动化测试齐备 | ✅ | Playwright **11/11 全绿**（每条 UI+Console+接口三类断言；video on-with-retry/trace/截图/HTML 报告）；JMeter **3 计划全断言通过**（SYS-001/CASE-001/API-001，四类场景×四项断言）；Vitest 13 单测绿 |
-| 9. push 远程 + 远端 CI 全绿 | 见提交记录 | GitHub Actions（lint/typecheck/unit/build/迁移重放/e2e/jmeter/audit） |
+| 验收标准                              | 结果       | 证据                                                                                                                                                                                              |
+| ------------------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. 一键起全栈，5 分钟可操作           | ✅         | `docker compose -f deploy/docker-compose.yml up -d`（构建后启动）；本地 `pnpm dev` 零 Docker 依赖亦可达 ready                                                                                     |
+| 2. 注册→登录→默认项目；未登录跳转     | ✅         | SYS-001-01/03、SYS-002-01（E2E 绿）                                                                                                                                                               |
+| 3. 用例创建→列表→回收站→恢复→彻底删除 | ✅         | CASE-001-01（E2E 绿，含 3 步骤表单）                                                                                                                                                              |
+| 4. 调试执行成功展示响应与断言         | ✅         | API-001-01/04（E2E 绿；目标为本地 mock /hello 保证确定性，httpbin 可手动演示）                                                                                                                    |
+| 5. 断言失败报告 FAILED+红行明细       | ✅         | API-001-02（E2E 绿）                                                                                                                                                                              |
+| 6. engine --local 本地执行上报        | ✅         | `scripts/demo-local-exec.sh`：PENDING→local 执行→报告 SUCCESS                                                                                                                                     |
+| 7. schema 与域模型一致；跨域静态检查  | ✅         | Prisma 45 实体一次建齐；`pnpm lint:boundaries` PASS（engine 不依赖 db/web 等）                                                                                                                    |
+| 8. 自动化测试齐备                     | ✅         | Playwright **11/11 全绿**（每条 UI+Console+接口三类断言；video on-with-retry/trace/截图/HTML 报告）；JMeter **3 计划全断言通过**（SYS-001/CASE-001/API-001，四类场景×四项断言）；Vitest 13 单测绿 |
+| 9. push 远程 + 远端 CI 全绿           | 见提交记录 | GitHub Actions（lint/typecheck/unit/build/迁移重放/e2e/jmeter/audit）                                                                                                                             |
 
 ## 7.1 用户验收记录
 

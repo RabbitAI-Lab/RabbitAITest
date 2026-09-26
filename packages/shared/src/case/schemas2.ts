@@ -1,6 +1,6 @@
 /** CASE-002/003/004/005：模块树、列表 v2、视图、依赖、评论、评审契约。 */
-import { z } from 'zod';
-import { caseCreateSchema, caseLevelSchema } from './schemas';
+import { z } from "zod";
+import { caseCreateSchema, caseLevelSchema } from "./schemas";
 
 // ── 模块树（CASE-002；一表多场景 case/bug 复用）──
 
@@ -20,11 +20,17 @@ export const caseListQueryV2Schema = z.object({
   pageSize: z.coerce.number().int().min(1).max(100).default(20),
   keyword: z.string().max(128).optional(),
   level: caseLevelSchema.optional(),
-  orderBy: z.enum(['num', 'updatedAt', 'name']).default('num'),
-  order: z.enum(['asc', 'desc']).default('asc'),
-  recycled: z.enum(['true', 'false']).transform((v) => v === 'true').default('false'),
+  orderBy: z.enum(["num", "updatedAt", "name"]).default("num"),
+  order: z.enum(["asc", "desc"]).default("asc"),
+  recycled: z
+    .enum(["true", "false"])
+    .transform((v) => v === "true")
+    .default("false"),
   moduleId: z.string().uuid().optional(),
-  includeChildren: z.enum(['true', 'false']).transform((v) => v === 'true').default('false'),
+  includeChildren: z
+    .enum(["true", "false"])
+    .transform((v) => v === "true")
+    .default("false"),
   tags: z.string().max(256).optional(), // 逗号分隔，命中任一
   status: z.string().max(32).optional(),
   creator: z.string().uuid().optional(),
@@ -33,7 +39,10 @@ export const caseListQueryV2Schema = z.object({
   fields: z.string().max(2048).optional(), // JSON：{"severity":"P1"}（等值）或 {"severity":["P1","P2"]}（任一）
   viewId: z.string().max(64).optional(),
   followedBy: z.string().uuid().optional(), // 我关注的（服务端按登录用户覆写校验）
-  createdByMe: z.enum(['true', 'false']).transform((v) => v === 'true').default('false'),
+  createdByMe: z
+    .enum(["true", "false"])
+    .transform((v) => v === "true")
+    .default("false"),
 });
 export type CaseListQueryV2 = z.infer<typeof caseListQueryV2Schema>;
 
@@ -83,20 +92,20 @@ export const commentUpsertSchema = z.object({
 export const reviewUpsertSchema = z.object({
   name: z.string().min(1).max(256),
   description: z.string().max(2000).optional(),
-  reviewMode: z.enum(['SINGLE', 'MULTI']).default('SINGLE'),
+  reviewMode: z.enum(["SINGLE", "MULTI"]).default("SINGLE"),
   reviewers: z.array(z.string().uuid()).min(1).max(20),
   startAt: z.string().datetime().nullable().optional(),
   endAt: z.string().datetime().nullable().optional(),
   caseIds: z.array(z.string().uuid()).max(500).default([]),
 });
 export const reviewJudgeSchema = z.object({
-  result: z.enum(['PASS', 'FAIL', 'SUGGEST']),
-  comment: z.string().max(2000).default(''), // FAIL/SUGGEST 必填（服务端校验）
+  result: z.enum(["PASS", "FAIL", "SUGGEST"]),
+  comment: z.string().max(2000).default(""), // FAIL/SUGGEST 必填（服务端校验）
 });
 export const reviewBatchJudgeSchema = z.object({
   caseIds: z.array(z.string().uuid()).min(1).max(200),
-  result: z.enum(['PASS', 'FAIL', 'SUGGEST']),
-  comment: z.string().max(2000).default(''),
+  result: z.enum(["PASS", "FAIL", "SUGGEST"]),
+  comment: z.string().max(2000).default(""),
 });
 export const reviewBatchReviewerSchema = z.object({
   caseIds: z.array(z.string().uuid()).min(1).max(200),
@@ -108,20 +117,25 @@ export const reviewCasesAddSchema = z.object({
 
 /** multi 模式聚合：全员 PASS 才 PASS；任一 FAIL 即 FAIL；Suggest 不否决（CASE-005 §2）。 */
 export function aggregateReviewResult(
-  mode: 'SINGLE' | 'MULTI',
+  mode: "SINGLE" | "MULTI",
   reviewerIds: string[],
-  results: { userId: string; result: 'PASS' | 'FAIL' | 'SUGGEST' }[],
-): 'PASS' | 'FAIL' | 'SUGGEST' | 'PENDING' {
+  results: { userId: string; result: "PASS" | "FAIL" | "SUGGEST" }[],
+): "PASS" | "FAIL" | "SUGGEST" | "PENDING" {
   const marks = results.filter((r) => reviewerIds.includes(r.userId));
-  if (mode === 'SINGLE') {
+  if (mode === "SINGLE") {
     const last = marks[marks.length - 1];
-    return last?.result ?? 'PENDING';
+    return last?.result ?? "PENDING";
   }
-  if (reviewerIds.length === 0) return 'PENDING';
+  if (reviewerIds.length === 0) return "PENDING";
   const voted = new Set(marks.map((m) => m.userId));
   const allVoted = reviewerIds.every((r) => voted.has(r));
-  if (marks.some((m) => m.result === 'FAIL')) return 'FAIL';
-  if (allVoted && marks.every((m) => m.result === 'PASS')) return 'PASS';
-  if (allVoted && marks.every((m) => m.result === 'PASS' || m.result === 'SUGGEST') && marks.some((m) => m.result === 'SUGGEST')) return 'SUGGEST';
-  return 'PENDING';
+  if (marks.some((m) => m.result === "FAIL")) return "FAIL";
+  if (allVoted && marks.every((m) => m.result === "PASS")) return "PASS";
+  if (
+    allVoted &&
+    marks.every((m) => m.result === "PASS" || m.result === "SUGGEST") &&
+    marks.some((m) => m.result === "SUGGEST")
+  )
+    return "SUGGEST";
+  return "PENDING";
 }

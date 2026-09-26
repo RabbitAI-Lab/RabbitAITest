@@ -1,6 +1,6 @@
-import { test as base, expect } from '@playwright/test';
-import { mkdirSync } from 'node:fs';
-import path from 'node:path';
+import { test as base, expect } from "@playwright/test";
+import { mkdirSync } from "node:fs";
+import path from "node:path";
 
 /**
  * rules/testing.md §3.1 三类断言公共夹具：
@@ -9,52 +9,69 @@ import path from 'node:path';
  * - authedPage：API 注册 + 会话 cookie 注入 + 默认项目上下文
  */
 
-export interface ConsoleNoise { pageUrlPattern: string; textPattern: string; reason: string }
+export interface ConsoleNoise {
+  pageUrlPattern: string;
+  textPattern: string;
+  reason: string;
+}
 
 export const test = base.extend<{
   /** page 重载：每条 UI 用例结束自动整页截屏（rules/testing §3.6；fixture teardown 时机稳定生效） */
-  page: import('@playwright/test').Page;
+  page: import("@playwright/test").Page;
   authedPage: { email: string; password: string; projectId: string };
   expectNoConsoleErrors: (whitelist?: ConsoleNoise[]) => Promise<void>;
-  expectApi: (urlGlob: string) => Promise<{ status: number; code: number; data: unknown; body: unknown }>;
+  expectApi: (
+    urlGlob: string,
+  ) => Promise<{ status: number; code: number; data: unknown; body: unknown }>;
 }>({
   page: async ({ page: basePage }, use, testInfo) => {
     await use(basePage);
     try {
-      if (!testInfo.titlePath.some((t) => String(t).includes('SYS-002-01'))) {
-        const dir = path.join(process.cwd(), 'test-results', 'screenshots');
+      if (!testInfo.titlePath.some((t) => String(t).includes("SYS-002-01"))) {
+        const dir = path.join(process.cwd(), "test-results", "screenshots");
         mkdirSync(dir, { recursive: true });
-        const name = testInfo.titlePath.slice(1).join('-').replace(/[^\w\u4e00-\u9fa5-]+/g, '_').slice(0, 120);
+        const name = testInfo.titlePath
+          .slice(1)
+          .join("-")
+          .replace(/[^\w\u4e00-\u9fa5-]+/g, "_")
+          .slice(0, 120);
         await basePage.screenshot({ path: path.join(dir, `${name}.png`), fullPage: true });
       }
-    } catch { /* 页面已关闭等场景忽略 */ }
+    } catch {
+      /* 页面已关闭等场景忽略 */
+    }
   },
   authedPage: async ({ request, context }, use) => {
     const email = `e2e-${Date.now()}-${Math.floor(Math.random() * 1e6)}@rabbit.test`;
-    const password = 'rabbit-pass-123';
-    const res = await request.post('/api/v1/auth/register', { data: { email, password } });
+    const password = "rabbit-pass-123";
+    const res = await request.post("/api/v1/auth/register", { data: { email, password } });
     expect(res.status()).toBe(201);
     const body = (await res.json()) as { code: number; data: { projectId: string } };
     expect(body.code).toBe(0);
     // 会话 cookie 注入浏览器上下文
-    const cookieHeader = res.headers()['set-cookie'] ?? '';
-    const ras = cookieHeader.split('ras=')[1]?.split(';')[0];
+    const cookieHeader = res.headers()["set-cookie"] ?? "";
+    const ras = cookieHeader.split("ras=")[1]?.split(";")[0];
     if (ras) {
-      await context.addCookies([{ name: 'ras', value: ras, url: process.env.E2E_BASE_URL ?? 'http://localhost:3100' }]);
+      await context.addCookies([
+        { name: "ras", value: ras, url: process.env.E2E_BASE_URL ?? "http://localhost:3100" },
+      ]);
     }
     await use({ email, password, projectId: body.data.projectId });
   },
   expectNoConsoleErrors: async ({ page }, use) => {
     const errors: string[] = [];
-    page.on('console', (msg) => {
-      if (msg.type() === 'error') errors.push(`[console.error] ${page.url()} ${msg.text()}`);
+    page.on("console", (msg) => {
+      if (msg.type() === "error") errors.push(`[console.error] ${page.url()} ${msg.text()}`);
     });
-    page.on('pageerror', (err) => errors.push(`[pageerror] ${page.url()} ${err.message}`));
+    page.on("pageerror", (err) => errors.push(`[pageerror] ${page.url()} ${err.message}`));
     await use(async (whitelist: ConsoleNoise[] = []) => {
-      const filtered = errors.filter((e) =>
-        !whitelist.some((w) => new RegExp(w.textPattern).test(e) && new RegExp(w.pageUrlPattern).test(e)),
+      const filtered = errors.filter(
+        (e) =>
+          !whitelist.some(
+            (w) => new RegExp(w.textPattern).test(e) && new RegExp(w.pageUrlPattern).test(e),
+          ),
       );
-      expect(filtered, `页面存在 console 错误（未入白名单）：\n${filtered.join('\n')}`).toEqual([]);
+      expect(filtered, `页面存在 console 错误（未入白名单）：\n${filtered.join("\n")}`).toEqual([]);
     });
   },
   expectApi: async ({ page }, use) => {
@@ -67,17 +84,16 @@ export const test = base.extend<{
   },
 });
 
-
 export { expect };
 
 /**
  * 用户路径导航（rules/testing §3.2.2）：从首页经左侧菜单进入功能页，录屏呈现真实入口。
  */
 export async function navFromHome(
-  page: import('@playwright/test').Page,
+  page: import("@playwright/test").Page,
   linkName: string,
 ): Promise<void> {
-  await page.goto('/');
+  await page.goto("/");
   // 限定左侧导航作用域：避免与工作台快捷卡等同名链接冲突（strict mode）
-  await page.getByTestId('leftnav').getByRole('link', { name: linkName }).click();
+  await page.getByTestId("leftnav").getByRole("link", { name: linkName }).click();
 }

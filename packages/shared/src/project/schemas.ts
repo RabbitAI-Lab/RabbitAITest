@@ -1,10 +1,10 @@
 /** PROJ-001/PROJ-002：项目、成员、模板、字段定义、工作流契约。 */
-import { z } from 'zod';
-import { templateFieldBindingSchema } from '../fields';
+import { z } from "zod";
+import { templateFieldBindingSchema } from "../fields";
 
 // ── 项目与成员（PROJ-001）──
 
-export const KNOWN_MODULES = ['case', 'api', 'plan', 'bug'] as const;
+export const KNOWN_MODULES = ["case", "api", "plan", "bug"] as const;
 export const moduleFlagsSchema = z.object({
   case: z.boolean().default(true),
   api: z.boolean().default(true),
@@ -33,10 +33,21 @@ export const projectMembersAddSchema = z.object({
 // ── 字段定义与模板（PROJ-002）──
 
 export const fieldDefUpsertSchema = z.object({
-  scene: z.enum(['case', 'bug']),
+  scene: z.enum(["case", "bug"]),
   name: z.string().min(1).max(128),
   key: z.string().regex(/^[a-z][a-z0-9_]{1,63}$/),
-  type: z.enum(['input', 'textarea', 'number', 'date', 'single_select', 'multi_select', 'checkbox', 'radio', 'member', 'url']),
+  type: z.enum([
+    "input",
+    "textarea",
+    "number",
+    "date",
+    "single_select",
+    "multi_select",
+    "checkbox",
+    "radio",
+    "member",
+    "url",
+  ]),
   required: z.boolean().default(false),
   defaultValue: z.union([z.string(), z.number(), z.array(z.string()), z.boolean()]).optional(),
   options: z
@@ -53,7 +64,7 @@ export const fieldDefUpsertSchema = z.object({
   enabled: z.boolean().default(true),
 });
 export const templateUpsertSchema = z.object({
-  scene: z.enum(['case', 'bug']),
+  scene: z.enum(["case", "bug"]),
   name: z.string().min(1).max(128),
   fields: z.array(templateFieldBindingSchema).default([]),
 });
@@ -71,7 +82,9 @@ export const workflowStateUpsertSchema = z.object({
   isEnd: z.boolean().default(false),
 });
 export const workflowTransitionsUpsertSchema = z.object({
-  transitions: z.array(z.object({ fromSerial: z.string().min(1), toSerial: z.string().min(1) })).max(400),
+  transitions: z
+    .array(z.object({ fromSerial: z.string().min(1), toSerial: z.string().min(1) }))
+    .max(400),
 });
 
 export type ProjectUpdateInput = z.infer<typeof projectUpdateSchema>;

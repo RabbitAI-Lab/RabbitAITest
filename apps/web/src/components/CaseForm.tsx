@@ -1,14 +1,22 @@
-'use client';
+"use client";
 
-import { App, Button, Input, Radio, Select, Space, TreeSelect } from 'antd';
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { ApiError, caseApiV2, fieldDefApi, memberApi, moduleApi, templateApi, type ModuleNodeDto } from '@rabbit/api-client';
-import type { CaseLevel, CaseStep, FieldDefInput, TemplateFieldBinding } from '@rabbit/shared';
-import { useProjectStore } from '@/stores/project';
-import { useProjectInfo } from '@/hooks/usePermissions';
-import { DynamicFieldForm, type DynFieldDef } from '@/components/DynamicField';
+import { App, Button, Input, Radio, Select, Space, TreeSelect } from "antd";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  ApiError,
+  caseApiV2,
+  fieldDefApi,
+  memberApi,
+  moduleApi,
+  templateApi,
+  type ModuleNodeDto,
+} from "@rabbit/api-client";
+import type { CaseLevel, CaseStep, FieldDefInput, TemplateFieldBinding } from "@rabbit/shared";
+import { useProjectStore } from "@/stores/project";
+import { useProjectInfo } from "@/hooks/usePermissions";
+import { DynamicFieldForm, type DynFieldDef } from "@/components/DynamicField";
 
 /** CASE-001/002/003：用例表单（新建/编辑），v2 端点 + 模块 + 动态自定义字段。 */
 
@@ -16,8 +24,14 @@ export function flattenModules(nodes: ModuleNodeDto[]): ModuleNodeDto[] {
   return nodes.flatMap((n) => [n, ...flattenModules(n.children)]);
 }
 
-export function toTreeSelectData(nodes: ModuleNodeDto[]): { value: string; title: string; children?: ReturnType<typeof toTreeSelectData> }[] {
-  return nodes.map((n) => ({ value: n.id, title: n.name, children: n.children.length ? toTreeSelectData(n.children) : undefined }));
+export function toTreeSelectData(
+  nodes: ModuleNodeDto[],
+): { value: string; title: string; children?: ReturnType<typeof toTreeSelectData> }[] {
+  return nodes.map((n) => ({
+    value: n.id,
+    title: n.name,
+    children: n.children.length ? toTreeSelectData(n.children) : undefined,
+  }));
 }
 
 interface Props {
@@ -41,14 +55,27 @@ interface FormState {
   moduleId?: string;
 }
 
-export function CaseForm({ caseId, submitTestId, embedded, onSaved, onCancel, defaultModuleId }: Props) {
+export function CaseForm({
+  caseId,
+  submitTestId,
+  embedded,
+  onSaved,
+  onCancel,
+  defaultModuleId,
+}: Props) {
   const router = useRouter();
   const qc = useQueryClient();
   const { message } = App.useApp();
   const { currentProjectId } = useProjectStore();
   const project = useProjectInfo();
   const orgId = project?.org.id ?? null;
-  const [form, setForm] = useState<FormState>({ name: '', precondition: '', steps: [], level: 'P2', tags: [] });
+  const [form, setForm] = useState<FormState>({
+    name: "",
+    precondition: "",
+    steps: [],
+    level: "P2",
+    tags: [],
+  });
   const [fields, setFields] = useState<Record<string, unknown>>({});
   const [templateId, setTemplateId] = useState<string | undefined>(undefined);
   const [version, setVersion] = useState(1);
@@ -58,8 +85,8 @@ export function CaseForm({ caseId, submitTestId, embedded, onSaved, onCancel, de
 
   // 模块树（TreeSelect 数据源 + 默认模块兜底）
   const modulesQ = useQuery({
-    queryKey: ['modules', currentProjectId, 'case'],
-    queryFn: () => moduleApi.list(currentProjectId!, 'case'),
+    queryKey: ["modules", currentProjectId, "case"],
+    queryFn: () => moduleApi.list(currentProjectId!, "case"),
     enabled: Boolean(currentProjectId),
   });
   const flatModules = flattenModules(modulesQ.data?.items ?? []);
@@ -67,17 +94,17 @@ export function CaseForm({ caseId, submitTestId, embedded, onSaved, onCancel, de
 
   // 动态字段：org 级字段定义 + 生效模板绑定（缺省默认模板）
   const defsQ = useQuery({
-    queryKey: ['field-defs', orgId, 'case'],
-    queryFn: () => fieldDefApi.list(orgId!, 'case'),
+    queryKey: ["field-defs", orgId, "case"],
+    queryFn: () => fieldDefApi.list(orgId!, "case"),
     enabled: Boolean(orgId),
   });
   const templatesQ = useQuery({
-    queryKey: ['templates', orgId, currentProjectId, 'case'],
-    queryFn: () => templateApi.list(orgId!, currentProjectId!, 'case'),
+    queryKey: ["templates", orgId, currentProjectId, "case"],
+    queryFn: () => templateApi.list(orgId!, currentProjectId!, "case"),
     enabled: Boolean(orgId && currentProjectId),
   });
   const membersQ = useQuery({
-    queryKey: ['members', currentProjectId],
+    queryKey: ["members", currentProjectId],
     queryFn: () => memberApi.projectMembers(currentProjectId!),
     enabled: Boolean(currentProjectId),
     staleTime: 60_000,
@@ -85,23 +112,34 @@ export function CaseForm({ caseId, submitTestId, embedded, onSaved, onCancel, de
 
   const defs: DynFieldDef[] = (defsQ.data ?? [])
     .filter((d) => d.enabled)
-    .map((d) => ({ ...d, options: d.options as FieldDefInput['options'] }) as DynFieldDef);
+    .map((d) => ({ ...d, options: d.options as FieldDefInput["options"] }) as DynFieldDef);
   const bindings: TemplateFieldBinding[] | undefined = (() => {
     const list = templatesQ.data ?? [];
-    const tpl = (templateId ? list.find((t) => t.id === templateId) : null) ?? list.find((t) => t.isDefault);
+    const tpl =
+      (templateId ? list.find((t) => t.id === templateId) : null) ?? list.find((t) => t.isDefault);
     return tpl?.fields?.map((b) => ({ ...b, visibleInList: b.visibleInList ?? false }));
   })();
 
   useEffect(() => {
     if (!caseId || !currentProjectId) return;
-    void caseApiV2.detail(currentProjectId, caseId).then((d) => {
-      setForm({ name: d.name, precondition: d.precondition, steps: d.steps, level: d.level as CaseLevel, tags: d.tags, moduleId: d.moduleId });
-      setFields(d.fields ?? {});
-      setTemplateId(d.templateId ?? undefined);
-      setVersion(d.version);
-      setNum(d.num);
-      setLoaded(true);
-    }).catch((e) => message.error(e instanceof ApiError ? e.message : '加载失败'));
+    void caseApiV2
+      .detail(currentProjectId, caseId)
+      .then((d) => {
+        setForm({
+          name: d.name,
+          precondition: d.precondition,
+          steps: d.steps,
+          level: d.level as CaseLevel,
+          tags: d.tags,
+          moduleId: d.moduleId,
+        });
+        setFields(d.fields ?? {});
+        setTemplateId(d.templateId ?? undefined);
+        setVersion(d.version);
+        setNum(d.num);
+        setLoaded(true);
+      })
+      .catch((e) => message.error(e instanceof ApiError ? e.message : "加载失败"));
   }, [caseId, currentProjectId, message]);
 
   // 新建：未显式选模块时落到默认模块（或透传的初始模块）
@@ -113,19 +151,26 @@ export function CaseForm({ caseId, submitTestId, embedded, onSaved, onCancel, de
   }, [caseId, currentProjectId, defaultModuleId, defaultModule?.id, form.moduleId]);
 
   function setStep(i: number, patch: Partial<CaseStep>) {
-    setForm((f) => ({ ...f, steps: f.steps.map((s, idx) => (idx === i ? { ...s, ...patch } : s)) }));
+    setForm((f) => ({
+      ...f,
+      steps: f.steps.map((s, idx) => (idx === i ? { ...s, ...patch } : s)),
+    }));
   }
 
   async function save(continu = false) {
     if (!currentProjectId) return;
     if (!form.name.trim()) {
-      message.error('名称不能为空');
+      message.error("名称不能为空");
       return;
     }
     setSaving(true);
     const payload = {
-      name: form.name.trim(), precondition: form.precondition, steps: form.steps,
-      level: form.level, tags: form.tags, moduleId: form.moduleId,
+      name: form.name.trim(),
+      precondition: form.precondition,
+      steps: form.steps,
+      level: form.level,
+      tags: form.tags,
+      moduleId: form.moduleId,
       ...(templateId ? { templateId } : {}),
       fields,
     };
@@ -134,28 +179,35 @@ export function CaseForm({ caseId, submitTestId, embedded, onSaved, onCancel, de
         const updated = await caseApiV2.update(currentProjectId, caseId, { ...payload, version });
         setVersion(updated.version);
         setNum(updated.num);
-        message.success('已保存');
-        void qc.invalidateQueries({ queryKey: ['case'] });
-        void qc.invalidateQueries({ queryKey: ['modules', currentProjectId, 'case'] });
+        message.success("已保存");
+        void qc.invalidateQueries({ queryKey: ["case"] });
+        void qc.invalidateQueries({ queryKey: ["modules", currentProjectId, "case"] });
         onSaved?.();
       } else {
         const created = await caseApiV2.create(currentProjectId, payload);
-        message.success(`已创建 C-${String(created.num).padStart(4, '0')}`);
-        void qc.invalidateQueries({ queryKey: ['case'] });
-        void qc.invalidateQueries({ queryKey: ['modules', currentProjectId, 'case'] });
+        message.success(`已创建 C-${String(created.num).padStart(4, "0")}`);
+        void qc.invalidateQueries({ queryKey: ["case"] });
+        void qc.invalidateQueries({ queryKey: ["modules", currentProjectId, "case"] });
         if (!continu) {
-          router.push('/cases');
+          router.push("/cases");
           return;
         }
-        setForm({ name: '', precondition: '', steps: [], level: 'P2', tags: [], moduleId: defaultModule?.id });
+        setForm({
+          name: "",
+          precondition: "",
+          steps: [],
+          level: "P2",
+          tags: [],
+          moduleId: defaultModule?.id,
+        });
         setFields({});
       }
     } catch (e) {
       if (e instanceof ApiError && e.code === 20409) {
-        message.warning('内容已被他人修改，请刷新后重试');
+        message.warning("内容已被他人修改，请刷新后重试");
       } else {
         // 422 等后端校验消息直接透出
-        message.error(e instanceof ApiError ? e.message : '保存失败');
+        message.error(e instanceof ApiError ? e.message : "保存失败");
       }
     } finally {
       setSaving(false);
@@ -165,25 +217,34 @@ export function CaseForm({ caseId, submitTestId, embedded, onSaved, onCancel, de
   if (!loaded) return null;
 
   const saveButton = (
-    <Button type="primary" loading={saving} data-testid="btn-save-case" onClick={() => save(false)}>保存</Button>
+    <Button type="primary" loading={saving} data-testid="btn-save-case" onClick={() => save(false)}>
+      保存
+    </Button>
   );
 
   return (
-    <div className={embedded ? '' : 'max-w-3xl'}>
+    <div className={embedded ? "" : "max-w-3xl"}>
       {!embedded && (
         <div className="rabbit-page-header">
           <div className="flex-1 min-w-0">
-            <a className="text-[13px] text-[#87888D] hover:text-[#574BFF] no-underline" href="/cases">‹ 返回用例列表</a>
+            <a
+              className="text-[13px] text-[#87888D] hover:text-[#574BFF] no-underline"
+              href="/cases"
+            >
+              ‹ 返回用例列表
+            </a>
             <h1 className="mt-1">
-              {caseId ? `编辑用例${num ? ` C-${String(num).padStart(4, '0')}` : ''}` : '新建用例'}
+              {caseId ? `编辑用例${num ? ` C-${String(num).padStart(4, "0")}` : ""}` : "新建用例"}
               <span className="ml-2 text-xs font-normal text-[#A8ABB0]">v{version}</span>
             </h1>
           </div>
         </div>
       )}
-      <div className={`${embedded ? '' : 'rabbit-card p-6'} space-y-5`} data-testid="case-form">
+      <div className={`${embedded ? "" : "rabbit-card p-6"} space-y-5`} data-testid="case-form">
         <div className="grid grid-cols-[88px_1fr] items-center gap-3">
-          <label className="text-sm text-gray-600">名称 <span className="text-red-500">*</span></label>
+          <label className="text-sm text-gray-600">
+            名称 <span className="text-red-500">*</span>
+          </label>
           <Input
             value={form.name}
             maxLength={512}
@@ -220,7 +281,9 @@ export function CaseForm({ caseId, submitTestId, embedded, onSaved, onCancel, de
           <div className="space-y-2" data-testid="case-steps">
             {form.steps.map((s, i) => (
               <div key={i} className="flex gap-2">
-                <span className="w-6 h-6 rounded bg-gray-100 grid place-items-center text-xs shrink-0">{i + 1}</span>
+                <span className="w-6 h-6 rounded bg-gray-100 grid place-items-center text-xs shrink-0">
+                  {i + 1}
+                </span>
                 <Input
                   placeholder="步骤描述（支持 Markdown）"
                   maxLength={2000}
@@ -239,13 +302,22 @@ export function CaseForm({ caseId, submitTestId, embedded, onSaved, onCancel, de
                   type="text"
                   className="text-gray-400"
                   aria-label={`remove-step-${i + 1}`}
-                  onClick={() => setForm((f) => ({ ...f, steps: f.steps.filter((_, idx) => idx !== i) }))}
+                  onClick={() =>
+                    setForm((f) => ({ ...f, steps: f.steps.filter((_, idx) => idx !== i) }))
+                  }
                 >
                   ✕
                 </Button>
               </div>
             ))}
-            <Button type="link" className="px-0" data-testid="btn-add-step" onClick={() => setForm((f) => ({ ...f, steps: [...f.steps, { desc: '', expect: '' }] }))}>
+            <Button
+              type="link"
+              className="px-0"
+              data-testid="btn-add-step"
+              onClick={() =>
+                setForm((f) => ({ ...f, steps: [...f.steps, { desc: "", expect: "" }] }))
+              }
+            >
               ＋ 添加步骤
             </Button>
           </div>
@@ -256,7 +328,10 @@ export function CaseForm({ caseId, submitTestId, embedded, onSaved, onCancel, de
             value={form.level}
             data-testid="case-level"
             onChange={(e) => setForm((f) => ({ ...f, level: e.target.value }))}
-            options={['P0', 'P1', 'P2', 'P3'].map((l) => ({ value: l, label: <span className={l === 'P0' ? 'text-red-500 font-medium' : ''}>{l}</span> }))}
+            options={["P0", "P1", "P2", "P3"].map((l) => ({
+              value: l,
+              label: <span className={l === "P0" ? "text-red-500 font-medium" : ""}>{l}</span>,
+            }))}
           />
         </div>
         <div className="grid grid-cols-[88px_1fr] items-center gap-3">
@@ -284,8 +359,12 @@ export function CaseForm({ caseId, submitTestId, embedded, onSaved, onCancel, de
         )}
         <Space>
           {submitTestId ? <span data-testid={submitTestId}>{saveButton}</span> : saveButton}
-          {!caseId && <Button onClick={() => save(true)} data-testid="btn-save-continue">保存并继续</Button>}
-          <Button onClick={() => (embedded ? onCancel?.() : router.push('/cases'))}>取消</Button>
+          {!caseId && (
+            <Button onClick={() => save(true)} data-testid="btn-save-continue">
+              保存并继续
+            </Button>
+          )}
+          <Button onClick={() => (embedded ? onCancel?.() : router.push("/cases"))}>取消</Button>
         </Space>
       </div>
     </div>

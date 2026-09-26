@@ -1,5 +1,5 @@
-import { config } from '@rabbit/shared';
-import type { ExecCallback } from '@rabbit/shared';
+import { config } from "@rabbit/shared";
+import type { ExecCallback } from "@rabbit/shared";
 
 /** 终态回调：指数退避 ≤5 次，失败转 dead（由 web 侧任务超时兜底回收）。 */
 export async function postCallback(taskId: string, cb: ExecCallback): Promise<boolean> {
@@ -7,8 +7,8 @@ export async function postCallback(taskId: string, cb: ExecCallback): Promise<bo
   for (let attempt = 0; attempt < 5; attempt++) {
     try {
       const res = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-Internal-Token': config.internalToken },
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Internal-Token": config.internalToken },
         body: JSON.stringify(cb),
       });
       if (res.ok) return true;

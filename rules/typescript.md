@@ -10,13 +10,13 @@
 
 ## 2. 命名
 
-| 对象 | 规则 | 示例 |
-| --- | --- | --- |
-| 文件/目录 | kebab-case | `case-ref.provider.ts` |
-| 类型/接口/类 | PascalCase；接口不加 I 前缀 | `ExecTask`、`SamplerConfig` |
-| 变量/函数 | camelCase；布尔 `is/has/can` | `isDefault`、`hasLicense` |
-| 常量/枚举值 | SCREAMING_SNAKE | `TaskStatus.RUNNING` |
-| zod schema | 与类型同名小写开头 + `Schema` 后缀 | `execTaskSchema` → `ExecTask` |
+| 对象         | 规则                               | 示例                          |
+| ------------ | ---------------------------------- | ----------------------------- |
+| 文件/目录    | kebab-case                         | `case-ref.provider.ts`        |
+| 类型/接口/类 | PascalCase；接口不加 I 前缀        | `ExecTask`、`SamplerConfig`   |
+| 变量/函数    | camelCase；布尔 `is/has/can`       | `isDefault`、`hasLicense`     |
+| 常量/枚举值  | SCREAMING_SNAKE                    | `TaskStatus.RUNNING`          |
+| zod schema   | 与类型同名小写开头 + `Schema` 后缀 | `execTaskSchema` → `ExecTask` |
 
 ## 3. 类型纪律
 
@@ -53,3 +53,13 @@
 ## 8. 测试代码同标准
 
 测试也是 TS：禁 any/穿透类型；fixture 工厂返回类型显式；用例命名与规格编号一致（rules/testing.md §1）。
+
+## 9. 格式化（oxfmt 必装，2026-09-26 新增）
+
+1. **oxfmt 是仓库必装工具链**：声明于根 `package.json` `devDependencies`（与 oxlint 同族）。S0 曾出现「format 脚本存在但 oxfmt 未安装」的工具链缺口，S1 收尾补齐——不允许再出现"命令在、工具缺"。
+2. **自愈安装**：根 `format` 脚本在 oxfmt 缺失时自动 `pnpm install`（依赖已声明，安装即恢复）后再格式化——
+   ```json
+   "format": "oxfmt --write . || (echo \"[format] oxfmt 缺失，自动安装…\" && pnpm install && oxfmt --write .)"
+   ```
+3. **使用口径**：提交涉及 TS/TSX/JSON 的变更前跑 `pnpm format`；全仓基线为 oxfmt 默认风格（无自定义配置，升级 oxfmt 大版本时全仓重跑一次并独立提交）。
+4. CI 现状仅 lint 门禁（oxlint）；format 不阻塞合并，但走查发现格式漂移按本节回改。

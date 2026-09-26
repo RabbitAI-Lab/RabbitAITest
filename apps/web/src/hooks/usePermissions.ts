@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { permApi, projectInfoApi } from '@rabbit/api-client';
-import { useProjectStore } from '@/stores/project';
+import { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { permApi, projectInfoApi } from "@rabbit/api-client";
+import { useProjectStore } from "@/stores/project";
 
 /**
  * SYS-004：权限点登录下发消费端（菜单守卫 + 按钮指令）。
@@ -12,7 +12,7 @@ import { useProjectStore } from '@/stores/project';
 export function usePermissions() {
   const { currentProjectId } = useProjectStore();
   const { data } = useQuery({
-    queryKey: ['permissions', currentProjectId],
+    queryKey: ["permissions", currentProjectId],
     queryFn: () => permApi.resolve(currentProjectId ?? undefined),
     staleTime: 30_000,
   });
@@ -32,7 +32,7 @@ export function usePermissions() {
 export function useProjectInfo() {
   const { currentProjectId } = useProjectStore();
   const { data } = useQuery({
-    queryKey: ['project-info', currentProjectId],
+    queryKey: ["project-info", currentProjectId],
     queryFn: () => projectInfoApi.get(currentProjectId!),
     enabled: Boolean(currentProjectId),
     staleTime: 60_000,

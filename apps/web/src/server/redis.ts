@@ -1,6 +1,6 @@
-import Redis from 'ioredis';
-import { Queue } from 'bullmq';
-import { config } from '@rabbit/shared';
+import Redis from "ioredis";
+import { Queue } from "bullmq";
+import { config } from "@rabbit/shared";
 
 const globalForInfra = globalThis as unknown as {
   __redis?: Redis;

@@ -1,49 +1,164 @@
-<!doctype html><html lang="zh"><head><meta charset="utf-8"><title>SYS-005 系统参数</title><script src="https://cdn.tailwindcss.com"></script></head>
-<body class="bg-slate-50 text-slate-800">
-<header class="h-12 bg-white border-b flex items-center px-4 gap-3 text-sm shrink-0"><span class="font-semibold">RabbitAITest</span><span class="border rounded px-2 py-0.5 text-slate-600">默认组织</span><div class="ml-auto flex items-center gap-3 text-slate-500"><span class="w-6 h-6 rounded-full border grid place-items-center text-xs">?</span><span class="relative">消息<span class="absolute -top-1.5 -right-2.5 bg-[#FF4D4F] text-white text-[10px] rounded-full px-1">3</span></span><span class="w-6 h-6 rounded-full bg-[#574BFF] text-white grid place-items-center text-xs">许</span></div></header>
-<div class="flex"><aside class="w-[208px] bg-white border-r p-2 text-sm shrink-0">
-  <p class="px-3 pt-2 pb-1 text-xs text-slate-400">组织</p><p class="px-3 py-2 rounded">项目管理</p><p class="px-3 py-2 rounded">模板管理</p><p class="px-3 py-2 rounded">用户组管理</p>
-  <p class="px-3 pt-3 pb-1 text-xs text-slate-400">系统设置</p><p class="px-3 py-2 rounded">用户管理</p><p class="px-3 py-2 rounded">用户组管理</p><p class="px-3 py-2 rounded bg-[#574BFF]/10 text-[#574BFF] font-medium">系统参数</p>
-</aside>
-<main class="flex-1 p-6 max-w-4xl">
-  <div class="flex items-center gap-3 mb-4"><h1 class="text-lg font-medium">系统参数</h1><span class="text-xs text-slate-400">保存即生效 · 仅系统管理员可配置</span></div>
-  <div class="flex gap-4 border-b mb-4 text-sm"><span class="pb-2 border-b-2 border-[#574BFF] text-[#574BFF] font-medium">基础</span><span class="pb-2 border-b-2 border-transparent text-slate-500">邮箱</span><span class="pb-2 border-b-2 border-transparent text-slate-500">文件</span><span class="pb-2 border-b-2 border-transparent text-slate-500">数据清理</span></div>
-  <!-- 静态原型将四个 Tab 分区平铺以便走查；线上仅显示当前 Tab，四个分区各自独立「保存」（PUT /system/params/{group}） -->
-  <div class="bg-white border rounded p-5 mb-4 space-y-4">
-    <p class="font-medium text-sm border-b pb-3">基础</p>
-    <div class="grid grid-cols-[140px_1fr] items-center gap-3"><label class="text-sm text-slate-600">站点 URL <span class="text-red-500">*</span></label><input class="border rounded px-3 py-2 text-sm w-96" value="https://rabbit.example.com"></div>
-    <div class="grid grid-cols-[140px_1fr] items-center gap-3"><label class="text-sm text-slate-600">登录页横幅文案</label><input class="border rounded px-3 py-2 text-sm w-96" value="欢迎使用 RabbitAITest 一站式测试工作台"></div>
-    <p class="text-xs text-slate-400">站点 URL 用于分享链接与邮件内容地址拼装，变更后新生成的链接即时采用新域名。</p>
-    <button class="bg-[#574BFF] text-white rounded px-4 py-1.5 text-sm">保存</button>
-  </div>
-  <div class="bg-white border rounded p-5 mb-4 space-y-4">
-    <p class="font-medium text-sm border-b pb-3">邮箱（SMTP）</p>
-    <div class="grid grid-cols-2 gap-4">
-      <div><span class="block text-slate-600 text-sm mb-1">SMTP 主机</span><input class="border rounded px-3 py-2 text-sm w-full" value="smtp.example.com"></div>
-      <div><span class="block text-slate-600 text-sm mb-1">端口</span><input class="border rounded px-3 py-2 text-sm w-full" value="465"></div>
-      <div><span class="block text-slate-600 text-sm mb-1">账号</span><input class="border rounded px-3 py-2 text-sm w-full" value="notify@rabbit.test"></div>
-      <div><span class="block text-slate-600 text-sm mb-1">密码</span><input type="password" class="border rounded px-3 py-2 text-sm w-full" value="secret"></div>
-      <div><span class="block text-slate-600 text-sm mb-1">连接方式</span><div class="flex gap-4 text-sm pt-2"><label class="flex items-center gap-1"><input type="radio" name="ssl" checked>SSL</label><label class="flex items-center gap-1"><input type="radio" name="ssl">TLS</label></div></div>
-      <div><span class="block text-slate-600 text-sm mb-1">发件人</span><input class="border rounded px-3 py-2 text-sm w-full" value="RabbitAITest &lt;notify@rabbit.test&gt;"></div>
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="utf-8" />
+    <title>SYS-005 系统参数</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-slate-50 text-slate-800">
+    <header class="h-12 bg-white border-b flex items-center px-4 gap-3 text-sm shrink-0">
+      <span class="font-semibold">RabbitAITest</span
+      ><span class="border rounded px-2 py-0.5 text-slate-600">默认组织</span>
+      <div class="ml-auto flex items-center gap-3 text-slate-500">
+        <span class="w-6 h-6 rounded-full border grid place-items-center text-xs">?</span
+        ><span class="relative"
+          >消息<span
+            class="absolute -top-1.5 -right-2.5 bg-[#FF4D4F] text-white text-[10px] rounded-full px-1"
+            >3</span
+          ></span
+        ><span class="w-6 h-6 rounded-full bg-[#574BFF] text-white grid place-items-center text-xs"
+          >许</span
+        >
+      </div>
+    </header>
+    <div class="flex">
+      <aside class="w-[208px] bg-white border-r p-2 text-sm shrink-0">
+        <p class="px-3 pt-2 pb-1 text-xs text-slate-400">组织</p>
+        <p class="px-3 py-2 rounded">项目管理</p>
+        <p class="px-3 py-2 rounded">模板管理</p>
+        <p class="px-3 py-2 rounded">用户组管理</p>
+        <p class="px-3 pt-3 pb-1 text-xs text-slate-400">系统设置</p>
+        <p class="px-3 py-2 rounded">用户管理</p>
+        <p class="px-3 py-2 rounded">用户组管理</p>
+        <p class="px-3 py-2 rounded bg-[#574BFF]/10 text-[#574BFF] font-medium">系统参数</p>
+      </aside>
+      <main class="flex-1 p-6 max-w-4xl">
+        <div class="flex items-center gap-3 mb-4">
+          <h1 class="text-lg font-medium">系统参数</h1>
+          <span class="text-xs text-slate-400">保存即生效 · 仅系统管理员可配置</span>
+        </div>
+        <div class="flex gap-4 border-b mb-4 text-sm">
+          <span class="pb-2 border-b-2 border-[#574BFF] text-[#574BFF] font-medium">基础</span
+          ><span class="pb-2 border-b-2 border-transparent text-slate-500">邮箱</span
+          ><span class="pb-2 border-b-2 border-transparent text-slate-500">文件</span
+          ><span class="pb-2 border-b-2 border-transparent text-slate-500">数据清理</span>
+        </div>
+        <!-- 静态原型将四个 Tab 分区平铺以便走查；线上仅显示当前 Tab，四个分区各自独立「保存」（PUT /system/params/{group}） -->
+        <div class="bg-white border rounded p-5 mb-4 space-y-4">
+          <p class="font-medium text-sm border-b pb-3">基础</p>
+          <div class="grid grid-cols-[140px_1fr] items-center gap-3">
+            <label class="text-sm text-slate-600"
+              >站点 URL <span class="text-red-500">*</span></label
+            ><input
+              class="border rounded px-3 py-2 text-sm w-96"
+              value="https://rabbit.example.com"
+            />
+          </div>
+          <div class="grid grid-cols-[140px_1fr] items-center gap-3">
+            <label class="text-sm text-slate-600">登录页横幅文案</label
+            ><input
+              class="border rounded px-3 py-2 text-sm w-96"
+              value="欢迎使用 RabbitAITest 一站式测试工作台"
+            />
+          </div>
+          <p class="text-xs text-slate-400">
+            站点 URL 用于分享链接与邮件内容地址拼装，变更后新生成的链接即时采用新域名。
+          </p>
+          <button class="bg-[#574BFF] text-white rounded px-4 py-1.5 text-sm">保存</button>
+        </div>
+        <div class="bg-white border rounded p-5 mb-4 space-y-4">
+          <p class="font-medium text-sm border-b pb-3">邮箱（SMTP）</p>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <span class="block text-slate-600 text-sm mb-1">SMTP 主机</span
+              ><input class="border rounded px-3 py-2 text-sm w-full" value="smtp.example.com" />
+            </div>
+            <div>
+              <span class="block text-slate-600 text-sm mb-1">端口</span
+              ><input class="border rounded px-3 py-2 text-sm w-full" value="465" />
+            </div>
+            <div>
+              <span class="block text-slate-600 text-sm mb-1">账号</span
+              ><input class="border rounded px-3 py-2 text-sm w-full" value="notify@rabbit.test" />
+            </div>
+            <div>
+              <span class="block text-slate-600 text-sm mb-1">密码</span
+              ><input
+                type="password"
+                class="border rounded px-3 py-2 text-sm w-full"
+                value="secret"
+              />
+            </div>
+            <div>
+              <span class="block text-slate-600 text-sm mb-1">连接方式</span>
+              <div class="flex gap-4 text-sm pt-2">
+                <label class="flex items-center gap-1"
+                  ><input type="radio" name="ssl" checked />SSL</label
+                ><label class="flex items-center gap-1"><input type="radio" name="ssl" />TLS</label>
+              </div>
+            </div>
+            <div>
+              <span class="block text-slate-600 text-sm mb-1">发件人</span
+              ><input
+                class="border rounded px-3 py-2 text-sm w-full"
+                value="RabbitAITest &lt;notify@rabbit.test&gt;"
+              />
+            </div>
+          </div>
+          <div class="flex gap-3">
+            <button class="border border-[#574BFF] text-[#574BFF] rounded px-4 py-1.5 text-sm">
+              测试连接</button
+            ><button class="bg-[#574BFF] text-white rounded px-4 py-1.5 text-sm">保存</button>
+          </div>
+        </div>
+        <div class="bg-white border rounded p-5 mb-4 space-y-4">
+          <p class="font-medium text-sm border-b pb-3">文件</p>
+          <div class="grid grid-cols-[140px_1fr] items-center gap-3">
+            <label class="text-sm text-slate-600">全局上传上限</label>
+            <div class="flex items-center gap-2">
+              <input class="border rounded px-3 py-2 text-sm w-28" value="50" /><span
+                class="text-sm text-slate-500"
+                >MB（1–1024）</span
+              >
+            </div>
+          </div>
+          <p class="text-xs text-slate-400">
+            缺陷附件等全部上传场景统一读取该上限；按场景差异化上限为后续增强。
+          </p>
+          <button class="bg-[#574BFF] text-white rounded px-4 py-1.5 text-sm">保存</button>
+        </div>
+        <div class="bg-white border rounded p-5 mb-4 space-y-4">
+          <p class="font-medium text-sm border-b pb-3">数据清理</p>
+          <div class="grid grid-cols-[140px_1fr] items-center gap-3">
+            <label class="text-sm text-slate-600">操作日志保留天数</label>
+            <div class="flex items-center gap-2">
+              <input class="border rounded px-3 py-2 text-sm w-28" value="90" /><span
+                class="text-sm text-slate-500"
+                >天（下限 7 天）</span
+              >
+            </div>
+          </div>
+          <div class="grid grid-cols-[140px_1fr] items-center gap-3">
+            <label class="text-sm text-slate-600">变更历史保留天数</label>
+            <div class="flex items-center gap-2">
+              <input class="border rounded px-3 py-2 text-sm w-28" value="30" /><span
+                class="text-sm text-slate-500"
+                >天（下限 7 天）</span
+              >
+            </div>
+          </div>
+          <div class="bg-slate-50 border rounded p-3 text-sm text-slate-600">
+            上次清理：2026-09-26 03:00（每日定时执行）· 清理操作日志 1,204 条 / 变更历史 356 条 ·
+            下次清理：2026-09-27 03:00（只读）
+          </div>
+          <button class="bg-[#574BFF] text-white rounded px-4 py-1.5 text-sm">保存</button>
+        </div>
+        <!-- 测试连接（SMTP 区按钮）：loading（按钮转圈禁用）→ 成功：按钮前绿点 +「连接成功（531ms）」；失败：红点 + 错误明细「535 Authentication failed」，结果不落历史 -->
+        <!-- 校验态：站点 URL 为空/非法 → 输入框红框 + 提示「请输入合法 URL」；SMTP 端口非法（非 1–65535）前端校验拦截，Console 零错误；保留天数 <7 → 拦截 + 提交 422（防误配全清） -->
+        <!-- 保存 Toast：「基础配置已保存」等按分区提示；SMTP 密码 AES-GCM 加密落库，读取脱敏返回 ******（修改需重新输入） -->
+        <!-- 清理 job：BullMQ repeatable 每日 03:00（系统时区）按 5000 条分批删除超期记录，计数写结构化日志；「上次清理」区只读 -->
+        <!-- 权限态：仅系统管理员可见本菜单（SYSTEM_PARAM:UPDATE）；非管理员 GET/PUT → 403（10003） -->
+      </main>
     </div>
-    <div class="flex gap-3"><button class="border border-[#574BFF] text-[#574BFF] rounded px-4 py-1.5 text-sm">测试连接</button><button class="bg-[#574BFF] text-white rounded px-4 py-1.5 text-sm">保存</button></div>
-  </div>
-  <div class="bg-white border rounded p-5 mb-4 space-y-4">
-    <p class="font-medium text-sm border-b pb-3">文件</p>
-    <div class="grid grid-cols-[140px_1fr] items-center gap-3"><label class="text-sm text-slate-600">全局上传上限</label><div class="flex items-center gap-2"><input class="border rounded px-3 py-2 text-sm w-28" value="50"><span class="text-sm text-slate-500">MB（1–1024）</span></div></div>
-    <p class="text-xs text-slate-400">缺陷附件等全部上传场景统一读取该上限；按场景差异化上限为后续增强。</p>
-    <button class="bg-[#574BFF] text-white rounded px-4 py-1.5 text-sm">保存</button>
-  </div>
-  <div class="bg-white border rounded p-5 mb-4 space-y-4">
-    <p class="font-medium text-sm border-b pb-3">数据清理</p>
-    <div class="grid grid-cols-[140px_1fr] items-center gap-3"><label class="text-sm text-slate-600">操作日志保留天数</label><div class="flex items-center gap-2"><input class="border rounded px-3 py-2 text-sm w-28" value="90"><span class="text-sm text-slate-500">天（下限 7 天）</span></div></div>
-    <div class="grid grid-cols-[140px_1fr] items-center gap-3"><label class="text-sm text-slate-600">变更历史保留天数</label><div class="flex items-center gap-2"><input class="border rounded px-3 py-2 text-sm w-28" value="30"><span class="text-sm text-slate-500">天（下限 7 天）</span></div></div>
-    <div class="bg-slate-50 border rounded p-3 text-sm text-slate-600">上次清理：2026-09-26 03:00（每日定时执行）· 清理操作日志 1,204 条 / 变更历史 356 条 · 下次清理：2026-09-27 03:00（只读）</div>
-    <button class="bg-[#574BFF] text-white rounded px-4 py-1.5 text-sm">保存</button>
-  </div>
-  <!-- 测试连接（SMTP 区按钮）：loading（按钮转圈禁用）→ 成功：按钮前绿点 +「连接成功（531ms）」；失败：红点 + 错误明细「535 Authentication failed」，结果不落历史 -->
-  <!-- 校验态：站点 URL 为空/非法 → 输入框红框 + 提示「请输入合法 URL」；SMTP 端口非法（非 1–65535）前端校验拦截，Console 零错误；保留天数 <7 → 拦截 + 提交 422（防误配全清） -->
-  <!-- 保存 Toast：「基础配置已保存」等按分区提示；SMTP 密码 AES-GCM 加密落库，读取脱敏返回 ******（修改需重新输入） -->
-  <!-- 清理 job：BullMQ repeatable 每日 03:00（系统时区）按 5000 条分批删除超期记录，计数写结构化日志；「上次清理」区只读 -->
-  <!-- 权限态：仅系统管理员可见本菜单（SYSTEM_PARAM:UPDATE）；非管理员 GET/PUT → 403（10003） -->
-</main></div></body></html>
+  </body>
+</html>

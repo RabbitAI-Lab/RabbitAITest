@@ -1,172 +1,367 @@
 <!doctype html>
 <html lang="zh">
-<head>
-<meta charset="utf-8">
-<title>CASE-004 用例导入向导（Excel / Xmind）</title>
-<script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-slate-50 text-slate-800">
-<!-- 顶栏 48px：左 Logo + 项目 chip；右 帮助 / 消息 / 用户头像 -->
-<header class="h-12 bg-white border-b flex items-center px-4 gap-3 text-sm shrink-0">
-  <span class="font-semibold">RabbitAITest</span>
-  <span class="border rounded px-2 py-0.5 text-slate-600">演示项目 #1</span>
-  <div class="ml-auto flex items-center gap-4 text-slate-500">
-    <span class="w-5 h-5 border rounded-full grid place-items-center text-[10px]">?</span>
-    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg>
-    <span class="w-6 h-6 rounded-full bg-[#574BFF]/80 text-white grid place-items-center text-xs">徐</span>
-  </div>
-</header>
-<div class="flex">
-  <!-- 左导航 208px：分组 工作区 / 测试管理 / 项目设置；当前页：测试用例 -->
-  <aside class="w-[208px] shrink-0 bg-white border-r text-sm py-2">
-    <p class="px-5 pt-2 pb-1 text-xs text-slate-400">工作区</p>
-    <p class="mx-2 px-3 py-1.5 rounded text-slate-600">工作台</p>
-    <p class="px-5 pt-4 pb-1 text-xs text-slate-400">测试管理</p>
-    <p class="mx-2 px-3 py-1.5 rounded bg-[#574BFF]/[.08] text-[#574BFF] font-medium">测试用例</p>
-    <p class="mx-2 px-3 py-1.5 rounded text-slate-600">用例评审</p>
-    <p class="mx-2 px-3 py-1.5 rounded text-slate-600">测试计划</p>
-    <p class="mx-2 px-3 py-1.5 rounded text-slate-600">缺陷管理</p>
-    <div class="border-t my-2 mx-2"></div>
-    <p class="mx-2 px-3 py-1.5 rounded text-slate-600">项目设置</p>
-  </aside>
-  <main class="flex-1 min-w-0 p-6">
-    <!-- 入口：用例列表工具栏「导入」按钮（高亮示意），点击弹出下方三步向导 Modal（居中 + 背景遮罩，此处省略遮罩按步骤纵向排列三个状态） -->
-    <div class="flex items-center gap-3 mb-2">
-      <h1 class="text-lg font-medium">功能用例</h1>
-      <div class="ml-auto flex gap-2 text-sm">
-        <button class="border-2 border-[#574BFF] bg-[#574BFF]/[.05] text-[#574BFF] rounded px-3 py-1.5">导入</button>
-        <button class="border rounded px-3 py-1.5 bg-white">导出</button>
+  <head>
+    <meta charset="utf-8" />
+    <title>CASE-004 用例导入向导（Excel / Xmind）</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-slate-50 text-slate-800">
+    <!-- 顶栏 48px：左 Logo + 项目 chip；右 帮助 / 消息 / 用户头像 -->
+    <header class="h-12 bg-white border-b flex items-center px-4 gap-3 text-sm shrink-0">
+      <span class="font-semibold">RabbitAITest</span>
+      <span class="border rounded px-2 py-0.5 text-slate-600">演示项目 #1</span>
+      <div class="ml-auto flex items-center gap-4 text-slate-500">
+        <span class="w-5 h-5 border rounded-full grid place-items-center text-[10px]">?</span>
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
+          <path d="M13.7 21a2 2 0 01-3.4 0" />
+        </svg>
+        <span
+          class="w-6 h-6 rounded-full bg-[#574BFF]/80 text-white grid place-items-center text-xs"
+          >徐</span
+        >
       </div>
-    </div>
-    <p class="text-xs text-slate-400 mb-6">导入向导三步状态：① 上传文件 → ② 预览映射 → ③ 结果报告（Modal 居中展示，遮罩省略）</p>
-
-    <!-- ============ 步骤 ①：上传 ============ -->
-    <h2 class="text-sm font-medium text-slate-600 mb-2">步骤 ① / ③ — 上传文件</h2>
-    <div class="max-w-2xl mx-auto bg-white border rounded-lg shadow-lg mb-10">
-      <div class="flex items-center justify-between px-5 h-12 border-b"><span class="font-medium">导入用例</span><span class="text-slate-400">✕</span></div>
-      <div class="flex items-center gap-2 px-5 py-3 text-xs">
-        <span class="flex items-center gap-1 text-[#574BFF] font-medium"><span class="w-4 h-4 rounded-full bg-[#574BFF] text-white grid place-items-center text-[10px]">1</span>上传文件</span>
-        <span class="flex-1 h-px bg-slate-200"></span>
-        <span class="flex items-center gap-1 text-slate-400"><span class="w-4 h-4 rounded-full border grid place-items-center text-[10px]">2</span>预览映射</span>
-        <span class="flex-1 h-px bg-slate-200"></span>
-        <span class="flex items-center gap-1 text-slate-400"><span class="w-4 h-4 rounded-full border grid place-items-center text-[10px]">3</span>结果报告</span>
-      </div>
-      <div class="px-5 pb-5">
-        <!-- 拖拽悬停时边框高亮为主色；选择文件后虚线框替换为文件行（文件名 / 大小 / 移除）；Xmind 文件跳过步骤②列映射，直接进入结构确认 -->
-        <div class="border-2 border-dashed border-slate-300 rounded-lg p-10 text-center text-sm text-slate-500">
-          <p class="text-slate-800">点击或拖拽文件到此处上传</p>
-          <p class="text-xs mt-1">支持 .xlsx / .xmind（兼容 MeterSphere 官方模板），单次 ≤ 5000 行</p>
-        </div>
-        <div class="mt-3 flex items-center gap-3 text-sm">
-          <a class="text-[#574BFF]" href="#">下载 Excel 模板</a>
-          <span class="text-xs text-slate-400">列头含动态字段：测试类型 / 执行人 / 是否自动化</span>
-          <a class="ml-auto text-xs text-slate-500">格式说明 ▾</a>
-          <!-- 格式说明折叠面板：Excel 列名别名表（如「用例名称 / 名称」等价）+ Xmind v2.x 结构映射规则（一级分支=模块、叶子文本块=步骤、备注=预期、优先级图标=等级、标签=tags） -->
-        </div>
-        <!-- 解析中：按钮转 loading 并显示分段进度条（前端模拟）；超 5000 行 → 错误提示「超出单次导入上限（5000 行），异步大文件导入将于后续开放」 -->
-      </div>
-      <div class="flex justify-end gap-2 px-5 py-3 border-t">
-        <button class="border rounded px-4 py-1.5 text-sm">取消</button>
-        <button class="bg-[#574BFF]/40 text-white rounded px-4 py-1.5 text-sm" disabled>下一步（请先选择文件）</button>
-      </div>
-    </div>
-
-    <!-- ============ 步骤 ②：预览映射 ============ -->
-    <h2 class="text-sm font-medium text-slate-600 mb-2">步骤 ② / ③ — 预览与列映射</h2>
-    <div class="max-w-2xl mx-auto bg-white border rounded-lg shadow-lg mb-10">
-      <div class="flex items-center justify-between px-5 h-12 border-b"><span class="font-medium">导入用例</span><span class="text-slate-400">✕</span></div>
-      <div class="flex items-center gap-2 px-5 py-3 text-xs">
-        <span class="flex items-center gap-1 text-[#52C41A] font-medium"><span class="w-4 h-4 rounded-full bg-[#52C41A] text-white grid place-items-center text-[10px]">✓</span>上传文件</span>
-        <span class="flex-1 h-px bg-slate-200"></span>
-        <span class="flex items-center gap-1 text-[#574BFF] font-medium"><span class="w-4 h-4 rounded-full bg-[#574BFF] text-white grid place-items-center text-[10px]">2</span>预览映射</span>
-        <span class="flex-1 h-px bg-slate-200"></span>
-        <span class="flex items-center gap-1 text-slate-400"><span class="w-4 h-4 rounded-full border grid place-items-center text-[10px]">3</span>结果报告</span>
-      </div>
-      <div class="px-5 pb-5 space-y-4 text-sm">
-        <div class="flex items-center gap-3">
-          <label class="text-slate-500">目标模块</label>
-          <select class="border rounded px-2 py-1 bg-white"><option>登录模块</option><option>默认模块</option><option>支付模块</option></select>
-          <!-- 下拉为模块树选择（支持新建模块路径）；Xmind 导入时按一级分支自动建模块并合并同名模块，此处置灰 -->
-          <div class="ml-auto flex items-center gap-4">
-            <label class="flex items-center gap-1"><input type="radio" name="mode" checked><span>相同编号跳过</span></label>
-            <label class="flex items-center gap-1"><input type="radio" name="mode"><span>相同编号覆盖</span></label>
+    </header>
+    <div class="flex">
+      <!-- 左导航 208px：分组 工作区 / 测试管理 / 项目设置；当前页：测试用例 -->
+      <aside class="w-[208px] shrink-0 bg-white border-r text-sm py-2">
+        <p class="px-5 pt-2 pb-1 text-xs text-slate-400">工作区</p>
+        <p class="mx-2 px-3 py-1.5 rounded text-slate-600">工作台</p>
+        <p class="px-5 pt-4 pb-1 text-xs text-slate-400">测试管理</p>
+        <p class="mx-2 px-3 py-1.5 rounded bg-[#574BFF]/[.08] text-[#574BFF] font-medium">
+          测试用例
+        </p>
+        <p class="mx-2 px-3 py-1.5 rounded text-slate-600">用例评审</p>
+        <p class="mx-2 px-3 py-1.5 rounded text-slate-600">测试计划</p>
+        <p class="mx-2 px-3 py-1.5 rounded text-slate-600">缺陷管理</p>
+        <div class="border-t my-2 mx-2"></div>
+        <p class="mx-2 px-3 py-1.5 rounded text-slate-600">项目设置</p>
+      </aside>
+      <main class="flex-1 min-w-0 p-6">
+        <!-- 入口：用例列表工具栏「导入」按钮（高亮示意），点击弹出下方三步向导 Modal（居中 + 背景遮罩，此处省略遮罩按步骤纵向排列三个状态） -->
+        <div class="flex items-center gap-3 mb-2">
+          <h1 class="text-lg font-medium">功能用例</h1>
+          <div class="ml-auto flex gap-2 text-sm">
+            <button
+              class="border-2 border-[#574BFF] bg-[#574BFF]/[.05] text-[#574BFF] rounded px-3 py-1.5"
+            >
+              导入
+            </button>
+            <button class="border rounded px-3 py-1.5 bg-white">导出</button>
           </div>
-          <!-- 覆盖 = 按 num 匹配存量（回收站不参与），白名单字段全量替换并记录变更历史（import_overwrite）；跳过 = 仅计数不改数据 -->
         </div>
-        <div>
-          <p class="text-xs text-slate-400 mb-1.5">列映射（固定列按别名表自动识别，可手动调整；无法识别的列进入忽略清单并在结果中明示）</p>
-          <table class="w-full text-xs">
-            <thead class="text-slate-400"><tr class="border-b"><th class="text-left py-1.5">文件列头</th><th class="text-left py-1.5">映射字段</th><th class="text-left py-1.5">首行值预览</th></tr></thead>
-            <tbody>
-              <tr class="border-b"><td class="py-1.5">用例名称</td><td><select class="border rounded px-1 py-0.5 bg-white"><option>名称（必填）</option></select></td><td class="text-slate-500">登录成功场景</td></tr>
-              <tr class="border-b"><td class="py-1.5">用例等级</td><td><select class="border rounded px-1 py-0.5 bg-white"><option>等级</option></select></td><td class="text-slate-500">P0</td></tr>
-              <tr class="border-b"><td class="py-1.5">前置条件</td><td><select class="border rounded px-1 py-0.5 bg-white"><option>前置条件</option></select></td><td class="text-slate-500">已注册账号</td></tr>
-              <tr class="border-b"><td class="py-1.5">操作步骤</td><td><select class="border rounded px-1 py-0.5 bg-white"><option>步骤</option></select></td><td class="text-slate-500">打开登录页输入正确账号密码</td></tr>
-              <tr class="border-b"><td class="py-1.5">预期结果</td><td><select class="border rounded px-1 py-0.5 bg-white"><option>预期结果</option></select></td><td class="text-slate-500">跳转工作台</td></tr>
-              <tr><td class="py-1.5">备注</td><td><select class="border rounded px-1 py-0.5 bg-white text-slate-400"><option>（忽略列）</option></select></td><td class="text-slate-400">—</td></tr>
-            </tbody>
-          </table>
-        </div>
-        <div>
-          <p class="text-xs text-slate-400 mb-1.5">数据预览（共 126 行，展示前 20 行；校验失败行红色标注）</p>
-          <table class="w-full text-xs border rounded">
-            <thead class="bg-slate-50 text-slate-400"><tr><th class="p-1.5 text-left">行号</th><th class="p-1.5 text-left">编号</th><th class="p-1.5 text-left">名称</th><th class="p-1.5 text-left">等级</th><th class="p-1.5 text-left">校验</th></tr></thead>
-            <tbody>
-              <tr class="border-t"><td class="p-1.5">2</td><td class="text-slate-400">—（新建）</td><td>登录成功场景</td><td>P0</td><td class="text-[#52C41A]">通过</td></tr>
-              <tr class="border-t bg-[#FF4D4F]/5"><td class="p-1.5">3</td><td>C-0002</td><td>密码错误提示</td><td class="text-[#FF4D4F]">高</td><td class="text-[#FF4D4F]">等级枚举非法（P0-P3）</td></tr>
-              <tr class="border-t"><td class="p-1.5">4</td><td class="text-slate-400">—（新建）</td><td>验证码过期提示</td><td>P2</td><td class="text-[#52C41A]">通过</td></tr>
-              <tr class="border-t text-slate-400 text-center"><td colspan="5" class="p-1.5">… 以下省略（预览前 20 行）</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-      <div class="flex justify-between items-center px-5 py-3 border-t">
-        <span class="text-xs text-slate-400">预检：124 行通过 · 2 行错误（错误行将不导入，其余行整体落库）</span>
-        <div class="flex gap-2">
-          <button class="border rounded px-4 py-1.5 text-sm">上一步</button>
-          <button class="bg-[#574BFF] text-white rounded px-4 py-1.5 text-sm">开始导入</button>
-        </div>
-      </div>
-      <!-- 落库语义（走查说明）：全部行先校验后原子落库（fail-fast 报告，不产生半量导入）——校验错误的行被拒绝并进入步骤③明细，其余行一次性写入，不出现半量脏数据 -->
-    </div>
+        <p class="text-xs text-slate-400 mb-6">
+          导入向导三步状态：① 上传文件 → ② 预览映射 → ③ 结果报告（Modal 居中展示，遮罩省略）
+        </p>
 
-    <!-- ============ 步骤 ③：结果报告 ============ -->
-    <h2 class="text-sm font-medium text-slate-600 mb-2">步骤 ③ / ③ — 结果报告</h2>
-    <div class="max-w-2xl mx-auto bg-white border rounded-lg shadow-lg">
-      <div class="flex items-center justify-between px-5 h-12 border-b"><span class="font-medium">导入用例</span><span class="text-slate-400">✕</span></div>
-      <div class="flex items-center gap-2 px-5 py-3 text-xs">
-        <span class="flex items-center gap-1 text-[#52C41A] font-medium"><span class="w-4 h-4 rounded-full bg-[#52C41A] text-white grid place-items-center text-[10px]">✓</span>上传文件</span>
-        <span class="flex-1 h-px bg-slate-200"></span>
-        <span class="flex items-center gap-1 text-[#52C41A] font-medium"><span class="w-4 h-4 rounded-full bg-[#52C41A] text-white grid place-items-center text-[10px]">✓</span>预览映射</span>
-        <span class="flex-1 h-px bg-slate-200"></span>
-        <span class="flex items-center gap-1 text-[#574BFF] font-medium"><span class="w-4 h-4 rounded-full bg-[#574BFF] text-white grid place-items-center text-[10px]">3</span>结果报告</span>
-      </div>
-      <div class="px-5 pb-5 space-y-4">
-        <div class="flex gap-8 text-center py-2">
-          <div><p class="text-2xl font-semibold text-[#52C41A]">124</p><p class="text-xs text-slate-500 mt-1">导入成功</p></div>
-          <div><p class="text-2xl font-semibold text-[#FF4D4F]">2</p><p class="text-xs text-slate-500 mt-1">校验失败</p></div>
-          <div><p class="text-2xl font-semibold text-slate-400">0</p><p class="text-xs text-slate-500 mt-1">跳过（编号已存在）</p></div>
-          <div class="ml-auto self-center text-xs text-slate-400 text-right">目标模块：登录模块<br>文件：用例导入-0926.xlsx</div>
+        <!-- ============ 步骤 ①：上传 ============ -->
+        <h2 class="text-sm font-medium text-slate-600 mb-2">步骤 ① / ③ — 上传文件</h2>
+        <div class="max-w-2xl mx-auto bg-white border rounded-lg shadow-lg mb-10">
+          <div class="flex items-center justify-between px-5 h-12 border-b">
+            <span class="font-medium">导入用例</span><span class="text-slate-400">✕</span>
+          </div>
+          <div class="flex items-center gap-2 px-5 py-3 text-xs">
+            <span class="flex items-center gap-1 text-[#574BFF] font-medium"
+              ><span
+                class="w-4 h-4 rounded-full bg-[#574BFF] text-white grid place-items-center text-[10px]"
+                >1</span
+              >上传文件</span
+            >
+            <span class="flex-1 h-px bg-slate-200"></span>
+            <span class="flex items-center gap-1 text-slate-400"
+              ><span class="w-4 h-4 rounded-full border grid place-items-center text-[10px]">2</span
+              >预览映射</span
+            >
+            <span class="flex-1 h-px bg-slate-200"></span>
+            <span class="flex items-center gap-1 text-slate-400"
+              ><span class="w-4 h-4 rounded-full border grid place-items-center text-[10px]">3</span
+              >结果报告</span
+            >
+          </div>
+          <div class="px-5 pb-5">
+            <!-- 拖拽悬停时边框高亮为主色；选择文件后虚线框替换为文件行（文件名 / 大小 / 移除）；Xmind 文件跳过步骤②列映射，直接进入结构确认 -->
+            <div
+              class="border-2 border-dashed border-slate-300 rounded-lg p-10 text-center text-sm text-slate-500"
+            >
+              <p class="text-slate-800">点击或拖拽文件到此处上传</p>
+              <p class="text-xs mt-1">
+                支持 .xlsx / .xmind（兼容 MeterSphere 官方模板），单次 ≤ 5000 行
+              </p>
+            </div>
+            <div class="mt-3 flex items-center gap-3 text-sm">
+              <a class="text-[#574BFF]" href="#">下载 Excel 模板</a>
+              <span class="text-xs text-slate-400"
+                >列头含动态字段：测试类型 / 执行人 / 是否自动化</span
+              >
+              <a class="ml-auto text-xs text-slate-500">格式说明 ▾</a>
+              <!-- 格式说明折叠面板：Excel 列名别名表（如「用例名称 / 名称」等价）+ Xmind v2.x 结构映射规则（一级分支=模块、叶子文本块=步骤、备注=预期、优先级图标=等级、标签=tags） -->
+            </div>
+            <!-- 解析中：按钮转 loading 并显示分段进度条（前端模拟）；超 5000 行 → 错误提示「超出单次导入上限（5000 行），异步大文件导入将于后续开放」 -->
+          </div>
+          <div class="flex justify-end gap-2 px-5 py-3 border-t">
+            <button class="border rounded px-4 py-1.5 text-sm">取消</button>
+            <button class="bg-[#574BFF]/40 text-white rounded px-4 py-1.5 text-sm" disabled>
+              下一步（请先选择文件）
+            </button>
+          </div>
         </div>
-        <div>
-          <p class="text-xs text-slate-400 mb-1.5">失败行明细（错误行号定位原因，修正模板后可重新上传）</p>
-          <table class="w-full text-xs border rounded">
-            <thead class="bg-slate-50 text-slate-400"><tr><th class="p-1.5 text-left">行号</th><th class="p-1.5 text-left">名称</th><th class="p-1.5 text-left">失败原因</th><th class="p-1.5 text-left">操作</th></tr></thead>
-            <tbody>
-              <tr class="border-t"><td class="p-1.5">3</td><td>密码错误提示</td><td class="text-[#FF4D4F]">等级枚举非法（仅支持 P0-P3）</td><td class="text-[#574BFF]">定位</td></tr>
-              <tr class="border-t"><td class="p-1.5">73</td><td>多端登录互踢</td><td class="text-[#FF4D4F]">操作步骤为空</td><td class="text-[#574BFF]">定位</td></tr>
-            </tbody>
-          </table>
-          <p class="text-xs text-slate-400 mt-2">提示：文件列「备注」未能识别，已按忽略列处理，未导入。</p>
+
+        <!-- ============ 步骤 ②：预览映射 ============ -->
+        <h2 class="text-sm font-medium text-slate-600 mb-2">步骤 ② / ③ — 预览与列映射</h2>
+        <div class="max-w-2xl mx-auto bg-white border rounded-lg shadow-lg mb-10">
+          <div class="flex items-center justify-between px-5 h-12 border-b">
+            <span class="font-medium">导入用例</span><span class="text-slate-400">✕</span>
+          </div>
+          <div class="flex items-center gap-2 px-5 py-3 text-xs">
+            <span class="flex items-center gap-1 text-[#52C41A] font-medium"
+              ><span
+                class="w-4 h-4 rounded-full bg-[#52C41A] text-white grid place-items-center text-[10px]"
+                >✓</span
+              >上传文件</span
+            >
+            <span class="flex-1 h-px bg-slate-200"></span>
+            <span class="flex items-center gap-1 text-[#574BFF] font-medium"
+              ><span
+                class="w-4 h-4 rounded-full bg-[#574BFF] text-white grid place-items-center text-[10px]"
+                >2</span
+              >预览映射</span
+            >
+            <span class="flex-1 h-px bg-slate-200"></span>
+            <span class="flex items-center gap-1 text-slate-400"
+              ><span class="w-4 h-4 rounded-full border grid place-items-center text-[10px]">3</span
+              >结果报告</span
+            >
+          </div>
+          <div class="px-5 pb-5 space-y-4 text-sm">
+            <div class="flex items-center gap-3">
+              <label class="text-slate-500">目标模块</label>
+              <select class="border rounded px-2 py-1 bg-white">
+                <option>登录模块</option>
+                <option>默认模块</option>
+                <option>支付模块</option>
+              </select>
+              <!-- 下拉为模块树选择（支持新建模块路径）；Xmind 导入时按一级分支自动建模块并合并同名模块，此处置灰 -->
+              <div class="ml-auto flex items-center gap-4">
+                <label class="flex items-center gap-1"
+                  ><input type="radio" name="mode" checked /><span>相同编号跳过</span></label
+                >
+                <label class="flex items-center gap-1"
+                  ><input type="radio" name="mode" /><span>相同编号覆盖</span></label
+                >
+              </div>
+              <!-- 覆盖 = 按 num 匹配存量（回收站不参与），白名单字段全量替换并记录变更历史（import_overwrite）；跳过 = 仅计数不改数据 -->
+            </div>
+            <div>
+              <p class="text-xs text-slate-400 mb-1.5">
+                列映射（固定列按别名表自动识别，可手动调整；无法识别的列进入忽略清单并在结果中明示）
+              </p>
+              <table class="w-full text-xs">
+                <thead class="text-slate-400">
+                  <tr class="border-b">
+                    <th class="text-left py-1.5">文件列头</th>
+                    <th class="text-left py-1.5">映射字段</th>
+                    <th class="text-left py-1.5">首行值预览</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr class="border-b">
+                    <td class="py-1.5">用例名称</td>
+                    <td>
+                      <select class="border rounded px-1 py-0.5 bg-white">
+                        <option>名称（必填）</option>
+                      </select>
+                    </td>
+                    <td class="text-slate-500">登录成功场景</td>
+                  </tr>
+                  <tr class="border-b">
+                    <td class="py-1.5">用例等级</td>
+                    <td>
+                      <select class="border rounded px-1 py-0.5 bg-white">
+                        <option>等级</option>
+                      </select>
+                    </td>
+                    <td class="text-slate-500">P0</td>
+                  </tr>
+                  <tr class="border-b">
+                    <td class="py-1.5">前置条件</td>
+                    <td>
+                      <select class="border rounded px-1 py-0.5 bg-white">
+                        <option>前置条件</option>
+                      </select>
+                    </td>
+                    <td class="text-slate-500">已注册账号</td>
+                  </tr>
+                  <tr class="border-b">
+                    <td class="py-1.5">操作步骤</td>
+                    <td>
+                      <select class="border rounded px-1 py-0.5 bg-white">
+                        <option>步骤</option>
+                      </select>
+                    </td>
+                    <td class="text-slate-500">打开登录页输入正确账号密码</td>
+                  </tr>
+                  <tr class="border-b">
+                    <td class="py-1.5">预期结果</td>
+                    <td>
+                      <select class="border rounded px-1 py-0.5 bg-white">
+                        <option>预期结果</option>
+                      </select>
+                    </td>
+                    <td class="text-slate-500">跳转工作台</td>
+                  </tr>
+                  <tr>
+                    <td class="py-1.5">备注</td>
+                    <td>
+                      <select class="border rounded px-1 py-0.5 bg-white text-slate-400">
+                        <option>（忽略列）</option>
+                      </select>
+                    </td>
+                    <td class="text-slate-400">—</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div>
+              <p class="text-xs text-slate-400 mb-1.5">
+                数据预览（共 126 行，展示前 20 行；校验失败行红色标注）
+              </p>
+              <table class="w-full text-xs border rounded">
+                <thead class="bg-slate-50 text-slate-400">
+                  <tr>
+                    <th class="p-1.5 text-left">行号</th>
+                    <th class="p-1.5 text-left">编号</th>
+                    <th class="p-1.5 text-left">名称</th>
+                    <th class="p-1.5 text-left">等级</th>
+                    <th class="p-1.5 text-left">校验</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr class="border-t">
+                    <td class="p-1.5">2</td>
+                    <td class="text-slate-400">—（新建）</td>
+                    <td>登录成功场景</td>
+                    <td>P0</td>
+                    <td class="text-[#52C41A]">通过</td>
+                  </tr>
+                  <tr class="border-t bg-[#FF4D4F]/5">
+                    <td class="p-1.5">3</td>
+                    <td>C-0002</td>
+                    <td>密码错误提示</td>
+                    <td class="text-[#FF4D4F]">高</td>
+                    <td class="text-[#FF4D4F]">等级枚举非法（P0-P3）</td>
+                  </tr>
+                  <tr class="border-t">
+                    <td class="p-1.5">4</td>
+                    <td class="text-slate-400">—（新建）</td>
+                    <td>验证码过期提示</td>
+                    <td>P2</td>
+                    <td class="text-[#52C41A]">通过</td>
+                  </tr>
+                  <tr class="border-t text-slate-400 text-center">
+                    <td colspan="5" class="p-1.5">… 以下省略（预览前 20 行）</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="flex justify-between items-center px-5 py-3 border-t">
+            <span class="text-xs text-slate-400"
+              >预检：124 行通过 · 2 行错误（错误行将不导入，其余行整体落库）</span
+            >
+            <div class="flex gap-2">
+              <button class="border rounded px-4 py-1.5 text-sm">上一步</button>
+              <button class="bg-[#574BFF] text-white rounded px-4 py-1.5 text-sm">开始导入</button>
+            </div>
+          </div>
+          <!-- 落库语义（走查说明）：全部行先校验后原子落库（fail-fast 报告，不产生半量导入）——校验错误的行被拒绝并进入步骤③明细，其余行一次性写入，不出现半量脏数据 -->
         </div>
-      </div>
-      <div class="flex justify-end gap-2 px-5 py-3 border-t">
-        <button class="border rounded px-4 py-1.5 text-sm">重新上传</button>
-        <button class="bg-[#574BFF] text-white rounded px-4 py-1.5 text-sm">完成</button>
-      </div>
-      <!-- 「完成」关闭 Modal 并刷新列表：目标模块下出现 124 条新用例，模块计数 +124；覆盖模式导入时总记录数不变、字段更新并写入变更历史 -->
+
+        <!-- ============ 步骤 ③：结果报告 ============ -->
+        <h2 class="text-sm font-medium text-slate-600 mb-2">步骤 ③ / ③ — 结果报告</h2>
+        <div class="max-w-2xl mx-auto bg-white border rounded-lg shadow-lg">
+          <div class="flex items-center justify-between px-5 h-12 border-b">
+            <span class="font-medium">导入用例</span><span class="text-slate-400">✕</span>
+          </div>
+          <div class="flex items-center gap-2 px-5 py-3 text-xs">
+            <span class="flex items-center gap-1 text-[#52C41A] font-medium"
+              ><span
+                class="w-4 h-4 rounded-full bg-[#52C41A] text-white grid place-items-center text-[10px]"
+                >✓</span
+              >上传文件</span
+            >
+            <span class="flex-1 h-px bg-slate-200"></span>
+            <span class="flex items-center gap-1 text-[#52C41A] font-medium"
+              ><span
+                class="w-4 h-4 rounded-full bg-[#52C41A] text-white grid place-items-center text-[10px]"
+                >✓</span
+              >预览映射</span
+            >
+            <span class="flex-1 h-px bg-slate-200"></span>
+            <span class="flex items-center gap-1 text-[#574BFF] font-medium"
+              ><span
+                class="w-4 h-4 rounded-full bg-[#574BFF] text-white grid place-items-center text-[10px]"
+                >3</span
+              >结果报告</span
+            >
+          </div>
+          <div class="px-5 pb-5 space-y-4">
+            <div class="flex gap-8 text-center py-2">
+              <div>
+                <p class="text-2xl font-semibold text-[#52C41A]">124</p>
+                <p class="text-xs text-slate-500 mt-1">导入成功</p>
+              </div>
+              <div>
+                <p class="text-2xl font-semibold text-[#FF4D4F]">2</p>
+                <p class="text-xs text-slate-500 mt-1">校验失败</p>
+              </div>
+              <div>
+                <p class="text-2xl font-semibold text-slate-400">0</p>
+                <p class="text-xs text-slate-500 mt-1">跳过（编号已存在）</p>
+              </div>
+              <div class="ml-auto self-center text-xs text-slate-400 text-right">
+                目标模块：登录模块<br />文件：用例导入-0926.xlsx
+              </div>
+            </div>
+            <div>
+              <p class="text-xs text-slate-400 mb-1.5">
+                失败行明细（错误行号定位原因，修正模板后可重新上传）
+              </p>
+              <table class="w-full text-xs border rounded">
+                <thead class="bg-slate-50 text-slate-400">
+                  <tr>
+                    <th class="p-1.5 text-left">行号</th>
+                    <th class="p-1.5 text-left">名称</th>
+                    <th class="p-1.5 text-left">失败原因</th>
+                    <th class="p-1.5 text-left">操作</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr class="border-t">
+                    <td class="p-1.5">3</td>
+                    <td>密码错误提示</td>
+                    <td class="text-[#FF4D4F]">等级枚举非法（仅支持 P0-P3）</td>
+                    <td class="text-[#574BFF]">定位</td>
+                  </tr>
+                  <tr class="border-t">
+                    <td class="p-1.5">73</td>
+                    <td>多端登录互踢</td>
+                    <td class="text-[#FF4D4F]">操作步骤为空</td>
+                    <td class="text-[#574BFF]">定位</td>
+                  </tr>
+                </tbody>
+              </table>
+              <p class="text-xs text-slate-400 mt-2">
+                提示：文件列「备注」未能识别，已按忽略列处理，未导入。
+              </p>
+            </div>
+          </div>
+          <div class="flex justify-end gap-2 px-5 py-3 border-t">
+            <button class="border rounded px-4 py-1.5 text-sm">重新上传</button>
+            <button class="bg-[#574BFF] text-white rounded px-4 py-1.5 text-sm">完成</button>
+          </div>
+          <!-- 「完成」关闭 Modal 并刷新列表：目标模块下出现 124 条新用例，模块计数 +124；覆盖模式导入时总记录数不变、字段更新并写入变更历史 -->
+        </div>
+      </main>
     </div>
-  </main>
-</div>
-</body>
+  </body>
 </html>

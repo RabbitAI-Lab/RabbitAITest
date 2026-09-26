@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import { Select, Spin } from 'antd';
-import { useQuery } from '@tanstack/react-query';
-import { useEffect } from 'react';
-import { projectApi } from '@rabbit/api-client';
-import { useProjectStore } from '@/stores/project';
+import { Select, Spin } from "antd";
+import { useQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
+import { projectApi } from "@rabbit/api-client";
+import { useProjectStore } from "@/stores/project";
 
 /** 顶栏项目切换器（SYS-003 §3：切换后业务页按项目重取）。 */
 export function ProjectSwitcher() {
-  const { data, isLoading } = useQuery({ queryKey: ['projects'], queryFn: projectApi.list });
+  const { data, isLoading } = useQuery({ queryKey: ["projects"], queryFn: projectApi.list });
   const { projects, currentProjectId, setProjects, setCurrent } = useProjectStore();
 
   useEffect(() => {
@@ -36,7 +36,9 @@ export function ProjectSwitcher() {
           <span className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-[#574BFF]" />
             <span className="font-medium">{p.name}</span>
-            <span className="text-xs text-[#87888D]">#{p.num} · {p.role}</span>
+            <span className="text-xs text-[#87888D]">
+              #{p.num} · {p.role}
+            </span>
           </span>
         ),
       }))}

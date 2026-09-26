@@ -55,7 +55,8 @@ services:
       SESSION_SECRET: change-me-in-prod-32chars-secret!
       INTERNAL_TOKEN: change-me-internal-token
       SESSION_COOKIE_SECURE: "false"
-    command: ["sh", "-c", "pnpm --filter @rabbit/db migrate-deploy && pnpm --filter @rabbit/db seed"]
+    command:
+      ["sh", "-c", "pnpm --filter @rabbit/db migrate-deploy && pnpm --filter @rabbit/db seed"]
     depends_on:
       db:
         condition: service_healthy
@@ -79,7 +80,11 @@ services:
       migrator:
         condition: service_completed_successfully
     healthcheck:
-      test: ["CMD-SHELL", "node -e \"const h=require('http');h.get('http://127.0.0.1:3000/api/v1/system/health',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))\""]
+      test:
+        [
+          "CMD-SHELL",
+          'node -e "const h=require(''http'');h.get(''http://127.0.0.1:3000/api/v1/system/health'',r=>process.exit(r.statusCode===200?0:1)).on(''error'',()=>process.exit(1))"',
+        ]
       interval: 5s
       timeout: 5s
       retries: 30

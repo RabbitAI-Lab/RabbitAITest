@@ -37,11 +37,11 @@ tests/
 
 ### 3.1 三类断言（每条 UI 用例必须同时包含，缺一即不合规）
 
-| # | 断言类型 | 要求 | 实现方式 |
-| --- | --- | --- | --- |
-| 1 | **UI 断言** | 验证界面结果：元素可见/消失、文本与状态标签、表格行数与列值、表单回显、Toast 提示 | `expect(locator).toBeVisible()/toHaveText()/toHaveCount()/toHaveValue()` |
-| 2 | **Console 断言** | 页面全程**无 console.error、无未捕获 pageerror**；warning 需显式白名单登记 | fixture `expectNoConsoleErrors(page)`（收集 `page.on('console')` + `page.on('pageerror')`，用例结束统一断言） |
-| 3 | **接口断言** | 关键链路的网络请求：状态码、响应体关键字段、**请求负载**（payload 正确性） | `expectApi(page, 'GET /api/v1/projects/*/cases*')` 封装 `page.waitForResponse` / `page.route`，断言 `status`、`body.data.*`、`postData` |
+| #   | 断言类型         | 要求                                                                              | 实现方式                                                                                                                                |
+| --- | ---------------- | --------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **UI 断言**      | 验证界面结果：元素可见/消失、文本与状态标签、表格行数与列值、表单回显、Toast 提示 | `expect(locator).toBeVisible()/toHaveText()/toHaveCount()/toHaveValue()`                                                                |
+| 2   | **Console 断言** | 页面全程**无 console.error、无未捕获 pageerror**；warning 需显式白名单登记        | fixture `expectNoConsoleErrors(page)`（收集 `page.on('console')` + `page.on('pageerror')`，用例结束统一断言）                           |
+| 3   | **接口断言**     | 关键链路的网络请求：状态码、响应体关键字段、**请求负载**（payload 正确性）        | `expectApi(page, 'GET /api/v1/projects/*/cases*')` 封装 `page.waitForResponse` / `page.route`，断言 `status`、`body.data.*`、`postData` |
 
 三类断言通过 `tests/e2e/fixtures/` 公共夹具提供，**禁止**各用例手写收集逻辑。
 
@@ -49,22 +49,22 @@ tests/
 
 1. 选择器优先级：`getByRole` > `getByText` > `data-testid="{module}-{name}"`；**禁止**脆弱的 CSS/XPath 选择器。
 2. **用户路径完整（2026-09-26 走查②新增）**：功能用例必须从首页（`/` 工作台；未登录场景则由 `/` 被守卫重定向至 `/login`）出发，经**真实可见导航**（左侧菜单/顶栏/页面内主按钮）到达被测功能——**禁止 `page.goto` 直跳目标页**。理由：录屏供人工走查与验收，必须呈现功能入口路径。例外（可在 PR 说明）：守卫/未登录重定向类断言的「再次访问」、纯 API 无页面用例。
-2. 稳定性：等待以 locator 断言为准，**禁止 `waitForTimeout` 硬等待**；每条用例独立数据（setup 创建、teardown 清理），用例间零依赖。
+3. 稳定性：等待以 locator 断言为准，**禁止 `waitForTimeout` 硬等待**；每条用例独立数据（setup 创建、teardown 清理），用例间零依赖。
    - antd 5.29+ Select 虚拟列表下**可见选项无 `role=option`**（隐藏 a11y 镜像反而有）——实现侧对需测试的下拉统一 `virtual={false}`（S1 走查③教训）；中文 2 字按钮自动插空格（确 定），按 `/^(确\s*定|OK)$/` 正则定位。
-3. 登录态：使用 `authedPage` fixture（storageState 复用），每条主链路用例另备一条「未登录跳转」断言。
-4. 权限视角：涉及权限的功能至少两条用例（管理员视角成功 + 普通成员视角 403/隐藏）。
-5. Mock 边界：UI 测试**不 mock** 业务 API（走真实服务，保证 console/接口断言真实性）；仅允许 mock 外部三方（如 AI provider、第三方缺陷平台）与时间。
+4. 登录态：使用 `authedPage` fixture（storageState 复用），每条主链路用例另备一条「未登录跳转」断言。
+5. 权限视角：涉及权限的功能至少两条用例（管理员视角成功 + 普通成员视角 403/隐藏）。
+6. Mock 边界：UI 测试**不 mock** 业务 API（走真实服务，保证 console/接口断言真实性）；仅允许 mock 外部三方（如 AI provider、第三方缺陷平台）与时间。
 
 ### 3.3 录屏、Trace 与测试产物（失败必须可回放）
 
 Playwright 全局配置（`playwright.config.ts`，禁止用例级关闭）：
 
-| 项 | 配置 | 说明 |
-| --- | --- | --- |
-| **录屏 video** | `video: 'on-with-retry'`（size 1280×720） | **每条 UI 用例必须留有录屏证据**；重试全过程保留，最终失败的视频必留存 |
-| Trace | `trace: 'retain-on-failure'` | 失败自动保留 trace，可离线回放（Trace Viewer）逐帧查看 DOM/网络/console |
-| 截图 | `screenshot: 'only-on-failure'` | 失败即时现场 |
-| HTML 报告 | `reporter: [['html', { open: 'never' }], ['list']]` | 报告内嵌每条用例的 video/trace/截图入口 |
+| 项             | 配置                                                | 说明                                                                    |
+| -------------- | --------------------------------------------------- | ----------------------------------------------------------------------- |
+| **录屏 video** | `video: 'on-with-retry'`（size 1280×720）           | **每条 UI 用例必须留有录屏证据**；重试全过程保留，最终失败的视频必留存  |
+| Trace          | `trace: 'retain-on-failure'`                        | 失败自动保留 trace，可离线回放（Trace Viewer）逐帧查看 DOM/网络/console |
+| 截图           | `screenshot: 'only-on-failure'`                     | 失败即时现场                                                            |
+| HTML 报告      | `reporter: [['html', { open: 'never' }], ['list']]` | 报告内嵌每条用例的 video/trace/截图入口                                 |
 
 产物管理：
 

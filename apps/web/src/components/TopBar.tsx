@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { Avatar, Badge, Dropdown } from 'antd';
-import { HelpCircle, LogOut, Bell } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { ProjectSwitcher } from './ProjectSwitcher';
+import { Avatar, Badge, Dropdown } from "antd";
+import { HelpCircle, LogOut, Bell } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { ProjectSwitcher } from "./ProjectSwitcher";
 
 /** 顶栏（SYS-003 §3 视觉基线：白底描边、品牌位 + 项目切换 + 通知/帮助/用户）。 */
 export function TopBar({ email }: { email?: string }) {
@@ -27,7 +27,7 @@ export function TopBar({ email }: { email?: string }) {
         <button
           aria-label="消息通知"
           className="w-8 h-8 rounded-md grid place-items-center hover:bg-[#F2F3F5] cursor-pointer"
-          onClick={() => router.push('/')}
+          onClick={() => router.push("/")}
         >
           <Badge dot color="#574BFF">
             <Bell size={16} strokeWidth={1.8} />
@@ -36,17 +36,17 @@ export function TopBar({ email }: { email?: string }) {
         <button
           aria-label="帮助"
           className="w-8 h-8 rounded-md grid place-items-center hover:bg-[#F2F3F5] cursor-pointer"
-          onClick={() => window.open('https://metersphere.io/docs/v3.x/', '_blank')}
+          onClick={() => window.open("https://metersphere.io/docs/v3.x/", "_blank")}
         >
           <HelpCircle size={16} strokeWidth={1.8} />
         </button>
         <Dropdown
           menu={{
-            items: [{ key: 'logout', icon: <LogOut size={14} />, label: '退出登录' }],
+            items: [{ key: "logout", icon: <LogOut size={14} />, label: "退出登录" }],
             onClick: async ({ key }) => {
-              if (key === 'logout') {
-                await fetch('/api/v1/auth/logout', { method: 'POST' });
-                window.location.href = '/login';
+              if (key === "logout") {
+                await fetch("/api/v1/auth/logout", { method: "POST" });
+                window.location.href = "/login";
               }
             },
           }}
@@ -54,9 +54,9 @@ export function TopBar({ email }: { email?: string }) {
           <Avatar
             data-testid="user-avatar"
             size={28}
-            style={{ background: '#574BFF', cursor: 'pointer', fontSize: 12 }}
+            style={{ background: "#574BFF", cursor: "pointer", fontSize: 12 }}
           >
-            {(email ?? 'U').slice(0, 1).toUpperCase()}
+            {(email ?? "U").slice(0, 1).toUpperCase()}
           </Avatar>
         </Dropdown>
       </div>

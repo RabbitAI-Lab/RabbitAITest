@@ -1,55 +1,214 @@
-<!doctype html><html lang="zh"><head><meta charset="utf-8"><title>PLAN-001 计划列表</title><script src="https://cdn.tailwindcss.com"></script></head>
-<body class="bg-slate-50 text-slate-800">
-<!-- 顶栏 48px：左 Logo + 项目 chip；右 帮助 / 消息 / 用户头像 -->
-<header class="h-12 bg-white border-b flex items-center px-4 gap-3 text-sm">
-  <span class="font-semibold">RabbitAITest</span><span class="border rounded px-2 py-0.5 text-slate-600">演示项目 #1</span>
-  <div class="ml-auto flex items-center gap-3 text-slate-500"><span>帮助</span><span>消息</span><span class="w-6 h-6 rounded-full bg-[#574BFF]/20 text-[#574BFF] text-xs grid place-items-center font-medium">徐</span></div>
-</header>
-<div class="flex">
-  <!-- 左导航 208px：分组 工作区 / 测试管理 / 项目设置 -->
-  <aside class="w-[208px] bg-white border-r p-2 text-sm shrink-0">
-    <p class="px-3 pt-4 pb-1 text-xs text-slate-400">工作区</p>
-    <p class="px-3 py-2 rounded text-slate-600">工作台</p>
-    <p class="px-3 pt-4 pb-1 text-xs text-slate-400">测试管理</p>
-    <p class="px-3 py-2 rounded text-slate-600">测试用例</p>
-    <p class="px-3 py-2 rounded text-slate-600">用例评审</p>
-    <p class="px-3 py-2 rounded bg-[#574BFF]/10 text-[#574BFF] font-medium">测试计划</p>
-    <p class="px-3 py-2 rounded text-slate-600">缺陷管理</p>
-    <p class="px-3 py-2 rounded text-slate-600 mt-4 border-t border-slate-100">项目设置</p>
-  </aside>
-  <main class="flex-1 p-6 min-w-0">
-    <div class="flex items-center gap-3 mb-4">
-      <h1 class="text-lg font-medium">测试计划</h1>
-      <label class="text-xs text-slate-500 flex items-center gap-1"><input type="checkbox"> 只看已归档</label>
-      <button class="ml-auto bg-[#574BFF] text-white rounded px-3 py-1.5 text-sm">＋ 新建计划</button>
-    </div>
-    <div class="flex gap-2 mb-4 text-xs">
-      <span class="rounded-full bg-white border px-3 py-1">全部（4）</span>
-      <span class="rounded-full bg-white border px-3 py-1"><span class="inline-block w-2 h-2 rounded-full bg-[#1677FF] mr-1.5 align-middle"></span>进行中（2）</span>
-      <span class="rounded-full bg-white border px-3 py-1"><span class="inline-block w-2 h-2 rounded-full bg-slate-300 mr-1.5 align-middle"></span>未开始（1）</span>
-      <span class="rounded-full bg-white border px-3 py-1"><span class="inline-block w-2 h-2 rounded-full bg-slate-400 mr-1.5 align-middle"></span>已归档（1）</span>
-      <span class="rounded-full bg-[#574BFF]/10 text-[#574BFF] px-3 py-1">进行中（2）</span>
-    </div>
-    <!-- 列表：名称 / 模块 / 用例数 / 执行进度 / 通过率+阈值徽标 / 状态 / 起止 / 操作（进入·归档·编辑·删除） -->
-    <div class="bg-white border rounded">
-      <div class="flex gap-2 p-3 border-b"><input class="border rounded px-2 py-1 text-sm w-56" placeholder="计划名称"><select class="border rounded px-2 py-1 text-sm"><option>状态：全部</option><option>未开始</option><option>进行中</option><option>已归档</option></select><button class="border rounded px-2 py-1 text-sm">查询</button></div>
-      <table class="w-full text-sm">
-        <thead class="text-slate-400 text-xs"><tr class="border-b"><th class="text-left p-3">名称</th><th class="text-left p-3">模块</th><th class="text-left p-3">用例数</th><th class="text-left p-3">执行进度</th><th class="text-left p-3">通过率</th><th class="text-left p-3">状态</th><th class="text-left p-3">起止时间</th><th class="text-left p-3">操作</th></tr></thead>
-        <tbody>
-          <tr class="border-b hover:bg-slate-50"><td class="p-3"><a class="text-[#574BFF]" href="detail.html">冒烟回归-Sprint 1</a></td><td class="p-3 text-slate-500">认证登录</td><td class="p-3">12</td><td class="p-3"><div class="flex items-center gap-2"><div class="w-24 h-1.5 bg-slate-100 rounded"><div class="h-1.5 bg-[#574BFF] rounded" style="width:83%"></div></div><span class="text-xs text-slate-500">10/12</span></div></td><td class="p-3 whitespace-nowrap"><span class="font-medium">89%</span> <span class="text-[10px] rounded px-1 py-0.5 bg-[#52C41A]/10 text-[#52C41A]">达标 ≥80%</span></td><td class="p-3 whitespace-nowrap"><span class="inline-block w-2 h-2 rounded-full bg-[#1677FF] mr-1.5 align-middle"></span>进行中</td><td class="p-3 text-slate-500 text-xs whitespace-nowrap">09-22 ~ 09-28</td><td class="p-3 text-slate-500 text-xs whitespace-nowrap">进入 · 归档 · 编辑 · 删除</td></tr>
-          <tr class="border-b hover:bg-slate-50"><td class="p-3"><a class="text-[#574BFF]" href="#">全量功能回归</a></td><td class="p-3 text-slate-500">全部模块</td><td class="p-3">46</td><td class="p-3"><div class="flex items-center gap-2"><div class="w-24 h-1.5 bg-slate-100 rounded"><div class="h-1.5 bg-[#574BFF] rounded" style="width:39%"></div></div><span class="text-xs text-slate-500">18/46</span></div></td><td class="p-3 whitespace-nowrap"><span class="font-medium">72%</span> <span class="text-[10px] rounded px-1 py-0.5 bg-[#FF4D4F]/10 text-[#FF4D4F]">未达标 ≥80%</span></td><td class="p-3 whitespace-nowrap"><span class="inline-block w-2 h-2 rounded-full bg-[#1677FF] mr-1.5 align-middle"></span>进行中</td><td class="p-3 text-slate-500 text-xs whitespace-nowrap">09-20 ~ 10-10</td><td class="p-3 text-slate-500 text-xs whitespace-nowrap">进入 · 归档 · 编辑 · 删除</td></tr>
-          <tr class="border-b hover:bg-slate-50"><td class="p-3"><a class="text-[#574BFF]" href="#">接口冒烟 P0</a></td><td class="p-3 text-slate-500">接口测试</td><td class="p-3">8</td><td class="p-3"><div class="flex items-center gap-2"><div class="w-24 h-1.5 bg-slate-100 rounded"><div class="h-1.5 bg-[#574BFF] rounded" style="width:0%"></div></div><span class="text-xs text-slate-500">0/8</span></div></td><td class="p-3 text-slate-400">—</td><td class="p-3 whitespace-nowrap"><span class="inline-block w-2 h-2 rounded-full bg-slate-300 mr-1.5 align-middle"></span>未开始</td><td class="p-3 text-slate-500 text-xs whitespace-nowrap">10-08 ~ 10-09</td><td class="p-3 text-slate-500 text-xs whitespace-nowrap">进入 · 归档 · 编辑 · 删除</td></tr>
-          <tr class="hover:bg-slate-50"><td class="p-3"><a class="text-[#574BFF]" href="#">Sprint 0 历史回归</a></td><td class="p-3 text-slate-500">全部模块</td><td class="p-3">30</td><td class="p-3"><div class="flex items-center gap-2"><div class="w-24 h-1.5 bg-slate-100 rounded"><div class="h-1.5 bg-[#574BFF] rounded" style="width:100%"></div></div><span class="text-xs text-slate-500">30/30</span></div></td><td class="p-3 whitespace-nowrap"><span class="font-medium">95%</span> <span class="text-[10px] rounded px-1 py-0.5 bg-[#52C41A]/10 text-[#52C41A]">达标 ≥80%</span></td><td class="p-3 whitespace-nowrap"><span class="inline-block w-2 h-2 rounded-full bg-slate-400 mr-1.5 align-middle"></span>已归档</td><td class="p-3 text-slate-500 text-xs whitespace-nowrap">09-01 ~ 09-10</td><td class="p-3 text-slate-500 text-xs whitespace-nowrap">进入（只读） · 取消归档</td></tr>
-        </tbody>
-      </table>
-      <div class="flex justify-end items-center gap-2 p-3 text-sm"><span class="text-slate-400 text-xs">共 4 条</span><button class="border rounded px-2 py-0.5">‹</button><span class="px-2">1 / 1</span><button class="border rounded px-2 py-0.5">›</button></div>
-    </div>
-    <!-- 交互说明（静态不可表达部分）：
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="utf-8" />
+    <title>PLAN-001 计划列表</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-slate-50 text-slate-800">
+    <!-- 顶栏 48px：左 Logo + 项目 chip；右 帮助 / 消息 / 用户头像 -->
+    <header class="h-12 bg-white border-b flex items-center px-4 gap-3 text-sm">
+      <span class="font-semibold">RabbitAITest</span
+      ><span class="border rounded px-2 py-0.5 text-slate-600">演示项目 #1</span>
+      <div class="ml-auto flex items-center gap-3 text-slate-500">
+        <span>帮助</span><span>消息</span
+        ><span
+          class="w-6 h-6 rounded-full bg-[#574BFF]/20 text-[#574BFF] text-xs grid place-items-center font-medium"
+          >徐</span
+        >
+      </div>
+    </header>
+    <div class="flex">
+      <!-- 左导航 208px：分组 工作区 / 测试管理 / 项目设置 -->
+      <aside class="w-[208px] bg-white border-r p-2 text-sm shrink-0">
+        <p class="px-3 pt-4 pb-1 text-xs text-slate-400">工作区</p>
+        <p class="px-3 py-2 rounded text-slate-600">工作台</p>
+        <p class="px-3 pt-4 pb-1 text-xs text-slate-400">测试管理</p>
+        <p class="px-3 py-2 rounded text-slate-600">测试用例</p>
+        <p class="px-3 py-2 rounded text-slate-600">用例评审</p>
+        <p class="px-3 py-2 rounded bg-[#574BFF]/10 text-[#574BFF] font-medium">测试计划</p>
+        <p class="px-3 py-2 rounded text-slate-600">缺陷管理</p>
+        <p class="px-3 py-2 rounded text-slate-600 mt-4 border-t border-slate-100">项目设置</p>
+      </aside>
+      <main class="flex-1 p-6 min-w-0">
+        <div class="flex items-center gap-3 mb-4">
+          <h1 class="text-lg font-medium">测试计划</h1>
+          <label class="text-xs text-slate-500 flex items-center gap-1"
+            ><input type="checkbox" /> 只看已归档</label
+          >
+          <button class="ml-auto bg-[#574BFF] text-white rounded px-3 py-1.5 text-sm">
+            ＋ 新建计划
+          </button>
+        </div>
+        <div class="flex gap-2 mb-4 text-xs">
+          <span class="rounded-full bg-white border px-3 py-1">全部（4）</span>
+          <span class="rounded-full bg-white border px-3 py-1"
+            ><span class="inline-block w-2 h-2 rounded-full bg-[#1677FF] mr-1.5 align-middle"></span
+            >进行中（2）</span
+          >
+          <span class="rounded-full bg-white border px-3 py-1"
+            ><span class="inline-block w-2 h-2 rounded-full bg-slate-300 mr-1.5 align-middle"></span
+            >未开始（1）</span
+          >
+          <span class="rounded-full bg-white border px-3 py-1"
+            ><span class="inline-block w-2 h-2 rounded-full bg-slate-400 mr-1.5 align-middle"></span
+            >已归档（1）</span
+          >
+          <span class="rounded-full bg-[#574BFF]/10 text-[#574BFF] px-3 py-1">进行中（2）</span>
+        </div>
+        <!-- 列表：名称 / 模块 / 用例数 / 执行进度 / 通过率+阈值徽标 / 状态 / 起止 / 操作（进入·归档·编辑·删除） -->
+        <div class="bg-white border rounded">
+          <div class="flex gap-2 p-3 border-b">
+            <input class="border rounded px-2 py-1 text-sm w-56" placeholder="计划名称" /><select
+              class="border rounded px-2 py-1 text-sm"
+            >
+              <option>状态：全部</option>
+              <option>未开始</option>
+              <option>进行中</option>
+              <option>已归档</option></select
+            ><button class="border rounded px-2 py-1 text-sm">查询</button>
+          </div>
+          <table class="w-full text-sm">
+            <thead class="text-slate-400 text-xs">
+              <tr class="border-b">
+                <th class="text-left p-3">名称</th>
+                <th class="text-left p-3">模块</th>
+                <th class="text-left p-3">用例数</th>
+                <th class="text-left p-3">执行进度</th>
+                <th class="text-left p-3">通过率</th>
+                <th class="text-left p-3">状态</th>
+                <th class="text-left p-3">起止时间</th>
+                <th class="text-left p-3">操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="border-b hover:bg-slate-50">
+                <td class="p-3">
+                  <a class="text-[#574BFF]" href="detail.html">冒烟回归-Sprint 1</a>
+                </td>
+                <td class="p-3 text-slate-500">认证登录</td>
+                <td class="p-3">12</td>
+                <td class="p-3">
+                  <div class="flex items-center gap-2">
+                    <div class="w-24 h-1.5 bg-slate-100 rounded">
+                      <div class="h-1.5 bg-[#574BFF] rounded" style="width: 83%"></div>
+                    </div>
+                    <span class="text-xs text-slate-500">10/12</span>
+                  </div>
+                </td>
+                <td class="p-3 whitespace-nowrap">
+                  <span class="font-medium">89%</span>
+                  <span class="text-[10px] rounded px-1 py-0.5 bg-[#52C41A]/10 text-[#52C41A]"
+                    >达标 ≥80%</span
+                  >
+                </td>
+                <td class="p-3 whitespace-nowrap">
+                  <span
+                    class="inline-block w-2 h-2 rounded-full bg-[#1677FF] mr-1.5 align-middle"
+                  ></span
+                  >进行中
+                </td>
+                <td class="p-3 text-slate-500 text-xs whitespace-nowrap">09-22 ~ 09-28</td>
+                <td class="p-3 text-slate-500 text-xs whitespace-nowrap">
+                  进入 · 归档 · 编辑 · 删除
+                </td>
+              </tr>
+              <tr class="border-b hover:bg-slate-50">
+                <td class="p-3"><a class="text-[#574BFF]" href="#">全量功能回归</a></td>
+                <td class="p-3 text-slate-500">全部模块</td>
+                <td class="p-3">46</td>
+                <td class="p-3">
+                  <div class="flex items-center gap-2">
+                    <div class="w-24 h-1.5 bg-slate-100 rounded">
+                      <div class="h-1.5 bg-[#574BFF] rounded" style="width: 39%"></div>
+                    </div>
+                    <span class="text-xs text-slate-500">18/46</span>
+                  </div>
+                </td>
+                <td class="p-3 whitespace-nowrap">
+                  <span class="font-medium">72%</span>
+                  <span class="text-[10px] rounded px-1 py-0.5 bg-[#FF4D4F]/10 text-[#FF4D4F]"
+                    >未达标 ≥80%</span
+                  >
+                </td>
+                <td class="p-3 whitespace-nowrap">
+                  <span
+                    class="inline-block w-2 h-2 rounded-full bg-[#1677FF] mr-1.5 align-middle"
+                  ></span
+                  >进行中
+                </td>
+                <td class="p-3 text-slate-500 text-xs whitespace-nowrap">09-20 ~ 10-10</td>
+                <td class="p-3 text-slate-500 text-xs whitespace-nowrap">
+                  进入 · 归档 · 编辑 · 删除
+                </td>
+              </tr>
+              <tr class="border-b hover:bg-slate-50">
+                <td class="p-3"><a class="text-[#574BFF]" href="#">接口冒烟 P0</a></td>
+                <td class="p-3 text-slate-500">接口测试</td>
+                <td class="p-3">8</td>
+                <td class="p-3">
+                  <div class="flex items-center gap-2">
+                    <div class="w-24 h-1.5 bg-slate-100 rounded">
+                      <div class="h-1.5 bg-[#574BFF] rounded" style="width: 0%"></div>
+                    </div>
+                    <span class="text-xs text-slate-500">0/8</span>
+                  </div>
+                </td>
+                <td class="p-3 text-slate-400">—</td>
+                <td class="p-3 whitespace-nowrap">
+                  <span
+                    class="inline-block w-2 h-2 rounded-full bg-slate-300 mr-1.5 align-middle"
+                  ></span
+                  >未开始
+                </td>
+                <td class="p-3 text-slate-500 text-xs whitespace-nowrap">10-08 ~ 10-09</td>
+                <td class="p-3 text-slate-500 text-xs whitespace-nowrap">
+                  进入 · 归档 · 编辑 · 删除
+                </td>
+              </tr>
+              <tr class="hover:bg-slate-50">
+                <td class="p-3"><a class="text-[#574BFF]" href="#">Sprint 0 历史回归</a></td>
+                <td class="p-3 text-slate-500">全部模块</td>
+                <td class="p-3">30</td>
+                <td class="p-3">
+                  <div class="flex items-center gap-2">
+                    <div class="w-24 h-1.5 bg-slate-100 rounded">
+                      <div class="h-1.5 bg-[#574BFF] rounded" style="width: 100%"></div>
+                    </div>
+                    <span class="text-xs text-slate-500">30/30</span>
+                  </div>
+                </td>
+                <td class="p-3 whitespace-nowrap">
+                  <span class="font-medium">95%</span>
+                  <span class="text-[10px] rounded px-1 py-0.5 bg-[#52C41A]/10 text-[#52C41A]"
+                    >达标 ≥80%</span
+                  >
+                </td>
+                <td class="p-3 whitespace-nowrap">
+                  <span
+                    class="inline-block w-2 h-2 rounded-full bg-slate-400 mr-1.5 align-middle"
+                  ></span
+                  >已归档
+                </td>
+                <td class="p-3 text-slate-500 text-xs whitespace-nowrap">09-01 ~ 09-10</td>
+                <td class="p-3 text-slate-500 text-xs whitespace-nowrap">
+                  进入（只读） · 取消归档
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="flex justify-end items-center gap-2 p-3 text-sm">
+            <span class="text-slate-400 text-xs">共 4 条</span
+            ><button class="border rounded px-2 py-0.5">‹</button><span class="px-2">1 / 1</span
+            ><button class="border rounded px-2 py-0.5">›</button>
+          </div>
+        </div>
+        <!-- 交互说明（静态不可表达部分）：
       · 新建计划：表单（名称/描述/所属模块（plan 树）/起止日期/标签）+「更多设置」抽屉——允许关联重复用例（开关，关闭时二次关联 422 code 10009 DUP_ASSOC）/ 自动更新状态（P1 仅存配置）/ 通过阈值 %（0-100，报告判定）。
       · 归档：确认 Modal「归档后计划只读，写操作将被拒绝（10008 PLAN_ARCHIVED）」[取消][确认归档]；已归档行操作变「进入（只读）· 取消归档」。
       · 删除：确认 Modal「仅解除用例关联与执行记录，不删除用例本身」。
       ·「只看已归档」勾选 → 列表过滤为已归档计划；进入 → 计划详情页（已归档详情页顶部黄色横幅）。 -->
-  </main>
-</div>
-</body>
+      </main>
+    </div>
+  </body>
 </html>

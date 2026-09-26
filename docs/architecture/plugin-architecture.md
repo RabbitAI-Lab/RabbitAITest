@@ -1,21 +1,21 @@
 # 插件体系架构（协议 / 平台 / 驱动）
 
-| 元信息项 | 内容 |
-| --- | --- |
-| 文档层级 | 架构文档（全局约束） |
-| 状态 | 已确认（Approved） |
+| 元信息项 | 内容                                                                                                     |
+| -------- | -------------------------------------------------------------------------------------------------------- |
+| 文档层级 | 架构文档（全局约束）                                                                                     |
+| 状态     | 已确认（Approved）                                                                                       |
 | 对标基线 | MeterSphere 功能清单 §十一（pf4j 三套 SPI：plugin-sdk / platform-sdk / api-sdk；插件上传/启停/组织范围） |
-| 下游消费 | PLUG-001/002、INTG-001/002、PROJ-003（数据源）、SYS-005（插件管理页） |
+| 下游消费 | PLUG-001/002、INTG-001/002、PROJ-003（数据源）、SYS-005（插件管理页）                                    |
 
 ---
 
 ## 1. 三类插件
 
-| 类别 | SPI 接口 | 载体 | 用途 |
-| --- | --- | --- | --- |
-| 协议插件 | `SamplerPlugin`：构建采样器（解析协议配置 → 发包 → 标准化响应） | TS 插件包（tarball） | TCP/SSH/Redis/MongoDB/WebSocket 等协议扩展（P4 起步） |
-| 平台插件 | `PlatformPlugin`：缺陷/需求 CRUD、状态映射、附件、连接测试 | TS 插件包（tarball） | Jira / 禅道 / TAPD 对接 |
-| 数据库驱动 | `DriverPlugin`：连接池 + query/execute | TS 插件包（tarball）+ 二进制驱动 | Oracle/SQLServer/达梦 等非内置数据源（内置 PostgreSQL/MySQL） |
+| 类别       | SPI 接口                                                        | 载体                             | 用途                                                          |
+| ---------- | --------------------------------------------------------------- | -------------------------------- | ------------------------------------------------------------- |
+| 协议插件   | `SamplerPlugin`：构建采样器（解析协议配置 → 发包 → 标准化响应） | TS 插件包（tarball）             | TCP/SSH/Redis/MongoDB/WebSocket 等协议扩展（P4 起步）         |
+| 平台插件   | `PlatformPlugin`：缺陷/需求 CRUD、状态映射、附件、连接测试      | TS 插件包（tarball）             | Jira / 禅道 / TAPD 对接                                       |
+| 数据库驱动 | `DriverPlugin`：连接池 + query/execute                          | TS 插件包（tarball）+ 二进制驱动 | Oracle/SQLServer/达梦 等非内置数据源（内置 PostgreSQL/MySQL） |
 
 **明确决策：不兼容 pf4j/jar 生态**；插件只以本项目 SPI 分发（应用市场 = 仓库 release 附件）。
 
@@ -36,16 +36,16 @@ apps/api（编排）──RPC(gRPC)──→ apps/plugin-runner（插件宿主�
 
 ```ts
 export interface SamplerPlugin {
-  protocol: string                                  // "tcp" / "websocket" / ...
-  buildSampler(config: SamplerConfig): Sampler
+  protocol: string; // "tcp" / "websocket" / ...
+  buildSampler(config: SamplerConfig): Sampler;
 }
 
 export interface PlatformPlugin {
-  platform: string                                  // "jira" / "zentao" / "tapd"
-  testConnection(cfg: PlatformConfig): Promise<void>
-  createIssue(payload: IssuePayload): Promise<PlatformRef>
-  syncBugs(since?: Date): Promise<PlatformBug[]>    // 增量/全量由编排层决定
-  fieldMapping(): PlatformField[]                   // 模板自动生成（dynamic-template-fields §3）
+  platform: string; // "jira" / "zentao" / "tapd"
+  testConnection(cfg: PlatformConfig): Promise<void>;
+  createIssue(payload: IssuePayload): Promise<PlatformRef>;
+  syncBugs(since?: Date): Promise<PlatformBug[]>; // 增量/全量由编排层决定
+  fieldMapping(): PlatformField[]; // 模板自动生成（dynamic-template-fields §3）
 }
 ```
 

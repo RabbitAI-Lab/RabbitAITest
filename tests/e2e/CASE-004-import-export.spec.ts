@@ -1,6 +1,6 @@
-import type { APIRequestContext } from '@playwright/test';
-import { statSync } from 'node:fs';
-import { test, expect, navFromHome } from './fixtures';
+import type { APIRequestContext } from "@playwright/test";
+import { statSync } from "node:fs";
+import { test, expect, navFromHome } from "./fixtures";
 
 /**
  * 规格：docs/sprint-1-mvp-test-mgmt/CASE-004-excel-xmind-io.md §5（T2 主链路：导出 → 导入向导三步 → 覆盖模式报告）
@@ -17,15 +17,18 @@ import { test, expect, navFromHome } from './fixtures';
  */
 
 interface CaseRow {
-  id: string; num: number; name: string;
+  id: string;
+  num: number;
+  name: string;
 }
 
 async function apiCreateCase(
-  request: APIRequestContext, projectId: string,
+  request: APIRequestContext,
+  projectId: string,
   body: { name: string; steps?: { desc: string; expect: string }[] },
 ): Promise<CaseRow> {
   const res = await request.post(`/api/v1/projects/${projectId}/cases`, {
-    data: { precondition: '', level: 'P2', tags: [], fields: {}, ...body },
+    data: { precondition: "", level: "P2", tags: [], fields: {}, ...body },
   });
   expect(res.status()).toBe(201);
   const json = (await res.json()) as { code: number; data: CaseRow };
@@ -33,80 +36,94 @@ async function apiCreateCase(
   return json.data;
 }
 
-test('CASE-004-01 导入向导三步', async ({ authedPage, page, request, expectNoConsoleErrors, expectApi }, testInfo) => {
+test("CASE-004-01 导入向导三步", async ({
+  authedPage,
+  page,
+  request,
+  expectNoConsoleErrors,
+  expectApi,
+}, testInfo) => {
   const uniq = `${Date.now() % 100000}`;
   const caseName = `导入导出用例${uniq}`;
   const kase = await apiCreateCase(request, authedPage.projectId, {
     name: caseName,
-    steps: [{ desc: '打开登录页', expect: '登录表单可见' }],
+    steps: [{ desc: "打开登录页", expect: "登录表单可见" }],
   });
   expect(kase.num).toBeGreaterThan(0);
 
   // 用户路径：首页 → 左侧菜单「测试用例」
-  await navFromHome(page, '测试用例');
-  await expect(page.getByTestId('case-table')).toBeVisible();
+  await navFromHome(page, "测试用例");
+  await expect(page.getByTestId("case-table")).toBeVisible();
   await expect(page.getByText(caseName)).toBeVisible();
 
   // ── 导出 Excel：接口 200 + 捕获浏览器下载保存（作为导入 roundtrip 文件） ──
-  await page.getByTestId('btn-export').click();
-  const exportDialog = page.getByRole('dialog');
-  await expect(exportDialog.getByText('导出用例')).toBeVisible();
-  const exportApi = expectApi('**/api/v1/projects/*/cases/export');
-  const downloadPromise = page.waitForEvent('download');
+  await page.getByTestId("btn-export").click();
+  const exportDialog = page.getByRole("dialog");
+  await expect(exportDialog.getByText("导出用例")).toBeVisible();
+  const exportApi = expectApi("**/api/v1/projects/*/cases/export");
+  const downloadPromise = page.waitForEvent("download");
   // Modal okText=导出（2 字主按钮渲染「导 出」），正则兼容
-  await exportDialog.getByRole('button', { name: /导\s*出/ }).click();
+  await exportDialog.getByRole("button", { name: /导\s*出/ }).click();
   const exported = await exportApi;
   // 接口断言：导出为 xlsx 二进制流（非 JSON 信封），断言状态码；内容正确性由下方导入 roundtrip 验证
   expect(exported.status).toBe(200);
   const download = await downloadPromise;
-  const exportPath = testInfo.outputPath('case-export.xlsx');
+  const exportPath = testInfo.outputPath("case-export.xlsx");
   await download.saveAs(exportPath);
   expect(statSync(exportPath).size).toBeGreaterThan(0);
   // UI 断言：导出成功 toast + 弹窗关闭（antd 关闭后仍保留隐藏标题 DOM → 按可访问性 dialog 角色断言）
-  await expect(page.getByText('导出成功')).toBeVisible({ timeout: 8000 });
-  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(page.getByText("导出成功")).toBeVisible({ timeout: 8000 });
+  await expect(page.getByRole("dialog")).toHaveCount(0);
 
   // ── 导入向导 步骤①：上传文件（含模板下载） ──
-  await page.getByTestId('btn-import').click();
-  await expect(page.getByTestId('import-step-upload')).toBeVisible();
-  const importDialog = page.getByRole('dialog');
+  await page.getByTestId("btn-import").click();
+  await expect(page.getByTestId("import-step-upload")).toBeVisible();
+  const importDialog = page.getByRole("dialog");
   // 模板下载：GET import/template（fetch blob，不走下载事件）→ 状态码 200
-  const tplApi = expectApi('**/api/v1/projects/*/cases/import/template');
-  await page.getByTestId('btn-download-template').click();
+  const tplApi = expectApi("**/api/v1/projects/*/cases/import/template");
+  await page.getByTestId("btn-download-template").click();
   const tpl = await tplApi;
   expect(tpl.status).toBe(200);
   // 上传导出的 xlsx（beforeUpload return false 仅暂存文件）
-  await page.getByTestId('import-step-upload').locator('input[type="file"]').setInputFiles(exportPath);
-  await importDialog.getByRole('button', { name: '下一步' }).click();
+  await page
+    .getByTestId("import-step-upload")
+    .locator('input[type="file"]')
+    .setInputFiles(exportPath);
+  await importDialog.getByRole("button", { name: "下一步" }).click();
 
   // ── 步骤②：确认映射 → 相同编号覆盖 ──
-  await expect(page.getByTestId('import-step-mapping')).toBeVisible();
-  await expect(page.getByTestId('import-step-mapping').getByText(/文件：.*\.xlsx/)).toBeVisible(); // 文件名回显（导出文件名={项目名}-用例-{ts}.xlsx）
-  await page.getByTestId('radio-import-mode').getByText('相同编号覆盖').click();
+  await expect(page.getByTestId("import-step-mapping")).toBeVisible();
+  await expect(page.getByTestId("import-step-mapping").getByText(/文件：.*\.xlsx/)).toBeVisible(); // 文件名回显（导出文件名={项目名}-用例-{ts}.xlsx）
+  await page.getByTestId("radio-import-mode").getByText("相同编号覆盖").click();
 
   // ── 步骤③：开始导入 → 结果报告 ──
-  const importApi = expectApi('**/api/v1/projects/*/cases/import');
-  await importDialog.getByRole('button', { name: '开始导入' }).click();
+  const importApi = expectApi("**/api/v1/projects/*/cases/import");
+  await importDialog.getByRole("button", { name: "开始导入" }).click();
   const imported = await importApi;
   // 接口断言：POST import 200 + code=0 + 报告字段（覆盖 1 / 失败 0 / 模式 overwrite）
   expect(imported.status).toBe(200);
   expect(imported.code).toBe(0);
   const report = imported.data as {
-    mode: string; total: number; created: number; overwritten: number; skipped: number; failed: number;
+    mode: string;
+    total: number;
+    created: number;
+    overwritten: number;
+    skipped: number;
+    failed: number;
   };
-  expect(report.mode).toBe('overwrite');
+  expect(report.mode).toBe("overwrite");
   expect(report.created + report.overwritten).toBe(1);
   expect(report.overwritten).toBe(1);
   expect(report.failed).toBe(0);
   // UI 断言：结果报告步骤 + 「导入成功」计数
-  await expect(page.getByTestId('import-step-report')).toBeVisible();
-  await expect(page.getByTestId('import-step-report').getByText('导入成功')).toBeVisible();
+  await expect(page.getByTestId("import-step-report")).toBeVisible();
+  await expect(page.getByTestId("import-step-report").getByText("导入成功")).toBeVisible();
 
   // 完成 → 列表仍 1 条（覆盖不新增，记录数不变）；「完成」按钮 2 字渲染「完 成」
-  await importDialog.getByRole('button', { name: /完\s*成/ }).click();
-  await expect(page.getByTestId('case-table')).toBeVisible();
+  await importDialog.getByRole("button", { name: /完\s*成/ }).click();
+  await expect(page.getByTestId("case-table")).toBeVisible();
   // exact：排除导出弹窗 radio 文案「当前筛选结果（共 1 条）」的子串命中
-  await expect(page.getByText('共 1 条', { exact: true })).toBeVisible({ timeout: 8000 });
+  await expect(page.getByText("共 1 条", { exact: true })).toBeVisible({ timeout: 8000 });
   await expect(page.getByText(caseName)).toHaveCount(1);
 
   await expectNoConsoleErrors();

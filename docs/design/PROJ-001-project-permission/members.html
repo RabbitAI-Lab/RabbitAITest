@@ -1,41 +1,159 @@
-<!doctype html><html lang="zh"><head><meta charset="utf-8"><title>PROJ-001 成员管理</title><script src="https://cdn.tailwindcss.com"></script></head>
-<body class="bg-slate-50 text-slate-800">
-<header class="h-12 bg-white border-b flex items-center px-4 gap-3 text-sm shrink-0"><span class="font-semibold">RabbitAITest</span><span class="border rounded px-2 py-0.5 text-slate-600">演示项目 #1</span><div class="ml-auto flex items-center gap-3 text-slate-500"><span class="w-6 h-6 rounded-full border grid place-items-center text-xs">?</span><span class="relative">消息<span class="absolute -top-1.5 -right-2.5 bg-[#FF4D4F] text-white text-[10px] rounded-full px-1">3</span></span><span class="w-6 h-6 rounded-full bg-[#574BFF] text-white grid place-items-center text-xs">许</span></div></header>
-<div class="flex"><aside class="w-[208px] bg-white border-r p-2 text-sm shrink-0">
-  <p class="px-3 pt-2 pb-1 text-xs text-slate-400">工作台</p><p class="px-3 py-2 rounded">工作台</p>
-  <p class="px-3 pt-3 pb-1 text-xs text-slate-400">测试管理</p><p class="px-3 py-2 rounded">测试用例</p><p class="px-3 py-2 rounded">测试计划</p><p class="px-3 py-2 rounded">缺陷管理</p><p class="px-3 py-2 rounded">接口测试</p>
-  <p class="px-3 pt-3 pb-1 text-xs text-slate-400">项目设置</p><p class="px-3 py-2 rounded">基本信息</p><p class="px-3 py-2 rounded bg-[#574BFF]/10 text-[#574BFF] font-medium">成员管理</p><p class="px-3 py-2 rounded">用户组</p><p class="px-3 py-2 rounded">模板管理</p>
-</aside>
-<main class="flex-1 p-6">
-  <div class="flex items-center gap-2 mb-4"><a class="text-slate-400 text-sm" href="#">项目设置</a><span class="text-slate-300">/</span><h1 class="text-lg font-medium">成员管理</h1><span class="text-xs text-slate-400 mt-0.5">成员与用户组共同决定项目内权限（权限并集 − 禁用交集）</span></div>
-  <div class="flex gap-4 items-start">
-    <div class="flex-1 bg-white border rounded">
-      <div class="flex items-center gap-2 p-3 border-b"><input class="border rounded px-2 py-1.5 text-sm flex-1 max-w-sm" placeholder="搜索组织用户（邮箱 / 姓名）添加到本项目"><button class="bg-[#574BFF] text-white rounded px-3 py-1.5 text-sm">添加成员</button><button class="border rounded px-3 py-1.5 text-sm">批量添加</button></div>
-      <table class="w-full text-sm">
-        <thead class="text-slate-400 text-xs"><tr class="border-b"><th class="text-left p-3">用户</th><th class="text-left p-3">邮箱</th><th class="text-left p-3">所属用户组</th><th class="text-left p-3">加入时间</th><th class="text-left p-3">操作</th></tr></thead>
-        <tbody>
-          <tr class="border-b hover:bg-slate-50"><td class="p-3">许嘉良</td><td class="p-3 text-slate-500">xujiang@rabbit.test</td><td class="p-3"><span class="bg-[#574BFF]/10 text-[#574BFF] rounded px-1.5 text-xs">项目管理员</span></td><td class="p-3 text-slate-500">2026-09-01</td><td class="p-3 text-slate-300">移除（本人）</td></tr>
-          <tr class="border-b hover:bg-slate-50"><td class="p-3">张伟</td><td class="p-3 text-slate-500">zhangwei@rabbit.test</td><td class="p-3"><span class="bg-slate-100 rounded px-1.5 text-xs">项目成员</span></td><td class="p-3 text-slate-500">2026-09-05</td><td class="p-3"><button class="text-[#574BFF]">移除</button></td></tr>
-          <tr class="hover:bg-slate-50"><td class="p-3">王芳</td><td class="p-3 text-slate-500">wangfang@rabbit.test</td><td class="p-3"><span class="bg-slate-100 rounded px-1.5 text-xs">只读访客</span><span class="text-xs text-slate-400">自定义组</span></td><td class="p-3 text-slate-500">2026-09-18</td><td class="p-3"><button class="text-[#574BFF]">移除</button></td></tr>
-        </tbody>
-      </table>
-      <div class="flex justify-end items-center gap-2 p-3 text-sm"><span class="text-slate-400 text-xs">共 12 条</span><button class="border rounded px-2 py-0.5">‹</button><span class="px-2">1 / 2</span><button class="border rounded px-2 py-0.5">›</button></div>
-    </div>
-    <div class="w-72 shrink-0 bg-white border rounded">
-      <div class="flex items-center p-3 border-b"><span class="font-medium text-sm">用户组</span><button class="ml-auto text-sm text-[#574BFF]">＋ 新建组</button></div>
-      <div class="p-2 text-sm">
-        <!-- 预置组带锁标（只读）；点击任意组 → 进入组管理（复用 SYS-004 组件 scope=project，见 groups.html） -->
-        <p class="px-2 py-2 rounded flex items-center gap-2 text-slate-600 hover:bg-slate-50">项目管理员<svg viewBox="0 0 24 24" class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span class="ml-auto text-xs text-slate-400">2 人</span></p>
-        <p class="px-2 py-2 rounded flex items-center gap-2 text-slate-600 hover:bg-slate-50">项目成员<svg viewBox="0 0 24 24" class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span class="ml-auto text-xs text-slate-400">9 人</span></p>
-        <p class="px-2 py-2 rounded flex items-center gap-2 text-slate-600 hover:bg-slate-50">只读访客<span class="text-xs text-slate-400">自定义组</span><span class="ml-auto text-xs text-slate-400">3 人</span></p>
-        <p class="px-2 py-2 rounded flex items-center gap-2 text-slate-600 hover:bg-slate-50">外包测试组<span class="text-xs text-slate-400">自定义组</span><span class="ml-auto text-xs text-slate-400">2 人</span></p>
-        <p class="px-2 pt-2 text-xs text-slate-400">点击用户组进入组详情：成员维护 + 项目级权限点勾选（PROJECT_ 前缀）</p>
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="utf-8" />
+    <title>PROJ-001 成员管理</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-slate-50 text-slate-800">
+    <header class="h-12 bg-white border-b flex items-center px-4 gap-3 text-sm shrink-0">
+      <span class="font-semibold">RabbitAITest</span
+      ><span class="border rounded px-2 py-0.5 text-slate-600">演示项目 #1</span>
+      <div class="ml-auto flex items-center gap-3 text-slate-500">
+        <span class="w-6 h-6 rounded-full border grid place-items-center text-xs">?</span
+        ><span class="relative"
+          >消息<span
+            class="absolute -top-1.5 -right-2.5 bg-[#FF4D4F] text-white text-[10px] rounded-full px-1"
+            >3</span
+          ></span
+        ><span class="w-6 h-6 rounded-full bg-[#574BFF] text-white grid place-items-center text-xs"
+          >许</span
+        >
       </div>
+    </header>
+    <div class="flex">
+      <aside class="w-[208px] bg-white border-r p-2 text-sm shrink-0">
+        <p class="px-3 pt-2 pb-1 text-xs text-slate-400">工作台</p>
+        <p class="px-3 py-2 rounded">工作台</p>
+        <p class="px-3 pt-3 pb-1 text-xs text-slate-400">测试管理</p>
+        <p class="px-3 py-2 rounded">测试用例</p>
+        <p class="px-3 py-2 rounded">测试计划</p>
+        <p class="px-3 py-2 rounded">缺陷管理</p>
+        <p class="px-3 py-2 rounded">接口测试</p>
+        <p class="px-3 pt-3 pb-1 text-xs text-slate-400">项目设置</p>
+        <p class="px-3 py-2 rounded">基本信息</p>
+        <p class="px-3 py-2 rounded bg-[#574BFF]/10 text-[#574BFF] font-medium">成员管理</p>
+        <p class="px-3 py-2 rounded">用户组</p>
+        <p class="px-3 py-2 rounded">模板管理</p>
+      </aside>
+      <main class="flex-1 p-6">
+        <div class="flex items-center gap-2 mb-4">
+          <a class="text-slate-400 text-sm" href="#">项目设置</a
+          ><span class="text-slate-300">/</span>
+          <h1 class="text-lg font-medium">成员管理</h1>
+          <span class="text-xs text-slate-400 mt-0.5"
+            >成员与用户组共同决定项目内权限（权限并集 − 禁用交集）</span
+          >
+        </div>
+        <div class="flex gap-4 items-start">
+          <div class="flex-1 bg-white border rounded">
+            <div class="flex items-center gap-2 p-3 border-b">
+              <input
+                class="border rounded px-2 py-1.5 text-sm flex-1 max-w-sm"
+                placeholder="搜索组织用户（邮箱 / 姓名）添加到本项目"
+              /><button class="bg-[#574BFF] text-white rounded px-3 py-1.5 text-sm">添加成员</button
+              ><button class="border rounded px-3 py-1.5 text-sm">批量添加</button>
+            </div>
+            <table class="w-full text-sm">
+              <thead class="text-slate-400 text-xs">
+                <tr class="border-b">
+                  <th class="text-left p-3">用户</th>
+                  <th class="text-left p-3">邮箱</th>
+                  <th class="text-left p-3">所属用户组</th>
+                  <th class="text-left p-3">加入时间</th>
+                  <th class="text-left p-3">操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="border-b hover:bg-slate-50">
+                  <td class="p-3">许嘉良</td>
+                  <td class="p-3 text-slate-500">xujiang@rabbit.test</td>
+                  <td class="p-3">
+                    <span class="bg-[#574BFF]/10 text-[#574BFF] rounded px-1.5 text-xs"
+                      >项目管理员</span
+                    >
+                  </td>
+                  <td class="p-3 text-slate-500">2026-09-01</td>
+                  <td class="p-3 text-slate-300">移除（本人）</td>
+                </tr>
+                <tr class="border-b hover:bg-slate-50">
+                  <td class="p-3">张伟</td>
+                  <td class="p-3 text-slate-500">zhangwei@rabbit.test</td>
+                  <td class="p-3">
+                    <span class="bg-slate-100 rounded px-1.5 text-xs">项目成员</span>
+                  </td>
+                  <td class="p-3 text-slate-500">2026-09-05</td>
+                  <td class="p-3"><button class="text-[#574BFF]">移除</button></td>
+                </tr>
+                <tr class="hover:bg-slate-50">
+                  <td class="p-3">王芳</td>
+                  <td class="p-3 text-slate-500">wangfang@rabbit.test</td>
+                  <td class="p-3">
+                    <span class="bg-slate-100 rounded px-1.5 text-xs">只读访客</span
+                    ><span class="text-xs text-slate-400">自定义组</span>
+                  </td>
+                  <td class="p-3 text-slate-500">2026-09-18</td>
+                  <td class="p-3"><button class="text-[#574BFF]">移除</button></td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="flex justify-end items-center gap-2 p-3 text-sm">
+              <span class="text-slate-400 text-xs">共 12 条</span
+              ><button class="border rounded px-2 py-0.5">‹</button><span class="px-2">1 / 2</span
+              ><button class="border rounded px-2 py-0.5">›</button>
+            </div>
+          </div>
+          <div class="w-72 shrink-0 bg-white border rounded">
+            <div class="flex items-center p-3 border-b">
+              <span class="font-medium text-sm">用户组</span
+              ><button class="ml-auto text-sm text-[#574BFF]">＋ 新建组</button>
+            </div>
+            <div class="p-2 text-sm">
+              <!-- 预置组带锁标（只读）；点击任意组 → 进入组管理（复用 SYS-004 组件 scope=project，见 groups.html） -->
+              <p class="px-2 py-2 rounded flex items-center gap-2 text-slate-600 hover:bg-slate-50">
+                项目管理员<svg
+                  viewBox="0 0 24 24"
+                  class="w-3.5 h-3.5 text-slate-400"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <rect x="5" y="11" width="14" height="9" rx="2" />
+                  <path d="M8 11V7a4 4 0 0 1 8 0v4" /></svg
+                ><span class="ml-auto text-xs text-slate-400">2 人</span>
+              </p>
+              <p class="px-2 py-2 rounded flex items-center gap-2 text-slate-600 hover:bg-slate-50">
+                项目成员<svg
+                  viewBox="0 0 24 24"
+                  class="w-3.5 h-3.5 text-slate-400"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <rect x="5" y="11" width="14" height="9" rx="2" />
+                  <path d="M8 11V7a4 4 0 0 1 8 0v4" /></svg
+                ><span class="ml-auto text-xs text-slate-400">9 人</span>
+              </p>
+              <p class="px-2 py-2 rounded flex items-center gap-2 text-slate-600 hover:bg-slate-50">
+                只读访客<span class="text-xs text-slate-400">自定义组</span
+                ><span class="ml-auto text-xs text-slate-400">3 人</span>
+              </p>
+              <p class="px-2 py-2 rounded flex items-center gap-2 text-slate-600 hover:bg-slate-50">
+                外包测试组<span class="text-xs text-slate-400">自定义组</span
+                ><span class="ml-auto text-xs text-slate-400">2 人</span>
+              </p>
+              <p class="px-2 pt-2 text-xs text-slate-400">
+                点击用户组进入组详情：成员维护 + 项目级权限点勾选（PROJECT_ 前缀）
+              </p>
+            </div>
+          </div>
+        </div>
+        <!-- 添加成员（搜索框）：输入关键字 → 下拉浮层列出组织用户（多选、排除已是本项目管理员/成员的账号）→ 确认后批量入组（默认「项目成员」组）+ Toast「已添加 N 名成员」；重复添加 → 422「该用户已是项目成员」 -->
+        <!-- 移除确认 Popconfirm：「移除后该用户立即失去本项目访问权限，再次进入将返回 404」[取消][移除]；当前操作人不可移除自己 -->
+        <!-- 新建组 / 组详情：完全复用 SYS-004 组管理组件（scope=project，见 SYS-004/groups.html），权限点仅显示 PROJECT_ 前缀资源 -->
+        <!-- 权限态：无 PROJECT_MEMBER:UPDATE → 「添加成员 / 批量添加 / 移除」全部隐藏，仅可查看成员列表；非本项目成员直访本页 → 404（SYS-002 project scope 校验） -->
+        <!-- 空态：项目暂无其他成员 → 表格区引导「从组织用户中搜索添加第一批成员」 -->
+      </main>
     </div>
-  </div>
-  <!-- 添加成员（搜索框）：输入关键字 → 下拉浮层列出组织用户（多选、排除已是本项目管理员/成员的账号）→ 确认后批量入组（默认「项目成员」组）+ Toast「已添加 N 名成员」；重复添加 → 422「该用户已是项目成员」 -->
-  <!-- 移除确认 Popconfirm：「移除后该用户立即失去本项目访问权限，再次进入将返回 404」[取消][移除]；当前操作人不可移除自己 -->
-  <!-- 新建组 / 组详情：完全复用 SYS-004 组管理组件（scope=project，见 SYS-004/groups.html），权限点仅显示 PROJECT_ 前缀资源 -->
-  <!-- 权限态：无 PROJECT_MEMBER:UPDATE → 「添加成员 / 批量添加 / 移除」全部隐藏，仅可查看成员列表；非本项目成员直访本页 → 404（SYS-002 project scope 校验） -->
-  <!-- 空态：项目暂无其他成员 → 表格区引导「从组织用户中搜索添加第一批成员」 -->
-</main></div></body></html>
+  </body>
+</html>

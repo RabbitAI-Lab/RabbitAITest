@@ -10,13 +10,13 @@
 
 ## 2. 命名规范
 
-| 对象 | 规则 | 示例 |
-| --- | --- | --- |
-| 表（Prisma `@@map`） | snake_case 复数 | `functional_cases`、`exec_step_results` |
-| 列（`@map`） | snake_case；布尔 `is_/has_`；时间 `_at`；日期 `_date` | `deleted_at`、`plan_end_date` |
-| 主键 | `id UUID`，应用侧生成（便于测试造数与跨服务传递）；项目内展示编号另设 `num` | — |
-| 索引 | `idx_{表}_{列…}`；唯一 `uq_{表}_{列…}`；外键索引同 IDX 命名 | `idx_cases_project_deleted` |
-| 枚举值 | 存 `varchar`，取值 SCREAMING_SNAKE，登记于 packages/shared zod；**不用 PG ENUM**（迁移改名/删值痛苦）；稳定且高频的状态列可加 CHECK 约束 | `status = 'IN_REVIEW'` |
+| 对象                 | 规则                                                                                                                                     | 示例                                    |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- |
+| 表（Prisma `@@map`） | snake_case 复数                                                                                                                          | `functional_cases`、`exec_step_results` |
+| 列（`@map`）         | snake_case；布尔 `is_/has_`；时间 `_at`；日期 `_date`                                                                                    | `deleted_at`、`plan_end_date`           |
+| 主键                 | `id UUID`，应用侧生成（便于测试造数与跨服务传递）；项目内展示编号另设 `num`                                                              | —                                       |
+| 索引                 | `idx_{表}_{列…}`；唯一 `uq_{表}_{列…}`；外键索引同 IDX 命名                                                                              | `idx_cases_project_deleted`             |
+| 枚举值               | 存 `varchar`，取值 SCREAMING_SNAKE，登记于 packages/shared zod；**不用 PG ENUM**（迁移改名/删值痛苦）；稳定且高频的状态列可加 CHECK 约束 | `status = 'IN_REVIEW'`                  |
 
 ## 3. 类型规范
 
@@ -71,9 +71,9 @@
 
 ## 9. 性能红线（QA-001 基线验收）
 
-| 场景 | 红线 |
-| --- | --- |
+| 场景             | 红线                                       |
+| ---------------- | ------------------------------------------ |
 | 万级数据列表筛选 | P95 < 500ms（EXPLAIN 无 Seq Scan on 大表） |
-| 详情页 | P95 < 300ms，大 JSONB 按需取 |
-| 报告列表聚合 | P95 < 1s，item 级冗余列聚合 |
-| 单查询返回行数 | ≤ 1000（超出走游标/分批） |
+| 详情页           | P95 < 300ms，大 JSONB 按需取               |
+| 报告列表聚合     | P95 < 1s，item 级冗余列聚合                |
+| 单查询返回行数   | ≤ 1000（超出走游标/分批）                  |

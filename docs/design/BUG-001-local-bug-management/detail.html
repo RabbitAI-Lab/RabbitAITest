@@ -1,65 +1,108 @@
-<!doctype html><html lang="zh"><head><meta charset="utf-8"><title>BUG-001 缺陷详情</title><script src="https://cdn.tailwindcss.com"></script></head>
-<body class="bg-slate-50 text-slate-800">
-<!-- 顶栏 48px：左 Logo + 项目 chip；右 帮助 / 消息 / 用户头像 -->
-<header class="h-12 bg-white border-b flex items-center px-4 gap-3 text-sm">
-  <span class="font-semibold">RabbitAITest</span><span class="border rounded px-2 py-0.5 text-slate-600">演示项目 #1</span>
-  <div class="ml-auto flex items-center gap-3 text-slate-500"><span>帮助</span><span>消息</span><span class="w-6 h-6 rounded-full bg-[#574BFF]/20 text-[#574BFF] text-xs grid place-items-center font-medium">徐</span></div>
-</header>
-<div class="flex">
-  <!-- 左导航 208px：分组 工作区 / 测试管理 / 项目设置 -->
-  <aside class="w-[208px] bg-white border-r p-2 text-sm shrink-0">
-    <p class="px-3 pt-4 pb-1 text-xs text-slate-400">工作区</p>
-    <p class="px-3 py-2 rounded text-slate-600">工作台</p>
-    <p class="px-3 pt-4 pb-1 text-xs text-slate-400">测试管理</p>
-    <p class="px-3 py-2 rounded text-slate-600">测试用例</p>
-    <p class="px-3 py-2 rounded text-slate-600">用例评审</p>
-    <p class="px-3 py-2 rounded text-slate-600">测试计划</p>
-    <p class="px-3 py-2 rounded bg-[#574BFF]/10 text-[#574BFF] font-medium">缺陷管理</p>
-    <p class="px-3 py-2 rounded text-slate-600 mt-4 border-t border-slate-100">项目设置</p>
-  </aside>
-  <main class="flex-1 p-6 min-w-0">
-    <!-- 头部：标题 + 状态徽标 + 流转按钮组（按工作流矩阵渲染允许的目标状态）+ 关注/分享 -->
-    <div class="flex items-center gap-3 flex-wrap">
-      <a class="text-slate-400 text-sm" href="list.html">‹ 缺陷列表</a>
-      <h1 class="text-lg font-medium">手机验证码倒计时结束后按钮未重置</h1>
-      <span class="text-slate-400 text-sm">BUG-0006</span>
-      <span class="rounded-full bg-[#1677FF]/10 text-[#1677FF] text-xs px-2 py-0.5 font-medium">处理中</span>
-      <div class="ml-auto flex gap-2 items-center">
-        <button class="border rounded px-3 py-1.5 text-sm text-slate-600">流转为 已拒绝</button>
-        <button class="bg-[#574BFF] text-white rounded px-3 py-1.5 text-sm">流转为 已解决</button>
-        <span class="w-px h-5 bg-slate-200"></span>
-        <button class="border rounded px-3 py-1.5 text-sm text-slate-600">☆ 关注</button>
-        <button class="border rounded px-3 py-1.5 text-sm text-slate-600">分享</button>
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="utf-8" />
+    <title>BUG-001 缺陷详情</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-slate-50 text-slate-800">
+    <!-- 顶栏 48px：左 Logo + 项目 chip；右 帮助 / 消息 / 用户头像 -->
+    <header class="h-12 bg-white border-b flex items-center px-4 gap-3 text-sm">
+      <span class="font-semibold">RabbitAITest</span
+      ><span class="border rounded px-2 py-0.5 text-slate-600">演示项目 #1</span>
+      <div class="ml-auto flex items-center gap-3 text-slate-500">
+        <span>帮助</span><span>消息</span
+        ><span
+          class="w-6 h-6 rounded-full bg-[#574BFF]/20 text-[#574BFF] text-xs grid place-items-center font-medium"
+          >徐</span
+        >
       </div>
-    </div>
-    <p class="text-xs text-slate-400 mt-1.5 mb-4">创建人 徐佳 · 2026-09-26 10:58 · 模块 认证登录 / 手机号登录 · 模板 默认缺陷模板</p>
-    <!-- Tab：详情 / 关联用例 / 评论 / 变更历史（组件复用 CASE-003） -->
-    <div class="flex items-center gap-5 text-sm border-b mb-4">
-      <span class="pb-2 -mb-px border-b-2 border-[#574BFF] text-[#574BFF] font-medium">详情</span>
-      <span class="pb-2 text-slate-500">关联用例（2）</span>
-      <span class="pb-2 text-slate-500">评论（5）</span>
-      <span class="pb-2 text-slate-500">变更历史</span>
-      <button class="ml-auto mb-2 border rounded px-3 py-1 text-sm text-slate-600">编辑</button>
-    </div>
-    <div class="bg-white border rounded p-5 max-w-4xl space-y-5">
-      <div>
-        <p class="text-sm font-medium mb-2">描述</p>
-        <div class="bg-slate-50 rounded p-3 text-sm text-slate-600 leading-6">前置：登录页切换「手机号登录」。<br>1. 输入正确手机号，点击「获取验证码」；<br>2. 等待 60s 倒计时结束。<br>实际：按钮停留在「重新获取(0s)」且不可点击，刷新后恢复；必现（Chrome 126 / Safari 17.4）。</div>
-      </div>
-      <!-- 动态字段区（跟随模板，buildValidator 校验；此处为默认缺陷模板的字段） -->
-      <div class="grid grid-cols-3 gap-x-6 gap-y-3 text-sm">
-        <p class="text-slate-500">严重程度<span class="ml-2 font-medium text-[#FA8C16]">严重</span></p>
-        <p class="text-slate-500">优先级<span class="ml-2 font-medium text-red-500">P1</span></p>
-        <p class="text-slate-500">复现概率<span class="ml-2 text-slate-800">必现</span></p>
-        <p class="text-slate-500">影响版本<span class="ml-2 text-slate-800">v1.2.0</span></p>
-        <p class="text-slate-500">处理人<span class="ml-2 inline-flex items-center gap-1 text-slate-800"><span class="w-5 h-5 rounded-full bg-purple-100 text-purple-600 text-[10px] grid place-items-center">李</span>李倩</span></p>
-        <p class="text-slate-500">标签<span class="ml-2"><span class="bg-slate-100 rounded px-1.5 text-xs text-slate-600">登录</span> <span class="bg-slate-100 rounded px-1.5 text-xs text-slate-600">Sprint1</span></span></p>
-      </div>
-      <!-- 附件上传区（交互示意）：
+    </header>
+    <div class="flex">
+      <!-- 左导航 208px：分组 工作区 / 测试管理 / 项目设置 -->
+      <aside class="w-[208px] bg-white border-r p-2 text-sm shrink-0">
+        <p class="px-3 pt-4 pb-1 text-xs text-slate-400">工作区</p>
+        <p class="px-3 py-2 rounded text-slate-600">工作台</p>
+        <p class="px-3 pt-4 pb-1 text-xs text-slate-400">测试管理</p>
+        <p class="px-3 py-2 rounded text-slate-600">测试用例</p>
+        <p class="px-3 py-2 rounded text-slate-600">用例评审</p>
+        <p class="px-3 py-2 rounded text-slate-600">测试计划</p>
+        <p class="px-3 py-2 rounded bg-[#574BFF]/10 text-[#574BFF] font-medium">缺陷管理</p>
+        <p class="px-3 py-2 rounded text-slate-600 mt-4 border-t border-slate-100">项目设置</p>
+      </aside>
+      <main class="flex-1 p-6 min-w-0">
+        <!-- 头部：标题 + 状态徽标 + 流转按钮组（按工作流矩阵渲染允许的目标状态）+ 关注/分享 -->
+        <div class="flex items-center gap-3 flex-wrap">
+          <a class="text-slate-400 text-sm" href="list.html">‹ 缺陷列表</a>
+          <h1 class="text-lg font-medium">手机验证码倒计时结束后按钮未重置</h1>
+          <span class="text-slate-400 text-sm">BUG-0006</span>
+          <span class="rounded-full bg-[#1677FF]/10 text-[#1677FF] text-xs px-2 py-0.5 font-medium"
+            >处理中</span
+          >
+          <div class="ml-auto flex gap-2 items-center">
+            <button class="border rounded px-3 py-1.5 text-sm text-slate-600">流转为 已拒绝</button>
+            <button class="bg-[#574BFF] text-white rounded px-3 py-1.5 text-sm">
+              流转为 已解决
+            </button>
+            <span class="w-px h-5 bg-slate-200"></span>
+            <button class="border rounded px-3 py-1.5 text-sm text-slate-600">☆ 关注</button>
+            <button class="border rounded px-3 py-1.5 text-sm text-slate-600">分享</button>
+          </div>
+        </div>
+        <p class="text-xs text-slate-400 mt-1.5 mb-4">
+          创建人 徐佳 · 2026-09-26 10:58 · 模块 认证登录 / 手机号登录 · 模板 默认缺陷模板
+        </p>
+        <!-- Tab：详情 / 关联用例 / 评论 / 变更历史（组件复用 CASE-003） -->
+        <div class="flex items-center gap-5 text-sm border-b mb-4">
+          <span class="pb-2 -mb-px border-b-2 border-[#574BFF] text-[#574BFF] font-medium"
+            >详情</span
+          >
+          <span class="pb-2 text-slate-500">关联用例（2）</span>
+          <span class="pb-2 text-slate-500">评论（5）</span>
+          <span class="pb-2 text-slate-500">变更历史</span>
+          <button class="ml-auto mb-2 border rounded px-3 py-1 text-sm text-slate-600">编辑</button>
+        </div>
+        <div class="bg-white border rounded p-5 max-w-4xl space-y-5">
+          <div>
+            <p class="text-sm font-medium mb-2">描述</p>
+            <div class="bg-slate-50 rounded p-3 text-sm text-slate-600 leading-6">
+              前置：登录页切换「手机号登录」。<br />1. 输入正确手机号，点击「获取验证码」；<br />2.
+              等待 60s 倒计时结束。<br />实际：按钮停留在「重新获取(0s)」且不可点击，刷新后恢复；必现（Chrome
+              126 / Safari 17.4）。
+            </div>
+          </div>
+          <!-- 动态字段区（跟随模板，buildValidator 校验；此处为默认缺陷模板的字段） -->
+          <div class="grid grid-cols-3 gap-x-6 gap-y-3 text-sm">
+            <p class="text-slate-500">
+              严重程度<span class="ml-2 font-medium text-[#FA8C16]">严重</span>
+            </p>
+            <p class="text-slate-500">
+              优先级<span class="ml-2 font-medium text-red-500">P1</span>
+            </p>
+            <p class="text-slate-500">复现概率<span class="ml-2 text-slate-800">必现</span></p>
+            <p class="text-slate-500">影响版本<span class="ml-2 text-slate-800">v1.2.0</span></p>
+            <p class="text-slate-500">
+              处理人<span class="ml-2 inline-flex items-center gap-1 text-slate-800"
+                ><span
+                  class="w-5 h-5 rounded-full bg-purple-100 text-purple-600 text-[10px] grid place-items-center"
+                  >李</span
+                >李倩</span
+              >
+            </p>
+            <p class="text-slate-500">
+              标签<span class="ml-2"
+                ><span class="bg-slate-100 rounded px-1.5 text-xs text-slate-600">登录</span>
+                <span class="bg-slate-100 rounded px-1.5 text-xs text-slate-600"
+                  >Sprint1</span
+                ></span
+              >
+            </p>
+          </div>
+          <!-- 附件上传区（交互示意）：
         拖拽区：「拖入文件或点击上传 · 单文件 ≤50MB · 可执行文件（.exe/.sh 等）拒收 422 Toast」
         已传列表：报错截图-0926.png（1.2MB）[预览] [下载·预签名 URL] [✕ 删除(确认)]；复现视频.mp4（8.6MB）上传中 45%（进度条 + 取消） -->
-    </div>
-    <!-- 交互说明（静态不可表达部分）：
+        </div>
+        <!-- 交互说明（静态不可表达部分）：
       · 流转按钮组：由 useAllowedTransitions 按工作流矩阵渲染当前状态的合法目标（当前「处理中」→ 已解决 / 已拒绝）。
       · 流转弹窗（Modal）：目标状态（固定只读）+ 意见输入（可选，随流转写入评论）+ [取消][确认流转]；成功后状态徽标放大回弹动画，头部按钮组按矩阵刷新（已解决 → 仅「重新打开」）；非法流转接口 422（code 10006）。
       · 关注：☆/★ 切换 + Toast；分享：复制只读链接（登录态内）→ Toast「链接已复制」。
@@ -67,7 +110,7 @@
       · 评论 Tab：时间线（头像+人名+内容+时间），流转评论带「待处理 → 处理中」状态徽标；底部评论框支持 @成员，Ctrl+Enter 发送。
       · 变更历史 Tab：ChangeLog 表——09-26 11:02 李倩 流转 待处理→处理中（附意见）/ 09-26 10:58 徐佳 创建 / 09-26 11:05 徐佳 修改字段 处理人 张伟→李倩 …
       · 结束态（已关闭）：头部仅「重新打开」；编辑仍允许（对齐基线），但不再计入「待处理」统计。 -->
-  </main>
-</div>
-</body>
+      </main>
+    </div>
+  </body>
 </html>

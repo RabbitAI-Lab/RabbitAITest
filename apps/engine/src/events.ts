@@ -1,6 +1,6 @@
-import type Redis from 'ioredis';
-import { config, eventFrameSchema } from '@rabbit/shared';
-import type { EventFrame, FrameInput } from '@rabbit/shared';
+import type Redis from "ioredis";
+import { config, eventFrameSchema } from "@rabbit/shared";
+import type { EventFrame, FrameInput } from "@rabbit/shared";
 
 /** 事件流写入器：seq 任务内单调递增；XADD 到 Redis Stream（与 SSE/报告同源）。 */
 export class EventWriter {
@@ -26,7 +26,7 @@ export class EventWriter {
       seq: this.seq,
       ts: frame.ts ?? Date.now(),
     }) as EventFrame;
-    await this.redis.xadd(this.streamKey, '*', 'data', JSON.stringify(full));
+    await this.redis.xadd(this.streamKey, "*", "data", JSON.stringify(full));
     await this.redis.expire(this.streamKey, 60 * 60 * 24);
   }
 }

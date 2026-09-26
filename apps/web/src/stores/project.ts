@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 interface ProjectStore {
   currentProjectId: string | null;
@@ -26,6 +26,6 @@ export const useProjectStore = create<ProjectStore>()(
         })),
       setCurrent: (id) => set({ currentProjectId: id }),
     }),
-    { name: 'rabbit-project' },
+    { name: "rabbit-project" },
   ),
 );

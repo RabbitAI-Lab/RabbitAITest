@@ -1,43 +1,85 @@
-@import 'tailwindcss';
+@import "tailwindcss";
 
 /* 注意：不要设置 html{font-size}——Tailwind rem 类以 16px 基准对齐原型；
    全局字号由 AntD theme.token.fontSize(13) 控制（2026-09-26 事故复盘） */
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
 body {
   margin: 0;
-  background: #F5F6FA;
-  color: #1F2329;
-  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  background: #f5f6fa;
+  color: #1f2329;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei",
+    sans-serif;
   -webkit-font-smoothing: antialiased;
 }
-.mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
 
 /* 滚动条 */
-::-webkit-scrollbar { width: 8px; height: 8px; }
-::-webkit-scrollbar-thumb { background: #D5D7DB; border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: #B8BBC0; }
-::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: #d5d7db;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #b8bbc0;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
 
 /* 卡片与阴影 */
-.rabbit-card { background: #fff; border: 1px solid #ECEEF1; border-radius: 10px; box-shadow: 0 1px 2px rgba(31,35,41,.04); }
-.rabbit-card-title { padding: 12px 16px; border-bottom: 1px solid #F0F1F3; font-weight: 600; font-size: 14px; margin: 0; }
+.rabbit-card {
+  background: #fff;
+  border: 1px solid #eceef1;
+  border-radius: 10px;
+  box-shadow: 0 1px 2px rgba(31, 35, 41, 0.04);
+}
+.rabbit-card-title {
+  padding: 12px 16px;
+  border-bottom: 1px solid #f0f1f3;
+  font-weight: 600;
+  font-size: 14px;
+  margin: 0;
+}
 
 /* 页头 */
-.rabbit-page-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
-.rabbit-page-header h1 { font-size: 18px; font-weight: 600; margin: 0; }
-.rabbit-page-header .sub { color: #87888D; font-size: 12px; }
+.rabbit-page-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.rabbit-page-header h1 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+}
+.rabbit-page-header .sub {
+  color: #87888d;
+  font-size: 12px;
+}
 
 /* 认证页背景 */
 .auth-bg {
   min-height: 100vh;
-  display: grid; place-items: center;
+  display: grid;
+  place-items: center;
   background:
-    radial-gradient(600px 300px at 15% 10%, rgba(87,75,255,.10), transparent 60%),
-    radial-gradient(500px 260px at 90% 85%, rgba(87,75,255,.07), transparent 60%),
-    #F5F6FA;
+    radial-gradient(600px 300px at 15% 10%, rgba(87, 75, 255, 0.1), transparent 60%),
+    radial-gradient(500px 260px at 90% 85%, rgba(87, 75, 255, 0.07), transparent 60%), #f5f6fa;
 }
 
 /* 左侧导航 */
 .nav-group-label {
-  padding: 14px 16px 6px; font-size: 11px; color: #909399; letter-spacing: .05em;
+  padding: 14px 16px 6px;
+  font-size: 11px;
+  color: #909399;
+  letter-spacing: 0.05em;
 }

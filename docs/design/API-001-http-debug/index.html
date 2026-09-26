@@ -1,35 +1,123 @@
-<!doctype html><html lang="zh"><head><meta charset="utf-8"><title>API-001 HTTP 调试</title><script src="https://cdn.tailwindcss.com"></script></head>
-<body class="bg-slate-50 text-slate-800">
-<header class="h-12 bg-white border-b flex items-center px-4 gap-3 text-sm"><span class="font-semibold">RabbitAITest</span><span class="border rounded px-2 py-0.5">演示项目 #1</span></header>
-<div class="flex">
-<aside class="w-[200px] bg-white border-r p-2 text-sm"><p class="px-3 py-2">测试用例</p><p class="px-3 py-2 rounded bg-[#574BFF]/10 text-[#574BFF] font-medium">接口测试</p><p class="pl-6 py-1.5 text-sm">调试</p><p class="pl-6 py-1.5 text-slate-400 text-xs">定义（S2）</p><p class="pl-6 py-1.5 text-slate-400 text-xs">场景（S3）</p></aside>
-<main class="flex-1 p-6 flex gap-4">
-  <!-- 左：调试历史 -->
-  <div class="w-64 shrink-0 bg-white border rounded">
-    <p class="p-3 border-b text-sm font-medium">调试历史</p>
-    <div class="p-2 text-sm space-y-1">
-      <div class="rounded bg-slate-50 px-2 py-1.5 flex items-center gap-2"><span class="text-xs font-bold text-green-600">GET</span><span class="truncate flex-1">/get</span><span class="w-2 h-2 rounded-full bg-green-500"></span></div>
-      <div class="rounded px-2 py-1.5 flex items-center gap-2 hover:bg-slate-50"><span class="text-xs font-bold text-green-600">GET</span><span class="truncate flex-1">/headers</span><span class="w-2 h-2 rounded-full bg-red-500"></span></div>
-      <div class="rounded px-2 py-1.5 flex items-center gap-2 hover:bg-slate-50"><span class="text-xs font-bold text-amber-600">POST</span><span class="truncate flex-1">/post</span><span class="w-2 h-2 rounded-full bg-green-500"></span></div>
-    </div>
-    <p class="text-xs text-slate-400 px-3 pb-2">最近 20 条 · 点击回看报告</p>
-  </div>
-  <!-- 右：请求构造 -->
-  <div class="flex-1 space-y-4">
-    <div class="bg-white border rounded p-4">
-      <div class="flex gap-2"><select class="border rounded px-2 py-2 text-sm w-28"><option>GET</option><option>POST</option><option>PUT</option><option>DELETE</option><option>PATCH</option><option>HEAD</option><option>OPTIONS</option><option>CONNECT</option></select><input class="flex-1 border rounded px-3 py-2 text-sm font-mono" value="https://httpbin.org/get"><button class="bg-[#574BFF] text-white rounded px-5 text-sm">执 行</button></div>
-      <div class="mt-4 text-sm">
-        <div class="flex gap-4 border-b text-xs"><span class="pb-1 border-b-2 border-[#574BFF] text-[#574BFF]">Headers</span><span class="pb-1 text-slate-400">Body</span><span class="pb-1 text-slate-400">断言</span></div>
-        <!-- Headers KV -->
-        <div class="pt-3 space-y-2"><div class="flex gap-2"><input class="w-40 border rounded px-2 py-1.5" value="Accept"><input class="flex-1 border rounded px-2 py-1.5 font-mono" value="application/json"><button class="text-slate-400">✕</button></div><button class="text-[#574BFF] text-xs">＋ 添加 Header</button></div>
-        <!-- 断言（Tab 切换后示意）-->
-        <div class="hidden pt-3 space-y-2">
-          <div class="flex gap-2"><select class="border rounded px-2 py-1.5 text-sm w-32"><option>状态码</option><option>响应体 JSONPath</option></select><input class="w-44 border rounded px-2 py-1.5 font-mono text-sm" placeholder="$.args.q" disabled><select class="border rounded px-2 py-1.5 text-sm w-24"><option>等于</option><option>包含</option></select><input class="flex-1 border rounded px-2 py-1.5 font-mono text-sm" placeholder="200"><button class="text-slate-400">✕</button></div>
-          <div class="flex gap-2"><select class="border rounded px-2 py-1.5 text-sm w-32"><option>状态码</option><option selected>响应体 JSONPath</option></select><input class="w-44 border rounded px-2 py-1.5 font-mono text-sm" value="$.url"><select class="border rounded px-2 py-1.5 text-sm w-24"><option>等于</option><option selected>包含</option></select><input class="flex-1 border rounded px-2 py-1.5 font-mono text-sm" value="httpbin"><button class="text-slate-400">✕</button></div>
-          <button class="text-[#574BFF] text-xs">＋ 添加断言</button>
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="utf-8" />
+    <title>API-001 HTTP 调试</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-slate-50 text-slate-800">
+    <header class="h-12 bg-white border-b flex items-center px-4 gap-3 text-sm">
+      <span class="font-semibold">RabbitAITest</span
+      ><span class="border rounded px-2 py-0.5">演示项目 #1</span>
+    </header>
+    <div class="flex">
+      <aside class="w-[200px] bg-white border-r p-2 text-sm">
+        <p class="px-3 py-2">测试用例</p>
+        <p class="px-3 py-2 rounded bg-[#574BFF]/10 text-[#574BFF] font-medium">接口测试</p>
+        <p class="pl-6 py-1.5 text-sm">调试</p>
+        <p class="pl-6 py-1.5 text-slate-400 text-xs">定义（S2）</p>
+        <p class="pl-6 py-1.5 text-slate-400 text-xs">场景（S3）</p>
+      </aside>
+      <main class="flex-1 p-6 flex gap-4">
+        <!-- 左：调试历史 -->
+        <div class="w-64 shrink-0 bg-white border rounded">
+          <p class="p-3 border-b text-sm font-medium">调试历史</p>
+          <div class="p-2 text-sm space-y-1">
+            <div class="rounded bg-slate-50 px-2 py-1.5 flex items-center gap-2">
+              <span class="text-xs font-bold text-green-600">GET</span
+              ><span class="truncate flex-1">/get</span
+              ><span class="w-2 h-2 rounded-full bg-green-500"></span>
+            </div>
+            <div class="rounded px-2 py-1.5 flex items-center gap-2 hover:bg-slate-50">
+              <span class="text-xs font-bold text-green-600">GET</span
+              ><span class="truncate flex-1">/headers</span
+              ><span class="w-2 h-2 rounded-full bg-red-500"></span>
+            </div>
+            <div class="rounded px-2 py-1.5 flex items-center gap-2 hover:bg-slate-50">
+              <span class="text-xs font-bold text-amber-600">POST</span
+              ><span class="truncate flex-1">/post</span
+              ><span class="w-2 h-2 rounded-full bg-green-500"></span>
+            </div>
+          </div>
+          <p class="text-xs text-slate-400 px-3 pb-2">最近 20 条 · 点击回看报告</p>
         </div>
-      </div>
+        <!-- 右：请求构造 -->
+        <div class="flex-1 space-y-4">
+          <div class="bg-white border rounded p-4">
+            <div class="flex gap-2">
+              <select class="border rounded px-2 py-2 text-sm w-28">
+                <option>GET</option>
+                <option>POST</option>
+                <option>PUT</option>
+                <option>DELETE</option>
+                <option>PATCH</option>
+                <option>HEAD</option>
+                <option>OPTIONS</option>
+                <option>CONNECT</option></select
+              ><input
+                class="flex-1 border rounded px-3 py-2 text-sm font-mono"
+                value="https://httpbin.org/get"
+              /><button class="bg-[#574BFF] text-white rounded px-5 text-sm">执 行</button>
+            </div>
+            <div class="mt-4 text-sm">
+              <div class="flex gap-4 border-b text-xs">
+                <span class="pb-1 border-b-2 border-[#574BFF] text-[#574BFF]">Headers</span
+                ><span class="pb-1 text-slate-400">Body</span
+                ><span class="pb-1 text-slate-400">断言</span>
+              </div>
+              <!-- Headers KV -->
+              <div class="pt-3 space-y-2">
+                <div class="flex gap-2">
+                  <input class="w-40 border rounded px-2 py-1.5" value="Accept" /><input
+                    class="flex-1 border rounded px-2 py-1.5 font-mono"
+                    value="application/json"
+                  /><button class="text-slate-400">✕</button>
+                </div>
+                <button class="text-[#574BFF] text-xs">＋ 添加 Header</button>
+              </div>
+              <!-- 断言（Tab 切换后示意）-->
+              <div class="hidden pt-3 space-y-2">
+                <div class="flex gap-2">
+                  <select class="border rounded px-2 py-1.5 text-sm w-32">
+                    <option>状态码</option>
+                    <option>响应体 JSONPath</option></select
+                  ><input
+                    class="w-44 border rounded px-2 py-1.5 font-mono text-sm"
+                    placeholder="$.args.q"
+                    disabled
+                  /><select class="border rounded px-2 py-1.5 text-sm w-24">
+                    <option>等于</option>
+                    <option>包含</option></select
+                  ><input
+                    class="flex-1 border rounded px-2 py-1.5 font-mono text-sm"
+                    placeholder="200"
+                  /><button class="text-slate-400">✕</button>
+                </div>
+                <div class="flex gap-2">
+                  <select class="border rounded px-2 py-1.5 text-sm w-32">
+                    <option>状态码</option>
+                    <option selected>响应体 JSONPath</option></select
+                  ><input
+                    class="w-44 border rounded px-2 py-1.5 font-mono text-sm"
+                    value="$.url"
+                  /><select class="border rounded px-2 py-1.5 text-sm w-24">
+                    <option>等于</option>
+                    <option selected>包含</option></select
+                  ><input
+                    class="flex-1 border rounded px-2 py-1.5 font-mono text-sm"
+                    value="httpbin"
+                  /><button class="text-slate-400">✕</button>
+                </div>
+                <button class="text-[#574BFF] text-xs">＋ 添加断言</button>
+              </div>
+            </div>
+          </div>
+          <div class="bg-white border rounded p-4 text-sm text-slate-500">
+            执行后跳转「执行报告」页实时查看（SSE）；本页保留最近 20 条历史。示例：一键填充
+            <button class="text-[#574BFF]">GET https://httpbin.org/get</button>
+          </div>
+        </div>
+      </main>
     </div>
-    <div class="bg-white border rounded p-4 text-sm text-slate-500">执行后跳转「执行报告」页实时查看（SSE）；本页保留最近 20 条历史。示例：一键填充 <button class="text-[#574BFF]">GET https://httpbin.org/get</button></div>
-  </div>
-</main></div></body></html>
+  </body>
+</html>

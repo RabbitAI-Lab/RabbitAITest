@@ -1,22 +1,93 @@
-<!doctype html><html lang="zh"><head><meta charset="utf-8"><title>CASE-001 新建/编辑用例</title><script src="https://cdn.tailwindcss.com"></script></head>
-<body class="bg-slate-50 text-slate-800">
-<header class="h-12 bg-white border-b flex items-center px-4 gap-3 text-sm"><span class="font-semibold">RabbitAITest</span><span class="border rounded px-2 py-0.5">演示项目 #1</span></header>
-<div class="flex"><aside class="w-[200px] bg-white border-r p-2 text-sm"><p class="px-3 py-2 rounded bg-[#574BFF]/10 text-[#574BFF] font-medium">测试用例</p></aside>
-<main class="flex-1 p-6 max-w-3xl">
-  <div class="flex items-center gap-2 mb-4"><a class="text-slate-400 text-sm" href="#">‹ 用例列表</a><h1 class="text-lg font-medium">新建用例</h1><span class="text-xs text-red-500">名称不能为空</span></div>
-  <div class="bg-white border rounded p-6 space-y-5">
-    <div class="grid grid-cols-[80px_1fr] items-center gap-3"><label class="text-sm text-slate-600">名称 <span class="text-red-500">*</span></label><input class="border rounded px-3 py-2 text-sm" value="登录成功场景"></div>
-    <div class="grid grid-cols-[80px_1fr] gap-3"><label class="text-sm text-slate-600">前置条件</label><textarea class="border rounded px-3 py-2 text-sm h-16">已注册账号；网络可达</textarea></div>
-    <div class="grid grid-cols-[80px_1fr] gap-3"><label class="text-sm text-slate-600">步骤</label>
-      <div class="space-y-2">
-        <div class="flex gap-2"><span class="w-6 h-6 rounded bg-slate-100 grid place-items-center text-xs">1</span><input class="flex-1 border rounded px-3 py-2 text-sm" value="打开登录页输入正确账号密码"><input class="flex-1 border rounded px-3 py-2 text-sm" value="跳转工作台，顶栏显示用户名"><button class="text-slate-400">✕</button></div>
-        <div class="flex gap-2"><span class="w-6 h-6 rounded bg-slate-100 grid place-items-center text-xs">2</span><input class="flex-1 border rounded px-3 py-2 text-sm" value="刷新页面"><input class="flex-1 border rounded px-3 py-2 text-sm" value="会话保持仍在工作台"><button class="text-slate-400">✕</button></div>
-        <button class="text-sm text-[#574BFF]">＋ 添加步骤</button>
-      </div></div>
-    <div class="grid grid-cols-[80px_1fr] items-center gap-3"><label class="text-sm text-slate-600">等级</label>
-      <div class="flex gap-3 text-sm"><label class="flex items-center gap-1"><input type="radio" name="lv" checked><span class="text-red-500 font-medium">P0</span></label><label class="flex items-center gap-1"><input type="radio" name="lv"><span class="text-orange-500">P1</span></label><label class="flex items-center gap-1"><input type="radio" name="lv"><span class="text-blue-500">P2</span></label><label class="flex items-center gap-1"><input type="radio" name="lv"><span class="text-slate-500">P3</span></label></div></div>
-    <div class="grid grid-cols-[80px_1fr] items-center gap-3"><label class="text-sm text-slate-600">标签</label><div class="flex gap-2"><span class="bg-slate-100 rounded px-2 py-0.5 text-sm">冒烟 ✕</span><span class="border border-dashed rounded px-2 py-0.5 text-sm text-slate-400">+ 输入回车添加</span></div></div>
-    <div class="flex gap-3 pt-2"><button class="bg-[#574BFF] text-white rounded px-4 py-2 text-sm">保存（Ctrl+S）</button><button class="border rounded px-4 py-2 text-sm">保存并继续</button><button class="border rounded px-4 py-2 text-sm">取消</button></div>
-  </div>
-  <p class="text-xs text-slate-400 mt-3">编辑已有用例：标题右侧显示「C-0001 · v3」；并发修改冲突时提示「内容已被他人修改（409），请刷新」。</p>
-</main></div></body></html>
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="utf-8" />
+    <title>CASE-001 新建/编辑用例</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-slate-50 text-slate-800">
+    <header class="h-12 bg-white border-b flex items-center px-4 gap-3 text-sm">
+      <span class="font-semibold">RabbitAITest</span
+      ><span class="border rounded px-2 py-0.5">演示项目 #1</span>
+    </header>
+    <div class="flex">
+      <aside class="w-[200px] bg-white border-r p-2 text-sm">
+        <p class="px-3 py-2 rounded bg-[#574BFF]/10 text-[#574BFF] font-medium">测试用例</p>
+      </aside>
+      <main class="flex-1 p-6 max-w-3xl">
+        <div class="flex items-center gap-2 mb-4">
+          <a class="text-slate-400 text-sm" href="#">‹ 用例列表</a>
+          <h1 class="text-lg font-medium">新建用例</h1>
+          <span class="text-xs text-red-500">名称不能为空</span>
+        </div>
+        <div class="bg-white border rounded p-6 space-y-5">
+          <div class="grid grid-cols-[80px_1fr] items-center gap-3">
+            <label class="text-sm text-slate-600">名称 <span class="text-red-500">*</span></label
+            ><input class="border rounded px-3 py-2 text-sm" value="登录成功场景" />
+          </div>
+          <div class="grid grid-cols-[80px_1fr] gap-3">
+            <label class="text-sm text-slate-600">前置条件</label
+            ><textarea class="border rounded px-3 py-2 text-sm h-16">已注册账号；网络可达</textarea>
+          </div>
+          <div class="grid grid-cols-[80px_1fr] gap-3">
+            <label class="text-sm text-slate-600">步骤</label>
+            <div class="space-y-2">
+              <div class="flex gap-2">
+                <span class="w-6 h-6 rounded bg-slate-100 grid place-items-center text-xs">1</span
+                ><input
+                  class="flex-1 border rounded px-3 py-2 text-sm"
+                  value="打开登录页输入正确账号密码"
+                /><input
+                  class="flex-1 border rounded px-3 py-2 text-sm"
+                  value="跳转工作台，顶栏显示用户名"
+                /><button class="text-slate-400">✕</button>
+              </div>
+              <div class="flex gap-2">
+                <span class="w-6 h-6 rounded bg-slate-100 grid place-items-center text-xs">2</span
+                ><input class="flex-1 border rounded px-3 py-2 text-sm" value="刷新页面" /><input
+                  class="flex-1 border rounded px-3 py-2 text-sm"
+                  value="会话保持仍在工作台"
+                /><button class="text-slate-400">✕</button>
+              </div>
+              <button class="text-sm text-[#574BFF]">＋ 添加步骤</button>
+            </div>
+          </div>
+          <div class="grid grid-cols-[80px_1fr] items-center gap-3">
+            <label class="text-sm text-slate-600">等级</label>
+            <div class="flex gap-3 text-sm">
+              <label class="flex items-center gap-1"
+                ><input type="radio" name="lv" checked /><span class="text-red-500 font-medium"
+                  >P0</span
+                ></label
+              ><label class="flex items-center gap-1"
+                ><input type="radio" name="lv" /><span class="text-orange-500">P1</span></label
+              ><label class="flex items-center gap-1"
+                ><input type="radio" name="lv" /><span class="text-blue-500">P2</span></label
+              ><label class="flex items-center gap-1"
+                ><input type="radio" name="lv" /><span class="text-slate-500">P3</span></label
+              >
+            </div>
+          </div>
+          <div class="grid grid-cols-[80px_1fr] items-center gap-3">
+            <label class="text-sm text-slate-600">标签</label>
+            <div class="flex gap-2">
+              <span class="bg-slate-100 rounded px-2 py-0.5 text-sm">冒烟 ✕</span
+              ><span class="border border-dashed rounded px-2 py-0.5 text-sm text-slate-400"
+                >+ 输入回车添加</span
+              >
+            </div>
+          </div>
+          <div class="flex gap-3 pt-2">
+            <button class="bg-[#574BFF] text-white rounded px-4 py-2 text-sm">保存（Ctrl+S）</button
+            ><button class="border rounded px-4 py-2 text-sm">保存并继续</button
+            ><button class="border rounded px-4 py-2 text-sm">取消</button>
+          </div>
+        </div>
+        <p class="text-xs text-slate-400 mt-3">
+          编辑已有用例：标题右侧显示「C-0001 ·
+          v3」；并发修改冲突时提示「内容已被他人修改（409），请刷新」。
+        </p>
+      </main>
+    </div>
+  </body>
+</html>

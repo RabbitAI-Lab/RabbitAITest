@@ -5,8 +5,8 @@
  * （二进制以主版本名加载；pnpm 不保留包内 symlink 导致 dyld Library not loaded）。
  * 幂等：已存在则跳过。挂在根 package.json postinstall。
  */
-import { existsSync, readdirSync, symlinkSync } from 'node:fs';
-import { join } from 'node:path';
+import { existsSync, readdirSync, symlinkSync } from "node:fs";
+import { join } from "node:path";
 
 function fixLibDir(libDir) {
   if (!existsSync(libDir)) return 0;
@@ -28,15 +28,19 @@ function fixLibDir(libDir) {
 
 let total = 0;
 // pnpm 布局：node_modules/.pnpm/@embedded-postgres+<platform>@<ver>/node_modules/@embedded-postgres/<platform>/native/lib
-const pnpmDir = 'node_modules/.pnpm';
+const pnpmDir = "node_modules/.pnpm";
 if (existsSync(pnpmDir)) {
   for (const entry of readdirSync(pnpmDir)) {
-    if (!entry.startsWith('@embedded-postgres+')) continue;
-    for (const plat of ['darwin-arm64', 'darwin-x64', 'linux-x64', 'linux-arm64']) {
-      total += fixLibDir(join(pnpmDir, entry, 'node_modules', '@embedded-postgres', plat, 'native', 'lib'));
+    if (!entry.startsWith("@embedded-postgres+")) continue;
+    for (const plat of ["darwin-arm64", "darwin-x64", "linux-x64", "linux-arm64"]) {
+      total += fixLibDir(
+        join(pnpmDir, entry, "node_modules", "@embedded-postgres", plat, "native", "lib"),
+      );
     }
   }
 }
 // npm 兼容布局
-total += fixLibDir('node_modules/embedded-postgres/node_modules/@embedded-postgres/darwin-arm64/native/lib');
+total += fixLibDir(
+  "node_modules/embedded-postgres/node_modules/@embedded-postgres/darwin-arm64/native/lib",
+);
 if (total > 0) console.log(`[fix-embedded-pg] created ${total} dylib symlinks`);

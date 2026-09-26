@@ -1,3 +1,3 @@
-import { startWorker } from './runner/worker.js';
+import { startWorker } from "./runner/worker.js";
 
 startWorker();

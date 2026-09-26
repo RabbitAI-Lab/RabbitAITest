@@ -3,11 +3,19 @@
  * 字段定义 → zod 动态校验器（服务端单一来源）→ 前端控件映射元数据（renderKind）。
  * 10 类字段：input/textarea/number/date/single_select/multi_select/checkbox/radio/member/url
  */
-import { z } from 'zod';
+import { z } from "zod";
 
 export const FIELD_TYPES = [
-  'input', 'textarea', 'number', 'date', 'single_select',
-  'multi_select', 'checkbox', 'radio', 'member', 'url',
+  "input",
+  "textarea",
+  "number",
+  "date",
+  "single_select",
+  "multi_select",
+  "checkbox",
+  "radio",
+  "member",
+  "url",
 ] as const;
 export type FieldType = (typeof FIELD_TYPES)[number];
 
@@ -24,7 +32,7 @@ export const fieldOptionsSchema = z.object({
 
 /** FieldDef（持久化形态：scene/name/key/type/required/default/options） */
 export const fieldDefSchema = z.object({
-  scene: z.enum(['case', 'bug']),
+  scene: z.enum(["case", "bug"]),
   name: z.string().min(1).max(128),
   key: z.string().regex(/^[a-z][a-z0-9_]{1,63}$/), // 小写标识，模板/实例按 key 引用
   type: z.enum(FIELD_TYPES),
@@ -47,7 +55,7 @@ export type TemplateFieldBinding = z.infer<typeof templateFieldBindingSchema>;
 function buildOne(def: FieldDefLike, required: boolean): z.ZodTypeAny {
   let inner: z.ZodTypeAny;
   switch (def.type) {
-    case 'number': {
+    case "number": {
       let n = z.number();
       const o = def.options ?? {};
       if (o.min !== undefined) n = n.min(o.min);
@@ -55,19 +63,23 @@ function buildOne(def: FieldDefLike, required: boolean): z.ZodTypeAny {
       inner = n;
       break;
     }
-    case 'checkbox':
+    case "checkbox":
       inner = z.boolean();
       break;
-    case 'multi_select': {
+    case "multi_select": {
       const opts = def.options?.options ?? [];
-      inner = z.array(z.string()).max(50)
-        .refine((arr) => opts.length === 0 || arr.every((v) => opts.includes(v)), { message: `${def.name} 含非法选项` });
+      inner = z
+        .array(z.string())
+        .max(50)
+        .refine((arr) => opts.length === 0 || arr.every((v) => opts.includes(v)), {
+          message: `${def.name} 含非法选项`,
+        });
       break;
     }
-    case 'date':
+    case "date":
       inner = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, { message: `${def.name} 需为 YYYY-MM-DD` });
       break;
-    case 'url': {
+    case "url": {
       const o = def.options ?? {};
       let u = z.string().url({ message: `${def.name} 需为合法 URL` });
       if (o.minLength !== undefined) u = u.min(o.minLength);
@@ -75,22 +87,23 @@ function buildOne(def: FieldDefLike, required: boolean): z.ZodTypeAny {
       inner = u;
       break;
     }
-    case 'member': {
+    case "member": {
       const m = z.string().uuid({ message: `${def.name} 需选择成员` });
       inner = def.options?.multiple ? z.array(m) : m;
       break;
     }
-    case 'single_select':
-    case 'radio': {
+    case "single_select":
+    case "radio": {
       const opts = def.options?.options ?? [];
-      inner = z.string()
-        .refine((v) => opts.length === 0 || opts.includes(v), { message: `${def.name} 含非法选项` });
+      inner = z.string().refine((v) => opts.length === 0 || opts.includes(v), {
+        message: `${def.name} 含非法选项`,
+      });
       break;
     }
-    case 'input':
-    case 'textarea':
+    case "input":
+    case "textarea":
     default: {
-      let t = def.type === 'input' ? z.string().max(4000) : z.string().max(8000);
+      let t = def.type === "input" ? z.string().max(4000) : z.string().max(8000);
       const o = def.options ?? {};
       if (o.minLength !== undefined) t = t.min(o.minLength);
       if (o.maxLength !== undefined) t = t.max(o.maxLength);
@@ -140,16 +153,26 @@ export function buildValidator(
 /** 前端控件映射元数据（renderKind：AntD 控件族） */
 export function renderKind(type: FieldType): string {
   switch (type) {
-    case 'number': return 'InputNumber';
-    case 'date': return 'DatePicker';
-    case 'single_select': return 'Select';
-    case 'multi_select': return 'SelectMultiple';
-    case 'checkbox': return 'Checkbox';
-    case 'radio': return 'RadioGroup';
-    case 'member': return 'MemberSelect';
-    case 'url': return 'Input.URL';
-    case 'textarea': return 'TextArea';
-    default: return 'Input';
+    case "number":
+      return "InputNumber";
+    case "date":
+      return "DatePicker";
+    case "single_select":
+      return "Select";
+    case "multi_select":
+      return "SelectMultiple";
+    case "checkbox":
+      return "Checkbox";
+    case "radio":
+      return "RadioGroup";
+    case "member":
+      return "MemberSelect";
+    case "url":
+      return "Input.URL";
+    case "textarea":
+      return "TextArea";
+    default:
+      return "Input";
   }
 }
 

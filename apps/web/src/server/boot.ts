@@ -1,4 +1,4 @@
-import { ensureCleanupScheduler } from '@/server/jobs/cleanup';
+import { ensureCleanupScheduler } from "@/server/jobs/cleanup";
 
 /**
  * 进程级懒初始化（SYS-005 清理 job 等）。
@@ -11,7 +11,10 @@ export function ensureBoot(): void {
   if (booted) return;
   booted = true;
   void ensureCleanupScheduler().catch((err) => {
-    console.warn('[boot] 清理 job 注册失败（Redis 不可用等）：', err instanceof Error ? err.message : err);
+    console.warn(
+      "[boot] 清理 job 注册失败（Redis 不可用等）：",
+      err instanceof Error ? err.message : err,
+    );
     booted = false; // 允许后续请求重试
   });
 }

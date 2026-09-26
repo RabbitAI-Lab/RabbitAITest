@@ -1,1 +1,1 @@
-export { POST } from '../register/route';
+export { POST } from "../register/route";

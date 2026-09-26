@@ -4,12 +4,12 @@
  * 生成物提交入库；本脚本保留为 API 面清单的可读来源（重跑需 --force 才覆盖已有文件）。
  * 用法：node scripts/gen-routes.mjs [--force]
  */
-import { mkdirSync, writeFileSync, existsSync } from 'node:fs';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { mkdirSync, writeFileSync, existsSync } from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const FORCE = process.argv.includes('--force');
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const FORCE = process.argv.includes("--force");
 
 /**
  * h(guard, opts)：
@@ -27,11 +27,12 @@ function h(guard, opts) {
 
 /** GET 类需要原始 req（读 query）时的条件包装代码生成 */
 function wrapOpen(guard, perm, body) {
-  if (guard === 'system') return `withSystemPerm('${perm}')(async (_ctx, req) => {
+  if (guard === "system")
+    return `withSystemPerm('${perm}')(async (_ctx, req) => {
   try {
 ${body}  } catch (err) { return toResponse(err); }
 })`;
-  const w = guard === 'org' ? 'withOrgScope' : 'withProjectScope';
+  const w = guard === "org" ? "withOrgScope" : "withProjectScope";
   return `${w}(async (ctx, req) => {
   try {
     ctx.requirePerm('${perm}');
@@ -41,43 +42,60 @@ ${body}  } catch (err) { return toResponse(err); }
 
 function methodDef(method, spec) {
   const {
-    guard, perm, svc, fn, argExprs = [], params = [], body, query, writable, status,
-    extraImports = [], custom,
+    guard,
+    perm,
+    svc,
+    fn,
+    argExprs = [],
+    params = [],
+    body,
+    query,
+    writable,
+    status,
+    extraImports = [],
+    custom,
   } = spec;
   if (custom) return custom;
   const imports = [
     "import { toResponse, okResponse } from '@/server/guard';",
     "import * as svc from '@/server/domains/" + svc + "';",
   ];
-  if (guard === 'system') imports.unshift("import { withSystemPerm } from '@/server/guard';");
-  if (guard === 'project') imports.unshift("import { withProjectScope } from '@/server/guard';");
-  if (guard === 'org') imports.unshift("import { withOrgScope } from '@/server/guard';");
-  if (guard === 'auth') imports.unshift("import { withAuth } from '@/server/guard';");
+  if (guard === "system") imports.unshift("import { withSystemPerm } from '@/server/guard';");
+  if (guard === "project") imports.unshift("import { withProjectScope } from '@/server/guard';");
+  if (guard === "org") imports.unshift("import { withOrgScope } from '@/server/guard';");
+  if (guard === "auth") imports.unshift("import { withAuth } from '@/server/guard';");
   const schemas = [body, query].filter(Boolean);
-  if (schemas.length) imports.splice(2, 0, `import { ${schemas.join(', ')} } from '@rabbit/shared';`);
+  if (schemas.length)
+    imports.splice(2, 0, `import { ${schemas.join(", ")} } from '@rabbit/shared';`);
   imports.push(...extraImports);
 
-  const wrap = guard === 'system' ? `withSystemPerm('${perm}')`
-    : guard === 'project' ? 'withProjectScope'
-      : guard === 'org' ? 'withOrgScope' : 'withAuth';
-  const permLine = guard === 'project' || guard === 'org' ? `    ctx.requirePerm('${perm}');\n` : '';
-  const writableLine = writable && guard === 'project' ? '    ctx.requireWritable();\n' : '';
+  const wrap =
+    guard === "system"
+      ? `withSystemPerm('${perm}')`
+      : guard === "project"
+        ? "withProjectScope"
+        : guard === "org"
+          ? "withOrgScope"
+          : "withAuth";
+  const permLine =
+    guard === "project" || guard === "org" ? `    ctx.requirePerm('${perm}');\n` : "";
+  const writableLine = writable && guard === "project" ? "    ctx.requireWritable();\n" : "";
   const paramDestruct = params.length
-    ? `    const { ${params.join(', ')} } = await (seg as { params: Promise<{ ${params.map((pp) => pp + ': string').join('; ')} }> }).params;\n`
-    : '';
+    ? `    const { ${params.join(", ")} } = await (seg as { params: Promise<{ ${params.map((pp) => pp + ": string").join("; ")} }> }).params;\n`
+    : "";
   const queryParse = query
     ? `    const q = ${query}.parse(Object.fromEntries(new URL(req.url).searchParams));\n`
-    : '';
-  const bodyParse = body ? `    const body = ${body}.parse(await req.json());\n` : '';
-  const args = argExprs.join(', ');
+    : "";
+  const bodyParse = body ? `    const body = ${body}.parse(await req.json());\n` : "";
+  const args = argExprs.join(", ");
   const hasReq = Boolean(query) || Boolean(body);
-  const reqParam = hasReq || params.length ? 'req, ' : '_req, ';
-  const segParam = params.length ? 'seg' : '_seg';
-  return `${imports.join('\n')}
+  const reqParam = hasReq || params.length ? "req, " : "_req, ";
+  const segParam = params.length ? "seg" : "_seg";
+  return `${imports.join("\n")}
 
 export const ${method} = ${wrap}(async (ctx, ${reqParam}${segParam}) => {
   try {
-${permLine}${writableLine}${paramDestruct}${queryParse}${bodyParse}    return okResponse(await svc.${fn}(${args})${status ? `, ${status}` : ''});
+${permLine}${writableLine}${paramDestruct}${queryParse}${bodyParse}    return okResponse(await svc.${fn}(${args})${status ? `, ${status}` : ""});
   } catch (err) { return toResponse(err); }
 });
 `;
@@ -91,83 +109,202 @@ function route(relPath, methods) {
   const namedByModule = new Map();
   const otherImports = new Set();
   for (const p of parts) {
-    for (const line of p.split('\n')) {
+    for (const line of p.split("\n")) {
       const m = line.match(/^import \{(.+)\} from '([^']+)';$/);
       if (m) {
         const specSet = namedByModule.get(m[2]) ?? new Set();
-        for (const sp of m[1].split(',').map((x) => x.trim()).filter(Boolean)) specSet.add(sp);
+        for (const sp of m[1]
+          .split(",")
+          .map((x) => x.trim())
+          .filter(Boolean))
+          specSet.add(sp);
         namedByModule.set(m[2], specSet);
-      } else if (line.startsWith('import ')) {
+      } else if (line.startsWith("import ")) {
         otherImports.add(line);
       }
     }
   }
   const importLines = [
-    ...[...namedByModule.entries()].map(([mod, specs]) => `import { ${[...specs].join(', ')} } from '${mod}';`),
+    ...[...namedByModule.entries()].map(
+      ([mod, specs]) => `import { ${[...specs].join(", ")} } from '${mod}';`,
+    ),
     ...otherImports,
   ];
-  const bodies = parts.map((p) => p.split('\n').filter((l) => !l.startsWith('import ')).join('\n').trimStart());
-  files.set(relPath, `${importLines.join('\n')}\n\n${bodies.join('\n')}`);
+  const bodies = parts.map((p) =>
+    p
+      .split("\n")
+      .filter((l) => !l.startsWith("import "))
+      .join("\n")
+      .trimStart(),
+  );
+  files.set(relPath, `${importLines.join("\n")}\n\n${bodies.join("\n")}`);
 }
 
 // ═══════════════ SYS-004 用户管理 ═══════════════
-route('api/v1/system/users/route.ts', {
-  GET: h('system', { perm: 'SYSTEM_USER:READ', svc: 'system/user.service', fn: 'listUsers', query: 'userListQuerySchema', argExprs: ['q'] }),
-  POST: h('system', { perm: 'SYSTEM_USER:CREATE', svc: 'system/user.service', fn: 'createUser', body: 'userCreateSchema', argExprs: ['ctx.userId', 'body'], status: 201 }),
+route("api/v1/system/users/route.ts", {
+  GET: h("system", {
+    perm: "SYSTEM_USER:READ",
+    svc: "system/user.service",
+    fn: "listUsers",
+    query: "userListQuerySchema",
+    argExprs: ["q"],
+  }),
+  POST: h("system", {
+    perm: "SYSTEM_USER:CREATE",
+    svc: "system/user.service",
+    fn: "createUser",
+    body: "userCreateSchema",
+    argExprs: ["ctx.userId", "body"],
+    status: 201,
+  }),
 });
-route('api/v1/system/users/[id]/route.ts', {
-  PUT: h('system', { perm: 'SYSTEM_USER:UPDATE', svc: 'system/user.service', fn: 'updateUser', body: 'userUpdateSchema', params: ['id'], argExprs: ['ctx.userId', 'id', 'body'] }),
-  DELETE: h('system', { perm: 'SYSTEM_USER:DELETE', svc: 'system/user.service', fn: 'deleteUser', params: ['id'], argExprs: ['ctx.userId', 'id'] }),
+route("api/v1/system/users/[id]/route.ts", {
+  PUT: h("system", {
+    perm: "SYSTEM_USER:UPDATE",
+    svc: "system/user.service",
+    fn: "updateUser",
+    body: "userUpdateSchema",
+    params: ["id"],
+    argExprs: ["ctx.userId", "id", "body"],
+  }),
+  DELETE: h("system", {
+    perm: "SYSTEM_USER:DELETE",
+    svc: "system/user.service",
+    fn: "deleteUser",
+    params: ["id"],
+    argExprs: ["ctx.userId", "id"],
+  }),
 });
-route('api/v1/system/users/[id]/reset-password/route.ts', {
-  POST: h('system', { perm: 'SYSTEM_USER:UPDATE', svc: 'system/user.service', fn: 'resetPassword', params: ['id'], argExprs: ['ctx.userId', 'id'] }),
+route("api/v1/system/users/[id]/reset-password/route.ts", {
+  POST: h("system", {
+    perm: "SYSTEM_USER:UPDATE",
+    svc: "system/user.service",
+    fn: "resetPassword",
+    params: ["id"],
+    argExprs: ["ctx.userId", "id"],
+  }),
 });
-route('api/v1/system/users/[id]/status/route.ts', {
-  POST: h('system', { perm: 'SYSTEM_USER:UPDATE', svc: 'system/user.service', fn: 'setUserStatus', body: 'userStatusSchema', params: ['id'], argExprs: ['ctx.userId', 'id', 'body.status'] }),
+route("api/v1/system/users/[id]/status/route.ts", {
+  POST: h("system", {
+    perm: "SYSTEM_USER:UPDATE",
+    svc: "system/user.service",
+    fn: "setUserStatus",
+    body: "userStatusSchema",
+    params: ["id"],
+    argExprs: ["ctx.userId", "id", "body.status"],
+  }),
 });
 
 // ═══════════════ SYS-004 用户组（三作用域同构） ═══════════════
 const groupRoutes = [
-  { base: 'api/v1/system/groups', scope: 'system', guard: 'system', perm: 'SYSTEM_GROUP', ref: "{ scope: 'system' }" },
-  { base: 'api/v1/orgs/[orgId]/groups', scope: 'org', guard: 'org', perm: 'ORG_GROUP', ref: "{ scope: 'org', orgId: ctx.orgId }" },
-  { base: 'api/v1/projects/[projectId]/groups', scope: 'project', guard: 'project', perm: 'PROJECT_GROUP', ref: "{ scope: 'project', projectId: ctx.projectId }" },
+  {
+    base: "api/v1/system/groups",
+    scope: "system",
+    guard: "system",
+    perm: "SYSTEM_GROUP",
+    ref: "{ scope: 'system' }",
+  },
+  {
+    base: "api/v1/orgs/[orgId]/groups",
+    scope: "org",
+    guard: "org",
+    perm: "ORG_GROUP",
+    ref: "{ scope: 'org', orgId: ctx.orgId }",
+  },
+  {
+    base: "api/v1/projects/[projectId]/groups",
+    scope: "project",
+    guard: "project",
+    perm: "PROJECT_GROUP",
+    ref: "{ scope: 'project', projectId: ctx.projectId }",
+  },
 ];
 for (const g of groupRoutes) {
   const R = g.perm;
   route(`${g.base}/route.ts`, {
     GET: h(g.guard, {
-      perm: `${R}:READ`, svc: 'system/group.service', fn: 'listGroups', argExprs: [],
-      custom: `import { toResponse, okResponse, ${g.guard === 'system' ? 'withSystemPerm' : g.guard === 'org' ? 'withOrgScope' : 'withProjectScope'} } from '@/server/guard';
+      perm: `${R}:READ`,
+      svc: "system/group.service",
+      fn: "listGroups",
+      argExprs: [],
+      custom: `import { toResponse, okResponse, ${g.guard === "system" ? "withSystemPerm" : g.guard === "org" ? "withOrgScope" : "withProjectScope"} } from '@/server/guard';
 import * as svc from '@/server/domains/system/group.service';
 
-export const GET = ${wrapOpen(g.guard, R + ':READ', `    return okResponse(await svc.listGroups(${g.ref}, new URL(req.url).searchParams.get('withMembers') === '1' ? { withMembers: '1' } : undefined));\n`)};
+export const GET = ${wrapOpen(g.guard, R + ":READ", `    return okResponse(await svc.listGroups(${g.ref}, new URL(req.url).searchParams.get('withMembers') === '1' ? { withMembers: '1' } : undefined));\n`)};
 `,
     }),
-    POST: h(g.guard, { perm: `${R}:CREATE`, svc: 'system/group.service', fn: 'createGroup', body: 'groupUpsertSchema', argExprs: ['ctx.userId', g.ref, 'body'], status: 201 }),
+    POST: h(g.guard, {
+      perm: `${R}:CREATE`,
+      svc: "system/group.service",
+      fn: "createGroup",
+      body: "groupUpsertSchema",
+      argExprs: ["ctx.userId", g.ref, "body"],
+      status: 201,
+    }),
   });
   route(`${g.base}/[id]/route.ts`, {
-    PUT: h(g.guard, { perm: `${R}:UPDATE`, svc: 'system/group.service', fn: 'updateGroup', body: 'groupUpsertSchema', params: ['id'], argExprs: ['ctx.userId', 'id', 'body'] }),
-    DELETE: h(g.guard, { perm: `${R}:DELETE`, svc: 'system/group.service', fn: 'deleteGroup', params: ['id'], argExprs: ['id'] }),
+    PUT: h(g.guard, {
+      perm: `${R}:UPDATE`,
+      svc: "system/group.service",
+      fn: "updateGroup",
+      body: "groupUpsertSchema",
+      params: ["id"],
+      argExprs: ["ctx.userId", "id", "body"],
+    }),
+    DELETE: h(g.guard, {
+      perm: `${R}:DELETE`,
+      svc: "system/group.service",
+      fn: "deleteGroup",
+      params: ["id"],
+      argExprs: ["id"],
+    }),
   });
   route(`${g.base}/[id]/members/route.ts`, {
-    POST: h(g.guard, { perm: `${R}:UPDATE`, svc: 'system/group.service', fn: 'addMembers', body: 'groupMembersSchema', params: ['id'], argExprs: ['id', 'body.userIds'] }),
+    POST: h(g.guard, {
+      perm: `${R}:UPDATE`,
+      svc: "system/group.service",
+      fn: "addMembers",
+      body: "groupMembersSchema",
+      params: ["id"],
+      argExprs: ["id", "body.userIds"],
+    }),
   });
   route(`${g.base}/[id]/members/[userId]/route.ts`, {
-    DELETE: h(g.guard, { perm: `${R}:UPDATE`, svc: 'system/group.service', fn: 'removeMember', params: ['id', 'userId'], argExprs: ['id', 'userId'] }),
+    DELETE: h(g.guard, {
+      perm: `${R}:UPDATE`,
+      svc: "system/group.service",
+      fn: "removeMember",
+      params: ["id", "userId"],
+      argExprs: ["id", "userId"],
+    }),
   });
   route(`${g.base}/[id]/restore-default/route.ts`, {
-    POST: h(g.guard, { perm: `${R}:UPDATE`, svc: 'system/group.service', fn: 'restoreGroupDefault', params: ['id'], argExprs: ['id'] }),
+    POST: h(g.guard, {
+      perm: `${R}:UPDATE`,
+      svc: "system/group.service",
+      fn: "restoreGroupDefault",
+      params: ["id"],
+      argExprs: ["id"],
+    }),
   });
 }
 
 // ═══════════════ SYS-005 系统参数 ═══════════════
-route('api/v1/system/params/route.ts', {
-  GET: h('system', { perm: 'SYSTEM_PARAM:READ', svc: 'system/param.service', fn: 'getParams', argExprs: [] }),
+route("api/v1/system/params/route.ts", {
+  GET: h("system", {
+    perm: "SYSTEM_PARAM:READ",
+    svc: "system/param.service",
+    fn: "getParams",
+    argExprs: [],
+  }),
 });
-route('api/v1/system/params/[group]/route.ts', {
-  PUT: h('system', {
-    perm: 'SYSTEM_PARAM:UPDATE', svc: 'system/param.service', fn: 'updateParam', params: ['group'],
-    argExprs: ["(group === 'basic' ? 'basic' : group) as 'basic'|'smtp'|'file'|'cleanup'", 'body'],
+route("api/v1/system/params/[group]/route.ts", {
+  PUT: h("system", {
+    perm: "SYSTEM_PARAM:UPDATE",
+    svc: "system/param.service",
+    fn: "updateParam",
+    params: ["group"],
+    argExprs: ["(group === 'basic' ? 'basic' : group) as 'basic'|'smtp'|'file'|'cleanup'", "body"],
     custom: `import { toResponse, okResponse, withSystemPerm } from '@/server/guard';
 import { paramGroupSchema } from '@rabbit/shared';
 import * as svc from '@/server/domains/system/param.service';
@@ -186,22 +323,34 @@ export const PUT = withSystemPerm('SYSTEM_PARAM:UPDATE')(async (_ctx, req, seg) 
 `,
   }),
 });
-route('api/v1/system/params/smtp/test/route.ts', {
-  POST: h('system', { perm: 'SYSTEM_PARAM:UPDATE', svc: 'system/param.service', fn: 'testSmtp', body: 'smtpParamSchema', argExprs: ['body'] }),
+route("api/v1/system/params/smtp/test/route.ts", {
+  POST: h("system", {
+    perm: "SYSTEM_PARAM:UPDATE",
+    svc: "system/param.service",
+    fn: "testSmtp",
+    body: "smtpParamSchema",
+    argExprs: ["body"],
+  }),
 });
 
 // ═══════════════ PROJ-001 组织成员（成员搜索添加数据源） ═══════════════
-route('api/v1/orgs/[orgId]/members/route.ts', {
-  GET: h('org', {
-    perm: 'ORG_MEMBER:READ', svc: 'project/project.service', fn: 'listOrgMembers', query: 'orgMemberQuerySchema',
-    argExprs: ['ctx.orgId', 'q'],
+route("api/v1/orgs/[orgId]/members/route.ts", {
+  GET: h("org", {
+    perm: "ORG_MEMBER:READ",
+    svc: "project/project.service",
+    fn: "listOrgMembers",
+    query: "orgMemberQuerySchema",
+    argExprs: ["ctx.orgId", "q"],
   }),
 });
 
 // ═══════════════ PROJ-001 组织项目 / 项目生命周期 / 成员 ═══════════════
-route('api/v1/orgs/[orgId]/projects/route.ts', {
-  GET: h('org', {
-    perm: 'ORG_PROJECT:READ', svc: 'project/project.service', fn: 'listOrgProjects', argExprs: [],
+route("api/v1/orgs/[orgId]/projects/route.ts", {
+  GET: h("org", {
+    perm: "ORG_PROJECT:READ",
+    svc: "project/project.service",
+    fn: "listOrgProjects",
+    argExprs: [],
     custom: `import { toResponse, okResponse, withOrgScope } from '@/server/guard';
 import * as svc from '@/server/domains/project/project.service';
 
@@ -214,36 +363,99 @@ export const GET = withOrgScope(async (ctx, req) => {
 });
 `,
   }),
-  POST: h('org', { perm: 'ORG_PROJECT:CREATE', svc: 'project/project.service', fn: 'createOrgProject', body: 'projectUpsertSchema', argExprs: ['ctx.orgId', 'ctx.userId', 'body'], status: 201 }),
+  POST: h("org", {
+    perm: "ORG_PROJECT:CREATE",
+    svc: "project/project.service",
+    fn: "createOrgProject",
+    body: "projectUpsertSchema",
+    argExprs: ["ctx.orgId", "ctx.userId", "body"],
+    status: 201,
+  }),
 });
-route('api/v1/projects/[projectId]/info/route.ts', {
-  GET: h('project', { perm: 'PROJECT_MEMBER:READ', svc: 'project/project.service', fn: 'getProjectInfo', argExprs: ['ctx.projectId'] }),
+route("api/v1/projects/[projectId]/info/route.ts", {
+  GET: h("project", {
+    perm: "PROJECT_MEMBER:READ",
+    svc: "project/project.service",
+    fn: "getProjectInfo",
+    argExprs: ["ctx.projectId"],
+  }),
 });
-route('api/v1/projects/[projectId]/route.ts', {
-  PUT: h('project', { perm: 'ORG_PROJECT:UPDATE', writable: true, svc: 'project/project.service', fn: 'updateProject', body: 'projectUpdateSchema', argExprs: ['ctx.projectId', 'ctx.userId', 'body'] }),
-  DELETE: h('project', { perm: 'ORG_PROJECT:DELETE', svc: 'project/project.service', fn: 'softDeleteProject', argExprs: ['ctx.projectId', 'ctx.userId'] }),
+route("api/v1/projects/[projectId]/route.ts", {
+  PUT: h("project", {
+    perm: "ORG_PROJECT:UPDATE",
+    writable: true,
+    svc: "project/project.service",
+    fn: "updateProject",
+    body: "projectUpdateSchema",
+    argExprs: ["ctx.projectId", "ctx.userId", "body"],
+  }),
+  DELETE: h("project", {
+    perm: "ORG_PROJECT:DELETE",
+    svc: "project/project.service",
+    fn: "softDeleteProject",
+    argExprs: ["ctx.projectId", "ctx.userId"],
+  }),
 });
-route('api/v1/projects/[projectId]/close/route.ts', {
-  POST: h('project', { perm: 'ORG_PROJECT:UPDATE', svc: 'project/project.service', fn: 'setProjectEnded', argExprs: ['ctx.projectId', 'ctx.userId', 'true'] }),
+route("api/v1/projects/[projectId]/close/route.ts", {
+  POST: h("project", {
+    perm: "ORG_PROJECT:UPDATE",
+    svc: "project/project.service",
+    fn: "setProjectEnded",
+    argExprs: ["ctx.projectId", "ctx.userId", "true"],
+  }),
 });
-route('api/v1/projects/[projectId]/reopen/route.ts', {
-  POST: h('project', { perm: 'ORG_PROJECT:UPDATE', svc: 'project/project.service', fn: 'setProjectEnded', argExprs: ['ctx.projectId', 'ctx.userId', 'false'] }),
+route("api/v1/projects/[projectId]/reopen/route.ts", {
+  POST: h("project", {
+    perm: "ORG_PROJECT:UPDATE",
+    svc: "project/project.service",
+    fn: "setProjectEnded",
+    argExprs: ["ctx.projectId", "ctx.userId", "false"],
+  }),
 });
-route('api/v1/projects/[projectId]/restore/route.ts', {
-  POST: h('project', { perm: 'ORG_PROJECT:DELETE', svc: 'project/project.service', fn: 'restoreProject', argExprs: ['ctx.projectId', 'ctx.userId'] }),
+route("api/v1/projects/[projectId]/restore/route.ts", {
+  POST: h("project", {
+    perm: "ORG_PROJECT:DELETE",
+    svc: "project/project.service",
+    fn: "restoreProject",
+    argExprs: ["ctx.projectId", "ctx.userId"],
+  }),
 });
-route('api/v1/projects/[projectId]/members/route.ts', {
-  GET: h('project', { perm: 'PROJECT_MEMBER:READ', svc: 'project/project.service', fn: 'listProjectMembers', query: 'orgMemberQuerySchema', argExprs: ['ctx.projectId', 'q'] }),
-  POST: h('project', { perm: 'PROJECT_MEMBER:UPDATE', writable: true, svc: 'project/project.service', fn: 'addProjectMembers', body: 'projectMembersAddSchema', argExprs: ['ctx.projectId', 'ctx.userId', 'body.userIds'], status: 201 }),
+route("api/v1/projects/[projectId]/members/route.ts", {
+  GET: h("project", {
+    perm: "PROJECT_MEMBER:READ",
+    svc: "project/project.service",
+    fn: "listProjectMembers",
+    query: "orgMemberQuerySchema",
+    argExprs: ["ctx.projectId", "q"],
+  }),
+  POST: h("project", {
+    perm: "PROJECT_MEMBER:UPDATE",
+    writable: true,
+    svc: "project/project.service",
+    fn: "addProjectMembers",
+    body: "projectMembersAddSchema",
+    argExprs: ["ctx.projectId", "ctx.userId", "body.userIds"],
+    status: 201,
+  }),
 });
-route('api/v1/projects/[projectId]/members/[userId]/route.ts', {
-  DELETE: h('project', { perm: 'PROJECT_MEMBER:UPDATE', writable: true, svc: 'project/project.service', fn: 'removeProjectMember', params: ['userId'], argExprs: ['ctx.projectId', 'ctx.userId', 'userId'] }),
+route("api/v1/projects/[projectId]/members/[userId]/route.ts", {
+  DELETE: h("project", {
+    perm: "PROJECT_MEMBER:UPDATE",
+    writable: true,
+    svc: "project/project.service",
+    fn: "removeProjectMember",
+    params: ["userId"],
+    argExprs: ["ctx.projectId", "ctx.userId", "userId"],
+  }),
 });
 
 // ═══════════════ PROJ-002 字段定义 / 模板 / 工作流 ═══════════════
-route('api/v1/orgs/[orgId]/field-defs/route.ts', {
-  GET: h('org', {
-    perm: 'ORG_TEMPLATE:READ', svc: 'project/template.service', fn: 'listFieldDefs', argExprs: [],
+route("api/v1/orgs/[orgId]/field-defs/route.ts", {
+  GET: h("org", {
+    perm: "ORG_TEMPLATE:READ",
+    svc: "project/template.service",
+    fn: "listFieldDefs",
+    argExprs: [],
     custom: `import { toResponse, okResponse, withOrgScope } from '@/server/guard';
 import * as svc from '@/server/domains/project/template.service';
 
@@ -255,15 +467,38 @@ export const GET = withOrgScope(async (ctx, req) => {
 });
 `,
   }),
-  POST: h('org', { perm: 'ORG_TEMPLATE:UPDATE', svc: 'project/template.service', fn: 'createFieldDef', body: 'fieldDefUpsertSchema', argExprs: ['ctx.orgId', 'body'], status: 201 }),
+  POST: h("org", {
+    perm: "ORG_TEMPLATE:UPDATE",
+    svc: "project/template.service",
+    fn: "createFieldDef",
+    body: "fieldDefUpsertSchema",
+    argExprs: ["ctx.orgId", "body"],
+    status: 201,
+  }),
 });
-route('api/v1/orgs/[orgId]/field-defs/[id]/route.ts', {
-  PUT: h('org', { perm: 'ORG_TEMPLATE:UPDATE', svc: 'project/template.service', fn: 'updateFieldDef', body: 'fieldDefUpsertSchema', params: ['id'], argExprs: ['ctx.orgId', 'id', 'body'] }),
-  DELETE: h('org', { perm: 'ORG_TEMPLATE:UPDATE', svc: 'project/template.service', fn: 'deleteFieldDef', params: ['id'], argExprs: ['ctx.orgId', 'id'] }),
+route("api/v1/orgs/[orgId]/field-defs/[id]/route.ts", {
+  PUT: h("org", {
+    perm: "ORG_TEMPLATE:UPDATE",
+    svc: "project/template.service",
+    fn: "updateFieldDef",
+    body: "fieldDefUpsertSchema",
+    params: ["id"],
+    argExprs: ["ctx.orgId", "id", "body"],
+  }),
+  DELETE: h("org", {
+    perm: "ORG_TEMPLATE:UPDATE",
+    svc: "project/template.service",
+    fn: "deleteFieldDef",
+    params: ["id"],
+    argExprs: ["ctx.orgId", "id"],
+  }),
 });
-route('api/v1/orgs/[orgId]/templates/route.ts', {
-  GET: h('org', {
-    perm: 'ORG_TEMPLATE:READ', svc: 'project/template.service', fn: 'listTemplates', argExprs: [],
+route("api/v1/orgs/[orgId]/templates/route.ts", {
+  GET: h("org", {
+    perm: "ORG_TEMPLATE:READ",
+    svc: "project/template.service",
+    fn: "listTemplates",
+    argExprs: [],
     custom: `import { toResponse, okResponse, withOrgScope } from '@/server/guard';
 import * as svc from '@/server/domains/project/template.service';
 
@@ -275,16 +510,40 @@ export const GET = withOrgScope(async (ctx, req) => {
 });
 `,
   }),
-  POST: h('org', { perm: 'ORG_TEMPLATE:UPDATE', svc: 'project/template.service', fn: 'createTemplate', body: 'templateUpsertSchema', argExprs: ['ctx.orgId', 'null', 'ctx.userId', 'body'], status: 201 }),
+  POST: h("org", {
+    perm: "ORG_TEMPLATE:UPDATE",
+    svc: "project/template.service",
+    fn: "createTemplate",
+    body: "templateUpsertSchema",
+    argExprs: ["ctx.orgId", "null", "ctx.userId", "body"],
+    status: 201,
+  }),
 });
-route('api/v1/orgs/[orgId]/templates/[id]/route.ts', {
-  PUT: h('org', { perm: 'ORG_TEMPLATE:UPDATE', svc: 'project/template.service', fn: 'updateTemplate', body: 'templateUpsertSchema', params: ['id'], argExprs: ['ctx.orgId', 'id', 'body'] }),
-  DELETE: h('org', { perm: 'ORG_TEMPLATE:UPDATE', svc: 'project/template.service', fn: 'deleteTemplate', params: ['id'], argExprs: ['ctx.orgId', 'null', 'id'] }),
+route("api/v1/orgs/[orgId]/templates/[id]/route.ts", {
+  PUT: h("org", {
+    perm: "ORG_TEMPLATE:UPDATE",
+    svc: "project/template.service",
+    fn: "updateTemplate",
+    body: "templateUpsertSchema",
+    params: ["id"],
+    argExprs: ["ctx.orgId", "id", "body"],
+  }),
+  DELETE: h("org", {
+    perm: "ORG_TEMPLATE:UPDATE",
+    svc: "project/template.service",
+    fn: "deleteTemplate",
+    params: ["id"],
+    argExprs: ["ctx.orgId", "null", "id"],
+  }),
 });
-route('api/v1/orgs/[orgId]/templates/[id]/fields/route.ts', {
-  PUT: h('org', {
-    perm: 'ORG_TEMPLATE:UPDATE', svc: 'project/template.service', fn: 'updateTemplateFields', params: ['id'],
-    argExprs: ['ctx.orgId', 'id', 'body.fields'], custom: `import { toResponse, okResponse, withOrgScope } from '@/server/guard';
+route("api/v1/orgs/[orgId]/templates/[id]/fields/route.ts", {
+  PUT: h("org", {
+    perm: "ORG_TEMPLATE:UPDATE",
+    svc: "project/template.service",
+    fn: "updateTemplateFields",
+    params: ["id"],
+    argExprs: ["ctx.orgId", "id", "body.fields"],
+    custom: `import { toResponse, okResponse, withOrgScope } from '@/server/guard';
 import { templateUpsertSchema } from '@rabbit/shared';
 import * as svc from '@/server/domains/project/template.service';
 
@@ -299,15 +558,31 @@ export const PUT = withOrgScope(async (ctx, req, seg) => {
 `,
   }),
 });
-route('api/v1/orgs/[orgId]/templates/[id]/default/route.ts', {
-  POST: h('org', { perm: 'ORG_TEMPLATE:UPDATE', svc: 'project/template.service', fn: 'setDefaultTemplate', params: ['id'], argExprs: ['ctx.orgId', 'null', 'id'] }),
+route("api/v1/orgs/[orgId]/templates/[id]/default/route.ts", {
+  POST: h("org", {
+    perm: "ORG_TEMPLATE:UPDATE",
+    svc: "project/template.service",
+    fn: "setDefaultTemplate",
+    params: ["id"],
+    argExprs: ["ctx.orgId", "null", "id"],
+  }),
 });
-route('api/v1/orgs/[orgId]/templates/[id]/copy/route.ts', {
-  POST: h('org', { perm: 'ORG_TEMPLATE:UPDATE', svc: 'project/template.service', fn: 'copyTemplate', params: ['id'], argExprs: ['ctx.orgId', 'null', 'id'], status: 201 }),
+route("api/v1/orgs/[orgId]/templates/[id]/copy/route.ts", {
+  POST: h("org", {
+    perm: "ORG_TEMPLATE:UPDATE",
+    svc: "project/template.service",
+    fn: "copyTemplate",
+    params: ["id"],
+    argExprs: ["ctx.orgId", "null", "id"],
+    status: 201,
+  }),
 });
-route('api/v1/projects/[projectId]/templates/route.ts', {
-  GET: h('project', {
-    perm: 'PROJECT_TEMPLATE:READ', svc: 'project/template.service', fn: 'listTemplates', argExprs: [],
+route("api/v1/projects/[projectId]/templates/route.ts", {
+  GET: h("project", {
+    perm: "PROJECT_TEMPLATE:READ",
+    svc: "project/template.service",
+    fn: "listTemplates",
+    argExprs: [],
     custom: `import { toResponse, okResponse, withProjectScope } from '@/server/guard';
 import * as svc from '@/server/domains/project/template.service';
 
@@ -319,16 +594,44 @@ export const GET = withProjectScope(async (ctx, req) => {
 });
 `,
   }),
-  POST: h('project', { perm: 'PROJECT_TEMPLATE:UPDATE', writable: true, svc: 'project/template.service', fn: 'createTemplate', body: 'templateUpsertSchema', argExprs: ['ctx.orgId', 'ctx.projectId', 'ctx.userId', 'body'], status: 201 }),
+  POST: h("project", {
+    perm: "PROJECT_TEMPLATE:UPDATE",
+    writable: true,
+    svc: "project/template.service",
+    fn: "createTemplate",
+    body: "templateUpsertSchema",
+    argExprs: ["ctx.orgId", "ctx.projectId", "ctx.userId", "body"],
+    status: 201,
+  }),
 });
-route('api/v1/projects/[projectId]/templates/[id]/route.ts', {
-  PUT: h('project', { perm: 'PROJECT_TEMPLATE:UPDATE', writable: true, svc: 'project/template.service', fn: 'updateTemplate', body: 'templateUpsertSchema', params: ['id'], argExprs: ['ctx.orgId', 'id', 'body'] }),
-  DELETE: h('project', { perm: 'PROJECT_TEMPLATE:UPDATE', writable: true, svc: 'project/template.service', fn: 'deleteTemplate', params: ['id'], argExprs: ['ctx.orgId', 'ctx.projectId', 'id'] }),
+route("api/v1/projects/[projectId]/templates/[id]/route.ts", {
+  PUT: h("project", {
+    perm: "PROJECT_TEMPLATE:UPDATE",
+    writable: true,
+    svc: "project/template.service",
+    fn: "updateTemplate",
+    body: "templateUpsertSchema",
+    params: ["id"],
+    argExprs: ["ctx.orgId", "id", "body"],
+  }),
+  DELETE: h("project", {
+    perm: "PROJECT_TEMPLATE:UPDATE",
+    writable: true,
+    svc: "project/template.service",
+    fn: "deleteTemplate",
+    params: ["id"],
+    argExprs: ["ctx.orgId", "ctx.projectId", "id"],
+  }),
 });
-route('api/v1/projects/[projectId]/templates/[id]/fields/route.ts', {
-  PUT: h('project', {
-    perm: 'PROJECT_TEMPLATE:UPDATE', writable: true, svc: 'project/template.service', fn: 'updateTemplateFields', params: ['id'],
-    argExprs: ['ctx.orgId', 'id', 'body.fields'], custom: `import { toResponse, okResponse, withProjectScope } from '@/server/guard';
+route("api/v1/projects/[projectId]/templates/[id]/fields/route.ts", {
+  PUT: h("project", {
+    perm: "PROJECT_TEMPLATE:UPDATE",
+    writable: true,
+    svc: "project/template.service",
+    fn: "updateTemplateFields",
+    params: ["id"],
+    argExprs: ["ctx.orgId", "id", "body.fields"],
+    custom: `import { toResponse, okResponse, withProjectScope } from '@/server/guard';
 import { templateUpsertSchema } from '@rabbit/shared';
 import * as svc from '@/server/domains/project/template.service';
 
@@ -344,21 +647,50 @@ export const PUT = withProjectScope(async (ctx, req, seg) => {
 `,
   }),
 });
-route('api/v1/projects/[projectId]/templates/[id]/default/route.ts', {
-  POST: h('project', { perm: 'PROJECT_TEMPLATE:UPDATE', writable: true, svc: 'project/template.service', fn: 'setDefaultTemplate', params: ['id'], argExprs: ['ctx.orgId', 'ctx.projectId', 'id'] }),
+route("api/v1/projects/[projectId]/templates/[id]/default/route.ts", {
+  POST: h("project", {
+    perm: "PROJECT_TEMPLATE:UPDATE",
+    writable: true,
+    svc: "project/template.service",
+    fn: "setDefaultTemplate",
+    params: ["id"],
+    argExprs: ["ctx.orgId", "ctx.projectId", "id"],
+  }),
 });
-route('api/v1/projects/[projectId]/templates/[id]/copy/route.ts', {
-  POST: h('project', { perm: 'PROJECT_TEMPLATE:UPDATE', writable: true, svc: 'project/template.service', fn: 'copyTemplate', params: ['id'], argExprs: ['ctx.orgId', 'ctx.projectId', 'id'], status: 201 }),
+route("api/v1/projects/[projectId]/templates/[id]/copy/route.ts", {
+  POST: h("project", {
+    perm: "PROJECT_TEMPLATE:UPDATE",
+    writable: true,
+    svc: "project/template.service",
+    fn: "copyTemplate",
+    params: ["id"],
+    argExprs: ["ctx.orgId", "ctx.projectId", "id"],
+    status: 201,
+  }),
 });
-route('api/v1/projects/[projectId]/template-mode/route.ts', {
-  GET: h('project', { perm: 'PROJECT_TEMPLATE:READ', svc: 'project/template.service', fn: 'getTemplateMode', argExprs: ['ctx.projectId'] }),
+route("api/v1/projects/[projectId]/template-mode/route.ts", {
+  GET: h("project", {
+    perm: "PROJECT_TEMPLATE:READ",
+    svc: "project/template.service",
+    fn: "getTemplateMode",
+    argExprs: ["ctx.projectId"],
+  }),
 });
-route('api/v1/projects/[projectId]/template-mode/enable/route.ts', {
-  POST: h('project', { perm: 'PROJECT_TEMPLATE:UPDATE', writable: true, svc: 'project/template.service', fn: 'enableProjectTemplateMode', argExprs: ['ctx.orgId', 'ctx.projectId', 'ctx.userId'] }),
+route("api/v1/projects/[projectId]/template-mode/enable/route.ts", {
+  POST: h("project", {
+    perm: "PROJECT_TEMPLATE:UPDATE",
+    writable: true,
+    svc: "project/template.service",
+    fn: "enableProjectTemplateMode",
+    argExprs: ["ctx.orgId", "ctx.projectId", "ctx.userId"],
+  }),
 });
-route('api/v1/projects/[projectId]/workflows/route.ts', {
-  GET: h('project', {
-    perm: 'PROJECT_TEMPLATE:READ', svc: 'project/template.service', fn: 'getWorkflow', argExprs: [],
+route("api/v1/projects/[projectId]/workflows/route.ts", {
+  GET: h("project", {
+    perm: "PROJECT_TEMPLATE:READ",
+    svc: "project/template.service",
+    fn: "getWorkflow",
+    argExprs: [],
     custom: `import { toResponse, okResponse, withProjectScope } from '@/server/guard';
 import * as svc from '@/server/domains/project/template.service';
 
@@ -372,21 +704,54 @@ export const GET = withProjectScope(async (ctx, req) => {
 `,
   }),
 });
-route('api/v1/projects/[projectId]/workflows/states/route.ts', {
-  POST: h('project', { perm: 'PROJECT_TEMPLATE:UPDATE', writable: true, svc: 'project/template.service', fn: 'createWorkflowState', body: 'workflowStateUpsertSchema', argExprs: ['ctx.orgId', 'ctx.projectId', 'body'], status: 201 }),
+route("api/v1/projects/[projectId]/workflows/states/route.ts", {
+  POST: h("project", {
+    perm: "PROJECT_TEMPLATE:UPDATE",
+    writable: true,
+    svc: "project/template.service",
+    fn: "createWorkflowState",
+    body: "workflowStateUpsertSchema",
+    argExprs: ["ctx.orgId", "ctx.projectId", "body"],
+    status: 201,
+  }),
 });
-route('api/v1/projects/[projectId]/workflows/states/[stateId]/route.ts', {
-  PUT: h('project', { perm: 'PROJECT_TEMPLATE:UPDATE', writable: true, svc: 'project/template.service', fn: 'updateWorkflowState', body: 'workflowStateUpsertSchema', params: ['stateId'], argExprs: ['ctx.orgId', 'ctx.projectId', 'stateId', 'body'] }),
-  DELETE: h('project', { perm: 'PROJECT_TEMPLATE:UPDATE', writable: true, svc: 'project/template.service', fn: 'deleteWorkflowState', params: ['stateId'], argExprs: ['ctx.orgId', 'ctx.projectId', 'stateId'] }),
+route("api/v1/projects/[projectId]/workflows/states/[stateId]/route.ts", {
+  PUT: h("project", {
+    perm: "PROJECT_TEMPLATE:UPDATE",
+    writable: true,
+    svc: "project/template.service",
+    fn: "updateWorkflowState",
+    body: "workflowStateUpsertSchema",
+    params: ["stateId"],
+    argExprs: ["ctx.orgId", "ctx.projectId", "stateId", "body"],
+  }),
+  DELETE: h("project", {
+    perm: "PROJECT_TEMPLATE:UPDATE",
+    writable: true,
+    svc: "project/template.service",
+    fn: "deleteWorkflowState",
+    params: ["stateId"],
+    argExprs: ["ctx.orgId", "ctx.projectId", "stateId"],
+  }),
 });
-route('api/v1/projects/[projectId]/workflows/transitions/route.ts', {
-  PUT: h('project', { perm: 'PROJECT_TEMPLATE:UPDATE', writable: true, svc: 'project/template.service', fn: 'updateWorkflowTransitions', body: 'workflowTransitionsUpsertSchema', argExprs: ['ctx.orgId', 'ctx.projectId', 'body.transitions'] }),
+route("api/v1/projects/[projectId]/workflows/transitions/route.ts", {
+  PUT: h("project", {
+    perm: "PROJECT_TEMPLATE:UPDATE",
+    writable: true,
+    svc: "project/template.service",
+    fn: "updateWorkflowTransitions",
+    body: "workflowTransitionsUpsertSchema",
+    argExprs: ["ctx.orgId", "ctx.projectId", "body.transitions"],
+  }),
 });
 
 // ═══════════════ CASE-002/003：模块/列表v2/视图/批量/关注/复制/详情关联/评论/历史 ═══════════════
-route('api/v1/projects/[projectId]/modules/route.ts', {
-  GET: h('project', {
-    perm: 'PROJECT_CASE:READ', svc: 'case/module.service', fn: 'listModules', argExprs: [],
+route("api/v1/projects/[projectId]/modules/route.ts", {
+  GET: h("project", {
+    perm: "PROJECT_CASE:READ",
+    svc: "case/module.service",
+    fn: "listModules",
+    argExprs: [],
     custom: `import { toResponse, okResponse, withProjectScope } from '@/server/guard';
 import * as svc from '@/server/domains/case/module.service';
 
@@ -399,9 +764,14 @@ export const GET = withProjectScope(async (ctx, req) => {
 });
 `,
   }),
-  POST: h('project', {
-    perm: 'PROJECT_CASE:UPDATE', writable: true, svc: 'case/module.service', fn: 'createModule', body: 'moduleUpsertSchema',
-    argExprs: [], status: 201,
+  POST: h("project", {
+    perm: "PROJECT_CASE:UPDATE",
+    writable: true,
+    svc: "case/module.service",
+    fn: "createModule",
+    body: "moduleUpsertSchema",
+    argExprs: [],
+    status: 201,
     custom: `import { toResponse, okResponse, withProjectScope } from '@/server/guard';
 import { moduleUpsertSchema } from '@rabbit/shared';
 import * as svc from '@/server/domains/case/module.service';
@@ -418,9 +788,15 @@ export const POST = withProjectScope(async (ctx, req) => {
 `,
   }),
 });
-route('api/v1/projects/[projectId]/modules/[id]/route.ts', {
-  PUT: h('project', {
-    perm: 'PROJECT_CASE:UPDATE', writable: true, svc: 'case/module.service', fn: 'renameModule', body: 'moduleUpsertSchema', params: ['id'], argExprs: [],
+route("api/v1/projects/[projectId]/modules/[id]/route.ts", {
+  PUT: h("project", {
+    perm: "PROJECT_CASE:UPDATE",
+    writable: true,
+    svc: "case/module.service",
+    fn: "renameModule",
+    body: "moduleUpsertSchema",
+    params: ["id"],
+    argExprs: [],
     custom: `import { toResponse, okResponse, withProjectScope } from '@/server/guard';
 import { moduleUpsertSchema } from '@rabbit/shared';
 import * as svc from '@/server/domains/case/module.service';
@@ -437,8 +813,13 @@ export const PUT = withProjectScope(async (ctx, req, seg) => {
 });
 `,
   }),
-  DELETE: h('project', {
-    perm: 'PROJECT_CASE:UPDATE', writable: true, svc: 'case/module.service', fn: 'deleteModule', params: ['id'], argExprs: [],
+  DELETE: h("project", {
+    perm: "PROJECT_CASE:UPDATE",
+    writable: true,
+    svc: "case/module.service",
+    fn: "deleteModule",
+    params: ["id"],
+    argExprs: [],
     custom: `import { toResponse, okResponse, withProjectScope } from '@/server/guard';
 import * as svc from '@/server/domains/case/module.service';
 
@@ -454,9 +835,15 @@ export const DELETE = withProjectScope(async (ctx, req, seg) => {
 `,
   }),
 });
-route('api/v1/projects/[projectId]/modules/[id]/move/route.ts', {
-  POST: h('project', {
-    perm: 'PROJECT_CASE:UPDATE', writable: true, svc: 'case/module.service', fn: 'moveModule', body: 'moduleMoveSchema', params: ['id'], argExprs: [],
+route("api/v1/projects/[projectId]/modules/[id]/move/route.ts", {
+  POST: h("project", {
+    perm: "PROJECT_CASE:UPDATE",
+    writable: true,
+    svc: "case/module.service",
+    fn: "moveModule",
+    body: "moduleMoveSchema",
+    params: ["id"],
+    argExprs: [],
     custom: `import { toResponse, okResponse, withProjectScope } from '@/server/guard';
 import { moduleMoveSchema } from '@rabbit/shared';
 import * as svc from '@/server/domains/case/module.service';
@@ -476,42 +863,125 @@ export const POST = withProjectScope(async (ctx, req, seg) => {
 });
 
 // ── 用例列表 v2 / CRUD v2（覆盖 CASE-001 旧路由）──
-route('api/v1/projects/[projectId]/cases/route.ts', {
-  GET: h('project', {
-    perm: 'PROJECT_CASE:READ', svc: 'case/caseV2.service', fn: 'listCasesV2', query: 'caseListQueryV2Schema', argExprs: ['ctx.projectId', 'q', 'ctx.userId'],
+route("api/v1/projects/[projectId]/cases/route.ts", {
+  GET: h("project", {
+    perm: "PROJECT_CASE:READ",
+    svc: "case/caseV2.service",
+    fn: "listCasesV2",
+    query: "caseListQueryV2Schema",
+    argExprs: ["ctx.projectId", "q", "ctx.userId"],
   }),
-  POST: h('project', {
-    perm: 'PROJECT_CASE:CREATE', writable: true, svc: 'case/caseV2.service', fn: 'createCaseV2', body: 'caseCreateV2Schema', argExprs: ['ctx.projectId', 'ctx.orgId', 'ctx.userId', 'body'], status: 201,
+  POST: h("project", {
+    perm: "PROJECT_CASE:CREATE",
+    writable: true,
+    svc: "case/caseV2.service",
+    fn: "createCaseV2",
+    body: "caseCreateV2Schema",
+    argExprs: ["ctx.projectId", "ctx.orgId", "ctx.userId", "body"],
+    status: 201,
   }),
 });
-route('api/v1/projects/[projectId]/cases/[caseId]/route.ts', {
-  GET: h('project', { perm: 'PROJECT_CASE:READ', svc: 'case/caseV2.service', fn: 'getCaseV2', params: ['caseId'], argExprs: ['ctx.projectId', 'caseId'] }),
-  PUT: h('project', { perm: 'PROJECT_CASE:UPDATE', writable: true, svc: 'case/caseV2.service', fn: 'updateCaseV2', body: 'caseUpdateV2Schema', params: ['caseId'], argExprs: ['ctx.projectId', 'ctx.orgId', 'ctx.userId', 'caseId', 'body'] }),
-  DELETE: h('project', { perm: 'PROJECT_CASE:DELETE', writable: true, svc: 'case/caseV2.service', fn: 'deleteCaseV2', params: ['caseId'], argExprs: ['ctx.projectId', 'caseId', 'ctx.userId'] }),
+route("api/v1/projects/[projectId]/cases/[caseId]/route.ts", {
+  GET: h("project", {
+    perm: "PROJECT_CASE:READ",
+    svc: "case/caseV2.service",
+    fn: "getCaseV2",
+    params: ["caseId"],
+    argExprs: ["ctx.projectId", "caseId"],
+  }),
+  PUT: h("project", {
+    perm: "PROJECT_CASE:UPDATE",
+    writable: true,
+    svc: "case/caseV2.service",
+    fn: "updateCaseV2",
+    body: "caseUpdateV2Schema",
+    params: ["caseId"],
+    argExprs: ["ctx.projectId", "ctx.orgId", "ctx.userId", "caseId", "body"],
+  }),
+  DELETE: h("project", {
+    perm: "PROJECT_CASE:DELETE",
+    writable: true,
+    svc: "case/caseV2.service",
+    fn: "deleteCaseV2",
+    params: ["caseId"],
+    argExprs: ["ctx.projectId", "caseId", "ctx.userId"],
+  }),
 });
-route('api/v1/projects/[projectId]/cases/[caseId]/copy/route.ts', {
-  POST: h('project', { perm: 'PROJECT_CASE:CREATE', writable: true, svc: 'case/caseV2.service', fn: 'copyCase', params: ['caseId'], argExprs: ['ctx.projectId', 'ctx.userId', 'caseId'], status: 201 }),
+route("api/v1/projects/[projectId]/cases/[caseId]/copy/route.ts", {
+  POST: h("project", {
+    perm: "PROJECT_CASE:CREATE",
+    writable: true,
+    svc: "case/caseV2.service",
+    fn: "copyCase",
+    params: ["caseId"],
+    argExprs: ["ctx.projectId", "ctx.userId", "caseId"],
+    status: 201,
+  }),
 });
-route('api/v1/projects/[projectId]/cases/[caseId]/follow/route.ts', {
-  POST: h('project', { perm: 'PROJECT_CASE:READ', svc: 'case/caseV2.service', fn: 'setFollow', params: ['caseId'], argExprs: ['ctx.projectId', 'ctx.userId', 'caseId', 'true'] }),
-  DELETE: h('project', { perm: 'PROJECT_CASE:READ', svc: 'case/caseV2.service', fn: 'setFollow', params: ['caseId'], argExprs: ['ctx.projectId', 'ctx.userId', 'caseId', 'false'] }),
+route("api/v1/projects/[projectId]/cases/[caseId]/follow/route.ts", {
+  POST: h("project", {
+    perm: "PROJECT_CASE:READ",
+    svc: "case/caseV2.service",
+    fn: "setFollow",
+    params: ["caseId"],
+    argExprs: ["ctx.projectId", "ctx.userId", "caseId", "true"],
+  }),
+  DELETE: h("project", {
+    perm: "PROJECT_CASE:READ",
+    svc: "case/caseV2.service",
+    fn: "setFollow",
+    params: ["caseId"],
+    argExprs: ["ctx.projectId", "ctx.userId", "caseId", "false"],
+  }),
 });
-route('api/v1/projects/[projectId]/cases/batch-move/route.ts', {
-  POST: h('project', { perm: 'PROJECT_CASE:UPDATE', writable: true, svc: 'case/caseV2.service', fn: 'batchCases', body: 'caseBatchSchema', argExprs: ['ctx.projectId', 'ctx.orgId', 'ctx.userId', "'move'", 'body'] }),
+route("api/v1/projects/[projectId]/cases/batch-move/route.ts", {
+  POST: h("project", {
+    perm: "PROJECT_CASE:UPDATE",
+    writable: true,
+    svc: "case/caseV2.service",
+    fn: "batchCases",
+    body: "caseBatchSchema",
+    argExprs: ["ctx.projectId", "ctx.orgId", "ctx.userId", "'move'", "body"],
+  }),
 });
-route('api/v1/projects/[projectId]/cases/batch-copy/route.ts', {
-  POST: h('project', { perm: 'PROJECT_CASE:CREATE', writable: true, svc: 'case/caseV2.service', fn: 'batchCases', body: 'caseBatchSchema', argExprs: ['ctx.projectId', 'ctx.orgId', 'ctx.userId', "'copy'", 'body'] }),
+route("api/v1/projects/[projectId]/cases/batch-copy/route.ts", {
+  POST: h("project", {
+    perm: "PROJECT_CASE:CREATE",
+    writable: true,
+    svc: "case/caseV2.service",
+    fn: "batchCases",
+    body: "caseBatchSchema",
+    argExprs: ["ctx.projectId", "ctx.orgId", "ctx.userId", "'copy'", "body"],
+  }),
 });
-route('api/v1/projects/[projectId]/cases/batch-delete/route.ts', {
-  POST: h('project', { perm: 'PROJECT_CASE:DELETE', writable: true, svc: 'case/caseV2.service', fn: 'batchCases', body: 'caseBatchSchema', argExprs: ['ctx.projectId', 'ctx.orgId', 'ctx.userId', "'delete'", 'body'] }),
+route("api/v1/projects/[projectId]/cases/batch-delete/route.ts", {
+  POST: h("project", {
+    perm: "PROJECT_CASE:DELETE",
+    writable: true,
+    svc: "case/caseV2.service",
+    fn: "batchCases",
+    body: "caseBatchSchema",
+    argExprs: ["ctx.projectId", "ctx.orgId", "ctx.userId", "'delete'", "body"],
+  }),
 });
-route('api/v1/projects/[projectId]/cases/batch-update/route.ts', {
-  POST: h('project', { perm: 'PROJECT_CASE:UPDATE', writable: true, svc: 'case/caseV2.service', fn: 'batchCases', body: 'caseBatchSchema', argExprs: ['ctx.projectId', 'ctx.orgId', 'ctx.userId', "'update'", 'body'] }),
+route("api/v1/projects/[projectId]/cases/batch-update/route.ts", {
+  POST: h("project", {
+    perm: "PROJECT_CASE:UPDATE",
+    writable: true,
+    svc: "case/caseV2.service",
+    fn: "batchCases",
+    body: "caseBatchSchema",
+    argExprs: ["ctx.projectId", "ctx.orgId", "ctx.userId", "'update'", "body"],
+  }),
 });
 
-route('api/v1/projects/[projectId]/cases/import/route.ts', {
-  POST: h('project', {
-    perm: 'PROJECT_CASE:CREATE', writable: true, svc: 'case/caseIo.service', fn: 'importCases', argExprs: [],
+route("api/v1/projects/[projectId]/cases/import/route.ts", {
+  POST: h("project", {
+    perm: "PROJECT_CASE:CREATE",
+    writable: true,
+    svc: "case/caseIo.service",
+    fn: "importCases",
+    argExprs: [],
     custom: `import { toResponse, okResponse, withProjectScope } from '@/server/guard';
 import * as svc from '@/server/domains/case/caseIo.service';
 
@@ -534,9 +1004,12 @@ export const POST = withProjectScope(async (ctx, req) => {
 `,
   }),
 });
-route('api/v1/projects/[projectId]/cases/import/template/route.ts', {
-  GET: h('project', {
-    perm: 'PROJECT_CASE:READ', svc: 'case/caseIo.service', fn: 'buildTemplate', argExprs: [],
+route("api/v1/projects/[projectId]/cases/import/template/route.ts", {
+  GET: h("project", {
+    perm: "PROJECT_CASE:READ",
+    svc: "case/caseIo.service",
+    fn: "buildTemplate",
+    argExprs: [],
     custom: `import { toResponse, withProjectScope } from '@/server/guard';
 import * as svc from '@/server/domains/case/caseIo.service';
 
@@ -554,9 +1027,12 @@ export const GET = withProjectScope(async (ctx) => {
 `,
   }),
 });
-route('api/v1/projects/[projectId]/cases/export/route.ts', {
-  POST: h('project', {
-    perm: 'PROJECT_CASE:READ', svc: 'case/caseIo.service', fn: 'exportCases', argExprs: [],
+route("api/v1/projects/[projectId]/cases/export/route.ts", {
+  POST: h("project", {
+    perm: "PROJECT_CASE:READ",
+    svc: "case/caseIo.service",
+    fn: "exportCases",
+    argExprs: [],
     custom: `import { toResponse, withProjectScope } from '@/server/guard';
 import { exportOptionsSchema } from '@rabbit/shared';
 import * as svc from '@/server/domains/case/caseIo.service';
@@ -580,17 +1056,44 @@ export const POST = withProjectScope(async (ctx, req) => {
 });
 
 // ── 视图与偏好 ──
-route('api/v1/projects/[projectId]/views/route.ts', {
-  GET: h('project', { perm: 'PROJECT_CASE:READ', svc: 'case/pref.service', fn: 'listViews', argExprs: ['ctx.userId', 'ctx.projectId'] }),
-  POST: h('project', { perm: 'PROJECT_CASE:READ', svc: 'case/pref.service', fn: 'createView', body: 'viewUpsertSchema', argExprs: ['ctx.userId', 'ctx.projectId', 'body'], status: 201 }),
+route("api/v1/projects/[projectId]/views/route.ts", {
+  GET: h("project", {
+    perm: "PROJECT_CASE:READ",
+    svc: "case/pref.service",
+    fn: "listViews",
+    argExprs: ["ctx.userId", "ctx.projectId"],
+  }),
+  POST: h("project", {
+    perm: "PROJECT_CASE:READ",
+    svc: "case/pref.service",
+    fn: "createView",
+    body: "viewUpsertSchema",
+    argExprs: ["ctx.userId", "ctx.projectId", "body"],
+    status: 201,
+  }),
 });
-route('api/v1/projects/[projectId]/views/[id]/route.ts', {
-  PUT: h('project', { perm: 'PROJECT_CASE:READ', svc: 'case/pref.service', fn: 'updateView', body: 'viewUpsertSchema', params: ['id'], argExprs: ['ctx.userId', 'ctx.projectId', 'id', 'body'] }),
-  DELETE: h('project', { perm: 'PROJECT_CASE:READ', svc: 'case/pref.service', fn: 'deleteView', params: ['id'], argExprs: ['ctx.userId', 'ctx.projectId', 'id'] }),
+route("api/v1/projects/[projectId]/views/[id]/route.ts", {
+  PUT: h("project", {
+    perm: "PROJECT_CASE:READ",
+    svc: "case/pref.service",
+    fn: "updateView",
+    body: "viewUpsertSchema",
+    params: ["id"],
+    argExprs: ["ctx.userId", "ctx.projectId", "id", "body"],
+  }),
+  DELETE: h("project", {
+    perm: "PROJECT_CASE:READ",
+    svc: "case/pref.service",
+    fn: "deleteView",
+    params: ["id"],
+    argExprs: ["ctx.userId", "ctx.projectId", "id"],
+  }),
 });
-route('api/v1/personal/preferences/[key]/route.ts', {
-  GET: h('auth', {
-    fn: '', svc: 'case/pref.service', argExprs: [],
+route("api/v1/personal/preferences/[key]/route.ts", {
+  GET: h("auth", {
+    fn: "",
+    svc: "case/pref.service",
+    argExprs: [],
     custom: `import { toResponse, okResponse, withAuth } from '@/server/guard';
 import * as svc from '@/server/domains/case/pref.service';
 
@@ -603,8 +1106,10 @@ export const GET = withAuth(async (_ctx, req: Request, seg: unknown) => {
 });
 `,
   }),
-  PUT: h('auth', {
-    fn: '', svc: 'case/pref.service', argExprs: [],
+  PUT: h("auth", {
+    fn: "",
+    svc: "case/pref.service",
+    argExprs: [],
     custom: `import { toResponse, okResponse, withAuth } from '@/server/guard';
 import * as svc from '@/server/domains/case/pref.service';
 
@@ -621,10 +1126,22 @@ export const PUT = withAuth(async (ctx, req: Request, seg: unknown) => {
 });
 
 // ── CASE-003：依赖/聚合/评论/变更历史 ──
-route('api/v1/projects/[projectId]/cases/[caseId]/dependencies/route.ts', {
-  GET: h('project', { perm: 'PROJECT_CASE:READ', svc: 'case/caseDetail.service', fn: 'listDependencies', params: ['caseId'], argExprs: ['ctx.projectId', 'caseId'] }),
-  POST: h('project', {
-    perm: 'PROJECT_CASE:UPDATE', writable: true, svc: 'case/caseDetail.service', fn: 'addDependency', body: 'dependencyUpsertSchema', params: ['caseId'], argExprs: [],
+route("api/v1/projects/[projectId]/cases/[caseId]/dependencies/route.ts", {
+  GET: h("project", {
+    perm: "PROJECT_CASE:READ",
+    svc: "case/caseDetail.service",
+    fn: "listDependencies",
+    params: ["caseId"],
+    argExprs: ["ctx.projectId", "caseId"],
+  }),
+  POST: h("project", {
+    perm: "PROJECT_CASE:UPDATE",
+    writable: true,
+    svc: "case/caseDetail.service",
+    fn: "addDependency",
+    body: "dependencyUpsertSchema",
+    params: ["caseId"],
+    argExprs: [],
     custom: `import { toResponse, okResponse, withProjectScope } from '@/server/guard';
 import { dependencyUpsertSchema } from '@rabbit/shared';
 import * as svc from '@/server/domains/case/caseDetail.service';
@@ -641,25 +1158,69 @@ export const POST = withProjectScope(async (ctx, req, seg) => {
 `,
   }),
 });
-route('api/v1/projects/[projectId]/cases/[caseId]/dependencies/[id]/route.ts', {
-  DELETE: h('project', { perm: 'PROJECT_CASE:UPDATE', writable: true, svc: 'case/caseDetail.service', fn: 'removeDependency', params: ['caseId', 'id'], argExprs: ['ctx.projectId', 'id'] }),
+route("api/v1/projects/[projectId]/cases/[caseId]/dependencies/[id]/route.ts", {
+  DELETE: h("project", {
+    perm: "PROJECT_CASE:UPDATE",
+    writable: true,
+    svc: "case/caseDetail.service",
+    fn: "removeDependency",
+    params: ["caseId", "id"],
+    argExprs: ["ctx.projectId", "id"],
+  }),
 });
-route('api/v1/projects/[projectId]/cases/[caseId]/reviews/route.ts', {
-  GET: h('project', { perm: 'PROJECT_CASE_REVIEW:READ', svc: 'case/caseDetail.service', fn: 'caseReviews', params: ['caseId'], argExprs: ['ctx.projectId', 'caseId'] }),
+route("api/v1/projects/[projectId]/cases/[caseId]/reviews/route.ts", {
+  GET: h("project", {
+    perm: "PROJECT_CASE_REVIEW:READ",
+    svc: "case/caseDetail.service",
+    fn: "caseReviews",
+    params: ["caseId"],
+    argExprs: ["ctx.projectId", "caseId"],
+  }),
 });
-route('api/v1/projects/[projectId]/cases/[caseId]/plans/route.ts', {
-  GET: h('project', { perm: 'PROJECT_PLAN:READ', svc: 'case/caseDetail.service', fn: 'casePlans', params: ['caseId'], argExprs: ['ctx.projectId', 'caseId', 'ctx.userId'] }),
+route("api/v1/projects/[projectId]/cases/[caseId]/plans/route.ts", {
+  GET: h("project", {
+    perm: "PROJECT_PLAN:READ",
+    svc: "case/caseDetail.service",
+    fn: "casePlans",
+    params: ["caseId"],
+    argExprs: ["ctx.projectId", "caseId", "ctx.userId"],
+  }),
 });
-route('api/v1/projects/[projectId]/cases/[caseId]/bugs/route.ts', {
-  GET: h('project', { perm: 'PROJECT_BUG:READ', svc: 'case/caseDetail.service', fn: 'caseBugs', params: ['caseId'], argExprs: ['ctx.projectId', 'caseId'] }),
-  POST: h('project', { perm: 'PROJECT_BUG:UPDATE', writable: true, svc: 'case/caseDetail.service', fn: 'linkCaseBug', params: ['caseId'], argExprs: ['ctx.projectId', 'caseId', 'body.bugId'], body: 'linkCaseBugSchema' }),
+route("api/v1/projects/[projectId]/cases/[caseId]/bugs/route.ts", {
+  GET: h("project", {
+    perm: "PROJECT_BUG:READ",
+    svc: "case/caseDetail.service",
+    fn: "caseBugs",
+    params: ["caseId"],
+    argExprs: ["ctx.projectId", "caseId"],
+  }),
+  POST: h("project", {
+    perm: "PROJECT_BUG:UPDATE",
+    writable: true,
+    svc: "case/caseDetail.service",
+    fn: "linkCaseBug",
+    params: ["caseId"],
+    argExprs: ["ctx.projectId", "caseId", "body.bugId"],
+    body: "linkCaseBugSchema",
+  }),
 });
-route('api/v1/projects/[projectId]/cases/[caseId]/bugs/[bugId]/route.ts', {
-  DELETE: h('project', { perm: 'PROJECT_BUG:UPDATE', writable: true, svc: 'case/caseDetail.service', fn: 'unlinkCaseBug', params: ['caseId', 'bugId'], argExprs: ['ctx.projectId', 'caseId', 'bugId'] }),
+route("api/v1/projects/[projectId]/cases/[caseId]/bugs/[bugId]/route.ts", {
+  DELETE: h("project", {
+    perm: "PROJECT_BUG:UPDATE",
+    writable: true,
+    svc: "case/caseDetail.service",
+    fn: "unlinkCaseBug",
+    params: ["caseId", "bugId"],
+    argExprs: ["ctx.projectId", "caseId", "bugId"],
+  }),
 });
-route('api/v1/projects/[projectId]/cases/[caseId]/changes/route.ts', {
-  GET: h('project', {
-    perm: 'PROJECT_CASE:READ', svc: 'case/caseDetail.service', fn: 'listChanges', params: ['caseId'], argExprs: [],
+route("api/v1/projects/[projectId]/cases/[caseId]/changes/route.ts", {
+  GET: h("project", {
+    perm: "PROJECT_CASE:READ",
+    svc: "case/caseDetail.service",
+    fn: "listChanges",
+    params: ["caseId"],
+    argExprs: [],
     custom: `import { toResponse, okResponse, withProjectScope } from '@/server/guard';
 import * as svc from '@/server/domains/case/caseDetail.service';
 
@@ -673,9 +1234,12 @@ export const GET = withProjectScope(async (ctx, _req, seg) => {
 `,
   }),
 });
-route('api/v1/projects/[projectId]/comments/route.ts', {
-  GET: h('project', {
-    perm: 'PROJECT_CASE:READ', svc: 'case/caseDetail.service', fn: 'listComments', argExprs: [],
+route("api/v1/projects/[projectId]/comments/route.ts", {
+  GET: h("project", {
+    perm: "PROJECT_CASE:READ",
+    svc: "case/caseDetail.service",
+    fn: "listComments",
+    argExprs: [],
     custom: `import { toResponse, okResponse, withProjectScope } from '@/server/guard';
 import * as svc from '@/server/domains/case/caseDetail.service';
 
@@ -690,8 +1254,13 @@ export const GET = withProjectScope(async (ctx, req) => {
 });
 `,
   }),
-  POST: h('project', {
-    perm: 'PROJECT_CASE:READ', writable: true, svc: 'case/caseDetail.service', fn: 'addComment', body: 'commentUpsertSchema', argExprs: [],
+  POST: h("project", {
+    perm: "PROJECT_CASE:READ",
+    writable: true,
+    svc: "case/caseDetail.service",
+    fn: "addComment",
+    body: "commentUpsertSchema",
+    argExprs: [],
     custom: `import { toResponse, okResponse, withProjectScope } from '@/server/guard';
 import { commentUpsertSchema } from '@rabbit/shared';
 import * as svc from '@/server/domains/case/caseDetail.service';
@@ -708,9 +1277,14 @@ export const POST = withProjectScope(async (ctx, req) => {
 `,
   }),
 });
-route('api/v1/projects/[projectId]/comments/[commentId]/route.ts', {
-  PUT: h('project', {
-    perm: 'PROJECT_CASE:READ', svc: 'case/caseDetail.service', fn: 'updateComment', body: 'commentUpsertSchema', params: ['commentId'], argExprs: [],
+route("api/v1/projects/[projectId]/comments/[commentId]/route.ts", {
+  PUT: h("project", {
+    perm: "PROJECT_CASE:READ",
+    svc: "case/caseDetail.service",
+    fn: "updateComment",
+    body: "commentUpsertSchema",
+    params: ["commentId"],
+    argExprs: [],
     custom: `import { toResponse, okResponse, withProjectScope } from '@/server/guard';
 import { commentUpsertSchema } from '@rabbit/shared';
 import * as svc from '@/server/domains/case/caseDetail.service';
@@ -725,8 +1299,12 @@ export const PUT = withProjectScope(async (ctx, req, seg) => {
 });
 `,
   }),
-  DELETE: h('project', {
-    perm: 'PROJECT_CASE:READ', svc: 'case/caseDetail.service', fn: 'deleteComment', params: ['commentId'], argExprs: [],
+  DELETE: h("project", {
+    perm: "PROJECT_CASE:READ",
+    svc: "case/caseDetail.service",
+    fn: "deleteComment",
+    params: ["commentId"],
+    argExprs: [],
     custom: `import { toResponse, okResponse, withProjectScope } from '@/server/guard';
 import * as svc from '@/server/domains/case/caseDetail.service';
 
@@ -742,9 +1320,12 @@ export const DELETE = withProjectScope(async (ctx, _req, seg) => {
 });
 
 // ═══════════════ CASE-005：评审 ═══════════════
-route('api/v1/projects/[projectId]/reviews/route.ts', {
-  GET: h('project', {
-    perm: 'PROJECT_CASE_REVIEW:READ', svc: 'review/review.service', fn: 'listReviews', argExprs: [],
+route("api/v1/projects/[projectId]/reviews/route.ts", {
+  GET: h("project", {
+    perm: "PROJECT_CASE_REVIEW:READ",
+    svc: "review/review.service",
+    fn: "listReviews",
+    argExprs: [],
     custom: `import { toResponse, okResponse, withProjectScope } from '@/server/guard';
 import * as svc from '@/server/domains/review/review.service';
 
@@ -762,40 +1343,130 @@ export const GET = withProjectScope(async (ctx, req) => {
 });
 `,
   }),
-  POST: h('project', { perm: 'PROJECT_CASE_REVIEW:UPDATE', writable: true, svc: 'review/review.service', fn: 'createReview', body: 'reviewUpsertSchema', argExprs: ['ctx.projectId', 'ctx.userId', 'body'], status: 201 }),
-});
-route('api/v1/projects/[projectId]/reviews/[reviewId]/route.ts', {
-  GET: h('project', {
-    perm: 'PROJECT_CASE_REVIEW:READ', svc: 'review/review.service', fn: 'getReview', params: ['reviewId'], argExprs: ['ctx.projectId', 'reviewId', 'ctx.userId'],
+  POST: h("project", {
+    perm: "PROJECT_CASE_REVIEW:UPDATE",
+    writable: true,
+    svc: "review/review.service",
+    fn: "createReview",
+    body: "reviewUpsertSchema",
+    argExprs: ["ctx.projectId", "ctx.userId", "body"],
+    status: 201,
   }),
-  PUT: h('project', { perm: 'PROJECT_CASE_REVIEW:UPDATE', writable: true, svc: 'review/review.service', fn: 'updateReview', body: 'reviewUpsertSchema', params: ['reviewId'], argExprs: ['ctx.projectId', 'reviewId', 'body'] }),
-  DELETE: h('project', { perm: 'PROJECT_CASE_REVIEW:UPDATE', writable: true, svc: 'review/review.service', fn: 'deleteReview', params: ['reviewId'], argExprs: ['ctx.projectId', 'reviewId'] }),
 });
-route('api/v1/projects/[projectId]/reviews/[reviewId]/close/route.ts', {
-  POST: h('project', { perm: 'PROJECT_CASE_REVIEW:UPDATE', writable: true, svc: 'review/review.service', fn: 'closeReview', params: ['reviewId'], argExprs: ['ctx.projectId', 'reviewId'] }),
+route("api/v1/projects/[projectId]/reviews/[reviewId]/route.ts", {
+  GET: h("project", {
+    perm: "PROJECT_CASE_REVIEW:READ",
+    svc: "review/review.service",
+    fn: "getReview",
+    params: ["reviewId"],
+    argExprs: ["ctx.projectId", "reviewId", "ctx.userId"],
+  }),
+  PUT: h("project", {
+    perm: "PROJECT_CASE_REVIEW:UPDATE",
+    writable: true,
+    svc: "review/review.service",
+    fn: "updateReview",
+    body: "reviewUpsertSchema",
+    params: ["reviewId"],
+    argExprs: ["ctx.projectId", "reviewId", "body"],
+  }),
+  DELETE: h("project", {
+    perm: "PROJECT_CASE_REVIEW:UPDATE",
+    writable: true,
+    svc: "review/review.service",
+    fn: "deleteReview",
+    params: ["reviewId"],
+    argExprs: ["ctx.projectId", "reviewId"],
+  }),
 });
-route('api/v1/projects/[projectId]/reviews/[reviewId]/copy/route.ts', {
-  POST: h('project', { perm: 'PROJECT_CASE_REVIEW:UPDATE', writable: true, svc: 'review/review.service', fn: 'copyReview', params: ['reviewId'], argExprs: ['ctx.projectId', 'reviewId'], status: 201 }),
+route("api/v1/projects/[projectId]/reviews/[reviewId]/close/route.ts", {
+  POST: h("project", {
+    perm: "PROJECT_CASE_REVIEW:UPDATE",
+    writable: true,
+    svc: "review/review.service",
+    fn: "closeReview",
+    params: ["reviewId"],
+    argExprs: ["ctx.projectId", "reviewId"],
+  }),
 });
-route('api/v1/projects/[projectId]/reviews/[reviewId]/cases/route.ts', {
-  POST: h('project', { perm: 'PROJECT_CASE_REVIEW:UPDATE', writable: true, svc: 'review/review.service', fn: 'addReviewCases', body: 'reviewCasesAddSchema', params: ['reviewId'], argExprs: ['ctx.projectId', 'reviewId', 'body.caseIds'] }),
+route("api/v1/projects/[projectId]/reviews/[reviewId]/copy/route.ts", {
+  POST: h("project", {
+    perm: "PROJECT_CASE_REVIEW:UPDATE",
+    writable: true,
+    svc: "review/review.service",
+    fn: "copyReview",
+    params: ["reviewId"],
+    argExprs: ["ctx.projectId", "reviewId"],
+    status: 201,
+  }),
 });
-route('api/v1/projects/[projectId]/reviews/[reviewId]/cases/[caseId]/route.ts', {
-  DELETE: h('project', { perm: 'PROJECT_CASE_REVIEW:UPDATE', writable: true, svc: 'review/review.service', fn: 'removeReviewCase', params: ['reviewId', 'caseId'], argExprs: ['ctx.projectId', 'reviewId', 'caseId'] }),
+route("api/v1/projects/[projectId]/reviews/[reviewId]/cases/route.ts", {
+  POST: h("project", {
+    perm: "PROJECT_CASE_REVIEW:UPDATE",
+    writable: true,
+    svc: "review/review.service",
+    fn: "addReviewCases",
+    body: "reviewCasesAddSchema",
+    params: ["reviewId"],
+    argExprs: ["ctx.projectId", "reviewId", "body.caseIds"],
+  }),
 });
-route('api/v1/projects/[projectId]/reviews/[reviewId]/cases/[caseId]/judge/route.ts', {
-  POST: h('project', { perm: 'PROJECT_CASE_REVIEW:UPDATE', writable: true, svc: 'review/review.service', fn: 'judgeReviewCase', body: 'reviewJudgeSchema', params: ['reviewId', 'caseId'], argExprs: ['ctx.projectId', 'reviewId', 'caseId', 'ctx.userId', 'body'] }),
+route("api/v1/projects/[projectId]/reviews/[reviewId]/cases/[caseId]/route.ts", {
+  DELETE: h("project", {
+    perm: "PROJECT_CASE_REVIEW:UPDATE",
+    writable: true,
+    svc: "review/review.service",
+    fn: "removeReviewCase",
+    params: ["reviewId", "caseId"],
+    argExprs: ["ctx.projectId", "reviewId", "caseId"],
+  }),
 });
-route('api/v1/projects/[projectId]/reviews/[reviewId]/cases/batch-judge/route.ts', {
-  POST: h('project', { perm: 'PROJECT_CASE_REVIEW:UPDATE', writable: true, svc: 'review/review.service', fn: 'batchJudge', body: 'reviewBatchJudgeSchema', params: ['reviewId'], argExprs: ['ctx.projectId', 'reviewId', 'ctx.userId', 'body.caseIds', 'body'] }),
+route("api/v1/projects/[projectId]/reviews/[reviewId]/cases/[caseId]/judge/route.ts", {
+  POST: h("project", {
+    perm: "PROJECT_CASE_REVIEW:UPDATE",
+    writable: true,
+    svc: "review/review.service",
+    fn: "judgeReviewCase",
+    body: "reviewJudgeSchema",
+    params: ["reviewId", "caseId"],
+    argExprs: ["ctx.projectId", "reviewId", "caseId", "ctx.userId", "body"],
+  }),
 });
-route('api/v1/projects/[projectId]/reviews/[reviewId]/cases/batch-reviewer/route.ts', {
-  POST: h('project', { perm: 'PROJECT_CASE_REVIEW:UPDATE', writable: true, svc: 'review/review.service', fn: 'batchReviewer', body: 'reviewBatchReviewerSchema', params: ['reviewId'], argExprs: ['ctx.projectId', 'reviewId', 'body.caseIds', 'body.reviewer'] }),
+route("api/v1/projects/[projectId]/reviews/[reviewId]/cases/batch-judge/route.ts", {
+  POST: h("project", {
+    perm: "PROJECT_CASE_REVIEW:UPDATE",
+    writable: true,
+    svc: "review/review.service",
+    fn: "batchJudge",
+    body: "reviewBatchJudgeSchema",
+    params: ["reviewId"],
+    argExprs: ["ctx.projectId", "reviewId", "ctx.userId", "body.caseIds", "body"],
+  }),
 });
-route('api/v1/projects/[projectId]/settings/case-review/route.ts', {
-  GET: h('project', { perm: 'PROJECT_CASE_REVIEW:READ', svc: 'review/review.service', fn: 'getReviewSetting', argExprs: ['ctx.projectId'] }),
-  PUT: h('project', {
-    perm: 'PROJECT_CASE_REVIEW:UPDATE', writable: true, svc: 'review/review.service', fn: 'setReviewSetting', argExprs: ['ctx.projectId', 'body.enabled'],
+route("api/v1/projects/[projectId]/reviews/[reviewId]/cases/batch-reviewer/route.ts", {
+  POST: h("project", {
+    perm: "PROJECT_CASE_REVIEW:UPDATE",
+    writable: true,
+    svc: "review/review.service",
+    fn: "batchReviewer",
+    body: "reviewBatchReviewerSchema",
+    params: ["reviewId"],
+    argExprs: ["ctx.projectId", "reviewId", "body.caseIds", "body.reviewer"],
+  }),
+});
+route("api/v1/projects/[projectId]/settings/case-review/route.ts", {
+  GET: h("project", {
+    perm: "PROJECT_CASE_REVIEW:READ",
+    svc: "review/review.service",
+    fn: "getReviewSetting",
+    argExprs: ["ctx.projectId"],
+  }),
+  PUT: h("project", {
+    perm: "PROJECT_CASE_REVIEW:UPDATE",
+    writable: true,
+    svc: "review/review.service",
+    fn: "setReviewSetting",
+    argExprs: ["ctx.projectId", "body.enabled"],
     custom: `import { toResponse, okResponse, withProjectScope } from '@/server/guard';
 import * as svc from '@/server/domains/review/review.service';
 
@@ -812,9 +1483,12 @@ export const PUT = withProjectScope(async (ctx, req) => {
 });
 
 // ═══════════════ BUG-001：缺陷 + 附件 ═══════════════
-route('api/v1/projects/[projectId]/bugs/route.ts', {
-  GET: h('project', {
-    perm: 'PROJECT_BUG:READ', svc: 'bug/bug.service', fn: 'listBugs', argExprs: [],
+route("api/v1/projects/[projectId]/bugs/route.ts", {
+  GET: h("project", {
+    perm: "PROJECT_BUG:READ",
+    svc: "bug/bug.service",
+    fn: "listBugs",
+    argExprs: [],
     custom: `import { toResponse, okResponse, withProjectScope } from '@/server/guard';
 import * as svc from '@/server/domains/bug/bug.service';
 
@@ -838,8 +1512,13 @@ export const GET = withProjectScope(async (ctx, req) => {
 });
 `,
   }),
-  POST: h('project', {
-    perm: 'PROJECT_BUG:CREATE', writable: true, svc: 'bug/bug.service', fn: 'createBug', argExprs: ['ctx.projectId', 'ctx.orgId', 'ctx.userId', 'body'], status: 201,
+  POST: h("project", {
+    perm: "PROJECT_BUG:CREATE",
+    writable: true,
+    svc: "bug/bug.service",
+    fn: "createBug",
+    argExprs: ["ctx.projectId", "ctx.orgId", "ctx.userId", "body"],
+    status: 201,
     custom: `import { toResponse, okResponse, withProjectScope } from '@/server/guard';
 import { bugUpsertSchema } from '@rabbit/shared';
 import * as svc from '@/server/domains/bug/bug.service';
@@ -855,9 +1534,13 @@ export const POST = withProjectScope(async (ctx, req) => {
 `,
   }),
 });
-route('api/v1/projects/[projectId]/bugs/[bugId]/route.ts', {
-  GET: h('project', {
-    perm: 'PROJECT_BUG:READ', svc: 'bug/bug.service', fn: 'getBug', params: ['bugId'], argExprs: ['ctx.projectId', 'bugId'],
+route("api/v1/projects/[projectId]/bugs/[bugId]/route.ts", {
+  GET: h("project", {
+    perm: "PROJECT_BUG:READ",
+    svc: "bug/bug.service",
+    fn: "getBug",
+    params: ["bugId"],
+    argExprs: ["ctx.projectId", "bugId"],
     custom: `import { toResponse, okResponse, withProjectScope } from '@/server/guard';
 import * as svc from '@/server/domains/bug/bug.service';
 
@@ -872,9 +1555,22 @@ export const GET = withProjectScope(async (ctx, _req, seg) => {
 });
 `,
   }),
-  PUT: h('project', { perm: 'PROJECT_BUG:UPDATE', writable: true, svc: 'bug/bug.service', fn: 'updateBug', body: 'bugUpsertSchema', params: ['bugId'], argExprs: ['ctx.projectId', 'bugId', 'ctx.userId', 'body'] }),
-  DELETE: h('project', {
-    perm: 'PROJECT_BUG:DELETE', writable: true, svc: 'bug/bug.service', fn: 'softDeleteBug', params: ['bugId'], argExprs: ['ctx.projectId', 'bugId'],
+  PUT: h("project", {
+    perm: "PROJECT_BUG:UPDATE",
+    writable: true,
+    svc: "bug/bug.service",
+    fn: "updateBug",
+    body: "bugUpsertSchema",
+    params: ["bugId"],
+    argExprs: ["ctx.projectId", "bugId", "ctx.userId", "body"],
+  }),
+  DELETE: h("project", {
+    perm: "PROJECT_BUG:DELETE",
+    writable: true,
+    svc: "bug/bug.service",
+    fn: "softDeleteBug",
+    params: ["bugId"],
+    argExprs: ["ctx.projectId", "bugId"],
     custom: `import { toResponse, okResponse, withProjectScope } from '@/server/guard';
 import * as svc from '@/server/domains/bug/bug.service';
 
@@ -891,28 +1587,80 @@ export const DELETE = withProjectScope(async (ctx, req, seg) => {
 `,
   }),
 });
-route('api/v1/projects/[projectId]/bugs/[bugId]/restore/route.ts', {
-  POST: h('project', { perm: 'PROJECT_BUG:UPDATE', writable: true, svc: 'bug/bug.service', fn: 'restoreBug', params: ['bugId'], argExprs: ['ctx.projectId', 'bugId'] }),
+route("api/v1/projects/[projectId]/bugs/[bugId]/restore/route.ts", {
+  POST: h("project", {
+    perm: "PROJECT_BUG:UPDATE",
+    writable: true,
+    svc: "bug/bug.service",
+    fn: "restoreBug",
+    params: ["bugId"],
+    argExprs: ["ctx.projectId", "bugId"],
+  }),
 });
-route('api/v1/projects/[projectId]/bugs/[bugId]/transition/route.ts', {
-  POST: h('project', { perm: 'PROJECT_BUG:UPDATE', writable: true, svc: 'bug/bug.service', fn: 'transitionBug', body: 'bugTransitionSchema', params: ['bugId'], argExprs: ['ctx.projectId', 'ctx.orgId', 'bugId', 'ctx.userId', 'body'] }),
+route("api/v1/projects/[projectId]/bugs/[bugId]/transition/route.ts", {
+  POST: h("project", {
+    perm: "PROJECT_BUG:UPDATE",
+    writable: true,
+    svc: "bug/bug.service",
+    fn: "transitionBug",
+    body: "bugTransitionSchema",
+    params: ["bugId"],
+    argExprs: ["ctx.projectId", "ctx.orgId", "bugId", "ctx.userId", "body"],
+  }),
 });
-route('api/v1/projects/[projectId]/bugs/[bugId]/follow/route.ts', {
-  POST: h('project', { perm: 'PROJECT_BUG:READ', svc: 'bug/bug.service', fn: 'setBugFollow', params: ['bugId'], argExprs: ['ctx.projectId', 'ctx.userId', 'bugId', 'true'] }),
+route("api/v1/projects/[projectId]/bugs/[bugId]/follow/route.ts", {
+  POST: h("project", {
+    perm: "PROJECT_BUG:READ",
+    svc: "bug/bug.service",
+    fn: "setBugFollow",
+    params: ["bugId"],
+    argExprs: ["ctx.projectId", "ctx.userId", "bugId", "true"],
+  }),
 });
-route('api/v1/projects/[projectId]/bugs/[bugId]/cases/route.ts', {
-  GET: h('project', { perm: 'PROJECT_BUG:READ', svc: 'bug/bug.service', fn: 'listBugCases', params: ['bugId'], argExprs: ['ctx.projectId', 'bugId'] }),
-  POST: h('project', { perm: 'PROJECT_BUG:UPDATE', writable: true, svc: 'bug/bug.service', fn: 'linkBugCase', body: 'linkBugCaseSchema', params: ['bugId'], argExprs: ['ctx.projectId', 'bugId', 'body.caseId'] }),
+route("api/v1/projects/[projectId]/bugs/[bugId]/cases/route.ts", {
+  GET: h("project", {
+    perm: "PROJECT_BUG:READ",
+    svc: "bug/bug.service",
+    fn: "listBugCases",
+    params: ["bugId"],
+    argExprs: ["ctx.projectId", "bugId"],
+  }),
+  POST: h("project", {
+    perm: "PROJECT_BUG:UPDATE",
+    writable: true,
+    svc: "bug/bug.service",
+    fn: "linkBugCase",
+    body: "linkBugCaseSchema",
+    params: ["bugId"],
+    argExprs: ["ctx.projectId", "bugId", "body.caseId"],
+  }),
 });
-route('api/v1/projects/[projectId]/bugs/[bugId]/cases/[caseId]/route.ts', {
-  DELETE: h('project', { perm: 'PROJECT_BUG:UPDATE', writable: true, svc: 'bug/bug.service', fn: 'unlinkBugCase', params: ['bugId', 'caseId'], argExprs: ['ctx.projectId', 'bugId', 'caseId'] }),
+route("api/v1/projects/[projectId]/bugs/[bugId]/cases/[caseId]/route.ts", {
+  DELETE: h("project", {
+    perm: "PROJECT_BUG:UPDATE",
+    writable: true,
+    svc: "bug/bug.service",
+    fn: "unlinkBugCase",
+    params: ["bugId", "caseId"],
+    argExprs: ["ctx.projectId", "bugId", "caseId"],
+  }),
 });
-route('api/v1/projects/[projectId]/bugs/[bugId]/attachments/route.ts', {
-  GET: h('project', { perm: 'PROJECT_BUG:READ', svc: 'bug/bug.service', fn: 'listAttachments', params: ['bugId'], argExprs: ["'bug'", 'bugId'] }),
+route("api/v1/projects/[projectId]/bugs/[bugId]/attachments/route.ts", {
+  GET: h("project", {
+    perm: "PROJECT_BUG:READ",
+    svc: "bug/bug.service",
+    fn: "listAttachments",
+    params: ["bugId"],
+    argExprs: ["'bug'", "bugId"],
+  }),
 });
-route('api/v1/projects/[projectId]/attachments/route.ts', {
-  POST: h('project', {
-    perm: 'PROJECT_BUG:CREATE', writable: true, svc: 'bug/bug.service', fn: 'addAttachment', argExprs: [],
+route("api/v1/projects/[projectId]/attachments/route.ts", {
+  POST: h("project", {
+    perm: "PROJECT_BUG:CREATE",
+    writable: true,
+    svc: "bug/bug.service",
+    fn: "addAttachment",
+    argExprs: [],
     custom: `import { toResponse, okResponse, withProjectScope } from '@/server/guard';
 import * as svc from '@/server/domains/bug/bug.service';
 
@@ -934,12 +1682,23 @@ export const POST = withProjectScope(async (ctx, req) => {
 `,
   }),
 });
-route('api/v1/projects/[projectId]/attachments/[attachmentId]/route.ts', {
-  DELETE: h('project', { perm: 'PROJECT_BUG:UPDATE', writable: true, svc: 'bug/bug.service', fn: 'deleteAttachment', params: ['attachmentId'], argExprs: ['ctx.projectId', 'attachmentId'] }),
+route("api/v1/projects/[projectId]/attachments/[attachmentId]/route.ts", {
+  DELETE: h("project", {
+    perm: "PROJECT_BUG:UPDATE",
+    writable: true,
+    svc: "bug/bug.service",
+    fn: "deleteAttachment",
+    params: ["attachmentId"],
+    argExprs: ["ctx.projectId", "attachmentId"],
+  }),
 });
-route('api/v1/projects/[projectId]/attachments/[attachmentId]/download/route.ts', {
-  GET: h('project', {
-    perm: 'PROJECT_BUG:READ', svc: 'bug/bug.service', fn: 'getAttachment', params: ['attachmentId'], argExprs: [],
+route("api/v1/projects/[projectId]/attachments/[attachmentId]/download/route.ts", {
+  GET: h("project", {
+    perm: "PROJECT_BUG:READ",
+    svc: "bug/bug.service",
+    fn: "getAttachment",
+    params: ["attachmentId"],
+    argExprs: [],
     custom: `import { toResponse, withProjectScope } from '@/server/guard';
 import * as svc from '@/server/domains/bug/bug.service';
 import { readObject } from '@/server/storage';
@@ -964,9 +1723,13 @@ export const GET = withProjectScope(async (ctx, _req, seg) => {
   }),
 });
 
-route('api/v1/projects/[projectId]/bugs/[bugId]/changes/route.ts', {
-  GET: h('project', {
-    perm: 'PROJECT_BUG:READ', svc: 'bug/bug.service', fn: 'listBugChanges', params: ['bugId'], argExprs: [],
+route("api/v1/projects/[projectId]/bugs/[bugId]/changes/route.ts", {
+  GET: h("project", {
+    perm: "PROJECT_BUG:READ",
+    svc: "bug/bug.service",
+    fn: "listBugChanges",
+    params: ["bugId"],
+    argExprs: [],
     custom: `import { toResponse, okResponse, withProjectScope } from '@/server/guard';
 import * as svc from '@/server/domains/bug/bug.service';
 
@@ -982,9 +1745,12 @@ export const GET = withProjectScope(async (ctx, _req, seg) => {
 });
 
 // ═══════════════ PLAN-001：测试计划 ═══════════════
-route('api/v1/projects/[projectId]/plans/route.ts', {
-  GET: h('project', {
-    perm: 'PROJECT_PLAN:READ', svc: 'plan/plan.service', fn: 'listPlans', argExprs: [],
+route("api/v1/projects/[projectId]/plans/route.ts", {
+  GET: h("project", {
+    perm: "PROJECT_PLAN:READ",
+    svc: "plan/plan.service",
+    fn: "listPlans",
+    argExprs: [],
     custom: `import { toResponse, okResponse, withProjectScope } from '@/server/guard';
 import * as svc from '@/server/domains/plan/plan.service';
 
@@ -1002,42 +1768,133 @@ export const GET = withProjectScope(async (ctx, req) => {
 });
 `,
   }),
-  POST: h('project', { perm: 'PROJECT_PLAN:CREATE', writable: true, svc: 'plan/plan.service', fn: 'createPlan', body: 'planUpsertSchema', argExprs: ['ctx.projectId', 'ctx.userId', 'body'], status: 201 }),
+  POST: h("project", {
+    perm: "PROJECT_PLAN:CREATE",
+    writable: true,
+    svc: "plan/plan.service",
+    fn: "createPlan",
+    body: "planUpsertSchema",
+    argExprs: ["ctx.projectId", "ctx.userId", "body"],
+    status: 201,
+  }),
 });
-route('api/v1/projects/[projectId]/plans/[planId]/route.ts', {
-  GET: h('project', { perm: 'PROJECT_PLAN:READ', svc: 'plan/plan.service', fn: 'getPlan', params: ['planId'], argExprs: ['ctx.projectId', 'planId'] }),
-  PUT: h('project', { perm: 'PROJECT_PLAN:UPDATE', writable: true, svc: 'plan/plan.service', fn: 'updatePlan', body: 'planUpsertSchema', params: ['planId'], argExprs: ['ctx.projectId', 'planId', 'body'] }),
-  DELETE: h('project', { perm: 'PROJECT_PLAN:DELETE', writable: true, svc: 'plan/plan.service', fn: 'deletePlan', params: ['planId'], argExprs: ['ctx.projectId', 'planId'] }),
+route("api/v1/projects/[projectId]/plans/[planId]/route.ts", {
+  GET: h("project", {
+    perm: "PROJECT_PLAN:READ",
+    svc: "plan/plan.service",
+    fn: "getPlan",
+    params: ["planId"],
+    argExprs: ["ctx.projectId", "planId"],
+  }),
+  PUT: h("project", {
+    perm: "PROJECT_PLAN:UPDATE",
+    writable: true,
+    svc: "plan/plan.service",
+    fn: "updatePlan",
+    body: "planUpsertSchema",
+    params: ["planId"],
+    argExprs: ["ctx.projectId", "planId", "body"],
+  }),
+  DELETE: h("project", {
+    perm: "PROJECT_PLAN:DELETE",
+    writable: true,
+    svc: "plan/plan.service",
+    fn: "deletePlan",
+    params: ["planId"],
+    argExprs: ["ctx.projectId", "planId"],
+  }),
 });
-route('api/v1/projects/[projectId]/plans/[planId]/archive/route.ts', {
-  POST: h('project', { perm: 'PROJECT_PLAN:UPDATE', writable: true, svc: 'plan/plan.service', fn: 'archivePlan', params: ['planId'], argExprs: ['ctx.projectId', 'planId', 'true'] }),
+route("api/v1/projects/[projectId]/plans/[planId]/archive/route.ts", {
+  POST: h("project", {
+    perm: "PROJECT_PLAN:UPDATE",
+    writable: true,
+    svc: "plan/plan.service",
+    fn: "archivePlan",
+    params: ["planId"],
+    argExprs: ["ctx.projectId", "planId", "true"],
+  }),
 });
-route('api/v1/projects/[projectId]/plans/[planId]/unarchive/route.ts', {
-  POST: h('project', { perm: 'PROJECT_PLAN:UPDATE', writable: true, svc: 'plan/plan.service', fn: 'archivePlan', params: ['planId'], argExprs: ['ctx.projectId', 'planId', 'false'] }),
+route("api/v1/projects/[projectId]/plans/[planId]/unarchive/route.ts", {
+  POST: h("project", {
+    perm: "PROJECT_PLAN:UPDATE",
+    writable: true,
+    svc: "plan/plan.service",
+    fn: "archivePlan",
+    params: ["planId"],
+    argExprs: ["ctx.projectId", "planId", "false"],
+  }),
 });
-route('api/v1/projects/[projectId]/plans/[planId]/cases/route.ts', {
-  POST: h('project', { perm: 'PROJECT_PLAN:UPDATE', writable: true, svc: 'plan/plan.service', fn: 'addPlanCases', body: 'planCasesAddSchema', params: ['planId'], argExprs: ['ctx.projectId', 'planId', 'body.caseIds', 'body.execUserId'] }),
+route("api/v1/projects/[projectId]/plans/[planId]/cases/route.ts", {
+  POST: h("project", {
+    perm: "PROJECT_PLAN:UPDATE",
+    writable: true,
+    svc: "plan/plan.service",
+    fn: "addPlanCases",
+    body: "planCasesAddSchema",
+    params: ["planId"],
+    argExprs: ["ctx.projectId", "planId", "body.caseIds", "body.execUserId"],
+  }),
 });
-route('api/v1/projects/[projectId]/plans/[planId]/cases/[refId]/route.ts', {
-  DELETE: h('project', { perm: 'PROJECT_PLAN:UPDATE', writable: true, svc: 'plan/plan.service', fn: 'removePlanCase', params: ['planId', 'refId'], argExprs: ['ctx.projectId', 'planId', 'refId'] }),
+route("api/v1/projects/[projectId]/plans/[planId]/cases/[refId]/route.ts", {
+  DELETE: h("project", {
+    perm: "PROJECT_PLAN:UPDATE",
+    writable: true,
+    svc: "plan/plan.service",
+    fn: "removePlanCase",
+    params: ["planId", "refId"],
+    argExprs: ["ctx.projectId", "planId", "refId"],
+  }),
 });
-route('api/v1/projects/[projectId]/plans/[planId]/cases/[refId]/exec/route.ts', {
-  POST: h('project', { perm: 'PROJECT_PLAN:UPDATE', writable: true, svc: 'plan/plan.service', fn: 'execPlanCase', body: 'planExecSchema', params: ['planId', 'refId'], argExprs: ['ctx.projectId', 'planId', 'refId', 'ctx.userId', 'body'] }),
+route("api/v1/projects/[projectId]/plans/[planId]/cases/[refId]/exec/route.ts", {
+  POST: h("project", {
+    perm: "PROJECT_PLAN:UPDATE",
+    writable: true,
+    svc: "plan/plan.service",
+    fn: "execPlanCase",
+    body: "planExecSchema",
+    params: ["planId", "refId"],
+    argExprs: ["ctx.projectId", "planId", "refId", "ctx.userId", "body"],
+  }),
 });
-route('api/v1/projects/[projectId]/plans/[planId]/cases/batch-executor/route.ts', {
-  POST: h('project', { perm: 'PROJECT_PLAN:UPDATE', writable: true, svc: 'plan/plan.service', fn: 'batchExecutor', body: 'planBatchExecutorSchema', params: ['planId'], argExprs: ['ctx.projectId', 'planId', 'body.refIds', 'body.execUserId'] }),
+route("api/v1/projects/[projectId]/plans/[planId]/cases/batch-executor/route.ts", {
+  POST: h("project", {
+    perm: "PROJECT_PLAN:UPDATE",
+    writable: true,
+    svc: "plan/plan.service",
+    fn: "batchExecutor",
+    body: "planBatchExecutorSchema",
+    params: ["planId"],
+    argExprs: ["ctx.projectId", "planId", "body.refIds", "body.execUserId"],
+  }),
 });
-route('api/v1/projects/[projectId]/plans/[planId]/report/route.ts', {
-  GET: h('project', { perm: 'PROJECT_PLAN:READ', svc: 'plan/plan.service', fn: 'getPlanReport', params: ['planId'], argExprs: ['ctx.projectId', 'planId'] }),
+route("api/v1/projects/[projectId]/plans/[planId]/report/route.ts", {
+  GET: h("project", {
+    perm: "PROJECT_PLAN:READ",
+    svc: "plan/plan.service",
+    fn: "getPlanReport",
+    params: ["planId"],
+    argExprs: ["ctx.projectId", "planId"],
+  }),
 });
-route('api/v1/projects/[projectId]/plans/[planId]/report/summary/route.ts', {
-  PUT: h('project', { perm: 'PROJECT_PLAN:UPDATE', writable: true, svc: 'plan/plan.service', fn: 'updatePlanReportSummary', body: 'planReportSummarySchema', params: ['planId'], argExprs: ['ctx.projectId', 'planId', 'body.summary'] }),
+route("api/v1/projects/[projectId]/plans/[planId]/report/summary/route.ts", {
+  PUT: h("project", {
+    perm: "PROJECT_PLAN:UPDATE",
+    writable: true,
+    svc: "plan/plan.service",
+    fn: "updatePlanReportSummary",
+    body: "planReportSummarySchema",
+    params: ["planId"],
+    argExprs: ["ctx.projectId", "planId", "body.summary"],
+  }),
 });
 
 // ═══════════════ DASH-001：工作台聚合 ═══════════════
-route('api/v1/projects/[projectId]/dashboard/overview/route.ts', {
-  GET: h('project', {
-    perm: 'PROJECT_CASE:READ', svc: 'dash/dash.service', fn: 'overview', argExprs: [],
+route("api/v1/projects/[projectId]/dashboard/overview/route.ts", {
+  GET: h("project", {
+    perm: "PROJECT_CASE:READ",
+    svc: "dash/dash.service",
+    fn: "overview",
+    argExprs: [],
     custom: `import { toResponse, okResponse, withProjectScope } from '@/server/guard';
 import * as svc from '@/server/domains/dash/dash.service';
 
@@ -1055,9 +1912,12 @@ export const GET = withProjectScope(async (ctx, req) => {
 `,
   }),
 });
-route('api/v1/projects/[projectId]/dashboard/todo/route.ts', {
-  GET: h('project', {
-    perm: 'PROJECT_CASE:READ', svc: 'dash/dash.service', fn: 'todo', argExprs: [],
+route("api/v1/projects/[projectId]/dashboard/todo/route.ts", {
+  GET: h("project", {
+    perm: "PROJECT_CASE:READ",
+    svc: "dash/dash.service",
+    fn: "todo",
+    argExprs: [],
     custom: `import { toResponse, okResponse, withProjectScope } from '@/server/guard';
 import * as svc from '@/server/domains/dash/dash.service';
 
@@ -1070,9 +1930,12 @@ export const GET = withProjectScope(async (ctx, req) => {
 `,
   }),
 });
-route('api/v1/projects/[projectId]/dashboard/followed/route.ts', {
-  GET: h('project', {
-    perm: 'PROJECT_CASE:READ', svc: 'dash/dash.service', fn: 'followed', argExprs: [],
+route("api/v1/projects/[projectId]/dashboard/followed/route.ts", {
+  GET: h("project", {
+    perm: "PROJECT_CASE:READ",
+    svc: "dash/dash.service",
+    fn: "followed",
+    argExprs: [],
     custom: `import { toResponse, okResponse, withProjectScope } from '@/server/guard';
 import * as svc from '@/server/domains/dash/dash.service';
 
@@ -1085,9 +1948,12 @@ export const GET = withProjectScope(async (ctx, req) => {
 `,
   }),
 });
-route('api/v1/projects/[projectId]/dashboard/created/route.ts', {
-  GET: h('project', {
-    perm: 'PROJECT_CASE:READ', svc: 'dash/dash.service', fn: 'created', argExprs: [],
+route("api/v1/projects/[projectId]/dashboard/created/route.ts", {
+  GET: h("project", {
+    perm: "PROJECT_CASE:READ",
+    svc: "dash/dash.service",
+    fn: "created",
+    argExprs: [],
     custom: `import { toResponse, okResponse, withProjectScope } from '@/server/guard';
 import * as svc from '@/server/domains/dash/dash.service';
 
@@ -1102,9 +1968,11 @@ export const GET = withProjectScope(async (ctx, req) => {
 });
 
 // ═══════════════ 个人权限下发（SYS-004 菜单/按钮守卫数据源） ═══════════════
-route('api/v1/personal/permissions/route.ts', {
-  GET: h('auth', {
-    fn: '', svc: '', argExprs: [],
+route("api/v1/personal/permissions/route.ts", {
+  GET: h("auth", {
+    fn: "",
+    svc: "",
+    argExprs: [],
     custom: `import { toResponse, okResponse, withAuth } from '@/server/guard';
 import { permissionSetFor } from '@/server/rbac';
 
@@ -1128,10 +1996,14 @@ export const GET = withAuth(async (ctx, req: Request) => {
 });
 
 // ── 落盘 ──
-let written = 0, skipped = 0;
+let written = 0,
+  skipped = 0;
 for (const [rel, content] of files) {
-  const abs = path.join(ROOT, 'apps/web/src/app', rel);
-  if (existsSync(abs) && !FORCE) { skipped++; continue; }
+  const abs = path.join(ROOT, "apps/web/src/app", rel);
+  if (existsSync(abs) && !FORCE) {
+    skipped++;
+    continue;
+  }
   mkdirSync(path.dirname(abs), { recursive: true });
   writeFileSync(abs, content);
   written++;

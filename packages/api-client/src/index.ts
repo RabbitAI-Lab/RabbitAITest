@@ -1,30 +1,31 @@
-export * from './s1';
-import type { AssertSpec, DebugRequest, TaskStatus } from '@rabbit/shared';
-import type { CaseCreateInput, CaseDetail, CaseListQuery } from '@rabbit/shared';
-import { get, post, put, del } from './client';
+export * from "./s1";
+import type { AssertSpec, DebugRequest, TaskStatus } from "@rabbit/shared";
+import type { CaseCreateInput, CaseDetail, CaseListQuery } from "@rabbit/shared";
+import { get, post, put, del } from "./client";
 
-export { ApiError } from './client';
+export { ApiError } from "./client";
 
 export const authApi = {
   register: (body: { email: string; password: string }) =>
-    post<{ userId: string; projectId: string }>('/api/v1/auth/register', body),
+    post<{ userId: string; projectId: string }>("/api/v1/auth/register", body),
   login: (body: { email: string; password: string }) =>
-    post<{ userId: string; email: string }>('/api/v1/auth/login', body),
-  logout: () => post<void>('/api/v1/auth/logout'),
-  me: () => get<{ userId: string; email: string; name: string } | null>('/api/v1/personal/me'),
+    post<{ userId: string; email: string }>("/api/v1/auth/login", body),
+  logout: () => post<void>("/api/v1/auth/logout"),
+  me: () => get<{ userId: string; email: string; name: string } | null>("/api/v1/personal/me"),
 };
 
 export const projectApi = {
-  list: () => get<{ id: string; name: string; num: number; role: string }[]>('/api/v1/personal/projects'),
+  list: () =>
+    get<{ id: string; name: string; num: number; role: string }[]>("/api/v1/personal/projects"),
 };
 
 export function qs(query: Partial<CaseListQuery>): string {
   const p = new URLSearchParams();
   for (const [k, v] of Object.entries(query)) {
-    if (v !== undefined && v !== '') p.set(k, String(v));
+    if (v !== undefined && v !== "") p.set(k, String(v));
   }
   const s = p.toString();
-  return s ? `?${s}` : '';
+  return s ? `?${s}` : "";
 }
 
 export const caseApi = {
@@ -53,9 +54,17 @@ export interface DebugHistoryItem {
 }
 
 export const execApi = {
-  createDebugTask: (projectId: string, request: DebugRequest, asserts: AssertSpec[], clientTaskId?: string) =>
+  createDebugTask: (
+    projectId: string,
+    request: DebugRequest,
+    asserts: AssertSpec[],
+    clientTaskId?: string,
+  ) =>
     post<{ taskId: string }>(`/api/v1/projects/${projectId}/exec-tasks`, {
-      type: 'api_debug', request, asserts, clientTaskId,
+      type: "api_debug",
+      request,
+      asserts,
+      clientTaskId,
     }),
   debugHistory: (projectId: string) =>
     get<{ total: number; items: DebugHistoryItem[] }>(
@@ -71,13 +80,27 @@ export interface ReportDetail {
   message?: string;
   durationMs?: number;
   createdAt: string;
-  request?: { method: string; url: string; headers: { key: string; value: string }[]; body: string };
-  response?: {
-    status: number; durationMs: number;
+  request?: {
+    method: string;
+    url: string;
     headers: { key: string; value: string }[];
-    bodyText: string; truncated: boolean;
+    body: string;
   };
-  asserts: { kind: string; path: string; op: string; expected: string; actual: string; passed: boolean }[];
+  response?: {
+    status: number;
+    durationMs: number;
+    headers: { key: string; value: string }[];
+    bodyText: string;
+    truncated: boolean;
+  };
+  asserts: {
+    kind: string;
+    path: string;
+    op: string;
+    expected: string;
+    actual: string;
+    passed: boolean;
+  }[];
   logs: { ts: number; level: string; message: string }[];
 }
 
@@ -86,4 +109,4 @@ export const reportApi = {
     get<ReportDetail>(`/api/v1/projects/${projectId}/reports/${taskId}`),
 };
 
-export { streamExecFrames } from './stream';
+export { streamExecFrames } from "./stream";
