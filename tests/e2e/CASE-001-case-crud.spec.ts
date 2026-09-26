@@ -1,9 +1,12 @@
-import { test, expect } from './fixtures';
+import { test, expect, navFromHome } from './fixtures';
 
 /** CASE-001 主链路：新建（3 步骤）→ 列表可见 → 删除 → 回收站 → 恢复 → 彻底删除（验收标准 3）。 */
 test('CASE-001-01 用例全生命周期', async ({ authedPage, page, expectNoConsoleErrors, expectApi }) => {
   void authedPage;
-  await page.goto('/cases/new');
+  // 用户路径：首页 → 测试用例 → 新建用例
+  await navFromHome(page, '测试用例');
+  await expect(page.getByTestId('case-table')).toBeVisible();
+  await page.getByTestId('btn-new-case').click();
   await expect(page.getByTestId('case-form')).toBeVisible();
 
   // 新建：3 步骤
@@ -21,8 +24,8 @@ test('CASE-001-01 用例全生命周期', async ({ authedPage, page, expectNoCon
   expect(created.status).toBe(201);
   expect(created.code).toBe(0);
 
-  // 列表可见（UI 断言 + 列表接口断言）
-  await page.goto('/cases');
+  // 列表可见（UI 断言 + 列表接口断言）——保存后自动跳回列表（用户路径内跳转）
+  await expect(page).toHaveURL(/\/cases$/, { timeout: 8000 });
   await expect(page.getByText('登录成功场景')).toBeVisible();
   const listApi = expectApi('**/api/v1/projects/*/cases?*');
   await page.getByTestId('input-keyword').fill('登录成功');
@@ -61,12 +64,15 @@ test('CASE-001-01 用例全生命周期', async ({ authedPage, page, expectNoCon
 
 test('CASE-001-02 编辑保存后 version 递增，名称空校验', async ({ authedPage, page, expectNoConsoleErrors }) => {
   void authedPage;
-  await page.goto('/cases/new');
+  // 用户路径：首页 → 测试用例 → 新建用例
+  await navFromHome(page, '测试用例');
+  await page.getByTestId('btn-new-case').click();
+  await expect(page.getByTestId('case-form')).toBeVisible();
   await page.getByTestId('case-name').fill('编辑用例A');
   await page.getByTestId('btn-save-case').click();
   await expect(page.getByText('已创建')).toBeVisible({ timeout: 8000 });
-  // 留在表单（保存并继续后新建第二条），改为直接进入列表编辑
-  await page.goto('/cases');
+  // 用户路径：返回列表（左侧菜单）→ 行内「编辑用例A」
+  await navFromHome(page, '测试用例');
   await page.getByRole('row', { name: /编辑用例A/ }).getByRole('link', { name: '编辑用例A' }).click();
   await expect(page.getByTestId('case-form')).toBeVisible();
   await page.getByTestId('case-name').fill('');

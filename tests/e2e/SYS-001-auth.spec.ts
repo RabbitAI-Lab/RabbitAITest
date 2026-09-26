@@ -1,9 +1,12 @@
-import { test, expect } from './fixtures';
+import { test, expect, navFromHome } from './fixtures';
 
 /** SYS-001 注册/登录/退出 + SYS-002 守卫（规格 T2/T3 映射）。 */
 test('SYS-001-01 注册 → 自动登录 → 进入工作台（UI/Console/接口三类断言）', async ({ page, expectNoConsoleErrors, expectApi }) => {
   const email = `t1-${Date.now()}@rabbit.test`;
-  await page.goto('/register');
+  // 用户路径：访问首页 → 守卫重定向登录页 → 点「注册」
+  await page.goto('/');
+  await expect(page.getByTestId('login-form')).toBeVisible();
+  await page.getByRole('link', { name: '注册' }).click();
   await expect(page.getByTestId('register-page')).toBeVisible();
   await page.getByTestId('register-email').fill(email);
   await page.getByTestId('register-password').fill('rabbit-pass-123');
@@ -30,7 +33,9 @@ test('SYS-001-02 重复注册 → 就地透出服务端错误（10101）', async
   await expect(page.getByTestId('topbar')).toBeVisible();
   // 登出后重复注册（API 登出清除会话，避免 middleware 将 /register 重定向回 /）
   await page.request.post('/api/v1/auth/logout');
-  await page.goto('/register');
+  // 用户路径：首页（未登录被送至登录页）→ 注册
+  await page.goto('/');
+  await page.getByRole('link', { name: '注册' }).click();
   await page.getByTestId('register-email').fill(email);
   await page.getByTestId('register-password').fill('rabbit-pass-123');
   await page.getByTestId('register-confirm').fill('rabbit-pass-123');
@@ -45,11 +50,13 @@ test('SYS-001-02 重复注册 → 就地透出服务端错误（10101）', async
 
 test('SYS-001-03 登出 → 会话销毁，访问受保护页跳登录（SYS-002）', async ({ authedPage, page, expectNoConsoleErrors }) => {
   void authedPage;
-  await page.goto('/cases');
+  // 用户路径：首页 → 左侧菜单「测试用例」
+  await navFromHome(page, '测试用例');
   await expect(page.getByTestId('case-table')).toBeVisible();
   await page.getByTestId('user-avatar').click();
   await page.getByText('退出登录').click();
   await expect(page).toHaveURL(/\/login/);
+  // 例外（§3.2.2）：登出后直接访问受保护页，验证守卫重定向
   await page.goto('/cases');
   await expect(page).toHaveURL(/\/login\?next=/);
   await expectNoConsoleErrors();
@@ -57,6 +64,7 @@ test('SYS-001-03 登出 → 会话销毁，访问受保护页跳登录（SYS-002
 
 test('SYS-002-01 未登录访问受保护页 302 → /login?next=', async ({ browser, page }) => {
   void browser;
+  // 例外（§3.2.2）：未登录直接访问，验证守卫 302
   await page.goto('/debug');
   await expect(page).toHaveURL(/\/login\?next=%2Fdebug/);
   await expect(page.getByTestId('login-form')).toBeVisible();

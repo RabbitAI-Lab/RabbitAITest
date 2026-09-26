@@ -69,3 +69,15 @@ export const test = base.extend<{
 
 
 export { expect };
+
+/**
+ * 用户路径导航（rules/testing §3.2.2）：从首页经左侧菜单进入功能页，录屏呈现真实入口。
+ */
+export async function navFromHome(
+  page: import('@playwright/test').Page,
+  linkName: string,
+): Promise<void> {
+  await page.goto('/');
+  // 限定左侧导航作用域：避免与工作台快捷卡等同名链接冲突（strict mode）
+  await page.getByTestId('leftnav').getByRole('link', { name: linkName }).click();
+}

@@ -1,4 +1,4 @@
-import { test, expect } from './fixtures';
+import { test, expect, navFromHome } from './fixtures';
 
 /**
  * 视觉快照用例（rules/testing.md §3.7）：为「高保真 ↔ 实现」还原度比对提供稳定截图。
@@ -11,7 +11,8 @@ test.use({ viewport: { width: 1280, height: 800 } });
 const SNAP_DIR = 'tests/visual/snapshots';
 
 test('VISUAL-login 登录页', async ({ page }) => {
-  await page.goto('/login');
+  // 用户路径：首页（未登录被守卫送至登录页）
+  await page.goto('/');
   await expect(page.getByTestId('login-form')).toBeVisible();
   // 样式加载断言（2026-09-26 事故回归：Tailwind 未安装导致工具类全失效，录屏完全无样式）
   const authBg = await page.evaluate(() => parseFloat(getComputedStyle(document.querySelector('.auth-bg')!).minHeight));
@@ -33,6 +34,7 @@ test('VISUAL-dashboard 工作台', async ({ authedPage, page }) => {
 });
 
 test('VISUAL-case-list 用例列表（含示例数据）', async ({ authedPage, page, request }) => {
+  // 数据准备走 API（不占用户路径镜头）
   await request.post('/api/v1/projects/' + authedPage.projectId + '/cases', {
     data: {
       name: '登录成功场景',
@@ -45,7 +47,7 @@ test('VISUAL-case-list 用例列表（含示例数据）', async ({ authedPage, 
       tags: ['冒烟'],
     },
   });
-  await page.goto('/cases');
+  await navFromHome(page, '测试用例');
   await expect(page.getByText('登录成功场景')).toBeVisible();
   await page.waitForTimeout(400);
   await page.screenshot({ path: `${SNAP_DIR}/case-list.png` });
@@ -53,7 +55,8 @@ test('VISUAL-case-list 用例列表（含示例数据）', async ({ authedPage, 
 
 test('VISUAL-case-form 新建用例表单', async ({ authedPage, page }) => {
   void authedPage;
-  await page.goto('/cases/new');
+  await navFromHome(page, '测试用例');
+  await page.getByTestId('btn-new-case').click();
   await expect(page.getByTestId('case-form')).toBeVisible();
   await page.getByTestId('case-name').fill('登录成功场景');
   await page.waitForTimeout(300);
@@ -62,7 +65,7 @@ test('VISUAL-case-form 新建用例表单', async ({ authedPage, page }) => {
 
 test('VISUAL-debug 调试台', async ({ authedPage, page }) => {
   void authedPage;
-  await page.goto('/debug');
+  await navFromHome(page, '接口调试');
   await expect(page.getByTestId('debug-url')).toBeVisible();
   await page.waitForTimeout(400);
   await page.screenshot({ path: `${SNAP_DIR}/debug.png` });
@@ -70,7 +73,7 @@ test('VISUAL-debug 调试台', async ({ authedPage, page }) => {
 
 test('VISUAL-report 执行报告（失败态展示断言明细）', async ({ authedPage, page }) => {
   const MOCK_URL = process.env.E2E_MOCK_URL ?? 'http://127.0.0.1:4000/hello';
-  await page.goto('/debug');
+  await navFromHome(page, '接口调试');
   await page.getByTestId('debug-url').fill(MOCK_URL);
   await page.getByRole('tab', { name: '断言' }).click();
   await page.getByTestId('debug-asserts').locator('input[placeholder="200"]').fill('404');

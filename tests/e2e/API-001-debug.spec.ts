@@ -1,4 +1,4 @@
-import { test, expect } from './fixtures';
+import { test, expect, navFromHome } from './fixtures';
 
 /**
  * API-001 + RPT-001 主链路（验收标准 4/5）。
@@ -8,7 +8,9 @@ const MOCK_URL = process.env.E2E_MOCK_URL ?? 'http://127.0.0.1:4000/hello';
 
 test('API-001-01 调试执行成功 → 报告展示响应与断言通过（RPT-001）', async ({ authedPage, page, expectNoConsoleErrors, expectApi }) => {
   void authedPage;
-  await page.goto('/debug');
+  // 用户路径：首页 → 左侧菜单「接口调试」
+  await navFromHome(page, '接口调试');
+  await expect(page.getByTestId('debug-url')).toBeVisible();
   await page.getByRole('tab', { name: '断言' }).click();
   await expect(page.getByTestId('debug-asserts')).toBeVisible();
 
@@ -46,7 +48,7 @@ test('API-001-01 调试执行成功 → 报告展示响应与断言通过（RPT-
 
 test('API-001-02 断言故意失败 → 报告 FAILED 且断言明细红行（验收标准 5）', async ({ authedPage, page, expectNoConsoleErrors }) => {
   void authedPage;
-  await page.goto('/debug');
+  await navFromHome(page, '接口调试');
   await page.getByRole('tab', { name: '断言' }).click();
   await page.getByTestId('debug-url').fill(MOCK_URL);
   // 断言期望 404（实际 200）→ 失败
@@ -62,7 +64,7 @@ test('API-001-02 断言故意失败 → 报告 FAILED 且断言明细红行（�
 
 test('API-001-03 URL 非法 → 提交被拒（422 就地提示）', async ({ authedPage, page, expectNoConsoleErrors }) => {
   void authedPage;
-  await page.goto('/debug');
+  await navFromHome(page, '接口调试');
   await page.getByTestId('debug-url').fill('not-a-url');
   await page.getByTestId('btn-execute').click();
   await expect(page.getByText('URL 必须以 http/https 开头')).toBeVisible();
@@ -71,12 +73,14 @@ test('API-001-03 URL 非法 → 提交被拒（422 就地提示）', async ({ au
 
 test('API-001-04 调试历史列表回看', async ({ authedPage, page, expectNoConsoleErrors }) => {
   void authedPage;
-  await page.goto('/debug');
+  await navFromHome(page, '接口调试');
   await page.getByTestId('debug-url').fill(MOCK_URL);
   await page.getByTestId('btn-execute').click();
   await expect(page).toHaveURL(/\/reports\//, { timeout: 15000 });
   await expect(page.getByTestId('report-status')).toHaveText('SUCCESS', { timeout: 30000 });
-  await page.goto('/debug');
+  // 用户路径：报告页「‹ 返回调试」
+  await page.getByRole('link', { name: '‹ 返回调试' }).click();
+  await expect(page.getByTestId('debug-url')).toBeVisible();
   // UI 断言：历史含刚才的请求（127.0.0.1:4000/hello）
   await expect(page.getByTestId('debug-history').getByText('4000/hello').first()).toBeVisible();
   await expectNoConsoleErrors();
