@@ -50,10 +50,14 @@ export default function ReportPage({ params }: { params: Promise<{ taskId: strin
 
   return (
     <div className="max-w-5xl">
-      <div className="flex items-center gap-3 mb-4">
-        <a className="text-gray-400 text-sm" href="/debug">‹ 返回调试</a>
-        <h1 className="text-lg font-medium m-0">执行报告</h1>
-        <span className="text-gray-400 text-sm">{taskId?.slice(0, 8)}</span>
+      <div className="rabbit-page-header">
+        <div className="flex-1 min-w-0">
+          <a className="text-[13px] text-[#87888D] hover:text-[#574BFF] no-underline" href="/debug">‹ 返回调试</a>
+          <h1 className="mt-1 flex items-center gap-2.5">
+            执行报告
+            <span className="text-xs font-normal text-[#A8ABB0]">T-{taskId?.slice(0, 8)}</span>
+          </h1>
+        </div>
         <span className="rounded-full px-2 py-0.5 text-xs font-medium" data-testid="report-status" style={{ background: `${badge.color}18`, color: badge.color }}>
           {badge.text}
         </span>
@@ -62,8 +66,8 @@ export default function ReportPage({ params }: { params: Promise<{ taskId: strin
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        <div className="bg-white border rounded" data-testid="report-request">
-          <p className="p-3 border-b text-sm font-medium m-0">请求</p>
+        <div className="rabbit-card" data-testid="report-request">
+          <p className="rabbit-card-title">请求</p>
           <div className="p-3 text-sm font-mono space-y-1 break-all">
             {data?.request && (
               <>
@@ -76,8 +80,8 @@ export default function ReportPage({ params }: { params: Promise<{ taskId: strin
             )}
           </div>
         </div>
-        <div className="bg-white border rounded" data-testid="report-response">
-          <p className="p-3 border-b text-sm font-medium m-0 flex justify-between">
+        <div className="rabbit-card" data-testid="report-response">
+          <p className="rabbit-card-title flex justify-between">
             响应
             {data?.response && (
               <span className="text-xs">
@@ -93,8 +97,8 @@ export default function ReportPage({ params }: { params: Promise<{ taskId: strin
         </div>
       </div>
 
-      <div className="bg-white border rounded mt-4" data-testid="report-asserts">
-        <p className="p-3 border-b text-sm font-medium m-0">
+      <div className="rabbit-card mt-4" data-testid="report-asserts">
+        <p className="rabbit-card-title">
           断言 <span className="text-xs text-gray-400">{data?.asserts.length ?? 0} 条{data?.asserts.some((a) => !a.passed) ? ` · ${data.asserts.filter((a) => !a.passed).length} 失败` : ''}</span>
         </p>
         <Table
@@ -119,8 +123,8 @@ export default function ReportPage({ params }: { params: Promise<{ taskId: strin
         />
       </div>
 
-      <div className="bg-white border rounded mt-4" data-testid="report-logs">
-        <p className="p-3 border-b text-sm font-medium m-0">执行日志 <span className="text-xs text-gray-400">SSE 实时</span></p>
+      <div className="rabbit-card mt-4" data-testid="report-logs">
+        <p className="rabbit-card-title flex items-center gap-2">执行日志 <span className="text-[11px] font-normal text-[#A8ABB0]">SSE 实时</span></p>
         <div className="p-3 font-mono text-xs space-y-1">
           {logs.length === 0 && <p className="text-gray-400">等待事件…</p>}
           {logs.map((l, i) => (

@@ -65,13 +65,17 @@ export function CaseForm({ caseId }: Props) {
 
   return (
     <div className="max-w-3xl">
-      <div className="flex items-center gap-2 mb-4">
-        <a className="text-gray-400 text-sm" href="/cases">‹ 用例列表</a>
-        <h1 className="text-lg font-medium m-0">{caseId ? `编辑用例${num ? ` C-${String(num).padStart(4, '0')}` : ''}` : '新建用例'}</h1>
-        <span className="text-xs text-gray-400">v{version}</span>
+      <div className="rabbit-page-header">
+        <div className="flex-1 min-w-0">
+          <a className="text-[13px] text-[#87888D] hover:text-[#574BFF] no-underline" href="/cases">‹ 返回用例列表</a>
+          <h1 className="mt-1">
+            {caseId ? `编辑用例${num ? ` C-${String(num).padStart(4, '0')}` : ''}` : '新建用例'}
+            <span className="ml-2 text-xs font-normal text-[#A8ABB0]">v{version}</span>
+          </h1>
+        </div>
       </div>
-      <div className="bg-white border rounded p-6 space-y-5" data-testid="case-form">
-        <div className="grid grid-cols-[80px_1fr] items-center gap-3">
+      <div className="rabbit-card p-6 space-y-5" data-testid="case-form">
+        <div className="grid grid-cols-[88px_1fr] items-center gap-3">
           <label className="text-sm text-gray-600">名称 <span className="text-red-500">*</span></label>
           <Input
             value={form.name}
@@ -124,7 +128,7 @@ export function CaseForm({ caseId }: Props) {
             </Button>
           </div>
         </div>
-        <div className="grid grid-cols-[80px_1fr] items-center gap-3">
+        <div className="grid grid-cols-[88px_1fr] items-center gap-3">
           <label className="text-sm text-gray-600">等级</label>
           <Radio.Group
             value={form.level}
@@ -133,7 +137,7 @@ export function CaseForm({ caseId }: Props) {
             options={['P0', 'P1', 'P2', 'P3'].map((l) => ({ value: l, label: <span className={l === 'P0' ? 'text-red-500 font-medium' : ''}>{l}</span> }))}
           />
         </div>
-        <div className="grid grid-cols-[80px_1fr] items-center gap-3">
+        <div className="grid grid-cols-[88px_1fr] items-center gap-3">
           <label className="text-sm text-gray-600">标签</label>
           <Select
             mode="tags"

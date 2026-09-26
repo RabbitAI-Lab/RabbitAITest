@@ -1,6 +1,7 @@
 'use client';
 
 import { App, Button, Input, Select, Space, Tabs } from 'antd';
+import { Zap } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -57,9 +58,9 @@ export default function DebugPage() {
   }
 
   return (
-    <div className="flex gap-4">
-      <div className="w-64 shrink-0 bg-white border rounded" data-testid="debug-history">
-        <p className="p-3 border-b text-sm font-medium m-0">调试历史</p>
+    <div className="flex gap-4 items-start">
+      <div className="w-72 shrink-0 rabbit-card" data-testid="debug-history">
+        <p className="rabbit-card-title flex items-center justify-between">调试历史 <span className="text-[11px] font-normal text-[#A8ABB0]">最近 20 条</span></p>
         <div className="p-2 space-y-1">
           {(history?.items ?? []).map((h) => (
             <a
@@ -72,12 +73,12 @@ export default function DebugPage() {
               <StatusDot outcome={h.status as 'SUCCESS' | 'FAILED' | 'RUNNING' | 'PENDING'} />
             </a>
           ))}
-          {(history?.items ?? []).length === 0 && <p className="text-xs text-gray-400 p-2">最近 20 条 · 点击回看报告</p>}
+          {(history?.items ?? []).length === 0 && <p className="text-xs text-[#A8ABB0] p-2">暂无记录 · 执行后点击回看报告</p>}
         </div>
       </div>
 
       <div className="flex-1 space-y-4 min-w-0">
-        <div className="bg-white border rounded p-4">
+        <div className="rabbit-card p-4">
           <div className="flex gap-2">
             <Select className="w-28" value={method} onChange={setMethod} options={METHODS.map((m) => ({ value: m, label: m }))} data-testid="debug-method" />
             <Input className="flex-1 font-mono" value={url} onChange={(e) => setUrl(e.target.value)} data-testid="debug-url" placeholder="https://…" />
@@ -167,9 +168,10 @@ export default function DebugPage() {
             ]}
           />
         </div>
-        <div className="bg-white border rounded p-4 text-sm text-gray-500">
-          执行后跳转「执行报告」页实时查看（SSE）。示例：
-          <Button type="link" className="px-1" onClick={() => { setMethod('GET'); setUrl('https://httpbin.org/get'); }}>
+        <div className="rabbit-card p-3.5 text-[13px] text-[#87888D] flex items-center gap-1.5">
+          <Zap size={14} className="text-[#574BFF]" />
+          执行后跳转「执行报告」页实时查看（SSE）· 示例：
+          <Button type="link" className="px-1 h-auto" onClick={() => { setMethod('GET'); setUrl('https://httpbin.org/get'); }}>
             GET https://httpbin.org/get
           </Button>
         </div>
