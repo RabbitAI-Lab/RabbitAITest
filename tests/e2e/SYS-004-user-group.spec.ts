@@ -73,7 +73,7 @@ test("SYS-004-01 用户管理与用户组管理主链路（管理员）", async 
   await expect(page.getByTestId("btn-new-group")).toBeVisible();
   // UI 断言：预置组「系统成员」只读提示（GroupManager.tsx Alert banner）
   await page.getByTestId("group-item-系统成员").click();
-  await expect(page.getByText("预置组不可修改，仅可查看成员与权限")).toBeVisible();
+  await expect(page.getByText("预置组权限不可修改")).toBeVisible();
 
   // 新建自定义组（接口断言 POST /api/v1/system/groups）
   await page.getByTestId("btn-new-group").click();
@@ -140,4 +140,72 @@ test("SYS-004-02 无系统权限用户 403（菜单隐藏 + code 10003）", asyn
       reason: "普通用户无 SYSTEM_USER:READ，列表预期 403",
     },
   ]);
+});
+
+/** 回归用例（rules/testing §5.3：Bug 修复必须附失败复现用例）：
+ *  2026-09-26 用户实测发现——预置组成员区被整组置只读（无添加按钮），且成员候选查询被
+ *  enabled:!readonly 拦截、组织/项目组候选误用 SYSTEM_USER:READ 端点。修复提交
+ *  1a1440c/8f6f161 前以下两条均会因控件缺失/候选为空超时失败。 */
+test("SYS-004-03 预置组成员可管理（权限只读、成员增删可用）", async ({
+  request,
+  context,
+  page,
+}) => {
+  await loginSeedAdmin(request, context);
+  // 造一个待入组用户：走公开注册（不占管理端 30 用户配额——全量套件其余用例已逼近上限；
+  // 且与本用例回归的真实场景一致：自注册账号被管理员拉入系统管理员组）
+  const stamp = Date.now();
+  const email = `preset-member-${stamp}@rabbit.test`;
+  const created = await request.post("/api/v1/auth/register", {
+    data: { email, password: "rabbit-pass-123" },
+  });
+  expect(created.status()).toBe(201);
+
+  await page.goto("/");
+  await page.getByTestId("nav-system-groups").click();
+  // 选中预置组「系统管理员」：权限只读提示仍在（语义=权限点不可改）
+  await page.getByTestId("group-item-系统管理员").click();
+  await expect(page.getByText("预置组权限不可修改")).toBeVisible();
+  // 成员添加控件必须渲染（修复前：整组只读→控件隐藏）
+  await expect(page.getByTestId("group-member-select")).toBeVisible();
+  await expect(page.getByTestId("btn-group-add-member")).toBeVisible();
+  // 搜索候选可用（修复前：enabled:!readonly 拦截→选项永远为空）
+  const apiWait = page.waitForResponse((r) => r.url().includes("/api/v1/system/users") && r.request().method() === "GET");
+  await page.getByTestId("group-member-select").click();
+  await page.keyboard.type(`preset-member-${stamp}`);
+  await apiWait;
+  await page.locator(`.ant-select-item-option[title*="${email}"]`).first().click();
+  const addWait = page.waitForResponse((r) => r.url().includes("/members") && r.request().method() === "POST");
+  await page.getByTestId("btn-group-add-member").click();
+  const addRes = await addWait;
+  expect(addRes.status()).toBe(200);
+  // 成员表中出现（UI 断言）+ 可移除
+  await expect(page.getByText(email).first()).toBeVisible();
+  await page.getByTestId(`btn-group-remove-member-${email}`).click();
+  // Popconfirm 确认（限弹层内危险按钮，避开页面其它「移除」）
+  const rmWait = page.waitForResponse((r) => r.url().includes("/members/") && r.request().method() === "DELETE");
+  await page.locator(".ant-popover .ant-btn-dangerous, .ant-popconfirm .ant-btn-dangerous").first().click();
+  const rmRes = await rmWait;
+  expect(rmRes.status()).toBe(200);
+  await expect(page.locator(`.ant-table-row:has-text("${email}")`)).toHaveCount(0, { timeout: 10_000 });
+});
+
+test("SYS-004-04 组织组候选源=组织成员（普通组织管理员不 403）", async ({
+  authedPage,
+  page,
+}) => {
+  // authedPage=自注册组织管理员（无 SYSTEM_USER:READ，修复前候选源 /system/users 会 403→选项为空）
+  await page.goto("/");
+  await page.getByTestId("leftnav").getByRole("link", { name: "用户组" }).nth(1).click();
+  await page.getByRole("button", { name: /新\s*建用户组/ }).click();
+  await page.getByTestId("input-new-group-name").fill(`回归组-${Date.now()}`);
+  await page.getByRole("button", { name: /创\s*建/ }).click();
+  // 新组选中后成员搜索应命中本人（组织成员数据源）
+  await expect(page.getByTestId("group-member-select")).toBeVisible();
+  await page.getByTestId("group-member-select").click();
+  await page.keyboard.type(authedPage.email.split("@")[0]);
+  await expect(
+    page.locator(`.ant-select-item-option[title*="${authedPage.email}"]`).first(),
+    "组织管理员应能在组织组搜索到组织成员（候选源=org members 而非 system users）",
+  ).toBeVisible({ timeout: 10_000 });
 });
