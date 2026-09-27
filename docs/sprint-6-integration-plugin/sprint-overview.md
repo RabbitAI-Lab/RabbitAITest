@@ -85,20 +85,20 @@ INTG-003（APIKEY+open API，独立）   API-011（S2/S3 复用，独立）   SY
 | open API 安全面（限流/越权）                     | 限流+本人数据范围+审计三件套；SEC 复核点登记 rules/security          |
 | S3 基线上 shared/db 变更合并（与 S4/S5 并行期）   | 本迭代自 main（含 S3）切分支；契约 additive；合并冲突面=api/schemas 追加+seed |
 
-## 7. 交付自查表（收尾回填）
+## 7. 交付自查表（收尾回填；2026-09-27 首批进度）
 
 | # | 项                                                     | 状态 |
 | - | ------------------------------------------------------ | ---- |
-| 1 | 7 规格 Approved+高保确确认（PLUG-002 契约评审）         | ⬜    |
-| 2 | 契约/权限点/OpenAPI 快照/api-client 更新                | ⬜    |
-| 3 | 代码实现（runner/engine/web 前后端+3 插件包）            | ⬜    |
-| 4 | Vitest 单测全绿（含新增核心分支）                       | ⬜    |
-| 5 | JMeter 新增 ≥7 全绿（真门禁：CSV/断言核验）             | ⬜    |
-| 6 | Playwright 新增 ≥15 全绿（三类断言+录屏）               | ⬜    |
-| 7 | MAINFLOW-s6 主链路                                      | ⬜    |
-| 8 | lint + 全量 tests 本地绿                                | ⬜    |
-| 9 | commit+push+远端 CI 六作业全绿                          | ⬜    |
-| 10 | CHANGELOG v0.5.0 + README M7 + 概览回填 + 文档状态流转  | ⬜    |
+| 1 | 7 规格 Approved + 原型 5 组产出（PLUG-002 契约评审替代；人工确认随走查） | ✅ 首批 |
+| 2 | 契约（SPI 三接口/S6 schemas）+ 权限点 7 枚 + OpenAPI 快照 + api-client s6.ts | 🟡 契约/权限/api-client ✅；OpenAPI 快照待续 |
+| 3 | 代码实现（runner/engine/web 前后端 + 4 插件包 + mock 三平台）            | ✅ 首批（编译/单测全绿） |
+| 4 | Vitest 单测全绿（shared 62 + web 24 + engine 28 + runner 4 = 118）     | ✅ 首批 |
+| 5 | JMeter 新增 ≥7 全绿（真门禁：CSV/断言核验）                             | ⬜ 待续 |
+| 6 | Playwright 新增 ≥15 全绿（三类断言+录屏）                               | ⬜ 待续 |
+| 7 | MAINFLOW-s6 主链路                                                      | ⬜ 待续 |
+| 8 | lint + 全量 tests 本地绿（typecheck 13 任务 0 错 / lint 0 errors / 单测 118） | ✅ 首批 |
+| 9 | commit+push（分支 sprint-6-integration-plugin 已推远程）+ 远端 CI 六作业全绿 | 🟡 已 push；CI 待测试面齐备合 main 后验证 |
+| 10 | CHANGELOG（Unreleased 段）+ README M7 + 概览回填 + 文档状态流转          | 🟡 首批回填；规格状态随测试面交付后转 Implemented |
 
 ## 8. 里程碑
 
