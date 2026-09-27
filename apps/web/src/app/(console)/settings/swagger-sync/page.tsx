@@ -154,7 +154,7 @@ function TaskFormModal({
       <Form
         form={form}
         layout="vertical"
-        initialValues={initial ? { name: initial.name, url: initial.url, cover: initial.cover, cron: initial.cron } : { cover: false, cron: "0 0 * * * ?" }}
+        initialValues={initial ? { name: initial.name, url: initial.url, cover: initial.cover, cron: initial.cron } : { cover: false, cron: "0 0 * * *" }}
         onFinish={onSubmit}
       >
         <Form.Item name="name" label="名称" rules={[{ required: true, message: "必填" }]}>
@@ -167,7 +167,7 @@ function TaskFormModal({
           <Switch />
         </Form.Item>
         <Form.Item name="cron" label="同步周期（5 段 cron，最短 5 分钟）" rules={[{ required: true, message: "必填" }]}>
-          <Input className="font-mono text-xs" placeholder="0 0 * * * ?" />
+          <Input className="font-mono text-xs" placeholder="0 0 * * *" />
         </Form.Item>
       </Form>
     </Modal>

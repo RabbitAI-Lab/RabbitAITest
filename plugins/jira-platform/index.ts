@@ -87,9 +87,10 @@ export default function createJiraPlugin() {
       });
       return { platformKey };
     },
-    async syncBugs(cfg: PlatformConfig, projectKey: string, since?: Date): Promise<PlatformBug[]> {
+    async syncBugs(cfg: PlatformConfig, projectKey: string, since?: string): Promise<PlatformBug[]> {
+      const sinceDate = since ? new Date(since) : undefined;
       const jql = since
-        ? `project = "${projectKey}" AND updated >= "${since.toISOString().slice(0, 19).replace("T", " ")}" ORDER BY updated DESC`
+        ? `project = "${projectKey}" AND updated >= "${sinceDate!.toISOString().slice(0, 19).replace("T", " ")}" ORDER BY updated DESC`
         : `project = "${projectKey}" ORDER BY updated DESC`;
       const res = await request<{ issues: JiraIssue[] }>(
         cfg,

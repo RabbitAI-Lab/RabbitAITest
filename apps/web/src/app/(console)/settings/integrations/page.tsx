@@ -307,7 +307,7 @@ function ProjectSync({ canUpdate }: { canUpdate: boolean }) {
           rowKey={(r: SyncHistoryEntry) => r.at}
           size="small"
           pagination={false}
-          dataSource={history?.items ?? []}
+          dataSource={history?.list ?? []}
           columns={[
             { title: "时间", dataIndex: "at", render: (v: string) => <span className="text-xs text-gray-400">{fmt(v)}</span> },
             { title: "方向", dataIndex: "direction", render: (v: string) => (v === "push" ? <Tag color="blue">推送</Tag> : <Tag>拉取</Tag>) },

@@ -70,7 +70,7 @@ export interface PlatformPlugin {
   testConnection(cfg: PlatformConfig): Promise<void>;
   createIssue(cfg: PlatformConfig, payload: IssuePayload): Promise<PlatformRef>;
   updateIssue(cfg: PlatformConfig, platformKey: string, payload: IssuePayload): Promise<PlatformRef>;
-  syncBugs(cfg: PlatformConfig, projectKey: string, since?: Date): Promise<PlatformBug[]>;
+  syncBugs(cfg: PlatformConfig, projectKey: string, since?: string /* ISO——HTTP JSON 序列化契约 */): Promise<PlatformBug[]>;
   fieldMapping(): PlatformField[];
 }
 

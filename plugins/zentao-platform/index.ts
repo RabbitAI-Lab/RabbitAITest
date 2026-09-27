@@ -93,8 +93,9 @@ export default function createZentaoPlugin() {
       });
       return { platformKey };
     },
-    async syncBugs(cfg: PlatformConfig, projectKey: string, since?: Date): Promise<PlatformBug[]> {
-      const sinceParam = since ? `&lastEditedDate=${encodeURIComponent(`>=${since.toISOString().slice(0, 19)}`)}` : "";
+    async syncBugs(cfg: PlatformConfig, projectKey: string, since?: string): Promise<PlatformBug[]> {
+      const sinceDate = since ? new Date(since) : undefined;
+      const sinceParam = sinceDate ? `&lastEditedDate=${encodeURIComponent(`>=${sinceDate!.toISOString().slice(0, 19)}`)}` : "";
       const res = await request<{ bugs: ZentaoBug[] }>(
         cfg,
         `/bugs?product=${encodeURIComponent(projectKey)}&limit=100${sinceParam}`,

@@ -117,7 +117,13 @@ export default function PluginsPage() {
       {isLoading ? (
         <Spin />
       ) : (
-        <Table rowKey="id" size="small" columns={columns} dataSource={data ?? []} pagination={false} />
+        <Table
+          rowKey="id"
+          size="small"
+          columns={columns}
+          dataSource={(data as { list?: PluginRow[] } | undefined)?.list ?? []}
+          pagination={false}
+        />
       )}
 
       <Modal

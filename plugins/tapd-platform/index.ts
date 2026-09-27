@@ -70,8 +70,9 @@ export default function createTapdPlugin() {
       });
       return { platformKey };
     },
-    async syncBugs(cfg: PlatformConfig, projectKey: string, since?: Date): Promise<PlatformBug[]> {
-      const sinceParam = since ? `&modified=${encodeURIComponent(`>=${since.toISOString().slice(0, 19).replace("T", " ")}`)}` : "";
+    async syncBugs(cfg: PlatformConfig, projectKey: string, since?: string): Promise<PlatformBug[]> {
+      const sinceDate = since ? new Date(since) : undefined;
+      const sinceParam = sinceDate ? `&modified=${encodeURIComponent(`>=${sinceDate!.toISOString().slice(0, 19).replace("T", " ")}`)}` : "";
       const res = await request<{ data: Array<{ Bug: TapdBug }> }>(
         cfg,
         `/bugs?workspace_id=${encodeURIComponent(projectKey)}&limit=100&order=modified desc${sinceParam}`,

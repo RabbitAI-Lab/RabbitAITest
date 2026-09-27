@@ -132,8 +132,8 @@ export default function ApiKeysPage() {
               <Typography.Text type="secondary" className="text-xs">
                 Access Key
               </Typography.Text>
-              <div className="flex items-center gap-2 border rounded px-2 py-1.5 bg-gray-50 font-mono text-xs" data-testid="apikey-ak">
-                {created.accessKey}
+              <div className="flex items-center gap-2 border rounded px-2 py-1.5 bg-gray-50 font-mono text-xs">
+                <span data-testid="apikey-ak">{created.accessKey}</span>
                 <Button size="small" type="link" onClick={() => copy(created.accessKey, "ak")}>
                   复制
                 </Button>
@@ -143,8 +143,8 @@ export default function ApiKeysPage() {
               <Typography.Text type="secondary" className="text-xs">
                 Secret Key
               </Typography.Text>
-              <div className="flex items-center gap-2 border rounded px-2 py-1.5 bg-gray-50 font-mono text-xs" data-testid="apikey-sk">
-                {created.secretKey}
+              <div className="flex items-center gap-2 border rounded px-2 py-1.5 bg-gray-50 font-mono text-xs">
+                <span data-testid="apikey-sk">{created.secretKey}</span>
                 <Button size="small" type="link" onClick={() => copy(created.secretKey, "sk")}>
                   复制
                 </Button>

@@ -18,8 +18,15 @@ export interface PluginRow {
   updatedAt: string;
 }
 
+export interface PageEnvelope<T> {
+  list: T[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
 export const pluginApi = {
-  list: () => get<PluginRow[]>(`/api/v1/system/plugins`),
+  list: () => get<PageEnvelope<PluginRow>>(`/api/v1/system/plugins`),
   upload: (file: File, orgScope: "ALL" | string[]) => {
     const form = new FormData();
     form.append("file", file);
@@ -91,7 +98,7 @@ export const integrationApi = {
   pullBugs: (projectId: string) =>
     post<{ pulled: number; updated: number }>(`/api/v1/projects/${projectId}/integration/pull`, {}),
   syncHistory: (projectId: string) =>
-    get<PageOf<SyncHistoryEntry>>(`/api/v1/projects/${projectId}/integration/sync-history`),
+    get<PageEnvelope<SyncHistoryEntry>>(`/api/v1/projects/${projectId}/integration/sync-history`),
 };
 
 // ── INTG-003 APIKEY ──
@@ -145,7 +152,7 @@ export const swaggerSyncApi = {
   run: (projectId: string, id: string) =>
     post<SwaggerSyncTask["lastResult"]>(`/api/v1/projects/${projectId}/swagger-sync/${id}/run`, {}),
   history: (projectId: string, id: string) =>
-    get<PageOf<NonNullable<SwaggerSyncTask["lastResult"]>>>(`/api/v1/projects/${projectId}/swagger-sync/${id}/history`),
+    get<PageEnvelope<NonNullable<SwaggerSyncTask["lastResult"]>>>(`/api/v1/projects/${projectId}/swagger-sync/${id}/history`),
 };
 
 // ── SYS-008 审计日志 ──
@@ -164,11 +171,14 @@ export interface AuditLogRow {
   createdAt: string;
 }
 
+const qsOf = (q: Record<string, unknown>) =>
+  new URLSearchParams(Object.entries(q).filter(([, v]) => v !== undefined).map(([k, v]) => [k, String(v)])).toString();
+
 export const auditApi = {
   system: (q: { action?: string; objectType?: string; keyword?: string; from?: string; to?: string; page?: number; pageSize?: number }) =>
-    get<PageOf<AuditLogRow>>(`/api/v1/system/audit-logs?${new URLSearchParams(Object.entries(q).filter(([, v]) => v !== undefined).map(([k, v]) => [k, String(v)])).toString()}`),
+    get<PageEnvelope<AuditLogRow>>(`/api/v1/system/audit-logs?${qsOf(q)}`),
   org: (orgId: string, q: { action?: string; keyword?: string; page?: number }) =>
-    get<PageOf<AuditLogRow>>(`/api/v1/orgs/${orgId}/audit-logs?${new URLSearchParams(Object.entries(q).filter(([, v]) => v !== undefined).map(([k, v]) => [k, String(v)])).toString()}`),
+    get<PageEnvelope<AuditLogRow>>(`/api/v1/orgs/${orgId}/audit-logs?${qsOf(q)}`),
   project: (projectId: string, q: { action?: string; keyword?: string; page?: number }) =>
-    get<PageOf<AuditLogRow>>(`/api/v1/projects/${projectId}/audit-logs?${new URLSearchParams(Object.entries(q).filter(([, v]) => v !== undefined).map(([k, v]) => [k, String(v)])).toString()}`),
+    get<PageEnvelope<AuditLogRow>>(`/api/v1/projects/${projectId}/audit-logs?${qsOf(q)}`),
 };

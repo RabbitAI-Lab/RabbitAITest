@@ -89,7 +89,7 @@ export default function SystemAuditLogsPage() {
         size="small"
         loading={isLoading}
         columns={columns}
-        dataSource={data?.items ?? []}
+        dataSource={data?.list ?? []}
         pagination={{
           current: page,
           pageSize: 20,

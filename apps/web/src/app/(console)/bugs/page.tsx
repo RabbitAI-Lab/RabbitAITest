@@ -347,6 +347,21 @@ export default function BugListPage() {
                 ),
               },
               {
+                // S6 INTG-001：三方同步平台徽标（LOCAL 不展示；JIRA/禅道/TAPD + platformKey）
+                title: "平台",
+                dataIndex: "platform",
+                width: 130,
+                render: (v: string, r) =>
+                  v && v !== "LOCAL" ? (
+                    <span className="whitespace-nowrap" data-testid={`bug-platform-${r.num}`}>
+                      <span className="text-[10px] border rounded px-1.5 py-0.5 bg-blue-50 text-blue-600 border-blue-200">
+                        {v.toUpperCase()}
+                      </span>{" "}
+                      <span className="font-mono text-[10px] text-[#574BFF]">{r.platformKey}</span>
+                    </span>
+                  ) : null,
+              },
+              {
                 title: "处理人",
                 dataIndex: "handleUserId",
                 width: 90,

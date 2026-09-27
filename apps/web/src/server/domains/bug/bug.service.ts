@@ -107,6 +107,9 @@ export async function listBugs(
         createdAt: true,
         updatedAt: true,
         templateId: true,
+        platform: true,
+        platformKey: true,
+        syncState: true,
       },
     }),
   ]);
@@ -138,6 +141,8 @@ export async function getBug(projectId: string, bugId: string) {
       fields: true,
       templateId: true,
       platform: true,
+      platformKey: true,
+      syncState: true,
       version: true,
       deletedAt: true,
       createdBy: true,

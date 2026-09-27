@@ -121,7 +121,7 @@ export async function pullBugs(projectId: string, orgId: string, trigger: "manua
   const since = cfg.mode === "INCREMENT" ? new Date(Date.now() - 24 * 60 * 60 * 1000) : undefined;
   const started = Date.now();
   try {
-    const bugs = await runnerCall<PlatformBug[]>(pluginId, "syncBugs", [config, cfg.projectKey, since]);
+    const bugs = await runnerCall<PlatformBug[]>(pluginId, "syncBugs", [config, cfg.projectKey, since ? since.toISOString() : undefined]);
     let updated = 0;
     const store = cfg.bugTypes as never as { statusMapping?: Array<{ platform: string; local: string }> };
     const mapping: Record<string, string> = {

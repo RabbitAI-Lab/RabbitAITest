@@ -94,6 +94,11 @@ export function toResponse(err: unknown): NextResponse {
                       ErrCode.SWAGGER_TASKS_LIMIT_EXCEEDED,
                       ErrCode.AUDIT_QUERY_INVALID,
                       ErrCode.INTEGRATION_SECRET_MISSING,
+                      ErrCode.INTEGRATION_NOT_FOUND,
+                      ErrCode.INTEGRATION_CONNECT_FAILED,
+                      ErrCode.PLATFORM_SYNC_CONFIG_INVALID,
+                      ErrCode.SYNC_TASK_FAILED,
+                      ErrCode.PLATFORM_UNAUTHORIZED,
                     ] as number[]
                   ).includes(err.code)
                 ? 422

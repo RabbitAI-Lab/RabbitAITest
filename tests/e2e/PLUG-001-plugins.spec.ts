@@ -1,5 +1,5 @@
 import { test, expect } from "./fixtures";
-import { loginSeedAdmin, uploadPlugin } from "./s6-helpers";
+import { loginSeedAdmin, uploadPlugin, readPluginB64, newAdminContext } from "./s6-helpers";
 
 /**
  * PLUG-001 插件框架 e2e（规格 §5：T2 生命周期 / T3 组织范围+越权）。
@@ -15,7 +15,7 @@ test("PLUG-001-T2 管理员上传→列表→启用→停用→删除全生命�
   await loginSeedAdmin(request, context);
 
   // 接口前置：上传 tcp-conn（201/409 幂等）——同时为 PLUG-002 留库
-  const pluginId = await uploadPlugin(request, "tcp-conn-1.0.0.tgz");
+  const pluginId = await uploadPlugin(request, "tcp-conn-1.0.1.tgz");
 
   // UI：管理页可见插件行 + 启停开关
   await page.goto("/system/plugins");
@@ -83,15 +83,14 @@ test("PLUG-001-T3 越权两态：普通用户无菜单/403；未登录 401", asy
 });
 
 test("PLUG-001-T4 上传负路径：同名同版本 409 70005（版本递增规则）", async ({
-  context,
-  request,
+  playwright,
 }) => {
-  await loginSeedAdmin(request, context);
+  const admin = await newAdminContext(playwright);
   // jira-platform 由 INTG-001 用例上传（字母序 PLUG 在 INTG 后跑；若未上传则先上传）
-  await uploadPlugin(request, "jira-platform-1.0.0.tgz");
+  await uploadPlugin(admin, "jira-platform-1.0.1.tgz");
   // 再次上传同版本 → 409
-  const dup = await request.post("/api/v1/system/plugins", {
-    data: { filename: "jira-platform-1.0.0.tgz", contentBase64: "重新读取由 helper 保证", orgScope: "ALL" },
+  const dup = await admin.post("/api/v1/system/plugins", {
+    data: { filename: "jira-platform-1.0.1.tgz", contentBase64: readPluginB64("jira-platform-1.0.1.tgz"), orgScope: "ALL" },
   });
   expect(dup.status()).toBe(409);
   const body = (await dup.json()) as { code: number; message: string };

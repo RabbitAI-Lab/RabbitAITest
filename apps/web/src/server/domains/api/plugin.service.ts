@@ -86,21 +86,36 @@ export async function uploadPlugin(buffer: Buffer, orgScope: "ALL" | string[]): 
     rmSync(dir, { recursive: true, force: true });
     mkdirSync(dir, { recursive: true });
     await tarSafe(["-xzf", tmp, "-C", dir]);
-    const plugin = existing
-      ? await prisma.plugin.update({
-          where: { id: existing.id },
-          data: { version: manifest.version, storageKey, orgScope: orgScope as never, enabled: false },
-        })
-      : await prisma.plugin.create({
-          data: {
-            name: manifest.name,
-            kind: manifest.kind,
-            version: manifest.version,
-            storageKey,
-            orgScope: orgScope as never,
-            enabled: false,
-          },
+    // 幂等 upsert 式（name+kind 唯一约束）：并发上传竞态下 P2002 兜底回查 update，保证单一 id
+    let plugin;
+    try {
+      plugin = existing
+        ? await prisma.plugin.update({
+            where: { id: existing.id },
+            data: { version: manifest.version, storageKey, orgScope: orgScope as never, enabled: false },
+          })
+        : await prisma.plugin.create({
+            data: {
+              name: manifest.name,
+              kind: manifest.kind,
+              version: manifest.version,
+              storageKey,
+              orgScope: orgScope as never,
+              enabled: false,
+            },
+          });
+    } catch (e) {
+      if ((e as { code?: string }).code === "P2002") {
+        const winner = await prisma.plugin.findFirstOrThrow({
+          where: { name: manifest.name, kind: manifest.kind },
+          orderBy: { updatedAt: "desc" },
         });
+        plugin = await prisma.plugin.update({
+          where: { id: winner.id },
+          data: { version: manifest.version, storageKey, orgScope: orgScope as never },
+        });
+      } else throw e;
+    }
     return { id: plugin.id, manifest };
   } finally {
     rmSync(tmp, { force: true });
@@ -155,7 +170,9 @@ export async function updatePlugin(
       await prisma.plugin.update({ where: { id }, data: { enabled: false } });
       throw new DomainError(ErrCode.PLUGIN_RUNNER_UNAVAILABLE, "plugin-runner 不可达，无法启用");
     }
-    await runnerLoad({
+    // 幂等：runner 已含同名插件（重复启用场景）则跳过 load
+    const already = (await runnerList()).some((r) => r.name === p.name && r.workerStatus === "RUNNING");
+    if (!already) await runnerLoad({
       pluginId: p.id,
       name: p.name,
       kind: p.kind,
@@ -192,11 +209,17 @@ export function scopeAllows(orgScope: unknown, orgId: string): boolean {
   return Array.isArray(orgScope) && orgScope.includes(orgId);
 }
 
-/** 按平台名解析已启用插件（INTG 用；平台插件名约定 {platform}-platform） */
+/** 按平台名解析已启用插件（INTG 用；平台插件名约定 {platform}-platform）。
+ *  以 runner 实际加载实例为准（按 name 匹配）——免疫历史上传竞态遗留的多行 id 漂移；
+ *  DB 行仅校验「已启用」存在。 */
 export async function enabledPlatformPluginId(platform: string): Promise<string> {
   const name = `${platform}-platform`;
   const p = await prisma.plugin.findFirst({ where: { name, kind: "platform", enabled: true } });
   if (!p) throw new DomainError(ErrCode.PLUGIN_NOT_FOUND, `平台插件未启用：${name}`);
+  // 多版本 slot 并存时取最新加载的（findLast——上传升级后旧 slot 仍在 runner 内）
+  const all = (await runnerList()).filter((r) => r.name === name && r.workerStatus === "RUNNING");
+  const running = all.length > 0 ? all[all.length - 1] : undefined;
+  if (running) return running.pluginId;
   return p.id;
 }
 
