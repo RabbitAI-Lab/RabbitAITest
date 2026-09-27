@@ -46,11 +46,11 @@ test("CASE-001-01 用例全生命周期", async ({
     .getByRole("row", { name: /登录成功场景/ })
     .getByText("删除")
     .click();
-  await expect(page.getByText("已删除")).toBeVisible({ timeout: 8000 });
+  await expect(page.getByText("已删除").first()).toBeVisible({ timeout: 8000 });
   await page.getByTestId("tab-recycle").click();
   await expect(page.getByText("登录成功场景")).toBeVisible();
   await page.getByTestId("btn-restore-1").click();
-  await expect(page.getByText("已恢复")).toBeVisible({ timeout: 8000 });
+  await expect(page.getByText("已恢复").first()).toBeVisible({ timeout: 8000 });
   await page.getByTestId("tab-all").click();
   await expect(page.getByText("登录成功场景")).toBeVisible();
 
@@ -59,7 +59,7 @@ test("CASE-001-01 用例全生命周期", async ({
     .getByRole("row", { name: /登录成功场景/ })
     .getByText("删除")
     .click();
-  await expect(page.getByText("已删除")).toBeVisible({ timeout: 8000 });
+  await expect(page.getByText("已删除").first()).toBeVisible({ timeout: 8000 });
   await page.getByTestId("tab-recycle").click();
   await page
     .getByRole("row", { name: /登录成功场景/ })

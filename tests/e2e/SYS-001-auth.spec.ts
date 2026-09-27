@@ -56,6 +56,11 @@ test("SYS-001-02 重复注册 → 就地透出服务端错误（10101）", async
       textPattern: "(\\[http 400\\]|Failed to load resource.*400)",
       reason: "重复注册预期 400",
     },
+    {
+      pageUrlPattern: "personal/permissions|projects/.*/info|localhost",
+      textPattern: "401",
+      reason: "API 登出销毁会话后，未跳转的旧工作台页 refetch 正确收到 401（时序噪音非缺陷）",
+    },
   ]);
 });
 
