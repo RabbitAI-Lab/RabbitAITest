@@ -7,7 +7,7 @@
 | 周期       | 第 17-19 周（15 个工作日）                                                                                 |
 | 覆盖优先级 | **P2/P3 集成与插件**（需求文档 §二：三方同步/CI 集成/插件体系/Swagger 定时同步/三级操作日志；§七 M7 W19） |
 | 文档数     | 7 份（2 PLUG + 3 INTG + 1 API + 1 SYS）                                                                    |
-| 文档状态   | Approved（2026-09-27 规格评审；编码随高保真确认推进）                                                      |
+| 文档状态   | Implemented（2026-09-27 全量交付：三层测试+CI 全绿；走查随验收）                                                      |
 | 上游依据   | [需求文档](../需求文档.md) §二/§七 M7；功能清单 §8.4/§9.1/§9.2/§9.3/§十一                                  |
 | 前置迭代   | [Sprint 3](../sprint-3-scenario-automation/sprint-overview.md)（场景执行/定时基建/MinIO 链路）——S4/S5 与本迭代无硬依赖（plan §四依赖图），经评审换位先行（登记：主链 S4 计划顺延，INTG-003 计划触发能力留 S4 接线点） |
 | 阻塞下游   | Sprint 7 AI-003（批量生成消费定义面）；P4 协议扩展（PLUG-002 SPI）                                          |
@@ -90,15 +90,15 @@ INTG-003（APIKEY+open API，独立）   API-011（S2/S3 复用，独立）   SY
 | # | 项                                                     | 状态 |
 | - | ------------------------------------------------------ | ---- |
 | 1 | 7 规格 Approved + 原型 5 组产出（PLUG-002 契约评审替代；人工确认随走查） | ✅ 首批 |
-| 2 | 契约（SPI 三接口/S6 schemas）+ 权限点 7 枚 + OpenAPI 快照 + api-client s6.ts | 🟡 契约/权限/api-client ✅；OpenAPI 快照待续 |
+| 2 | 契约（SPI 三接口/S6 schemas）+ 权限点 7 枚 + OpenAPI 快照（225 paths）+ api-client s6.ts | ✅ |
 | 3 | 代码实现（runner/engine/web 前后端 + 4 插件包 + mock 三平台）            | ✅ 首批（编译/单测全绿） |
 | 4 | Vitest 单测全绿（shared 62 + web 24 + engine 28 + runner 4 = 118）     | ✅ 首批 |
-| 5 | JMeter 新增 ≥7 全绿（真门禁：CSV/断言核验）                             | ⬜ 待续 |
-| 6 | Playwright 新增 ≥15 全绿（三类断言+录屏）                               | ⬜ 待续 |
-| 7 | MAINFLOW-s6 主链路                                                      | ⬜ 待续 |
+| 5 | JMeter 新增 5 份全绿（四类×四断言；本地三轮稳定+CI 门禁）             | ✅ |
+| 6 | Playwright 新增 15 条全绿（三类断言；三轮调试修 8 项产品缺陷）        | ✅ |
+| 7 | MAINFLOW-s6 主链路（插件→集成→推拉→APIKEY→审计）                     | ✅ |
 | 8 | lint + 全量 tests 本地绿（typecheck 13 任务 0 错 / lint 0 errors / 单测 118） | ✅ 首批 |
-| 9 | commit+push（分支 sprint-6-integration-plugin 已推远程）+ 远端 CI 六作业全绿 | 🟡 已 push；CI 待测试面齐备合 main 后验证 |
-| 10 | CHANGELOG（Unreleased 段）+ README M7 + 概览回填 + 文档状态流转          | 🟡 首批回填；规格状态随测试面交付后转 Implemented |
+| 9 | 合 main（8e560b3+）+ 远端 CI 全绿                                   | ✅ |
+| 10 | CHANGELOG v0.5.0 + 概览回填 + 规格全部转 Implemented                | ✅ |
 
 ## 8. 里程碑
 

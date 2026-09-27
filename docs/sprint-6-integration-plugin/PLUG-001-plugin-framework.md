@@ -6,7 +6,7 @@
 | 所属迭代     | Sprint 6 — 集成与插件                                                                                                                 |
 | 优先级       | P2（迭代内）                                                                                                                          |
 | 所属模块     | 系统设置（sys 域）+ 插件运行时（apps/plugin-runner）                                                                                  |
-| 文档状态     | Approved                                                                                                                              |
+| 文档状态     | Implemented（2026-09-27 交付：代码+单测+JMeter+Playwright 全绿、CI 六作业全绿；高保真走查随验收） |
 | 最后更新日期 | 2026-09-27                                                                                                                            |
 | 上游依赖     | plugin-architecture.md（S0 已冻结）；SYS-005（系统参数页先例）；PROJ-004（MinIO 文件存储链路）                                          |
 | 下游消费     | PLUG-002（协议插件 SPI）、INTG-001/002（平台插件加载与执行）                                                                           |

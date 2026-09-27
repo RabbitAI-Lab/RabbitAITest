@@ -216,7 +216,11 @@ jobs:
         if: always()
         with:
           name: jmeter-results
-          path: test-results/api/
+          path: |
+            test-results/api/
+            /tmp/web.log
+            /tmp/engine.log
+            /tmp/mock.log
           retention-days: 30
           if-no-files-found: ignore
 

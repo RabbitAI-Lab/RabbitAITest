@@ -6,7 +6,7 @@
 | 所属迭代     | Sprint 6 — 集成与插件                                                                                                                   |
 | 优先级       | P2（迭代内）                                                                                                                            |
 | 所属模块     | 执行引擎（apps/engine）+ 接口测试（api_test 域）                                                                                        |
-| 文档状态     | Approved                                                                                                                                |
+| 文档状态     | Implemented（2026-09-27 交付：代码+单测+JMeter+Playwright 全绿、CI 六作业全绿；高保真走查随验收） |
 | 最后更新日期 | 2026-09-27                                                                                                                              |
 | 上游依赖     | PLUG-001（插件框架/上传链路）、EXEC-001/002（采样器管线）、API-002（接口定义 protocol 字段）                                              |
 | 下游消费     | P4 协议扩展（WebSocket/MQTT/gRPC 等，企业版对标但本项目按 P4 节奏）；PROJ-003 数据源插件化（driver SPI 同模式复用）                       |

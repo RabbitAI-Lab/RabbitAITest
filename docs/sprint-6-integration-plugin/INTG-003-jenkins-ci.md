@@ -6,7 +6,7 @@
 | 所属迭代     | Sprint 6 — 集成与插件                                                                                                                     |
 | 优先级       | P2（迭代内）                                                                                                                              |
 | 所属模块     | 个人中心（personal）+ 认证（auth）+ 执行（exec 域）                                                                                       |
-| 文档状态     | Approved                                                                                                                                  |
+| 文档状态     | Implemented（2026-09-27 交付：代码+单测+JMeter+Playwright 全绿、CI 六作业全绿；高保真走查随验收） |
 | 最后更新日期 | 2026-09-27                                                                                                                                |
 | 上游依赖     | S2 执行链路（api-case 执行）、S3 场景执行（scenario）、EXEC-002 资源池                                                                     |
 | 下游消费     | S4 PLAN-003（计划执行触发——Jenkins 触发测试计划届时接线）、S5 SYS-007（个人中心 UI 复用 APIKEY 页）                                        |

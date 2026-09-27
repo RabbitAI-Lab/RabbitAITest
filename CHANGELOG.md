@@ -2,9 +2,9 @@
 
 本项目的所有显著变更记录于此。格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本遵循语义化版本。
 
-## [Unreleased] — Sprint 6 集成与插件（进行中，分支 sprint-6-integration-plugin）
+## [v0.5.0] - 2026-09-27 — Sprint 6 集成与插件（M7 里程碑）
 
-### 新增（M7 前半，规格/契约/运行时/前后端主体；JMeter/Playwright 测试面待续）
+### 新增（全量交付：三层测试 + CI 全绿）
 
 - **插件框架（PLUG-001）**：plugin-runner 宿主（HTTP loopback 命令面 + worker_threads 每插件一线程 + 崩溃退避重启 1/4/16s + 内置 platform-echo）；tarball 上传流水线（清单/SPI 版本校验 + 成员白名单防路径穿越 + MinIO 存储 + 版本递增 409）；启停/组织范围/删除依赖校验；管理页 `/system/plugins`
 - **协议插件 SPI（PLUG-002）**：SamplerPlugin SPI 冻结（configSchema/buildSampler/SamplerResult 标准化）；engine 进程内注册表（30s 轮询 internal 清单 + dynamic import 缓存去重）；请求协议字段 additive（protocol/protocolConfig）；tcp-conn 示例插件；执行分支 CONFIG_ERROR 40510
@@ -16,11 +16,10 @@
 - **基础设施**：PlatformIntegration 表 + ApiKey prefix 索引（迁移 s6）；权限点 7 枚（SYSTEM_PLUGIN/ORG_INTEGRATION/SYSTEM_AUDIT/ORG_AUDIT/PROJECT_AUDIT 读写）；错误码 70xxx 段 17 枚 + 10xxx 3 枚 + 40xxx 7 枚；mock 三平台子集 + 状态注入控制面；esbuild 插件打包链（pnpm build:plugins）
 - **勘误**：PLUG-001 勘误 1（gRPC→HTTP loopback）/勘误 2（runner dev 内嵌启动，生产独立部署口径保留）；INTG-003 勘误 1（错误码 10005-10007 与既有占用冲突 → 10010-10012）
 
-### 待续（同一分支，下会话清单）
+### 测试与收口（本段随 v0.5.0 一并交付）
 
-- JMeter `tests/api/{PLUG-001,INTG-001,INTG-003,API-011,SYS-008}-*.jmx`（四类场景×四项断言）
-- Playwright `tests/e2e/` S6 用例（插件生命周期/集成推送拉取/APIKEY CI 流/同步两态/日志留痕）+ MAINFLOW-s6
-- OpenAPI 快照与 api-client 生成核对；MAINFLOW-s6；视觉还原度比对；概览 §7 交付表全量回填与状态流转
+- JMeter 5 份（四类×四断言三轮稳定全绿）；Playwright 15 条 + MAINFLOW-s6（三类断言）；全量 e2e 131/131（S6+S7 共存口径）；OpenAPI 快照 225 paths；变基 S7 main 后合并修复（guard 三元链/LeftNav 拆分/run-api-tests 融合）；CI e2e job 补 build:plugins
+- 调试挖出的深层缺陷：instrumentation.ts 自 S3 起未导入 node 版（schedule/audit 消费者死代码）；插件并发上传竞态（name+kind 唯一索引）；SPI since ISO 契约；bugs 列表平台徽标漏交付；插件页信封消费崩溃等
 
 ## [v0.5.0] - 2026-09-27 — Sprint 7 AI 能力（并行启动：worktree 分支 sprint-7-ai）
 
