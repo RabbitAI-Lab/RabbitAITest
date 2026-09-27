@@ -5,9 +5,9 @@ export default defineConfig({
   testDir: "./e2e",
   timeout: 60_000,
   fullyParallel: false,
-  // S4 并行改造：用例全隔离（自注册/自造数据/不共享态）支持文件级并行；本机 4 workers、CI 2 workers。
+  // S4 并行改造：用例全隔离（自注册/自造数据/不共享态）支持文件级并行；本机与 CI 均 4 workers。
   // workers: 1 为 S1 时期保守口径（环境竞争顾虑）——并行 flaky 已修复（btn-new-case 双按钮合并缺陷等）。
-  workers: process.env.CI ? 2 : 4,
+  workers: 4,
   retries: process.env.CI ? 2 : 0,
   reporter: [["html", { open: "never" }], ["list"]],
   use: {
