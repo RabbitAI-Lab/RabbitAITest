@@ -86,8 +86,10 @@ test("MAINFLOW-s6 插件→集成→同步→APIKEY→审计 全链路", async (
   await expect(jiraRow.getByText("运行中", { exact: false }).first()).toBeVisible({ timeout: 20000 });
   await admin.dispose();
 
-  // 白名单：管理员会话下顶栏项目切换器拉取（用户项目的）info → 防枚举 404 属合规行为
+  // 白名单：loginSeedAdmin 切换会话瞬间，旧页面（用户项目上下文）在飞请求以管理员会话
+  // 访问用户项目 → 防枚举 401/403/404 属合规行为（非应用缺陷）
   await expectNoConsoleErrors([
+    { textPattern: "http (401|403|404)", pageUrlPattern: "personal/permissions|projects/[a-f0-9-]{36}/info|system/plugins" },
     { textPattern: "404", pageUrlPattern: "system/plugins" },
   ]);
 });
