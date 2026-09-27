@@ -78,7 +78,7 @@ test("VISUAL-debug 调试台", async ({ authedPage, page }) => {
 });
 
 test("VISUAL-report 执行报告（失败态展示断言明细）", async ({ authedPage, page }) => {
-  const MOCK_URL = process.env.E2E_MOCK_URL ?? "http://127.0.0.1:4001/hello";
+  const MOCK_URL = "http://127.0.0.1:4001/hello"; // e2e mock 恒 :4001（global-setup 独占；不读 E2E_MOCK_URL 旧 4000 值）
   await navFromHome(page, "接口调试");
   await page.getByTestId("debug-url").fill(MOCK_URL);
   await page.getByRole("tab", { name: "断言" }).click();

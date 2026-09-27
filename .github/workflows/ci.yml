@@ -110,7 +110,7 @@ jobs:
     env:
       E2E_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/rabbit_e2e
       E2E_REDIS_URL: redis://127.0.0.1:6379
-      E2E_MOCK_URL: http://127.0.0.1:4000/hello
+      # e2e mock 由 global-setup 起在 :4001（E2E_MOCK_URL 旧 4000 值已废弃——曾指向 e2e 栈无监听端口）
       GLM_API_KEY: ${{ secrets.GLM_API_KEY }}
       CI: "true"
     steps:
@@ -186,7 +186,7 @@ jobs:
             set -a
             export PORT=3101 WEB_URL=http://localhost:3101
             export REDIS_URL='"$REDIS_URL"' DATABASE_URL='"$DATABASE_URL"'
-            export SESSION_SECRET=ci-jm-secret-32chars-ok!!!!!!
+            export SESSION_SECRET=ci-jm-session-secret-32chars-ok!!!!!
             export INTERNAL_TOKEN=ci-internal-token SESSION_COOKIE_SECURE=false
             export RABBIT_USER_LIMIT=1000 # 与 e2e 口径一致：全量套件注册用户数 >30（产品默认 30 不变）
             pnpm --filter @rabbit/db migrate-deploy

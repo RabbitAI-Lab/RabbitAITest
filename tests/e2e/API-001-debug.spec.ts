@@ -4,10 +4,10 @@ import { MOCK_BASE } from "./s2-helpers";
 /**
  * API-001 + RPT-001 主链路（验收标准 4/5）。
  * 调试目标使用本地 mock 服务 /hello（稳定 JSON，避免外网抖动）；接口断言覆盖任务创建与报告详情。
- * mock 端口口径统一走 MOCK_BASE（本地 e2e :4001 / CI 经 E2E_MOCK_URL :4000）——
- * 禁止写死 :4000：本地无 dev mock 常驻时会 连接拒绝→FAILED（2026-09-27 终验教训）。
+ * mock 端口口径统一走 MOCK_BASE（e2e 栈恒 :4001，global-setup 独占）——
+ * 禁止写死 :4000、禁止读 E2E_MOCK_URL（CI 曾注入 4000 旧值指向 e2e 栈无监听端口→NETWORK_ERROR，2026-09-27 CI 教训）。
  */
-const MOCK_URL = process.env.E2E_MOCK_URL ?? `${MOCK_BASE}/hello`;
+const MOCK_URL = `${MOCK_BASE}/hello`;
 
 test("API-001-01 调试执行成功 → 报告展示响应与断言通过（RPT-001）", async ({
   authedPage,
