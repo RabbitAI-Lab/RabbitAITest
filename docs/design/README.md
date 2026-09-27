@@ -33,6 +33,13 @@
 | API-009  | [import-export](./API-009-scenario-import-export/index.html)（导入上传/预览 + 导出模式二态） | 待确认 | — |
 | API-010  | [false-alarm-rules](./API-010-false-alarm-rules/index.html)（规则列表/编辑抽屉 + 报告误报两态） | 待确认 | — |
 | RPT-003  | [scenario-report](./RPT-003-scenario-report-share/index.html)（概览卡+步骤树+迭代分组+钻取 + 变量 Tab + 分享态） | 待确认 | — |
+| PLAN-002 | [test-planning-points](./PLAN-002-test-planning-points/index.html)（规划 Tab 点树+点内清单+配置抽屉 / 关联弹窗三页签 / 未分组与移动） | 待确认 | — |
+| PLAN-003 | [plan-execution](./PLAN-003-plan-execution/index.html)（执行配置+来源徽标 / 执行中态 / 脑图执行 S·E·B+依赖提示） | 待确认 | — |
+| PLAN-004 | [plan-group-archive](./PLAN-004-plan-group-archive/index.html)（组视图折叠展开 / 移入弹窗+组报告 / 级联归档） | 待确认 | — |
+| PLAN-005 | [plan-report-export](./PLAN-005-plan-report-export/index.html)（报告 Tab 六卡+点维度+总结 / 一键总结+分享弹窗 / 打印页+CSV） | 待确认 | — |
+| CASE-007 | [mindmap-mode](./CASE-007-mindmap-mode/index.html)（脑图三层层级+侧栏+快捷键条 / 多选批量+保存确认 / 计划脑图复用形态） | 待确认 | — |
+| CASE-008 | [case-dependency-history](./CASE-008-case-dependency-history/index.html)（依赖 Tab+选择器 / 环检测提示三态 / 变更分区徽标+BLOCKED 提示） | 待确认 | — |
+| DASH-002 | [todo-follow-create](./DASH-002-todo-follow-create/index.html)（三区七维度 / 关注入口拼板 / 幂等口径） | 待确认 | — |
 
 **勘误 1（2026-09-26，原型透明度）**：Sprint 1 十一组原型（2026-09-26 产出）当前页高亮统一 `bg-[#574BFF]/10`（Tailwind v3 CDN 不编译 /8 透明度刻度，与 CASE-001 基线一致）。
 
