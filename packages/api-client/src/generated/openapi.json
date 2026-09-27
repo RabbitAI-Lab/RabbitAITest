@@ -7177,6 +7177,28 @@
       },
       "post": {
         "summary": "POST /api/v1/system/ai-models",
+        "tags": [
+          "系统设置"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/system/audit-logs": {
       "get": {
         "summary": "GET /api/v1/system/audit-logs",

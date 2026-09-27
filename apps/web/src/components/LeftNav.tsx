@@ -211,6 +211,8 @@ export function LeftNav() {
           icon: <Sparkles size={15} strokeWidth={1.8} />,
           perm: "PROJECT_AI:READ",
           testid: "nav-settings-ai-prompts",
+        },
+        {
           href: "/settings/integrations",
           label: "服务集成",
           icon: <Network size={15} strokeWidth={1.8} />,
@@ -269,6 +271,8 @@ export function LeftNav() {
           icon: <Sparkles size={15} strokeWidth={1.8} />,
           perm: "SYSTEM_AI:READ",
           testid: "nav-system-ai-models",
+        },
+        {
           href: "/system/plugins",
           label: "插件管理",
           icon: <Puzzle size={15} strokeWidth={1.8} />,

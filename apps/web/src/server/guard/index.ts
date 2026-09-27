@@ -66,23 +66,14 @@ export function toResponse(err: unknown): NextResponse {
                       ErrCode.SCHEDULE_SCENARIOS_EMPTY,
                       ErrCode.MATCHER_EMPTY,
                       ErrCode.RULES_LIMIT_EXCEEDED,
-                  ErrCode.CSV_TOO_LARGE,
-                  ErrCode.IMPORT_FILE_TOO_LARGE,
-                  ErrCode.IMPORT_FORMAT_UNKNOWN,
-                  ErrCode.AI_BASEURL_FORBIDDEN,
-                  ErrCode.AI_RESPONSE_UNPARSEABLE,
-                  ErrCode.AI_OPENAPI_INVALID,
-                  ErrCode.AI_PROMPT_DUP,
-                  ErrCode.AI_PROMPT_PLACEHOLDER_INVALID,
-                ] as number[]
-                  ).includes(err.code)
-                ? 422
-                : err.code === ErrCode.AI_PROVIDER_ERROR
-                  ? 502 // 供应商上游失败（网关语义；透出上游状态不泄 key）
-                  : 400;
                       ErrCode.CSV_TOO_LARGE,
                       ErrCode.IMPORT_FILE_TOO_LARGE,
                       ErrCode.IMPORT_FORMAT_UNKNOWN,
+                      ErrCode.AI_BASEURL_FORBIDDEN,
+                      ErrCode.AI_RESPONSE_UNPARSEABLE,
+                      ErrCode.AI_OPENAPI_INVALID,
+                      ErrCode.AI_PROMPT_DUP,
+                      ErrCode.AI_PROMPT_PLACEHOLDER_INVALID,
                       ErrCode.PLUGIN_PACKAGE_INVALID,
                       ErrCode.PLUGIN_SPI_INCOMPATIBLE,
                       ErrCode.APIKEY_LIMIT_EXCEEDED,
@@ -104,6 +95,8 @@ export function toResponse(err: unknown): NextResponse {
                 ? 422
                 : err.code === ErrCode.PLUGIN_VERSION_CONFLICT || err.code === ErrCode.PLUGIN_DELETE_FORBIDDEN
                   ? 409
+                : err.code === ErrCode.AI_PROVIDER_ERROR
+                  ? 502 // 供应商上游失败（网关语义；透出上游状态不泄 key）
                   : err.code === ErrCode.OPEN_RATE_LIMITED
                     ? 429
                     : 400;
