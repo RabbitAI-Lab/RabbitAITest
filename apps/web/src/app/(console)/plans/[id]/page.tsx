@@ -2,6 +2,7 @@
 
 import {
   Button,
+  Checkbox,
   Drawer,
   Empty,
   Input,
@@ -22,13 +23,17 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { use, useEffect, useMemo, useState } from "react";
 import type { DataNode } from "antd/es/tree";
 import {
+  apiApi,
+  apiCaseApi,
   bugApi,
   caseApiV2,
   memberApi,
   moduleApi,
   planApi,
+  type ApiRow,
   type PlanCaseRow,
 } from "@rabbit/api-client";
+import { MethodTag } from "@rabbit/ui";
 import { MemberSelect } from "@/components/crosscut";
 import { useApp } from "@/hooks/useApp";
 import { usePermissions } from "@/hooks/usePermissions";
@@ -48,7 +53,12 @@ const EXEC_META: Record<string, { label: string; color: string }> = {
   SKIPPED: { label: "跳过", color: "#C9CDD4" },
 };
 const levelColor: Record<string, string> = { P0: "red", P1: "orange", P2: "blue", P3: "default" };
-const padNum = (n: number) => `C-${String(n).padStart(4, "0")}`;
+const API_CASE_STATUS: Record<string, { label: string; color: string }> = {
+  PREPARE: { label: "未开始", color: "#87888D" },
+  UNDERWAY: { label: "进行中", color: "#1677FF" },
+  COMPLETED: { label: "已完成", color: "#52C41A" },
+};
+const padNum = (n: number | null) => (n == null ? "" : `C-${String(n).padStart(4, "0")}`);
 
 /** PLAN-001：计划详情——用例清单（列表模式执行 + 步骤级面板 + 缺陷联动）/ 报告。 */
 export default function PlanDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -309,6 +319,8 @@ export default function PlanDetailPage({ params }: { params: Promise<{ id: strin
               <span className="ml-auto text-xs text-[#A8ABB0]">
                 已执行 {stats.executed}/{total} · 通过 {stats.pass} · 失败 {stats.fail} · 阻塞{" "}
                 {stats.blocked} · 跳过 {stats.skipped} · 未执行 {stats.pending}
+                {cases.some((c) => c.refType === "api_case") &&
+                  ` · 接口用例 ${cases.filter((c) => c.refType === "api_case").length} 条（执行随 S4，不计入通过率）`}
               </span>
             )}
           </div>
@@ -320,11 +332,15 @@ export default function PlanDetailPage({ params }: { params: Promise<{ id: strin
             rowSelection={{
               selectedRowKeys: selectedRefs,
               onChange: (keys) => setSelectedRefs(keys.map(String)),
-              getCheckboxProps: () => ({ disabled: !writable }),
+              getCheckboxProps: (row) => ({
+                // 接口用例行不支持批量改执行人（人工执行口径），且随可写开关禁用
+                disabled: !writable || row.refType === "api_case",
+              }),
             }}
             expandable={{
               expandedRowKeys: expandedKeys,
               onExpandedRowsChange: (keys) => setExpandedKeys(keys.map(String)),
+              rowExpandable: (row) => row.refType !== "api_case", // 接口用例无人工步骤执行
               expandedRowRender: (row) => (
                 <StepExecPanel
                   projectId={projectId}
@@ -339,145 +355,206 @@ export default function PlanDetailPage({ params }: { params: Promise<{ id: strin
               {
                 title: "编号",
                 dataIndex: "num",
-                width: 88,
-                render: (n: number) => <span className="text-[#87888D]">{padNum(n)}</span>,
+                width: 96,
+                render: (n: number | null, row) =>
+                  row.refType === "api_case" ? (
+                    <span
+                      className="rounded px-1.5 py-0.5 text-xs bg-[#574BFF]/10 text-[#574BFF]"
+                      data-testid="plan-api-ref-badge"
+                    >
+                      接口
+                    </span>
+                  ) : (
+                    <span className="text-[#87888D]">{padNum(n)}</span>
+                  ),
               },
               {
                 title: "用例名称",
                 dataIndex: "name",
                 ellipsis: true,
-                render: (v: string, row) => (
-                  <a className="text-[#574BFF]" href={`/cases/${row.caseId}`}>
-                    {v}
-                  </a>
-                ),
+                render: (v: string, row) =>
+                  row.refType === "api_case" ? (
+                    <span className="flex items-center gap-2 min-w-0" title={row.apiName}>
+                      <span className={row.deleted ? "text-[#A8ABB0] line-through" : ""}>{v}</span>
+                      {row.method && <MethodTag method={row.method} />}
+                      {row.path && (
+                        <span className="font-mono text-xs text-[#87888D] truncate">{row.path}</span>
+                      )}
+                      {row.deleted && (
+                        <Tag bordered={false} className="!m-0">
+                          已删除
+                        </Tag>
+                      )}
+                    </span>
+                  ) : (
+                    <a className="text-[#574BFF]" href={`/cases/${row.caseId}`}>
+                      {v}
+                    </a>
+                  ),
               },
               {
                 title: "等级",
                 dataIndex: "level",
                 width: 64,
-                render: (l: string) => <Tag color={levelColor[l] ?? "default"}>{l}</Tag>,
+                render: (l: string) => (l ? <Tag color={levelColor[l] ?? "default"}>{l}</Tag> : "—"),
               },
               {
                 title: "执行人",
                 dataIndex: "execUserId",
                 width: 180,
-                render: (v: string | null, row) => (
-                  <MemberSelect
-                    projectId={projectId}
-                    value={v ?? undefined}
-                    onChange={(nv) => {
-                      const uid = Array.isArray(nv) ? undefined : (nv as string | undefined);
-                      if (uid) batchExecutor.mutate({ refIds: [row.refId], execUserId: uid });
-                    }}
-                  />
-                ),
+                render: (v: string | null, row) =>
+                  row.refType === "api_case" ? (
+                    <span className="text-xs text-[#A8ABB0]">—（随计划执行）</span>
+                  ) : (
+                    <MemberSelect
+                      projectId={projectId}
+                      value={v ?? undefined}
+                      onChange={(nv) => {
+                        const uid = Array.isArray(nv) ? undefined : (nv as string | undefined);
+                        if (uid) batchExecutor.mutate({ refIds: [row.refId], execUserId: uid });
+                      }}
+                    />
+                  ),
               },
               {
                 title: "我的执行状态",
                 dataIndex: "status",
-                width: 120,
-                render: (v: string, row) => (
-                  <Select
-                    className="w-full"
-                    value={v}
-                    disabled={!writable}
-                    onChange={(nv) =>
-                      exec.mutate({
-                        refId: row.refId,
-                        body: {
-                          status: nv,
-                          actualResult: row.result.actualResult ?? "",
-                          comment: row.result.comment ?? "",
-                        },
-                      })
-                    }
-                    options={Object.entries(EXEC_META).map(([val, m]) => ({
-                      value: val,
-                      label: <span style={{ color: m.color }}>● {m.label}</span>,
-                    }))}
-                    data-testid={`exec-select-${row.refId}`}
-                  />
-                ),
+                width: 130,
+                render: (v: string, row) =>
+                  row.refType === "api_case" ? (
+                    <Tooltip title="接口用例在计划内执行随 Sprint 4（PLAN-003）接入">
+                      <span className="text-xs text-[#87888D]">● 未执行（S4）</span>
+                    </Tooltip>
+                  ) : (
+                    <Select
+                      className="w-full"
+                      value={v}
+                      disabled={!writable}
+                      onChange={(nv) =>
+                        exec.mutate({
+                          refId: row.refId,
+                          body: {
+                            status: nv,
+                            actualResult: row.result.actualResult ?? "",
+                            comment: row.result.comment ?? "",
+                          },
+                        })
+                      }
+                      options={Object.entries(EXEC_META).map(([val, m]) => ({
+                        value: val,
+                        label: <span style={{ color: m.color }}>● {m.label}</span>,
+                      }))}
+                      data-testid={`exec-select-${row.refId}`}
+                    />
+                  ),
               },
               {
                 title: "实际结果",
                 key: "actual",
                 width: 200,
-                render: (_, row) => (
-                  <Tooltip title={row.status === "NOT_RUN" ? "先标记执行状态后可填写" : "回车保存"}>
-                    <Input
-                      key={`${row.refId}-${row.status}`}
-                      size="small"
-                      defaultValue={row.result.actualResult ?? ""}
-                      disabled={!writable || row.status === "NOT_RUN"}
-                      placeholder={row.status === "NOT_RUN" ? "—" : "实际结果（回车保存）"}
-                      onPressEnter={(e) =>
-                        exec.mutate({
-                          refId: row.refId,
-                          body: {
-                            status: row.status,
-                            actualResult: (e.target as HTMLInputElement).value,
-                            comment: row.result.comment ?? "",
-                          },
-                        })
-                      }
-                      data-testid={`actual-input-${row.refId}`}
-                    />
-                  </Tooltip>
-                ),
+                render: (_, row) =>
+                  row.refType === "api_case" ? (
+                    <span className="text-xs text-[#C0C4CC]">—</span>
+                  ) : (
+                    <Tooltip title={row.status === "NOT_RUN" ? "先标记执行状态后可填写" : "回车保存"}>
+                      <Input
+                        key={`${row.refId}-${row.status}`}
+                        size="small"
+                        defaultValue={row.result.actualResult ?? ""}
+                        disabled={!writable || row.status === "NOT_RUN"}
+                        placeholder={row.status === "NOT_RUN" ? "—" : "实际结果（回车保存）"}
+                        onPressEnter={(e) =>
+                          exec.mutate({
+                            refId: row.refId,
+                            body: {
+                              status: row.status,
+                              actualResult: (e.target as HTMLInputElement).value,
+                              comment: row.result.comment ?? "",
+                            },
+                          })
+                        }
+                        data-testid={`actual-input-${row.refId}`}
+                      />
+                    </Tooltip>
+                  ),
               },
               {
                 title: "操作",
                 key: "op",
                 width: 220,
-                render: (_, row) => (
-                  <span className="flex gap-1 whitespace-nowrap">
-                    <Button
-                      type="link"
-                      size="small"
-                      className="!px-0"
-                      disabled={!writable}
-                      onClick={() =>
-                        setExpandedKeys((prev) =>
-                          prev.includes(row.refId)
-                            ? prev.filter((k) => k !== row.refId)
-                            : [...prev, row.refId],
-                        )
-                      }
-                      data-testid={`btn-step-exec-${row.refId}`}
-                    >
-                      步骤执行
-                    </Button>
-                    <Button
-                      type="link"
-                      size="small"
-                      className="!px-0"
-                      disabled={!can("PROJECT_BUG:CREATE")}
-                      onClick={() => setBugTarget(row)}
-                      data-testid={`btn-new-bug-from-exec-${row.refId}`}
-                    >
-                      缺陷
-                    </Button>
-                    <Popconfirm
-                      title="取消关联该用例？"
-                      description="仅从计划移除，不删除用例与其执行记录之外的用例数据。"
-                      okButtonProps={{ danger: true }}
-                      onConfirm={() => removeCase.mutate(row.refId)}
-                      disabled={!writable}
-                    >
+                render: (_, row) =>
+                  row.refType === "api_case" ? (
+                    <span className="flex gap-1 whitespace-nowrap">
+                      <Tooltip title="接口用例计划内执行随 Sprint 4（PLAN-003）接入">
+                        <Button type="link" size="small" className="!px-0" disabled>
+                          执行(S4)
+                        </Button>
+                      </Tooltip>
+                      <Popconfirm
+                        title="取消关联该接口用例？"
+                        description="仅从计划移除，不删除接口用例本身。"
+                        okButtonProps={{ danger: true }}
+                        onConfirm={() => removeCase.mutate(row.refId)}
+                        disabled={!writable}
+                      >
+                        <Button
+                          type="link"
+                          size="small"
+                          danger
+                          className="!px-0"
+                          disabled={!writable}
+                        >
+                          取消关联
+                        </Button>
+                      </Popconfirm>
+                    </span>
+                  ) : (
+                    <span className="flex gap-1 whitespace-nowrap">
                       <Button
                         type="link"
                         size="small"
-                        danger
                         className="!px-0"
                         disabled={!writable}
+                        onClick={() =>
+                          setExpandedKeys((prev) =>
+                            prev.includes(row.refId)
+                              ? prev.filter((k) => k !== row.refId)
+                              : [...prev, row.refId],
+                          )
+                        }
+                        data-testid={`btn-step-exec-${row.refId}`}
                       >
-                        取消关联
+                        步骤执行
                       </Button>
-                    </Popconfirm>
-                  </span>
-                ),
+                      <Button
+                        type="link"
+                        size="small"
+                        className="!px-0"
+                        disabled={!can("PROJECT_BUG:CREATE")}
+                        onClick={() => setBugTarget(row)}
+                        data-testid={`btn-new-bug-from-exec-${row.refId}`}
+                      >
+                        缺陷
+                      </Button>
+                      <Popconfirm
+                        title="取消关联该用例？"
+                        description="仅从计划移除，不删除用例与其执行记录之外的用例数据。"
+                        okButtonProps={{ danger: true }}
+                        onConfirm={() => removeCase.mutate(row.refId)}
+                        disabled={!writable}
+                      >
+                        <Button
+                          type="link"
+                          size="small"
+                          danger
+                          className="!px-0"
+                          disabled={!writable}
+                        >
+                          取消关联
+                        </Button>
+                      </Popconfirm>
+                    </span>
+                  ),
               },
             ]}
           />
@@ -526,15 +603,18 @@ export default function PlanDetailPage({ params }: { params: Promise<{ id: strin
         onSave={(s) => saveSettings.mutate(s)}
       />
 
-      {/* 关联用例 */}
+      {/* 关联用例（功能用例｜接口用例 两 Tab，CASE-006） */}
       <LinkCasesModal
         projectId={projectId}
         open={linkOpen}
         onClose={() => setLinkOpen(false)}
-        onConfirm={async (caseIds) => {
-          const r = await planApi.addCases(projectId, id, caseIds);
+        onConfirm={async (caseIds, apiCaseIds) => {
+          const r = await planApi.addCases(projectId, id, caseIds, apiCaseIds);
           invalidate();
-          message.success(`已关联 ${r.added} 条用例`);
+          // 注：响应 added 仅统计功能用例（服务端口径），接口用例按提交数提示
+          message.success(
+            `已关联 ${r.added + apiCaseIds.length} 条用例（功能 ${r.added} · 接口 ${apiCaseIds.length}）`,
+          );
         }}
       />
 
@@ -813,8 +893,15 @@ function PlanReportTab({
             {
               title: "编号",
               dataIndex: "num",
-              width: 90,
-              render: (n: number) => <span className="text-[#87888D]">{padNum(n)}</span>,
+              width: 96,
+              render: (n: number | null, row) =>
+                row.refType === "api_case" ? (
+                  <span className="rounded px-1.5 py-0.5 text-xs bg-[#574BFF]/10 text-[#574BFF]">
+                    接口
+                  </span>
+                ) : (
+                  <span className="text-[#87888D]">{padNum(n)}</span>
+                ),
             },
             { title: "用例名称", dataIndex: "name", ellipsis: true },
             {
@@ -975,7 +1062,7 @@ function SettingsDrawer({
   );
 }
 
-/* ── 关联用例弹窗（模块树 + 多选） ── */
+/* ── 关联用例弹窗（功能用例｜接口用例 两 Tab；左模块树 + 多选/勾选） ── */
 function LinkCasesModal({
   projectId,
   open,
@@ -985,7 +1072,44 @@ function LinkCasesModal({
   projectId: string;
   open: boolean;
   onClose: () => void;
-  onConfirm: (caseIds: string[]) => Promise<void>;
+  onConfirm: (caseIds: string[], apiCaseIds: string[]) => Promise<void>;
+}) {
+  const [pickerTab, setPickerTab] = useState<"cases" | "apiCases">("cases");
+
+  useEffect(() => {
+    if (open) setPickerTab("cases");
+  }, [open]);
+
+  return (
+    <Modal title="关联用例" open={open} onCancel={onClose} footer={null} width={780} destroyOnHidden>
+      <Tabs
+        activeKey={pickerTab}
+        onChange={(k) => setPickerTab(k as "cases" | "apiCases")}
+        items={[
+          { key: "cases", label: <span data-testid="link-tab-cases">功能用例</span> },
+          { key: "apiCases", label: <span data-testid="link-tab-api-cases">接口用例</span> },
+        ]}
+      />
+      {pickerTab === "cases" ? (
+        <FunctionalCasePicker projectId={projectId} open={open} onClose={onClose} onConfirm={onConfirm} />
+      ) : (
+        <ApiCasePicker projectId={projectId} open={open} onClose={onClose} onConfirm={onConfirm} />
+      )}
+    </Modal>
+  );
+}
+
+/* ── Tab1：功能用例（模块树 scene=case + 多选表） ── */
+function FunctionalCasePicker({
+  projectId,
+  open,
+  onClose,
+  onConfirm,
+}: {
+  projectId: string;
+  open: boolean;
+  onClose: () => void;
+  onConfirm: (caseIds: string[], apiCaseIds: string[]) => Promise<void>;
 }) {
   const { message } = useApp();
   const [keyword, setKeyword] = useState("");
@@ -1045,101 +1169,311 @@ function LinkCasesModal({
   const isParent = Boolean(selectedNode && selectedNode.children.length > 0);
 
   const submit = useMutation({
-    mutationFn: () => onConfirm(selectedKeys),
+    mutationFn: () => onConfirm(selectedKeys, []),
     onSuccess: () => onClose(),
     onError: (e) => message.error(e instanceof Error ? e.message : "关联失败"),
   });
 
   return (
-    <Modal
-      title="关联用例"
-      open={open}
-      onCancel={onClose}
-      footer={null}
-      width={760}
-      destroyOnHidden
-    >
-      <div className="flex gap-3 mt-1" data-testid="link-cases-modal">
-        <div className="w-52 shrink-0 border border-[#F0F1F3] rounded-md p-2 max-h-96 overflow-y-auto">
-          <p className="text-xs text-[#87888D] px-1 pb-1">模块（scene=case）</p>
-          <Tree
-            blockNode
-            defaultExpandAll
-            selectedKeys={moduleId ? [moduleId] : []}
-            treeData={toTree((mods?.items ?? []) as ModuleLike[])}
-            onSelect={(keys) => {
-              setModuleId(keys[0] ? String(keys[0]) : null);
-              setPage(1);
-            }}
-          />
-        </div>
-        <div className="flex-1 min-w-0">
-          <Input.Search
-            className="mb-2"
-            allowClear
-            placeholder="搜索用例名称"
-            value={keyword}
-            onChange={(e) => {
-              setKeyword(e.target.value);
-              setPage(1);
-            }}
-            data-testid="link-cases-keyword"
-          />
-          {isParent && (
-            <p className="text-xs text-[#FA8C16] mb-2">
-              已选择父模块：按当前筛选列出其与全部子模块用例（含子级）。
-            </p>
-          )}
-          <Table
-            rowKey="id"
-            size="small"
-            loading={isLoading}
-            dataSource={cases?.items ?? []}
-            pagination={{
-              current: page,
-              pageSize: 10,
-              total: cases?.total ?? 0,
-              onChange: setPage,
-              size: "small",
-              showTotal: (t) => `共 ${t} 条`,
-            }}
-            rowSelection={{
-              selectedRowKeys: selectedKeys,
-              onChange: (keys) => setSelectedKeys(keys.map(String)),
-              preserveSelectedRowKeys: true,
-            }}
-            columns={[
-              {
-                title: "编号",
-                dataIndex: "num",
-                width: 84,
-                render: (n: number) => <span className="text-[#87888D]">{padNum(n)}</span>,
-              },
-              { title: "用例名称", dataIndex: "name", ellipsis: true },
-              {
-                title: "等级",
-                dataIndex: "level",
-                width: 60,
-                render: (l: string) => <Tag color={levelColor[l] ?? "default"}>{l}</Tag>,
-              },
-            ]}
-          />
-          <div className="flex justify-end items-center gap-2 mt-3">
-            <span className="text-xs text-[#87888D] mr-auto">已选 {selectedKeys.length} 项</span>
-            <Button onClick={onClose}>取消</Button>
-            <Button
-              type="primary"
-              loading={submit.isPending}
-              disabled={selectedKeys.length === 0}
-              onClick={() => submit.mutate()}
-              data-testid="btn-confirm-link-cases"
-            >
-              关联 {selectedKeys.length} 条
-            </Button>
-          </div>
+    <div className="flex gap-3" data-testid="link-cases-modal">
+      <div className="w-52 shrink-0 border border-[#F0F1F3] rounded-md p-2 max-h-96 overflow-y-auto">
+        <p className="text-xs text-[#87888D] px-1 pb-1">模块（scene=case）</p>
+        <Tree
+          blockNode
+          defaultExpandAll
+          selectedKeys={moduleId ? [moduleId] : []}
+          treeData={toTree((mods?.items ?? []) as ModuleLike[])}
+          onSelect={(keys) => {
+            setModuleId(keys[0] ? String(keys[0]) : null);
+            setPage(1);
+          }}
+        />
+      </div>
+      <div className="flex-1 min-w-0">
+        <Input.Search
+          className="mb-2"
+          allowClear
+          placeholder="搜索用例名称"
+          value={keyword}
+          onChange={(e) => {
+            setKeyword(e.target.value);
+            setPage(1);
+          }}
+          data-testid="link-cases-keyword"
+        />
+        {isParent && (
+          <p className="text-xs text-[#FA8C16] mb-2">
+            已选择父模块：按当前筛选列出其与全部子模块用例（含子级）。
+          </p>
+        )}
+        <Table
+          rowKey="id"
+          size="small"
+          loading={isLoading}
+          dataSource={cases?.items ?? []}
+          pagination={{
+            current: page,
+            pageSize: 10,
+            total: cases?.total ?? 0,
+            onChange: setPage,
+            size: "small",
+            showTotal: (t) => `共 ${t} 条`,
+          }}
+          rowSelection={{
+            selectedRowKeys: selectedKeys,
+            onChange: (keys) => setSelectedKeys(keys.map(String)),
+            preserveSelectedRowKeys: true,
+          }}
+          columns={[
+            {
+              title: "编号",
+              dataIndex: "num",
+              width: 84,
+              render: (n: number) => <span className="text-[#87888D]">{padNum(n)}</span>,
+            },
+            { title: "用例名称", dataIndex: "name", ellipsis: true },
+            {
+              title: "等级",
+              dataIndex: "level",
+              width: 60,
+              render: (l: string) => <Tag color={levelColor[l] ?? "default"}>{l}</Tag>,
+            },
+          ]}
+        />
+        <div className="flex justify-end items-center gap-2 mt-3">
+          <span className="text-xs text-[#87888D] mr-auto">已选 {selectedKeys.length} 项</span>
+          <Button onClick={onClose}>取消</Button>
+          <Button
+            type="primary"
+            loading={submit.isPending}
+            disabled={selectedKeys.length === 0}
+            onClick={() => submit.mutate()}
+            data-testid="btn-confirm-link-cases"
+          >
+            关联 {selectedKeys.length} 条
+          </Button>
         </div>
       </div>
-    </Modal>
+    </div>
+  );
+}
+
+/* ── Tab2：接口用例（模块树 scene=api + 定义展开 CASE 勾选；CASE-006） ── */
+function ApiCasePicker({
+  projectId,
+  open,
+  onClose,
+  onConfirm,
+}: {
+  projectId: string;
+  open: boolean;
+  onClose: () => void;
+  onConfirm: (caseIds: string[], apiCaseIds: string[]) => Promise<void>;
+}) {
+  const { message } = useApp();
+  const [keyword, setKeyword] = useState("");
+  const [moduleId, setModuleId] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (open) {
+      setKeyword("");
+      setModuleId(null);
+      setPage(1);
+      setSelected(new Set());
+    }
+  }, [open]);
+
+  const { data: mods } = useQuery({
+    queryKey: ["modules", projectId, "api"],
+    queryFn: () => moduleApi.list(projectId, "api"),
+    enabled: open,
+  });
+  const { data: apis, isLoading } = useQuery({
+    queryKey: ["link-apis", projectId, keyword, moduleId, page, open],
+    queryFn: () =>
+      apiApi.list(projectId, {
+        name: keyword || undefined,
+        moduleId: moduleId ?? undefined,
+        includeChildren: moduleId ? true : undefined,
+        page,
+        pageSize: 10,
+      }),
+    enabled: open,
+  });
+
+  type ModuleLike = { id: string; name: string; subtreeCount: number; children: ModuleLike[] };
+  const toTree = (nodes: ModuleLike[]): DataNode[] =>
+    nodes.map((n) => ({
+      key: n.id,
+      title: (
+        <span className="flex items-center gap-1.5">
+          <span className="truncate max-w-32">{n.name}</span>
+          <span className="text-[10px] text-[#A8ABB0]">{n.subtreeCount}</span>
+        </span>
+      ),
+      children: n.children.length ? toTree(n.children) : undefined,
+    }));
+
+  const toggle = (id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const submit = useMutation({
+    mutationFn: () => onConfirm([], [...selected]),
+    onSuccess: () => onClose(),
+    onError: (e) => message.error(e instanceof Error ? e.message : "关联失败"),
+  });
+
+  return (
+    <div className="flex gap-3" data-testid="link-api-cases-modal">
+      <div className="w-52 shrink-0 border border-[#F0F1F3] rounded-md p-2 max-h-96 overflow-y-auto">
+        <p className="text-xs text-[#87888D] px-1 pb-1">接口模块（scene=api）</p>
+        <Tree
+          blockNode
+          defaultExpandAll
+          selectedKeys={moduleId ? [moduleId] : []}
+          treeData={toTree((mods?.items ?? []) as ModuleLike[])}
+          onSelect={(keys) => {
+            setModuleId(keys[0] ? String(keys[0]) : null);
+            setPage(1);
+          }}
+        />
+      </div>
+      <div className="flex-1 min-w-0">
+        <Input.Search
+          className="mb-2"
+          allowClear
+          placeholder="搜索接口名称"
+          value={keyword}
+          onChange={(e) => {
+            setKeyword(e.target.value);
+            setPage(1);
+          }}
+          data-testid="link-api-keyword"
+        />
+        <Table<ApiRow>
+          rowKey="id"
+          size="small"
+          loading={isLoading}
+          dataSource={apis?.items ?? []}
+          pagination={{
+            current: page,
+            pageSize: 10,
+            total: apis?.total ?? 0,
+            onChange: setPage,
+            size: "small",
+            showTotal: (t) => `共 ${t} 个接口`,
+          }}
+          expandable={{
+            expandRowByClick: true,
+            expandedRowRender: (api) => (
+              <PlanApiCaseCheckList
+                projectId={projectId}
+                api={api}
+                keyword={keyword}
+                selected={selected}
+                onToggle={toggle}
+              />
+            ),
+          }}
+          columns={[
+            {
+              title: "接口",
+              dataIndex: "path",
+              render: (_v: string, row) => (
+                <span className="flex items-center gap-2 min-w-0">
+                  <MethodTag method={row.method} />
+                  <span className="font-mono text-xs truncate">{row.path}</span>
+                  <span className="truncate">{row.name}</span>
+                </span>
+              ),
+            },
+            {
+              title: "CASE",
+              key: "caseCount",
+              width: 90,
+              render: (_, row) => (
+                <span className="text-xs text-[#A8ABB0]">{row.caseCount ?? 0} 条 CASE</span>
+              ),
+            },
+          ]}
+        />
+        <div className="flex justify-end items-center gap-2 mt-3">
+          <span className="text-xs text-[#87888D] mr-auto">已选 {selected.size} 项</span>
+          <Button onClick={onClose}>取消</Button>
+          <Button
+            type="primary"
+            loading={submit.isPending}
+            disabled={selected.size === 0}
+            onClick={() => submit.mutate()}
+            data-testid="btn-confirm-link-api-cases"
+          >
+            关联 {selected.size} 条
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── 接口用例勾选列表（计划关联弹窗 Tab2 展开行） ── */
+function PlanApiCaseCheckList({
+  projectId,
+  api,
+  keyword,
+  selected,
+  onToggle,
+}: {
+  projectId: string;
+  api: ApiRow;
+  keyword: string;
+  selected: Set<string>;
+  onToggle: (id: string) => void;
+}) {
+  const casesQ = useQuery({
+    queryKey: ["link-api-cases", projectId, api.id, keyword],
+    queryFn: () => apiCaseApi.list(projectId, api.id, { name: keyword || undefined, pageSize: 50 }),
+  });
+  const cases = casesQ.data?.items ?? [];
+  if (casesQ.isLoading) return <p className="text-xs text-[#A8ABB0] px-2 py-1 m-0">CASE 加载中…</p>;
+  if (cases.length === 0)
+    return (
+      <Empty
+        image={Empty.PRESENTED_IMAGE_SIMPLE}
+        className="py-4"
+        description={<span className="text-xs">该接口暂无用例（或无匹配）</span>}
+      />
+    );
+  return (
+    <div className="bg-[#FAFBFC] px-3 pb-2 space-y-0.5">
+      {cases.map((c) => {
+        const st = API_CASE_STATUS[c.status];
+        return (
+          <label
+            key={c.id}
+            className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-white text-[13px] cursor-pointer"
+            data-testid="plan-api-case-option"
+          >
+            <Checkbox checked={selected.has(c.id)} onChange={() => onToggle(c.id)} />
+            <span>
+              {c.name}{" "}
+              <span className="text-[#A8ABB0] text-xs">AC-{String(c.num).padStart(4, "0")}</span>
+            </span>
+            <span className="text-xs text-[#A8ABB0]">
+              {c.level}
+              {st ? ` · ${st.label}` : ""}
+            </span>
+          </label>
+        );
+      })}
+    </div>
   );
 }
 

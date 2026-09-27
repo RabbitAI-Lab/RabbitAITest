@@ -25,26 +25,45 @@ export default defineConfig({
   globalTeardown: "./global-teardown.mjs",
   webServer: {
     // 全部必需 env 内联注入：E2E_* 来自 CI job env 或 globalSetup（本地分支亦写 process.env），
-    // 不依赖 .e2e.env 文件传递（首轮 CI 教训：webServer 独立进程环境不完整）
+    // 不依赖 .e2e.env 文件传递（首轮 CI 教训：webServer 独立进程环境不完整）。
+    // 本地并存隔离：/tmp/rabbit-e2e-root（apps/web 副本 + 根 node_modules/tsconfig 软链，tests/e2e 环境准备）
+    // 存在时优先从副本起 web——并行会话的 next dev 不再写坏生产构建 .next；CI 无副本走仓库内构建。
     command: [
       "bash -c '",
+      "if [ -f /tmp/rabbit-e2e-root/apps/web/.next/BUILD_ID ]; then ",
+      'cd /tmp/rabbit-e2e-root/apps/web && exec env MOCK_PUBLIC_URL=http://127.0.0.1:4001 pnpm exec next start -p 3100;',
+      "else ",
       'export DATABASE_URL="${E2E_DATABASE_URL:-${DATABASE_URL:-postgresql://postgres:postgres@127.0.0.1:5434/rabbit_e2e}}"',
       'REDIS_URL="${E2E_REDIS_URL:-redis://127.0.0.1:6381}"',
       "WEB_URL=http://localhost:3100",
       "SESSION_SECRET=e2e-session-secret-32chars-ok!!!!!",
       "INTERNAL_TOKEN=e2e-internal-token",
       "SESSION_COOKIE_SECURE=false",
-      "RABBIT_USER_LIMIT=200",
+      "RABBIT_USER_LIMIT=1000",
+      "MOCK_PUBLIC_URL=http://127.0.0.1:4001",
       "PORT=3100;",
-      "pnpm --filter web start'",
+      "pnpm --filter web start;",
+      "fi'",
     ].join(" "),
     cwd: "..",
     url: "http://localhost:3100/api/v1/system/health",
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
     env: {
-      PORT: "3100",
+      DATABASE_URL:
+        process.env.E2E_DATABASE_URL ??
+        process.env.DATABASE_URL ??
+        "postgresql://postgres:postgres@127.0.0.1:5434/rabbit_e2e",
+      REDIS_URL: process.env.E2E_REDIS_URL ?? process.env.REDIS_URL ?? "redis://127.0.0.1:6381",
       WEB_URL: "http://localhost:3100",
+      SESSION_SECRET: "e2e-session-secret-32chars-ok!!!!!",
+      INTERNAL_TOKEN: "e2e-internal-token",
+      SESSION_COOKIE_SECURE: "false",
+      // 与 global-setup 同口径 1000：pg-e2e 常驻库累积用户曾 268>200 炸 SYS-004-01（2026-09-27）
+      RABBIT_USER_LIMIT: "1000",
+      // e2e mock 独占 :4001（global-setup 以 MOCK_PORT=4001 启动），与开发栈 :4000 隔离
+      MOCK_PUBLIC_URL: "http://127.0.0.1:4001",
+      PORT: "3100",
       ...process.env,
     },
   },

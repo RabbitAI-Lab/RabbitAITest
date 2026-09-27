@@ -9,4 +9,5 @@ export * from "./system/schemas";
 export * from "./project/schemas";
 export * from "./plan/schemas";
 export * from "./bug/schemas";
+export * from "./api/schemas";
 export * from "./execution/schemas";

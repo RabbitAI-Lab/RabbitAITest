@@ -38,7 +38,7 @@ export const caseListQueryV2Schema = z.object({
   updatedTo: z.string().datetime().optional(),
   fields: z.string().max(2048).optional(), // JSON：{"severity":"P1"}（等值）或 {"severity":["P1","P2"]}（任一）
   viewId: z.string().max(64).optional(),
-  followedBy: z.string().uuid().optional(), // 我关注的（服务端按登录用户覆写校验）
+  followedBy: z.union([z.string().uuid(), z.literal("me")]).optional(), // 我关注的（值被忽略，服务端按登录用户覆写）
   createdByMe: z
     .enum(["true", "false"])
     .transform((v) => v === "true")

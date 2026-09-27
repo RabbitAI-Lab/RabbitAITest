@@ -1,10 +1,13 @@
 import { test, expect, navFromHome } from "./fixtures";
+import { MOCK_BASE } from "./s2-helpers";
 
 /**
  * API-001 + RPT-001 主链路（验收标准 4/5）。
  * 调试目标使用本地 mock 服务 /hello（稳定 JSON，避免外网抖动）；接口断言覆盖任务创建与报告详情。
+ * mock 端口口径统一走 MOCK_BASE（本地 e2e :4001 / CI 经 E2E_MOCK_URL :4000）——
+ * 禁止写死 :4000：本地无 dev mock 常驻时会 连接拒绝→FAILED（2026-09-27 终验教训）。
  */
-const MOCK_URL = process.env.E2E_MOCK_URL ?? "http://127.0.0.1:4000/hello";
+const MOCK_URL = process.env.E2E_MOCK_URL ?? `${MOCK_BASE}/hello`;
 
 test("API-001-01 调试执行成功 → 报告展示响应与断言通过（RPT-001）", async ({
   authedPage,
@@ -97,7 +100,7 @@ test("API-001-04 调试历史列表回看", async ({ authedPage, page, expectNoC
   // 用户路径：报告页「‹ 返回调试」
   await page.getByRole("link", { name: "‹ 返回调试" }).click();
   await expect(page.getByTestId("debug-url")).toBeVisible();
-  // UI 断言：历史含刚才的请求（127.0.0.1:4000/hello）
-  await expect(page.getByTestId("debug-history").getByText("4000/hello").first()).toBeVisible();
+  // UI 断言：历史含刚才的请求（/hello；端口随 MOCK_BASE 口径，不写死）
+  await expect(page.getByTestId("debug-history").getByText("/hello").first()).toBeVisible();
   await expectNoConsoleErrors();
 });

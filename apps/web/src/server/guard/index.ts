@@ -26,6 +26,14 @@ export function toResponse(err: unknown): NextResponse {
                   ErrCode.REVIEW_NOT_FOUND,
                   ErrCode.PLAN_NOT_FOUND,
                   ErrCode.BUG_NOT_FOUND,
+                  ErrCode.API_NOT_FOUND,
+                  ErrCode.API_CASE_NOT_FOUND,
+                  ErrCode.MOCK_NOT_FOUND,
+                  ErrCode.ENV_NOT_FOUND,
+                  ErrCode.FILE_NOT_FOUND,
+                  ErrCode.POOL_NOT_FOUND,
+                  ErrCode.REPORT_NOT_FOUND,
+                  ErrCode.SHARE_NOT_FOUND,
                 ] as number[]
               ).includes(err.code)
             ? 404
@@ -39,6 +47,10 @@ export function toResponse(err: unknown): NextResponse {
                       ErrCode.REVIEW_ENDED,
                       ErrCode.PLAN_ARCHIVED,
                       ErrCode.DUP_ASSOC,
+                      ErrCode.API_IMPORT_INVALID,
+                      ErrCode.REF_TARGET_INVALID,
+                      ErrCode.TASK_NOT_RUNNING,
+                      ErrCode.TASK_NOT_RERUNNABLE,
                     ] as number[]
                   ).includes(err.code)
                 ? 422

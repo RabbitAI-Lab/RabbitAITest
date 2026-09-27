@@ -2,6 +2,7 @@
 <jmeterTestPlan version="1.2" properties="5.0" jmeter="5.6.3">
   <hashTree>
     <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="CASE-001 用例 CRUD">
+    <boolProp name="TestPlan.serialize_threadgroups">true</boolProp>
       <elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments">
         <collectionProp name="Arguments.arguments">
           <elementProp name="EMAIL" elementType="Argument">
@@ -151,7 +152,8 @@
             <collectionProp name="Asserion.test_strings"><stringProp name="49586">422</stringProp></collectionProp>
             <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
             <intProp name="Assertion.test_type">8</intProp>
-          </ResponseAssertion>
+            <boolProp name="Assertion.assume_success">true</boolProp>
+        </ResponseAssertion>
           <hashTree/>
           <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="code=20422">
             <stringProp name="JSON_PATH">$.code</stringProp>
@@ -223,7 +225,8 @@
             <collectionProp name="Asserion.test_strings"><stringProp name="49586">404</stringProp></collectionProp>
             <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
             <intProp name="Assertion.test_type">8</intProp>
-          </ResponseAssertion>
+            <boolProp name="Assertion.assume_success">true</boolProp>
+        </ResponseAssertion>
           <hashTree/>
           <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="code=30404">
             <stringProp name="JSON_PATH">$.code</stringProp>

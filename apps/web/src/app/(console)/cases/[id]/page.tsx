@@ -22,11 +22,12 @@ import type { FieldDefInput, TemplateFieldBinding } from "@rabbit/shared";
 import { ChangeTimeline, CommentThread, MarkdownView } from "@/components/crosscut";
 import { DynamicFieldCell, type DynFieldDef } from "@/components/DynamicField";
 import { CaseForm, flattenModules } from "@/components/CaseForm";
+import { ApiRefPanel } from "@/components/case/ApiRefPanel";
 import { useApp } from "@/hooks/useApp";
 import { usePermissions, useProjectInfo } from "@/hooks/usePermissions";
 import { useProjectStore } from "@/stores/project";
 
-/** CASE-003：用例详情 7 Tab（详情/依赖关系/用例评审/测试计划/缺陷/评论/变更历史）。 */
+/** CASE-003 + CASE-006：用例详情 8 Tab（详情/依赖关系/关联/用例评审/测试计划/缺陷/评论/变更历史）。 */
 
 const levelColor: Record<string, string> = { P0: "red", P1: "orange", P2: "blue", P3: "default" };
 const STATUS_TEXT: Record<string, string> = {
@@ -63,6 +64,7 @@ const EXEC_RESULT: Record<string, { label: string; color: string }> = {
 const TAB_KEYS = [
   "detail",
   "dependencies",
+  "apiRefs",
   "reviews",
   "plans",
   "bugs",
@@ -303,6 +305,7 @@ function CaseDetailInner() {
   const tabs: { key: TabKey; label: string; testid: string; badge?: number }[] = [
     { key: "detail", label: "详情", testid: "tab-detail" },
     { key: "dependencies", label: "依赖关系", testid: "tab-dependencies" },
+    { key: "apiRefs", label: "关联", testid: "case-tab-api-refs" },
     { key: "reviews", label: "用例评审", testid: "tab-reviews" },
     { key: "plans", label: "测试计划", testid: "tab-plans" },
     { key: "bugs", label: "缺陷", testid: "tab-bugs", badge: bugs.length },
@@ -407,7 +410,7 @@ function CaseDetailInner() {
         </div>
       </div>
 
-      {/* Tab 条（7 个；当前 Tab 记忆到用户偏好） */}
+      {/* Tab 条（8 个；当前 Tab 记忆到用户偏好） */}
       <div
         className="bg-white border border-[#E5E6EB] rounded-md px-4 flex items-center gap-6 text-[13px] mb-4 h-11"
         data-testid="case-detail-tabs"
@@ -597,6 +600,9 @@ function CaseDetailInner() {
           </p>
         </div>
       )}
+
+      {/* Tab2.5 关联（CASE-006）：功能用例 ↔ 接口用例关联，供追溯与 S4 计划内执行 */}
+      {tab === "apiRefs" && <ApiRefPanel projectId={projectId} caseId={id} canUpdate={canUpdate} />}
 
       {/* Tab3 用例评审 */}
       {tab === "reviews" && (

@@ -43,7 +43,7 @@ export const test = base.extend<{
   },
   authedPage: async ({ request, context }, use) => {
     const email = `e2e-${Date.now()}-${Math.floor(Math.random() * 1e6)}@rabbit.test`;
-    const password = "rabbit-pass-123";
+    const password = process.env.E2E_USER_PASSWORD ?? "rabbit-pass-123";
     const res = await request.post("/api/v1/auth/register", { data: { email, password } });
     expect(res.status()).toBe(201);
     const body = (await res.json()) as { code: number; data: { projectId: string } };

@@ -78,7 +78,7 @@ test("VISUAL-debug 调试台", async ({ authedPage, page }) => {
 });
 
 test("VISUAL-report 执行报告（失败态展示断言明细）", async ({ authedPage, page }) => {
-  const MOCK_URL = process.env.E2E_MOCK_URL ?? "http://127.0.0.1:4000/hello";
+  const MOCK_URL = process.env.E2E_MOCK_URL ?? "http://127.0.0.1:4001/hello";
   await navFromHome(page, "接口调试");
   await page.getByTestId("debug-url").fill(MOCK_URL);
   await page.getByRole("tab", { name: "断言" }).click();
@@ -88,4 +88,236 @@ test("VISUAL-report 执行报告（失败态展示断言明细）", async ({ aut
   await expect(page.getByTestId("report-status")).toHaveText("FAILED", { timeout: 30000 });
   await page.waitForTimeout(500);
   await page.screenshot({ path: `${SNAP_DIR}/report.png`, fullPage: true });
+});
+
+/* ── Sprint 2 页面快照（rules/testing.md §3.6/§3.7：apis / apis-detail / environments /
+ *    files / tasks / reports 列表稳定态，供 GLM-5.3-Flash 多模态还原度比对）── */
+
+test("VISUAL-apis 接口定义列表（含示例数据）", async ({ authedPage, page, request }) => {
+  const { projectId } = authedPage;
+  // 数据准备走 API（贴近原型示例：一条 GET /pets/{id} 定义）
+  const mods = await request.get(`/api/v1/projects/${projectId}/modules?scene=api`);
+  const modId = (((await mods.json()) as { data: { items: { id: string }[] } }).data.items[0]).id;
+  await request.post(`/api/v1/projects/${projectId}/apis`, {
+    data: {
+      moduleId: modId,
+      name: "查询宠物",
+      request: {
+        spec: {
+          method: "GET",
+          url: "/pets/{id}",
+          headers: [],
+          query: [{ key: "kind", value: "dog", enabled: true }],
+          body: { kind: "none" },
+          auth: { kind: "none" },
+          timeoutMs: 10000,
+          followRedirects: false,
+          skipPre: false,
+          skipPost: false,
+        },
+        asserts: [{ kind: "status_code", path: "", op: "eq", expected: "200" }],
+        pre: [],
+        post: [],
+        extracts: [],
+      },
+      response: { status: 200, headers: [], body: '{"code":0,"data":{"kind":"dog"}}' },
+    },
+  });
+  await navFromHome(page, "接口定义");
+  await expect(page.getByRole("row", { name: /查询宠物/ })).toBeVisible();
+  await page.waitForTimeout(400);
+  await page.screenshot({ path: `${SNAP_DIR}/apis.png` });
+});
+
+test("VISUAL-apis-detail 接口定义详情（七区编辑器）", async ({ authedPage, page, request }) => {
+  const { projectId } = authedPage;
+  // 数据准备走 API（用例间项目隔离，不共享 VISUAL-apis 的数据）
+  const mods = await request.get(`/api/v1/projects/${projectId}/modules?scene=api`);
+  const modId = (((await mods.json()) as { data: { items: { id: string }[] } }).data.items[0]).id;
+  const created = await request.post(`/api/v1/projects/${projectId}/apis`, {
+    data: {
+      moduleId: modId,
+      name: "查询宠物",
+      request: {
+        spec: {
+          method: "GET",
+          url: "/pets/{id}",
+          headers: [],
+          query: [{ key: "kind", value: "dog", enabled: true }],
+          body: { kind: "none" },
+          auth: { kind: "none" },
+          timeoutMs: 10000,
+          followRedirects: false,
+          skipPre: false,
+          skipPost: false,
+        },
+        asserts: [{ kind: "status_code", path: "", op: "eq", expected: "200" }],
+        pre: [],
+        post: [],
+        extracts: [],
+      },
+      response: { status: 200, headers: [], body: '{"code":0,"data":{"kind":"dog"}}' },
+    },
+  });
+  expect(created.status()).toBe(201);
+  await navFromHome(page, "接口定义");
+  await page.getByRole("link", { name: "查询宠物" }).first().click();
+  await expect(page.getByTestId("req-tab-params")).toBeVisible({ timeout: 10000 });
+  await page.waitForTimeout(400);
+  await page.screenshot({ path: `${SNAP_DIR}/apis-detail.png`, fullPage: true });
+});
+
+test("VISUAL-environments 环境管理列表（含示例数据）", async ({ authedPage, page, request }) => {
+  const { projectId } = authedPage;
+  await request.post(`/api/v1/projects/${projectId}/environments`, {
+    data: {
+      name: "测试环境",
+      config: {
+        vars: [{ key: "base", value: "http://127.0.0.1:4001", enabled: true }],
+        http: [
+          {
+            id: "def",
+            name: "默认",
+            protocol: "http",
+            hostname: "127.0.0.1",
+            port: 4001,
+            pathPrefix: "",
+            conditions: {},
+          },
+        ],
+        hosts: [],
+        database: [],
+        pre: [],
+        post: [],
+        asserts: [],
+        extracts: [],
+      },
+    },
+  });
+  await navFromHome(page, "环境管理");
+  await expect(page.getByTestId("env-list-table").getByText("测试环境")).toBeVisible();
+  await page.waitForTimeout(400);
+  await page.screenshot({ path: `${SNAP_DIR}/environments.png` });
+});
+
+test("VISUAL-files 文件管理（含示例数据）", async ({ authedPage, page }) => {
+  await navFromHome(page, "文件管理");
+  await expect(page.getByTestId("file-list-table")).toBeVisible();
+  await page.getByTestId("file-upload").locator("input[type=file]").setInputFiles({
+    name: "测试数据.csv",
+    mimeType: "text/csv",
+    buffer: Buffer.from("id,name\n1,登录\n", "utf8"),
+  });
+  await expect(page.getByRole("row", { name: /测试数据\.csv/ })).toBeVisible();
+  await page.waitForTimeout(400);
+  await page.screenshot({ path: `${SNAP_DIR}/files.png` });
+});
+
+test("VISUAL-tasks 任务中心（含示例任务）", async ({ authedPage, page }) => {
+  const { projectId } = authedPage;
+  // 数据准备：一个成功的调试任务
+  await page.request.post(`/api/v1/projects/${projectId}/exec-tasks`, {
+    data: {
+      type: "api_debug",
+      request: {
+        method: "GET",
+        url: "http://127.0.0.1:4001/hello",
+        headers: [],
+        query: [],
+        body: { kind: "none" },
+        auth: { kind: "none" },
+        timeoutMs: 10000,
+        followRedirects: false,
+        skipPre: false,
+        skipPost: false,
+      },
+      asserts: [{ kind: "status_code", path: "", op: "eq", expected: "200" }],
+      pre: [],
+      post: [],
+      extracts: [],
+    },
+  });
+  await navFromHome(page, "任务中心");
+  await expect(page.getByTestId("task-list-table").getByText("SUCCESS").first()).toBeVisible({
+    timeout: 20000,
+  });
+  await page.waitForTimeout(400);
+  await page.screenshot({ path: `${SNAP_DIR}/tasks.png` });
+});
+
+test("VISUAL-reports 接口报告列表（含示例数据）", async ({ authedPage, page, request }) => {
+  const { projectId } = authedPage;
+  // 数据准备（API）：一个 SUCCESS 的 api_case 报告（用例间项目隔离）
+  const mods = await request.get(`/api/v1/projects/${projectId}/modules?scene=api`);
+  const modId = (((await mods.json()) as { data: { items: { id: string }[] } }).data.items[0]).id;
+  const defRes = await request.post(`/api/v1/projects/${projectId}/apis`, {
+    data: {
+      moduleId: modId,
+      name: "查询宠物",
+      request: {
+        spec: {
+          method: "GET",
+          url: "http://127.0.0.1:4001/hello",
+          headers: [],
+          query: [],
+          body: { kind: "none" },
+          auth: { kind: "none" },
+          timeoutMs: 10000,
+          followRedirects: false,
+          skipPre: false,
+          skipPost: false,
+        },
+        asserts: [{ kind: "status_code", path: "", op: "eq", expected: "200" }],
+        pre: [],
+        post: [],
+        extracts: [],
+      },
+      response: { status: 200, headers: [], body: '{"code":0}' },
+    },
+  });
+  const defId = (((await defRes.json()) as { data: { id: string } }).data).id;
+  const caseRes = await request.post(`/api/v1/projects/${projectId}/apis/${defId}/cases`, {
+    data: {
+      name: "正常查询用例",
+      level: "P1",
+      status: "UNDERWAY",
+      tags: [],
+      request: {
+        spec: {
+          method: "GET",
+          url: "http://127.0.0.1:4001/hello",
+          headers: [],
+          query: [],
+          body: { kind: "none" },
+          auth: { kind: "none" },
+          timeoutMs: 10000,
+          followRedirects: false,
+          skipPre: false,
+          skipPost: false,
+        },
+        asserts: [{ kind: "status_code", path: "", op: "eq", expected: "200" }],
+        pre: [],
+        post: [],
+        extracts: [],
+      },
+    },
+  });
+  const caseId = (((await caseRes.json()) as { data: { id: string } }).data).id;
+  const taskRes = await request.post(`/api/v1/projects/${projectId}/apis/${defId}/cases/execute`, {
+    data: { caseIds: [caseId] },
+  });
+  expect(taskRes.status()).toBe(201);
+  // 轮询终态（报告行出现）
+  for (let i = 0; i < 30; i++) {
+    const r = await request.get(`/api/v1/projects/${projectId}/reports`);
+    const items = ((await r.json()) as { data: { items: { taskStatus: string }[] } }).data.items;
+    if (items.some((it) => it.taskStatus === "SUCCESS")) break;
+    await new Promise((res) => setTimeout(res, 500));
+  }
+  await navFromHome(page, "接口报告");
+  await expect(page.getByTestId("report-list-table").getByTestId("report-name-link").first()).toBeVisible({
+    timeout: 15000,
+  });
+  await page.waitForTimeout(400);
+  await page.screenshot({ path: `${SNAP_DIR}/reports.png` });
 });

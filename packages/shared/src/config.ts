@@ -1,4 +1,6 @@
 /** 环境配置单一来源（rules/git-workflow §5.1.3：地址常量禁多处硬编码）。 */
+import { execStopKey } from "./execution/schemas";
+
 function env(key: string, fallback: string): string {
   return process.env[key] ?? fallback;
 }
@@ -15,7 +17,10 @@ export const config = {
   execStreamKey(taskId: string): string {
     return `exec:stream:${taskId}`;
   },
+  /** 任务停止控制键（web 写 / engine 轮询，EXEC-002 §2；同源 execution/schemas） */
+  execStopKey,
   execQueueName: "exec",
   /** 默认资源池 ID（单节点 P0 固定） */
   defaultPoolId: "00000000-0000-0000-0000-000000000001",
 } as const;
+

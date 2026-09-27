@@ -492,6 +492,7 @@ model FunctionalCase {
   updatedAt    DateTime   @updatedAt @map("updated_at")
 
   reviewCases ReviewCase[]
+  apiRefs     CaseApiRef[]
 
   @@unique([projectId, num])
   @@index([projectId, deletedAt, name])
@@ -557,6 +558,20 @@ model CaseDemandRef {
 
   @@unique([caseId, platform, demandKey])
   @@map("case_demand_refs")
+}
+
+/// 用例关联接口（CASE-006；refType ∈ api_case | scenario——跨域经 Provider，test-domain-model §3）
+model CaseApiRef {
+  id      String         @id @default(uuid())
+  caseId  String         @map("case_id")
+  case    FunctionalCase @relation(fields: [caseId], references: [id])
+  refType String         @default("api_case") @map("ref_type") @db.VarChar(32)
+  refId   String         @map("ref_id")
+  config  Json           @default("{}")
+
+  @@unique([caseId, refType, refId])
+  @@index([refType, refId])
+  @@map("case_api_refs")
 }
 
 // ── 通用横切（Comment / ChangeLog / Follow）──
@@ -790,8 +805,10 @@ model ApiCase {
   level     String        @default("P2") @db.VarChar(8)
   status    String        @default("UNDERWAY") @db.VarChar(32)
   tags      Json          @default("[]")
-  request   Json // 差量覆盖
+  request   Json // { spec, asserts, pre, post, extracts }（API-004 契约 v2 请求包）
   version   Int           @default(1)
+  /// 基线定义 version（API-003 差异同步；定义 bump 超前→「待同步」）
+  syncedVersion Int       @default(0) @map("synced_version")
   deletedAt DateTime?     @map("deleted_at")
   createdBy String        @map("created_by")
   createdAt DateTime      @default(now()) @map("created_at")

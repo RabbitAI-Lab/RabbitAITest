@@ -748,8 +748,11 @@ export interface PlanRow {
 }
 export interface PlanCaseRow {
   refId: string;
+  /** 关联类型（CASE-006/S2：api_case 行的人工执行随 S4 PLAN-003 接入，前端只读展示） */
+  refType?: "functional_case" | "api_case";
   caseId: string;
-  num: number;
+  /** api_case 行无功能用例编号（null） */
+  num: number | null;
   name: string;
   level: string;
   tags: string[];
@@ -758,6 +761,11 @@ export interface PlanCaseRow {
   status: string;
   result: { actualResult?: string; steps?: { status: string; result: string }[]; comment?: string };
   execHistory: { ts: string; userId: string; from: string; to: string }[];
+  /** api_case 行补充：所属接口信息（经 api-ref.provider summary） */
+  apiName?: string;
+  method?: string;
+  path?: string;
+  deleted?: boolean;
 }
 export interface PlanDetail extends Omit<PlanRow, "caseCount" | "executed" | "progress"> {
   stats: {
@@ -788,9 +796,16 @@ export const planApi = {
     post<{ id: string; archived: boolean }>(
       `/api/v1/projects/${projectId}/plans/${planId}/${archived ? "archive" : "unarchive"}`,
     ),
-  addCases: (projectId: string, planId: string, caseIds: string[], execUserId?: string) =>
+  addCases: (
+    projectId: string,
+    planId: string,
+    caseIds: string[],
+    apiCaseIds: string[] = [],
+    execUserId?: string,
+  ) =>
     post<{ added: number }>(`/api/v1/projects/${projectId}/plans/${planId}/cases`, {
       caseIds,
+      apiCaseIds,
       execUserId,
     }),
   removeCase: (projectId: string, planId: string, refId: string) =>

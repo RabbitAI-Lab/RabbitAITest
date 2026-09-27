@@ -17,3 +17,7 @@ apps/web/tsconfig.tsbuildinfo
 # 视觉比对生成物（原型渲染 PNG / 快照 / 报告，CI artifact 上传留档）
 tests/visual/
 dump.rdb
+
+# mimosa 插件本地扫描状态（会话级运行时数据，不入库）
+.mimosa/
+data/

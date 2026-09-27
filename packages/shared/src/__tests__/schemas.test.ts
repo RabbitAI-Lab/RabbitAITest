@@ -34,15 +34,24 @@ describe("execution schemas", () => {
       request: { method: "GET", url: "https://httpbin.org/get" },
       asserts: [{ kind: "status_code", op: "eq", expected: "200" }],
     });
+    if (cmd.type !== "api_debug") throw new Error("expected api_debug");
     expect(cmd.request.timeoutMs).toBe(60000);
   });
-  it("非法 URL 拒绝", () => {
+  it("空 URL 拒绝（v2 相对路径合法：环境域名拼接）", () => {
+    const rel = execCommandSchema.parse({
+      taskId: "0b965c86-33e9-4c1f-8f2b-1f2f6a5b7c9d",
+      projectId: "0b965c86-33e9-4c1f-8f2b-1f2f6a5b7c10",
+      type: "api_debug",
+      request: { method: "GET", url: "/api/login" },
+    });
+    if (rel.type !== "api_debug") throw new Error("expected api_debug");
+    expect(rel.request.url).toBe("/api/login");
     expect(() =>
       execCommandSchema.parse({
         taskId: "0b965c86-33e9-4c1f-8f2b-1f2f6a5b7c9d",
         projectId: "0b965c86-33e9-4c1f-8f2b-1f2f6a5b7c10",
         type: "api_debug",
-        request: { method: "GET", url: "not-a-url" },
+        request: { method: "GET", url: "" },
       }),
     ).toThrow();
   });

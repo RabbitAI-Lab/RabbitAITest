@@ -2,6 +2,7 @@
 <jmeterTestPlan version="1.2" properties="5.0" jmeter="5.6.3">
   <hashTree>
     <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="SYS-004 用户与三级用户组管理">
+    <boolProp name="TestPlan.serialize_threadgroups">true</boolProp>
       <elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments">
         <collectionProp name="Arguments.arguments">
           <elementProp name="EMAIL" elementType="Argument">
@@ -70,7 +71,7 @@
           <hashTree/>
           <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="field $.data.userId=NOT_FOUND">
             <stringProp name="JSON_PATH">$.data.userId</stringProp>
-            <stringProp name="EXPECTED_VALUE">NOT_FOUND</stringProp>
+            <stringProp name="EXPECTED_VALUE">.+</stringProp>
             <boolProp name="JSONVALIDATION">true</boolProp>
           </JSONPathAssertion>
           <hashTree/>
@@ -101,7 +102,7 @@
           <hashTree/>
           <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="field $.data.total=NOT_FOUND">
             <stringProp name="JSON_PATH">$.data.total</stringProp>
-            <stringProp name="EXPECTED_VALUE">NOT_FOUND</stringProp>
+            <stringProp name="EXPECTED_VALUE">.+</stringProp>
             <boolProp name="JSONVALIDATION">true</boolProp>
           </JSONPathAssertion>
           <hashTree/>
@@ -167,6 +168,12 @@
           <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion" testname="&lt;3000ms">
             <stringProp name="DurationAssertion.duration">3000</stringProp>
           </DurationAssertion>
+          <hashTree/>
+        
+          <JSR223PostProcessor guiclass="TestBeanGUI" testclass="JSR223PostProcessor" testname="NEW_USER_ID → 属性（跨线程组）">
+            <stringProp name="scriptLanguage">groovy</stringProp>
+            <stringProp name="script">if (vars.get("NEW_USER_ID")) props.put("NEW_USER_ID", vars.get("NEW_USER_ID"))</stringProp>
+          </JSR223PostProcessor>
           <hashTree/>
         </hashTree>
         <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="T1-3 系统组列表（预置组只读+分页）">
@@ -240,6 +247,12 @@
             <stringProp name="DurationAssertion.duration">3000</stringProp>
           </DurationAssertion>
           <hashTree/>
+        
+          <JSR223PostProcessor guiclass="TestBeanGUI" testclass="JSR223PostProcessor" testname="GROUP_ID → 属性（跨线程组）">
+            <stringProp name="scriptLanguage">groovy</stringProp>
+            <stringProp name="script">props.put("GROUP_ID", vars.get("GROUP_ID") ?: "NOT_FOUND")</stringProp>
+          </JSR223PostProcessor>
+          <hashTree/>
         </hashTree>
         <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="T1-5 组添加成员">
           <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments">
@@ -253,7 +266,7 @@
           </elementProp>
           <stringProp name="HTTPSampler.domain">${__P(HOST,localhost)}</stringProp>
           <stringProp name="HTTPSampler.port">${__P(PORT,3100)}</stringProp>
-          <stringProp name="HTTPSampler.path">/api/v1/system/groups/${GROUP_ID}/members</stringProp>
+          <stringProp name="HTTPSampler.path">/api/v1/system/groups/${__P(GROUP_ID)}/members</stringProp>
           <stringProp name="HTTPSampler.method">POST</stringProp>
           <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
         </HTTPSamplerProxy>
@@ -293,7 +306,7 @@
           </elementProp>
           <stringProp name="HTTPSampler.domain">${__P(HOST,localhost)}</stringProp>
           <stringProp name="HTTPSampler.port">${__P(PORT,3100)}</stringProp>
-          <stringProp name="HTTPSampler.path">/api/v1/system/groups/${GROUP_ID}</stringProp>
+          <stringProp name="HTTPSampler.path">/api/v1/system/groups/${__P(GROUP_ID)}</stringProp>
           <stringProp name="HTTPSampler.method">PUT</stringProp>
           <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
         </HTTPSamplerProxy>
@@ -324,7 +337,7 @@
         <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="T1-7 恢复默认（清空权限勾选）">
           <stringProp name="HTTPSampler.domain">${__P(HOST,localhost)}</stringProp>
           <stringProp name="HTTPSampler.port">${__P(PORT,3100)}</stringProp>
-          <stringProp name="HTTPSampler.path">/api/v1/system/groups/${GROUP_ID}/restore-default</stringProp>
+          <stringProp name="HTTPSampler.path">/api/v1/system/groups/${__P(GROUP_ID)}/restore-default</stringProp>
           <stringProp name="HTTPSampler.method">POST</stringProp>
           <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
         </HTTPSamplerProxy>
@@ -373,7 +386,8 @@
             <collectionProp name="Asserion.test_strings"><stringProp name="49586">401</stringProp></collectionProp>
             <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
             <intProp name="Assertion.test_type">8</intProp>
-          </ResponseAssertion>
+            <boolProp name="Assertion.assume_success">true</boolProp>
+        </ResponseAssertion>
           <hashTree/>
           <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="code=10001">
             <stringProp name="JSON_PATH">$.code</stringProp>
@@ -432,7 +446,8 @@
             <collectionProp name="Asserion.test_strings"><stringProp name="49586">403</stringProp></collectionProp>
             <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
             <intProp name="Assertion.test_type">8</intProp>
-          </ResponseAssertion>
+            <boolProp name="Assertion.assume_success">true</boolProp>
+        </ResponseAssertion>
           <hashTree/>
           <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="code=10003">
             <stringProp name="JSON_PATH">$.code</stringProp>
@@ -466,7 +481,8 @@
             <collectionProp name="Asserion.test_strings"><stringProp name="49586">403</stringProp></collectionProp>
             <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
             <intProp name="Assertion.test_type">8</intProp>
-          </ResponseAssertion>
+            <boolProp name="Assertion.assume_success">true</boolProp>
+        </ResponseAssertion>
           <hashTree/>
           <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="code=10003">
             <stringProp name="JSON_PATH">$.code</stringProp>
@@ -532,7 +548,7 @@
           <hashTree/>
           <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="field $.data.userId=NOT_FOUND">
             <stringProp name="JSON_PATH">$.data.userId</stringProp>
-            <stringProp name="EXPECTED_VALUE">NOT_FOUND</stringProp>
+            <stringProp name="EXPECTED_VALUE">.+</stringProp>
             <boolProp name="JSONVALIDATION">true</boolProp>
           </JSONPathAssertion>
           <hashTree/>
@@ -562,7 +578,8 @@
             <collectionProp name="Asserion.test_strings"><stringProp name="49586">400</stringProp></collectionProp>
             <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
             <intProp name="Assertion.test_type">8</intProp>
-          </ResponseAssertion>
+            <boolProp name="Assertion.assume_success">true</boolProp>
+        </ResponseAssertion>
           <hashTree/>
           <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="code=10101">
             <stringProp name="JSON_PATH">$.code</stringProp>
@@ -596,7 +613,8 @@
             <collectionProp name="Asserion.test_strings"><stringProp name="49586">422</stringProp></collectionProp>
             <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
             <intProp name="Assertion.test_type">8</intProp>
-          </ResponseAssertion>
+            <boolProp name="Assertion.assume_success">true</boolProp>
+        </ResponseAssertion>
           <hashTree/>
           <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="code=20422">
             <stringProp name="JSON_PATH">$.code</stringProp>
@@ -612,7 +630,7 @@
         <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="T3-3 删除非空组 422">
           <stringProp name="HTTPSampler.domain">${__P(HOST,localhost)}</stringProp>
           <stringProp name="HTTPSampler.port">${__P(PORT,3100)}</stringProp>
-          <stringProp name="HTTPSampler.path">/api/v1/system/groups/${GROUP_ID}</stringProp>
+          <stringProp name="HTTPSampler.path">/api/v1/system/groups/${__P(GROUP_ID)}</stringProp>
           <stringProp name="HTTPSampler.method">DELETE</stringProp>
           <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
         </HTTPSamplerProxy>
@@ -621,7 +639,8 @@
             <collectionProp name="Asserion.test_strings"><stringProp name="49586">422</stringProp></collectionProp>
             <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
             <intProp name="Assertion.test_type">8</intProp>
-          </ResponseAssertion>
+            <boolProp name="Assertion.assume_success">true</boolProp>
+        </ResponseAssertion>
           <hashTree/>
           <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="code=20422">
             <stringProp name="JSON_PATH">$.code</stringProp>
@@ -637,7 +656,7 @@
         <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="T3-4 移出成员后删组成功">
           <stringProp name="HTTPSampler.domain">${__P(HOST,localhost)}</stringProp>
           <stringProp name="HTTPSampler.port">${__P(PORT,3100)}</stringProp>
-          <stringProp name="HTTPSampler.path">/api/v1/system/groups/${GROUP_ID}/members/${NEW_USER_ID}</stringProp>
+          <stringProp name="HTTPSampler.path">/api/v1/system/groups/${__P(GROUP_ID)}/members/${__P(NEW_USER_ID)}</stringProp>
           <stringProp name="HTTPSampler.method">DELETE</stringProp>
           <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
         </HTTPSamplerProxy>

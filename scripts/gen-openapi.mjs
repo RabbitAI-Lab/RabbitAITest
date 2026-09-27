@@ -114,8 +114,10 @@ const doc = {
 
 const json = JSON.stringify(doc, null, 2) + "\n";
 
-// ── 手写路径审计（门禁 4）：s1.ts 的路径必须都在注册表 ──
-const s1 = readFileSync(path.join(ROOT, "packages/api-client/src/s1.ts"), "utf8");
+// ── 手写路径审计（门禁 4）：s1.ts + s2.ts 的路径必须都在注册表 ──
+const s1 = [ "s1", "s2" ]
+  .map((f) => readFileSync(path.join(ROOT, `packages/api-client/src/${f}.ts`), "utf8"))
+  .join("\n");
 const handPaths = new Set();
 for (const m of s1.matchAll(/'(\/api\/v1\/[^']*)'/g)) handPaths.add(m[1]);
 for (const m of s1.matchAll(/`(\/api\/v1\/[^`]*)`/g)) handPaths.add(m[1]);

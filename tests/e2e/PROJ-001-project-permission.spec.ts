@@ -136,7 +136,7 @@ test("PROJ-001-03 组织成员加入 → 项目成员添加（P-2）", async ({
   const { request: pwRequest } = await import("@playwright/test");
   const iso = await pwRequest.newContext();
   const reg = await iso.post("/api/v1/auth/register", {
-    data: { email, password: "rabbit-pass-123" },
+    data: { email, password: process.env.E2E_USER_PASSWORD ?? "rabbit-pass-123" },
   });
   expect(reg.status()).toBe(201);
   const uid = ((await reg.json()) as { data: { userId: string } }).data.userId;

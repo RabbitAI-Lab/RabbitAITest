@@ -8,6 +8,8 @@ export const POST = withProjectScope(async (ctx, req, seg) => {
     ctx.requireWritable();
     const { planId } = await (seg as { params: Promise<{ planId: string }> }).params;
     const body = planCasesAddSchema.parse(await req.json());
-    return okResponse(await svc.addPlanCases(ctx.projectId, planId, body.caseIds, body.execUserId));
+    return okResponse(
+      await svc.addPlanCases(ctx.projectId, planId, body.caseIds, body.execUserId, body.apiCaseIds),
+    );
   } catch (err) { return toResponse(err); }
 });

@@ -20,10 +20,17 @@ export const planUpsertSchema = z.object({
 /** PUT 部分更新（updatePlan 语义） */
 export const planUpdateSchema = planUpsertSchema.partial();
 
-export const planCasesAddSchema = z.object({
-  caseIds: z.array(z.string().uuid()).min(1).max(500),
-  execUserId: z.string().uuid().optional(),
-});
+export const planCasesAddSchema = z
+  .object({
+    /** 功能用例（CASE-006 前：唯一关联类型；现与 apiCaseIds 二选一或并存） */
+    caseIds: z.array(z.string().uuid()).max(500).default([]),
+    /** 接口用例关联（CASE-006/S2：refType=api_case，经 ApiRefProvider 校验，执行随 S4） */
+    apiCaseIds: z.array(z.string().uuid()).max(200).default([]),
+    execUserId: z.string().uuid().optional(),
+  })
+  .refine((b) => b.caseIds.length + b.apiCaseIds.length > 0, {
+    message: "caseIds 与 apiCaseIds 至少其一非空",
+  });
 
 export const planExecStatusSchema = z.enum(["NOT_RUN", "PASS", "FAIL", "BLOCKED", "SKIPPED"]);
 

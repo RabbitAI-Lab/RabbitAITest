@@ -157,7 +157,7 @@ test("SYS-004-03 预置组成员可管理（权限只读、成员增删可用）
   const stamp = Date.now();
   const email = `preset-member-${stamp}@rabbit.test`;
   const created = await request.post("/api/v1/auth/register", {
-    data: { email, password: "rabbit-pass-123" },
+    data: { email, password: process.env.E2E_USER_PASSWORD ?? "rabbit-pass-123" },
   });
   expect(created.status()).toBe(201);
 
@@ -287,7 +287,7 @@ test("SYS-004-06 重置密码、禁用（会话失效）与软删除用户", asy
   const victimCtx = await browser.newContext();
   const victimEmail = `sys004-victim-${Date.now()}@rabbit.test`;
   const reg = await victimCtx.request.post("/api/v1/auth/register", {
-    data: { email: victimEmail, password: "rabbit-pass-123" },
+    data: { email: victimEmail, password: process.env.E2E_USER_PASSWORD ?? "rabbit-pass-123" },
   });
   expect(reg.status()).toBe(201);
 
@@ -346,7 +346,7 @@ test("SYS-004-07 编辑用户姓名与手机（P-3）", async ({
   const stamp = Date.now() % 100000;
   const email = `p3-edit-${stamp}@rabbit.test`;
   const reg = await request.post("/api/v1/auth/register", {
-    data: { email, password: "rabbit-pass-123" },
+    data: { email, password: process.env.E2E_USER_PASSWORD ?? "rabbit-pass-123" },
   });
   expect(reg.status()).toBe(201);
 

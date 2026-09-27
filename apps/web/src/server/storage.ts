@@ -72,3 +72,38 @@ export function verifyDownloadToken(objectId: string, token: string): boolean {
     .digest("base64url");
   return expect === sig;
 }
+
+// ───────────── PROJ-004 文件管理：独立命名空间 data/files（白名单允许 jar，与附件黑名单互不影响） ─────────────
+
+const FILES_ROOT = process.env.FILES_DIR ?? path.join(process.cwd(), "data", "files");
+
+/** 根目录边界校验（防 storageKey 污染后的路径穿越：target 必须落在 FILES_ROOT 内）。 */
+function safeFilePath(key: string): string {
+  const root = path.resolve(FILES_ROOT);
+  const target = path.resolve(root, key);
+  if (target !== root && !target.startsWith(root + path.sep)) {
+    throw new Error("非法存储键");
+  }
+  return target;
+}
+
+export async function putFileObject(buffer: Buffer): Promise<string> {
+  const key = `${new Date().toISOString().slice(0, 10)}/${randomUUID()}`;
+  const abs = safeFilePath(key);
+  mkdirSync(path.dirname(abs), { recursive: true });
+  await writeFile(abs, buffer);
+  return key;
+}
+
+export function fileObjectStream(key: string): NodeJS.ReadableStream {
+  return createReadStream(safeFilePath(key));
+}
+
+export async function readFileObject(key: string): Promise<Buffer> {
+  return readFile(safeFilePath(key));
+}
+
+export async function deleteFileObject(key: string): Promise<void> {
+  const abs = safeFilePath(key);
+  if (existsSync(abs)) await rm(abs, { force: true });
+}

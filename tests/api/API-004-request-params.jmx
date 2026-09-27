@@ -1,0 +1,521 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jmeterTestPlan version="1.2" properties="5.0" jmeter="5.6.3">
+  <hashTree>
+    <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="API-004 参数体系（变量/断言/提取/前后置）">
+      <boolProp name="TestPlan.serialize_threadgroups">true</boolProp>
+      <elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments">
+        <collectionProp name="Arguments.arguments">
+          <elementProp name="EMAIL" elementType="Argument">
+            <stringProp name="Argument.name">EMAIL</stringProp>
+            <stringProp name="Argument.value">jm-api004-${__time(yyyyMMddHHmmss)}-${__threadNum}@rabbit.test</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="TS" elementType="Argument">
+            <stringProp name="Argument.name">TS</stringProp>
+            <stringProp name="Argument.value">${__time(yyyyMMddHHmmss)}</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="STATUS" elementType="Argument">
+            <stringProp name="Argument.name">STATUS</stringProp>
+            <stringProp name="Argument.value">INIT</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="LOOP_I" elementType="Argument">
+            <stringProp name="Argument.name">LOOP_I</stringProp>
+            <stringProp name="Argument.value">0</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+        </collectionProp>
+      </elementProp>
+    </TestPlan>
+    <hashTree>
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="参数体系执行主链路">
+        <stringProp name="ThreadGroup.num_threads">1</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">1</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController">
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+          <stringProp name="LoopController.loops">1</stringProp>
+        </elementProp>
+      </ThreadGroup>
+      <hashTree>
+        <CookieManager guiclass="CookiePanel" testclass="CookieManager" testname="Cookie">
+          <boolProp name="CookieManager.clearEachIteration">false</boolProp>
+        </CookieManager>
+        <hashTree/>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="T0 注册并取会话+项目"><elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                <stringProp name="Argument.value">{&quot;email&quot;: &quot;${EMAIL}&quot;, &quot;password&quot;: &quot;rabbit-pass-123&quot;}</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+          <stringProp name="HTTPSampler.domain">${__P(HOST,localhost)}</stringProp>
+          <stringProp name="HTTPSampler.port">${__P(PORT,3100)}</stringProp>
+          <stringProp name="HTTPSampler.path">/api/v1/auth/register</stringProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="提取 PROJECT_ID">
+            <stringProp name="JSONPostProcessor.referenceNames">PROJECT_ID</stringProp>
+            <stringProp name="JSONPostProcessor.jsonPathExprs">$.data.projectId</stringProp>
+            <stringProp name="JSONPostProcessor.match_numbers">1</stringProp>
+            <stringProp name="JSONPostProcessor.defaultValues">NOT_FOUND</stringProp>
+          </JSONPostProcessor>
+          <hashTree/>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="HTTP 201">
+            <collectionProp name="Asserion.test_strings"><stringProp name="49586">201</stringProp></collectionProp>
+            <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+            <boolProp name="Assertion.assume_success">true</boolProp>
+            <intProp name="Assertion.test_type">8</intProp>
+          </ResponseAssertion>
+          <hashTree/>
+          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="field $.code=0">
+            <stringProp name="JSON_PATH">$.code</stringProp>
+            <stringProp name="EXPECTED_VALUE">0</stringProp>
+            <boolProp name="JSONVALIDATION">true</boolProp>
+          </JSONPathAssertion>
+          <hashTree/>
+          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="field $.data.projectId=-">
+            <stringProp name="JSON_PATH">$.data.projectId</stringProp>
+            <stringProp name="EXPECTED_VALUE">-</stringProp>
+            <boolProp name="JSONVALIDATION">false</boolProp>
+          </JSONPathAssertion>
+          <hashTree/>
+          <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion" testname="&lt;8000ms">
+            <stringProp name="DurationAssertion.duration">8000</stringProp>
+          </DurationAssertion>
+          <hashTree/>
+        </hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="T0.2 自建环境（vars.base）"><elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                <stringProp name="Argument.value">{&quot;name&quot;: &quot;jm参数环境-${TS}&quot;, &quot;config&quot;: {&quot;vars&quot;: [{&quot;key&quot;: &quot;base&quot;, &quot;value&quot;: &quot;http://127.0.0.1:4000&quot;, &quot;enabled&quot;: true}], &quot;http&quot;: [], &quot;hosts&quot;: [], &quot;database&quot;: [], &quot;pre&quot;: [], &quot;post&quot;: [], &quot;asserts&quot;: [], &quot;extracts&quot;: []}}</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+          <stringProp name="HTTPSampler.domain">${__P(HOST,localhost)}</stringProp>
+          <stringProp name="HTTPSampler.port">${__P(PORT,3100)}</stringProp>
+          <stringProp name="HTTPSampler.path">/api/v1/projects/${PROJECT_ID}/environments</stringProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="提取 ENV_ID">
+            <stringProp name="JSONPostProcessor.referenceNames">ENV_ID</stringProp>
+            <stringProp name="JSONPostProcessor.jsonPathExprs">$.data.id</stringProp>
+            <stringProp name="JSONPostProcessor.match_numbers">1</stringProp>
+            <stringProp name="JSONPostProcessor.defaultValues">NOT_FOUND</stringProp>
+          </JSONPostProcessor>
+          <hashTree/>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="HTTP 201">
+            <collectionProp name="Asserion.test_strings"><stringProp name="49586">201</stringProp></collectionProp>
+            <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+            <boolProp name="Assertion.assume_success">true</boolProp>
+            <intProp name="Assertion.test_type">8</intProp>
+          </ResponseAssertion>
+          <hashTree/>
+          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="field $.code=0">
+            <stringProp name="JSON_PATH">$.code</stringProp>
+            <stringProp name="EXPECTED_VALUE">0</stringProp>
+            <boolProp name="JSONVALIDATION">true</boolProp>
+          </JSONPathAssertion>
+          <hashTree/>
+          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="field $.data.config.vars[0].key=base">
+            <stringProp name="JSON_PATH">$.data.config.vars[0].key</stringProp>
+            <stringProp name="EXPECTED_VALUE">base</stringProp>
+            <boolProp name="JSONVALIDATION">true</boolProp>
+          </JSONPathAssertion>
+          <hashTree/>
+          <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion" testname="&lt;3000ms">
+            <stringProp name="DurationAssertion.duration">3000</stringProp>
+          </DurationAssertion>
+          <hashTree/>
+        </hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="T1-1 提交调试（变量渲染/前置脚本/提取写回/变量断言）"><elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                <stringProp name="Argument.value">{&quot;type&quot;: &quot;api_debug&quot;, &quot;envId&quot;: &quot;${ENV_ID}&quot;, &quot;request&quot;: {&quot;method&quot;: &quot;GET&quot;, &quot;url&quot;: &quot;${base}/hello&quot;, &quot;headers&quot;: [], &quot;query&quot;: [], &quot;body&quot;: {&quot;kind&quot;: &quot;none&quot;}, &quot;auth&quot;: {&quot;kind&quot;: &quot;none&quot;}, &quot;timeoutMs&quot;: 10000, &quot;followRedirects&quot;: false, &quot;skipPre&quot;: false, &quot;skipPost&quot;: false}, &quot;asserts&quot;: [{&quot;kind&quot;: &quot;body_jsonpath&quot;, &quot;path&quot;: &quot;$.message&quot;, &quot;op&quot;: &quot;eq&quot;, &quot;expected&quot;: &quot;hello&quot;}, {&quot;kind&quot;: &quot;variable&quot;, &quot;path&quot;: &quot;who&quot;, &quot;op&quot;: &quot;eq&quot;, &quot;expected&quot;: &quot;jm&quot;}], &quot;pre&quot;: [{&quot;kind&quot;: &quot;script&quot;, &quot;script&quot;: &quot;setVar(\&quot;who\&quot;, \&quot;jm\&quot;); log(\&quot;jm-pre-script-ran\&quot;)&quot;}], &quot;post&quot;: [], &quot;extracts&quot;: [{&quot;source&quot;: &quot;body&quot;, &quot;kind&quot;: &quot;jsonpath&quot;, &quot;expression&quot;: &quot;$.status&quot;, &quot;match&quot;: &quot;first&quot;, &quot;variable&quot;: &quot;svcState&quot;, &quot;scope&quot;: &quot;env&quot;}]}</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+          <stringProp name="HTTPSampler.domain">${__P(HOST,localhost)}</stringProp>
+          <stringProp name="HTTPSampler.port">${__P(PORT,3100)}</stringProp>
+          <stringProp name="HTTPSampler.path">/api/v1/projects/${PROJECT_ID}/exec-tasks</stringProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="提取 TASK_ID">
+            <stringProp name="JSONPostProcessor.referenceNames">TASK_ID</stringProp>
+            <stringProp name="JSONPostProcessor.jsonPathExprs">$.data.taskId</stringProp>
+            <stringProp name="JSONPostProcessor.match_numbers">1</stringProp>
+            <stringProp name="JSONPostProcessor.defaultValues">NOT_FOUND</stringProp>
+          </JSONPostProcessor>
+          <hashTree/>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="HTTP 201">
+            <collectionProp name="Asserion.test_strings"><stringProp name="49586">201</stringProp></collectionProp>
+            <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+            <boolProp name="Assertion.assume_success">true</boolProp>
+            <intProp name="Assertion.test_type">8</intProp>
+          </ResponseAssertion>
+          <hashTree/>
+          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="field $.code=0">
+            <stringProp name="JSON_PATH">$.code</stringProp>
+            <stringProp name="EXPECTED_VALUE">0</stringProp>
+            <boolProp name="JSONVALIDATION">true</boolProp>
+          </JSONPathAssertion>
+          <hashTree/>
+          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="field $.data.taskId=-">
+            <stringProp name="JSON_PATH">$.data.taskId</stringProp>
+            <stringProp name="EXPECTED_VALUE">-</stringProp>
+            <boolProp name="JSONVALIDATION">false</boolProp>
+          </JSONPathAssertion>
+          <hashTree/>
+          <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion" testname="&lt;3000ms">
+            <stringProp name="DurationAssertion.duration">3000</stringProp>
+          </DurationAssertion>
+          <hashTree/>
+        </hashTree>
+        <WhileController guiclass="WhileControllerGui" testclass="WhileController" testname="轮询至终态（上限 40 次）">
+          <stringProp name="WhileController.condition">${__jexl3(${LOOP_I} &lt; 20 &amp;&amp; &quot;${STATUS}&quot; != &quot;SUCCESS&quot; &amp;&amp; &quot;${STATUS}&quot; != &quot;FAILED&quot; &amp;&amp; &quot;${STATUS}&quot; != &quot;STOPPED&quot;)}</stringProp>
+        </WhileController>
+        <hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="轮询报告状态"><elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments">
+            <collectionProp name="Arguments.arguments"/>
+          </elementProp>
+          <stringProp name="HTTPSampler.domain">${__P(HOST,localhost)}</stringProp>
+          <stringProp name="HTTPSampler.port">${__P(PORT,3100)}</stringProp>
+          <stringProp name="HTTPSampler.path">/api/v1/projects/${PROJECT_ID}/reports/${TASK_ID}</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="提取 STATUS">
+            <stringProp name="JSONPostProcessor.referenceNames">STATUS</stringProp>
+            <stringProp name="JSONPostProcessor.jsonPathExprs">$.data.status</stringProp>
+            <stringProp name="JSONPostProcessor.match_numbers">1</stringProp>
+            <stringProp name="JSONPostProcessor.defaultValues">INIT</stringProp>
+          </JSONPostProcessor>
+          <hashTree/>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="HTTP 200">
+            <collectionProp name="Asserion.test_strings"><stringProp name="49586">200</stringProp></collectionProp>
+            <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+            <boolProp name="Assertion.assume_success">true</boolProp>
+            <intProp name="Assertion.test_type">8</intProp>
+          </ResponseAssertion>
+          <hashTree/>
+          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="field $.code=0">
+            <stringProp name="JSON_PATH">$.code</stringProp>
+            <stringProp name="EXPECTED_VALUE">0</stringProp>
+            <boolProp name="JSONVALIDATION">true</boolProp>
+          </JSONPathAssertion>
+          <hashTree/>
+          <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion" testname="&lt;5000ms">
+            <stringProp name="DurationAssertion.duration">5000</stringProp>
+          </DurationAssertion>
+          <hashTree/>
+          <ConstantTimer guiclass="ConstantTimerGui" testclass="ConstantTimer" testname="500ms">
+            <stringProp name="ConstantTimer.delay">500</stringProp>
+          </ConstantTimer>
+          <hashTree/>
+          <CounterConfig guiclass="CounterConfigGui" testclass="CounterConfig" testname="计数 LOOP_I">
+            <stringProp name="CounterConfig.start">1</stringProp>
+            <stringProp name="CounterConfig.end">9999999</stringProp>
+            <stringProp name="CounterConfig.incr">1</stringProp>
+            <stringProp name="CounterConfig.name">LOOP_I</stringProp>
+            <stringProp name="CounterConfig.format"></stringProp>
+            <boolProp name="CounterConfig.perUser">true</boolProp>
+            <boolProp name="CounterConfig.resetOnIteration">false</boolProp>
+          </CounterConfig>
+          <hashTree/>
+        </hashTree>
+        </hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="T1-2 报告 SUCCESS（断言全过+日志含前置脚本）"><elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments">
+            <collectionProp name="Arguments.arguments"/>
+          </elementProp>
+          <stringProp name="HTTPSampler.domain">${__P(HOST,localhost)}</stringProp>
+          <stringProp name="HTTPSampler.port">${__P(PORT,3100)}</stringProp>
+          <stringProp name="HTTPSampler.path">/api/v1/projects/${PROJECT_ID}/reports/${TASK_ID}</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="HTTP 200">
+            <collectionProp name="Asserion.test_strings"><stringProp name="49586">200</stringProp></collectionProp>
+            <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+            <boolProp name="Assertion.assume_success">true</boolProp>
+            <intProp name="Assertion.test_type">8</intProp>
+          </ResponseAssertion>
+          <hashTree/>
+          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="field $.code=0">
+            <stringProp name="JSON_PATH">$.code</stringProp>
+            <stringProp name="EXPECTED_VALUE">0</stringProp>
+            <boolProp name="JSONVALIDATION">true</boolProp>
+          </JSONPathAssertion>
+          <hashTree/>
+          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="field $.data.status=SUCCESS">
+            <stringProp name="JSON_PATH">$.data.status</stringProp>
+            <stringProp name="EXPECTED_VALUE">SUCCESS</stringProp>
+            <boolProp name="JSONVALIDATION">true</boolProp>
+          </JSONPathAssertion>
+          <hashTree/>
+          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="field $.data.asserts[0].passed=true">
+            <stringProp name="JSON_PATH">$.data.asserts[0].passed</stringProp>
+            <stringProp name="EXPECTED_VALUE">true</stringProp>
+            <boolProp name="JSONVALIDATION">true</boolProp>
+          </JSONPathAssertion>
+          <hashTree/>
+          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="field $.data.asserts[1].passed=true">
+            <stringProp name="JSON_PATH">$.data.asserts[1].passed</stringProp>
+            <stringProp name="EXPECTED_VALUE">true</stringProp>
+            <boolProp name="JSONVALIDATION">true</boolProp>
+          </JSONPathAssertion>
+          <hashTree/>
+          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="field $.data.logs=jm-pre-script-ran">
+            <stringProp name="JSON_PATH">$.data.logs</stringProp>
+            <stringProp name="EXPECTED_VALUE">jm-pre-script-ran</stringProp>
+            <boolProp name="JSONVALIDATION">false</boolProp>
+          </JSONPathAssertion>
+          <hashTree/>
+          <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion" testname="&lt;5000ms">
+            <stringProp name="DurationAssertion.duration">5000</stringProp>
+          </DurationAssertion>
+          <hashTree/>
+        </hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="T1-3 环境变量写回 svcState=UP"><elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments">
+            <collectionProp name="Arguments.arguments"/>
+          </elementProp>
+          <stringProp name="HTTPSampler.domain">${__P(HOST,localhost)}</stringProp>
+          <stringProp name="HTTPSampler.port">${__P(PORT,3100)}</stringProp>
+          <stringProp name="HTTPSampler.path">/api/v1/projects/${PROJECT_ID}/environments/${ENV_ID}</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="HTTP 200">
+            <collectionProp name="Asserion.test_strings"><stringProp name="49586">200</stringProp></collectionProp>
+            <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+            <boolProp name="Assertion.assume_success">true</boolProp>
+            <intProp name="Assertion.test_type">8</intProp>
+          </ResponseAssertion>
+          <hashTree/>
+          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="field $.code=0">
+            <stringProp name="JSON_PATH">$.code</stringProp>
+            <stringProp name="EXPECTED_VALUE">0</stringProp>
+            <boolProp name="JSONVALIDATION">true</boolProp>
+          </JSONPathAssertion>
+          <hashTree/>
+          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="field $.data.config.vars=svcState">
+            <stringProp name="JSON_PATH">$.data.config.vars</stringProp>
+            <stringProp name="EXPECTED_VALUE">svcState</stringProp>
+            <boolProp name="JSONVALIDATION">false</boolProp>
+          </JSONPathAssertion>
+          <hashTree/>
+          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="field $.data.config.vars=UP">
+            <stringProp name="JSON_PATH">$.data.config.vars</stringProp>
+            <stringProp name="EXPECTED_VALUE">UP</stringProp>
+            <boolProp name="JSONVALIDATION">false</boolProp>
+          </JSONPathAssertion>
+          <hashTree/>
+          <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion" testname="&lt;3000ms">
+            <stringProp name="DurationAssertion.duration">3000</stringProp>
+          </DurationAssertion>
+          <hashTree/>
+        </hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="T4-1 调试历史信封（无 query）"><elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments">
+            <collectionProp name="Arguments.arguments"/>
+          </elementProp>
+          <stringProp name="HTTPSampler.domain">${__P(HOST,localhost)}</stringProp>
+          <stringProp name="HTTPSampler.port">${__P(PORT,3100)}</stringProp>
+          <stringProp name="HTTPSampler.path">/api/v1/projects/${PROJECT_ID}/exec-tasks</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="HTTP 200">
+            <collectionProp name="Asserion.test_strings"><stringProp name="49586">200</stringProp></collectionProp>
+            <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+            <boolProp name="Assertion.assume_success">true</boolProp>
+            <intProp name="Assertion.test_type">8</intProp>
+          </ResponseAssertion>
+          <hashTree/>
+          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="field $.code=0">
+            <stringProp name="JSON_PATH">$.code</stringProp>
+            <stringProp name="EXPECTED_VALUE">0</stringProp>
+            <boolProp name="JSONVALIDATION">true</boolProp>
+          </JSONPathAssertion>
+          <hashTree/>
+          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="field $.data.total=1">
+            <stringProp name="JSON_PATH">$.data.total</stringProp>
+            <stringProp name="EXPECTED_VALUE">1</stringProp>
+            <boolProp name="JSONVALIDATION">true</boolProp>
+          </JSONPathAssertion>
+          <hashTree/>
+          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="field $.data.items[0].method=GET">
+            <stringProp name="JSON_PATH">$.data.items[0].method</stringProp>
+            <stringProp name="EXPECTED_VALUE">GET</stringProp>
+            <boolProp name="JSONVALIDATION">true</boolProp>
+          </JSONPathAssertion>
+          <hashTree/>
+          <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion" testname="&lt;3000ms">
+            <stringProp name="DurationAssertion.duration">3000</stringProp>
+          </DurationAssertion>
+          <hashTree/>
+        </hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="T3-1 body kind 非法 422(20422)"><elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                <stringProp name="Argument.value">{&quot;type&quot;: &quot;api_debug&quot;, &quot;request&quot;: {&quot;method&quot;: &quot;GET&quot;, &quot;url&quot;: &quot;${__P(MOCK_URL,http://127.0.0.1:4000/hello)}&quot;, &quot;headers&quot;: [], &quot;query&quot;: [], &quot;body&quot;: {&quot;kind&quot;: &quot;bogus_kind&quot;}}, &quot;asserts&quot;: []}</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+          <stringProp name="HTTPSampler.domain">${__P(HOST,localhost)}</stringProp>
+          <stringProp name="HTTPSampler.port">${__P(PORT,3100)}</stringProp>
+          <stringProp name="HTTPSampler.path">/api/v1/projects/${PROJECT_ID}/exec-tasks</stringProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="HTTP 422">
+            <collectionProp name="Asserion.test_strings"><stringProp name="49586">422</stringProp></collectionProp>
+            <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+            <boolProp name="Assertion.assume_success">true</boolProp>
+            <intProp name="Assertion.test_type">8</intProp>
+          </ResponseAssertion>
+          <hashTree/>
+          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="field $.code=20422">
+            <stringProp name="JSON_PATH">$.code</stringProp>
+            <stringProp name="EXPECTED_VALUE">20422</stringProp>
+            <boolProp name="JSONVALIDATION">true</boolProp>
+          </JSONPathAssertion>
+          <hashTree/>
+          <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion" testname="&lt;3000ms">
+            <stringProp name="DurationAssertion.duration">3000</stringProp>
+          </DurationAssertion>
+          <hashTree/>
+        </hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="T3-2 asserts 超 50 条 422(20422)"><elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                <stringProp name="Argument.value">{&quot;type&quot;: &quot;api_debug&quot;, &quot;request&quot;: {&quot;method&quot;: &quot;GET&quot;, &quot;url&quot;: &quot;${__P(MOCK_URL,http://127.0.0.1:4000/hello)}&quot;, &quot;headers&quot;: [], &quot;query&quot;: [], &quot;body&quot;: {&quot;kind&quot;: &quot;none&quot;}, &quot;auth&quot;: {&quot;kind&quot;: &quot;none&quot;}, &quot;timeoutMs&quot;: 10000, &quot;followRedirects&quot;: false, &quot;skipPre&quot;: false, &quot;skipPost&quot;: false}, &quot;asserts&quot;: [{&quot;kind&quot;: &quot;status_code&quot;, &quot;path&quot;: &quot;&quot;, &quot;op&quot;: &quot;eq&quot;, &quot;expected&quot;: &quot;200&quot;}, {&quot;kind&quot;: &quot;status_code&quot;, &quot;path&quot;: &quot;&quot;, &quot;op&quot;: &quot;eq&quot;, &quot;expected&quot;: &quot;200&quot;}, {&quot;kind&quot;: &quot;status_code&quot;, &quot;path&quot;: &quot;&quot;, &quot;op&quot;: &quot;eq&quot;, &quot;expected&quot;: &quot;200&quot;}, {&quot;kind&quot;: &quot;status_code&quot;, &quot;path&quot;: &quot;&quot;, &quot;op&quot;: &quot;eq&quot;, &quot;expected&quot;: &quot;200&quot;}, {&quot;kind&quot;: &quot;status_code&quot;, &quot;path&quot;: &quot;&quot;, &quot;op&quot;: &quot;eq&quot;, &quot;expected&quot;: &quot;200&quot;}, {&quot;kind&quot;: &quot;status_code&quot;, &quot;path&quot;: &quot;&quot;, &quot;op&quot;: &quot;eq&quot;, &quot;expected&quot;: &quot;200&quot;}, {&quot;kind&quot;: &quot;status_code&quot;, &quot;path&quot;: &quot;&quot;, &quot;op&quot;: &quot;eq&quot;, &quot;expected&quot;: &quot;200&quot;}, {&quot;kind&quot;: &quot;status_code&quot;, &quot;path&quot;: &quot;&quot;, &quot;op&quot;: &quot;eq&quot;, &quot;expected&quot;: &quot;200&quot;}, {&quot;kind&quot;: &quot;status_code&quot;, &quot;path&quot;: &quot;&quot;, &quot;op&quot;: &quot;eq&quot;, &quot;expected&quot;: &quot;200&quot;}, {&quot;kind&quot;: &quot;status_code&quot;, &quot;path&quot;: &quot;&quot;, &quot;op&quot;: &quot;eq&quot;, &quot;expected&quot;: &quot;200&quot;}, {&quot;kind&quot;: &quot;status_code&quot;, &quot;path&quot;: &quot;&quot;, &quot;op&quot;: &quot;eq&quot;, &quot;expected&quot;: &quot;200&quot;}, {&quot;kind&quot;: &quot;status_code&quot;, &quot;path&quot;: &quot;&quot;, &quot;op&quot;: &quot;eq&quot;, &quot;expected&quot;: &quot;200&quot;}, {&quot;kind&quot;: &quot;status_code&quot;, &quot;path&quot;: &quot;&quot;, &quot;op&quot;: &quot;eq&quot;, &quot;expected&quot;: &quot;200&quot;}, {&quot;kind&quot;: &quot;status_code&quot;, &quot;path&quot;: &quot;&quot;, &quot;op&quot;: &quot;eq&quot;, &quot;expected&quot;: &quot;200&quot;}, {&quot;kind&quot;: &quot;status_code&quot;, &quot;path&quot;: &quot;&quot;, &quot;op&quot;: &quot;eq&quot;, &quot;expected&quot;: &quot;200&quot;}, {&quot;kind&quot;: &quot;status_code&quot;, &quot;path&quot;: &quot;&quot;, &quot;op&quot;: &quot;eq&quot;, &quot;expected&quot;: &quot;200&quot;}, {&quot;kind&quot;: &quot;status_code&quot;, &quot;path&quot;: &quot;&quot;, &quot;op&quot;: &quot;eq&quot;, &quot;expected&quot;: &quot;200&quot;}, {&quot;kind&quot;: &quot;status_code&quot;, &quot;path&quot;: &quot;&quot;, &quot;op&quot;: &quot;eq&quot;, &quot;expected&quot;: &quot;200&quot;}, {&quot;kind&quot;: &quot;status_code&quot;, &quot;path&quot;: &quot;&quot;, &quot;op&quot;: &quot;eq&quot;, &quot;expected&quot;: &quot;200&quot;}, {&quot;kind&quot;: &quot;status_code&quot;, &quot;path&quot;: &quot;&quot;, &quot;op&quot;: &quot;eq&quot;, &quot;expected&quot;: &quot;200&quot;}, {&quot;kind&quot;: &quot;status_code&quot;, &quot;path&quot;: &quot;&quot;, &quot;op&quot;: &quot;eq&quot;, &quot;expected&quot;: &quot;200&quot;}, {&quot;kind&quot;: &quot;status_code&quot;, &quot;path&quot;: &quot;&quot;, &quot;op&quot;: &quot;eq&quot;, &quot;expected&quot;: &quot;200&quot;}, {&quot;kind&quot;: &quot;status_code&quot;, &quot;path&quot;: &quot;&quot;, &quot;op&quot;: &quot;eq&quot;, &quot;expected&quot;: &quot;200&quot;}, {&quot;kind&quot;: &quot;status_code&quot;, &quot;path&quot;: &quot;&quot;, &quot;op&quot;: &quot;eq&quot;, &quot;expected&quot;: &quot;200&quot;}, {&quot;kind&quot;: &quot;status_code&quot;, &quot;path&quot;: &quot;&quot;, &quot;op&quot;: &quot;eq&quot;, &quot;expected&quot;: &quot;200&quot;}, {&quot;kind&quot;: &quot;status_code&quot;, &quot;path&quot;: &quot;&quot;, &quot;op&quot;: &quot;eq&quot;, &quot;expected&quot;: &quot;200&quot;}, {&quot;kind&quot;: &quot;status_code&quot;, &quot;path&quot;: &quot;&quot;, &quot;op&quot;: &quot;eq&quot;, &quot;expected&quot;: &quot;200&quot;}, {&quot;kind&quot;: &quot;status_code&quot;, &quot;path&quot;: &quot;&quot;, &quot;op&quot;: &quot;eq&quot;, &quot;expected&quot;: &quot;200&quot;}, {&quot;kind&quot;: &quot;status_code&quot;, &quot;path&quot;: &quot;&quot;, &quot;op&quot;: &quot;eq&quot;, &quot;expected&quot;: &quot;200&quot;}, {&quot;kind&quot;: &quot;status_code&quot;, &quot;path&quot;: &quot;&quot;, &quot;op&quot;: &quot;eq&quot;, &quot;expected&quot;: &quot;200&quot;}, {&quot;kind&quot;: &quot;status_code&quot;, &quot;path&quot;: &quot;&quot;, &quot;op&quot;: &quot;eq&quot;, &quot;expected&quot;: &quot;200&quot;}, {&quot;kind&quot;: &quot;status_code&quot;, &quot;path&quot;: &quot;&quot;, &quot;op&quot;: &quot;eq&quot;, &quot;expected&quot;: &quot;200&quot;}, {&quot;kind&quot;: &quot;status_code&quot;, &quot;path&quot;: &quot;&quot;, &quot;op&quot;: &quot;eq&quot;, &quot;expected&quot;: &quot;200&quot;}, {&quot;kind&quot;: &quot;status_code&quot;, &quot;path&quot;: &quot;&quot;, &quot;op&quot;: &quot;eq&quot;, &quot;expected&quot;: &quot;200&quot;}, {&quot;kind&quot;: &quot;status_code&quot;, &quot;path&quot;: &quot;&quot;, &quot;op&quot;: &quot;eq&quot;, &quot;expected&quot;: &quot;200&quot;}, {&quot;kind&quot;: &quot;status_code&quot;, &quot;path&quot;: &quot;&quot;, &quot;op&quot;: &quot;eq&quot;, &quot;expected&quot;: &quot;200&quot;}, {&quot;kind&quot;: &quot;status_code&quot;, &quot;path&quot;: &quot;&quot;, &quot;op&quot;: &quot;eq&quot;, &quot;expected&quot;: &quot;200&quot;}, {&quot;kind&quot;: &quot;status_code&quot;, &quot;path&quot;: &quot;&quot;, &quot;op&quot;: &quot;eq&quot;, &quot;expected&quot;: &quot;200&quot;}, {&quot;kind&quot;: &quot;status_code&quot;, &quot;path&quot;: &quot;&quot;, &quot;op&quot;: &quot;eq&quot;, &quot;expected&quot;: &quot;200&quot;}, {&quot;kind&quot;: &quot;status_code&quot;, &quot;path&quot;: &quot;&quot;, &quot;op&quot;: &quot;eq&quot;, &quot;expected&quot;: &quot;200&quot;}, {&quot;kind&quot;: &quot;status_code&quot;, &quot;path&quot;: &quot;&quot;, &quot;op&quot;: &quot;eq&quot;, &quot;expected&quot;: &quot;200&quot;}, {&quot;kind&quot;: &quot;status_code&quot;, &quot;path&quot;: &quot;&quot;, &quot;op&quot;: &quot;eq&quot;, &quot;expected&quot;: &quot;200&quot;}, {&quot;kind&quot;: &quot;status_code&quot;, &quot;path&quot;: &quot;&quot;, &quot;op&quot;: &quot;eq&quot;, &quot;expected&quot;: &quot;200&quot;}, {&quot;kind&quot;: &quot;status_code&quot;, &quot;path&quot;: &quot;&quot;, &quot;op&quot;: &quot;eq&quot;, &quot;expected&quot;: &quot;200&quot;}, {&quot;kind&quot;: &quot;status_code&quot;, &quot;path&quot;: &quot;&quot;, &quot;op&quot;: &quot;eq&quot;, &quot;expected&quot;: &quot;200&quot;}, {&quot;kind&quot;: &quot;status_code&quot;, &quot;path&quot;: &quot;&quot;, &quot;op&quot;: &quot;eq&quot;, &quot;expected&quot;: &quot;200&quot;}, {&quot;kind&quot;: &quot;status_code&quot;, &quot;path&quot;: &quot;&quot;, &quot;op&quot;: &quot;eq&quot;, &quot;expected&quot;: &quot;200&quot;}, {&quot;kind&quot;: &quot;status_code&quot;, &quot;path&quot;: &quot;&quot;, &quot;op&quot;: &quot;eq&quot;, &quot;expected&quot;: &quot;200&quot;}, {&quot;kind&quot;: &quot;status_code&quot;, &quot;path&quot;: &quot;&quot;, &quot;op&quot;: &quot;eq&quot;, &quot;expected&quot;: &quot;200&quot;}, {&quot;kind&quot;: &quot;status_code&quot;, &quot;path&quot;: &quot;&quot;, &quot;op&quot;: &quot;eq&quot;, &quot;expected&quot;: &quot;200&quot;}, {&quot;kind&quot;: &quot;status_code&quot;, &quot;path&quot;: &quot;&quot;, &quot;op&quot;: &quot;eq&quot;, &quot;expected&quot;: &quot;200&quot;}]}</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+          <stringProp name="HTTPSampler.domain">${__P(HOST,localhost)}</stringProp>
+          <stringProp name="HTTPSampler.port">${__P(PORT,3100)}</stringProp>
+          <stringProp name="HTTPSampler.path">/api/v1/projects/${PROJECT_ID}/exec-tasks</stringProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="HTTP 422">
+            <collectionProp name="Asserion.test_strings"><stringProp name="49586">422</stringProp></collectionProp>
+            <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+            <boolProp name="Assertion.assume_success">true</boolProp>
+            <intProp name="Assertion.test_type">8</intProp>
+          </ResponseAssertion>
+          <hashTree/>
+          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="field $.code=20422">
+            <stringProp name="JSON_PATH">$.code</stringProp>
+            <stringProp name="EXPECTED_VALUE">20422</stringProp>
+            <boolProp name="JSONVALIDATION">true</boolProp>
+          </JSONPathAssertion>
+          <hashTree/>
+          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="field $.message=50">
+            <stringProp name="JSON_PATH">$.message</stringProp>
+            <stringProp name="EXPECTED_VALUE">50</stringProp>
+            <boolProp name="JSONVALIDATION">false</boolProp>
+          </JSONPathAssertion>
+          <hashTree/>
+          <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion" testname="&lt;3000ms">
+            <stringProp name="DurationAssertion.duration">3000</stringProp>
+          </DurationAssertion>
+          <hashTree/>
+        </hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="T1-4 清理环境"><elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments">
+            <collectionProp name="Arguments.arguments"/>
+          </elementProp>
+          <stringProp name="HTTPSampler.domain">${__P(HOST,localhost)}</stringProp>
+          <stringProp name="HTTPSampler.port">${__P(PORT,3100)}</stringProp>
+          <stringProp name="HTTPSampler.path">/api/v1/projects/${PROJECT_ID}/environments/${ENV_ID}</stringProp>
+          <stringProp name="HTTPSampler.method">DELETE</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="HTTP 200">
+            <collectionProp name="Asserion.test_strings"><stringProp name="49586">200</stringProp></collectionProp>
+            <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+            <boolProp name="Assertion.assume_success">true</boolProp>
+            <intProp name="Assertion.test_type">8</intProp>
+          </ResponseAssertion>
+          <hashTree/>
+          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="field $.code=0">
+            <stringProp name="JSON_PATH">$.code</stringProp>
+            <stringProp name="EXPECTED_VALUE">0</stringProp>
+            <boolProp name="JSONVALIDATION">true</boolProp>
+          </JSONPathAssertion>
+          <hashTree/>
+          <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion" testname="&lt;3000ms">
+            <stringProp name="DurationAssertion.duration">3000</stringProp>
+          </DurationAssertion>
+          <hashTree/>
+        </hashTree>
+      </hashTree>
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="未登录场景">
+        <stringProp name="ThreadGroup.num_threads">1</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">1</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController">
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+          <stringProp name="LoopController.loops">1</stringProp>
+        </elementProp>
+      </ThreadGroup>
+      <hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="T2-1 未登录建调试任务 401(10001)"><elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                <stringProp name="Argument.value">{&quot;type&quot;: &quot;api_debug&quot;, &quot;envId&quot;: &quot;${ENV_ID}&quot;, &quot;request&quot;: {&quot;method&quot;: &quot;GET&quot;, &quot;url&quot;: &quot;${base}/hello&quot;, &quot;headers&quot;: [], &quot;query&quot;: [], &quot;body&quot;: {&quot;kind&quot;: &quot;none&quot;}, &quot;auth&quot;: {&quot;kind&quot;: &quot;none&quot;}, &quot;timeoutMs&quot;: 10000, &quot;followRedirects&quot;: false, &quot;skipPre&quot;: false, &quot;skipPost&quot;: false}, &quot;asserts&quot;: [{&quot;kind&quot;: &quot;body_jsonpath&quot;, &quot;path&quot;: &quot;$.message&quot;, &quot;op&quot;: &quot;eq&quot;, &quot;expected&quot;: &quot;hello&quot;}, {&quot;kind&quot;: &quot;variable&quot;, &quot;path&quot;: &quot;who&quot;, &quot;op&quot;: &quot;eq&quot;, &quot;expected&quot;: &quot;jm&quot;}], &quot;pre&quot;: [{&quot;kind&quot;: &quot;script&quot;, &quot;script&quot;: &quot;setVar(\&quot;who\&quot;, \&quot;jm\&quot;); log(\&quot;jm-pre-script-ran\&quot;)&quot;}], &quot;post&quot;: [], &quot;extracts&quot;: [{&quot;source&quot;: &quot;body&quot;, &quot;kind&quot;: &quot;jsonpath&quot;, &quot;expression&quot;: &quot;$.status&quot;, &quot;match&quot;: &quot;first&quot;, &quot;variable&quot;: &quot;svcState&quot;, &quot;scope&quot;: &quot;env&quot;}]}</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+          <stringProp name="HTTPSampler.domain">${__P(HOST,localhost)}</stringProp>
+          <stringProp name="HTTPSampler.port">${__P(PORT,3100)}</stringProp>
+          <stringProp name="HTTPSampler.path">/api/v1/projects/00000000-0000-0000-0000-000000000009/exec-tasks</stringProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="HTTP 401">
+            <collectionProp name="Asserion.test_strings"><stringProp name="49586">401</stringProp></collectionProp>
+            <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+            <boolProp name="Assertion.assume_success">true</boolProp>
+            <intProp name="Assertion.test_type">8</intProp>
+          </ResponseAssertion>
+          <hashTree/>
+          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="field $.code=10001">
+            <stringProp name="JSON_PATH">$.code</stringProp>
+            <stringProp name="EXPECTED_VALUE">10001</stringProp>
+            <boolProp name="JSONVALIDATION">true</boolProp>
+          </JSONPathAssertion>
+          <hashTree/>
+          <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion" testname="&lt;3000ms">
+            <stringProp name="DurationAssertion.duration">3000</stringProp>
+          </DurationAssertion>
+          <hashTree/>
+        </hashTree>
+      </hashTree>
+    </hashTree>
+  </hashTree>
+</jmeterTestPlan>

@@ -21,6 +21,7 @@ for plan in tests/api/*.jmx; do
   name="$(basename "$plan" .jmx)"
   echo "> $name"
   jtl="$OUT_DIR/$name.jtl"
+  rm -f "$jtl" # jtl 追加式：清场避免上一轮失败行混入本轮计数
   jmeter -n -t "$plan" \
     -JHOST="$HOST" -JPORT="$PORT" -JMOCK_URL="$MOCK_URL" \
     -l "$jtl" -j "$OUT_DIR/$name.log" >/dev/null 2>&1
@@ -29,10 +30,13 @@ for plan in tests/api/*.jmx; do
     FAIL=1
     continue
   fi
-  err_count="$(grep -c '<error>true</error>' "$jtl" || true)"
-  err_count="${err_count:-0}"
+  # JMeter 5.6 默认 CSV jtl：success 列（第 8 列）为 false 即断言/采样失败。
+  # 勘误（2026-09-27）：原实现 grep '<error>true</error>'（XML 格式）对 CSV 恒不命中，
+  # 门禁空转——S1 期间任何断言失败都被漏放。本修复恢复真实校验。
+  err_count="$(awk -F, 'NR>1 && $8=="false"' "$jtl" | wc -l | tr -d ' ')"
   if [ "$err_count" -gt 0 ] 2>/dev/null; then
     echo "  FAIL: $err_count sampler(s) failed (see $jtl)"
+    awk -F, 'NR>1 && $8=="false" {print "    ✗ " $3 " " $1 " " $5}' "$jtl" | head -5
     FAIL=1
   else
     echo "  PASS: all assertions passed"

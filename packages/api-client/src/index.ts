@@ -1,5 +1,6 @@
 export * from "./s1";
-import type { AssertSpec, DebugRequest, TaskStatus } from "@rabbit/shared";
+export * from "./s2";
+import type { AssertSpec, RequestSpec, TaskStatus } from "@rabbit/shared";
 import type { CaseCreateInput, CaseDetail, CaseListQuery } from "@rabbit/shared";
 import { get, post, put, del } from "./client";
 
@@ -56,7 +57,7 @@ export interface DebugHistoryItem {
 export const execApi = {
   createDebugTask: (
     projectId: string,
-    request: DebugRequest,
+    request: RequestSpec,
     asserts: AssertSpec[],
     clientTaskId?: string,
   ) =>
@@ -67,8 +68,11 @@ export const execApi = {
       clientTaskId,
     }),
   debugHistory: (projectId: string) =>
+    // 不带 query：命中服务端「旧调试历史口径兼容」分支（exec-tasks/route.ts GET：searchParams 为空
+    // → debugHistory，返回 {id,status,method,url}）。带 query 会落到 listExecTasks（无 url/method 字段），
+    // 调试页历史面板 h.url.replace 将抛 TypeError（2026-09-27 e2e API-001/API-004 回归定位）。
     get<{ total: number; items: DebugHistoryItem[] }>(
-      `/api/v1/projects/${projectId}/exec-tasks?type=api_debug&pageSize=20`,
+      `/api/v1/projects/${projectId}/exec-tasks`,
     ),
 };
 

@@ -14,6 +14,11 @@ export class EventWriter {
     this.streamKey = config.execStreamKey(taskId);
   }
 
+  /** 任务 ID（停止键轮询等外部消费） */
+  get taskIdValue(): string {
+    return this.taskId;
+  }
+
   get lastSeq(): number {
     return this.seq;
   }

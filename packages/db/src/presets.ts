@@ -13,11 +13,14 @@ export async function ensureSystemPresetGroups(tx: Tx): Promise<void> {
     ["系统管理员", PRESET_GROUP_PERMISSIONS.SYSTEM_ADMIN],
     ["系统成员", PRESET_GROUP_PERMISSIONS.SYSTEM_MEMBER],
   ] as const) {
+    // isSystem 组只读：权限清单随 PRESET_GROUP_PERMISSIONS 演进，重放 seed 同步（幂等）
     const existing = await tx.group.findFirst({
       where: { scope: "system", name },
       select: { id: true },
     });
-    if (!existing) {
+    if (existing) {
+      await tx.group.update({ where: { id: existing.id }, data: { permissions: [...perms] } });
+    } else {
       await tx.group.create({
         data: { scope: "system", name, isSystem: true, permissions: [...perms] },
       });
@@ -34,7 +37,9 @@ export async function ensureOrgPresetGroups(tx: Tx, orgId: string): Promise<void
       where: { scope: "org", orgId, name },
       select: { id: true },
     });
-    if (!existing) {
+    if (existing) {
+      await tx.group.update({ where: { id: existing.id }, data: { permissions: [...perms] } });
+    } else {
       await tx.group.create({
         data: { scope: "org", orgId, name, isSystem: true, permissions: [...perms] },
       });
@@ -51,7 +56,9 @@ export async function ensureProjectPresetGroups(tx: Tx, projectId: string): Prom
       where: { scope: "project", projectId, name },
       select: { id: true },
     });
-    if (!existing) {
+    if (existing) {
+      await tx.group.update({ where: { id: existing.id }, data: { permissions: [...perms] } });
+    } else {
       await tx.group.create({
         data: { scope: "project", projectId, name, isSystem: true, permissions: [...perms] },
       });
@@ -131,6 +138,21 @@ export async function ensureBugModule(tx: Tx, projectId: string): Promise<string
   return m.id;
 }
 
+/** file 场景默认模块（PROJ-004，懒创建口径与 bug 一致） */
+export async function ensureFileModule(tx: Tx, projectId: string): Promise<string> {
+  let m = await tx.moduleNode.findFirst({
+    where: { projectId, scene: "file", isDefault: true },
+    select: { id: true },
+  });
+  if (!m) {
+    m = await tx.moduleNode.create({
+      data: { projectId, scene: "file", name: "未规划文件", isDefault: true },
+      select: { id: true },
+    });
+  }
+  return m.id;
+}
+
 /** 注册/建项目时的完整预置初始化（org 组 + project 组 + 模板 + bug 模块 + 创建者入管理员组）。 */
 export async function initOrgAndProjectPresets(
   tx: Tx,
@@ -142,6 +164,7 @@ export async function initOrgAndProjectPresets(
   await ensureProjectPresetGroups(tx, projectId);
   await ensureDefaultTemplates(tx, orgId);
   await ensureBugModule(tx, projectId);
+  await ensureFileModule(tx, projectId);
   const orgAdmin = await tx.group.findFirst({
     where: { scope: "org", orgId, name: "组织管理员" },
     select: { id: true },

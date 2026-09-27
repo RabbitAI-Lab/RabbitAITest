@@ -103,10 +103,13 @@ export async function getPlan(projectId: string, planId: string) {
   });
   if (!p) throw new DomainError(ErrCode.PLAN_NOT_FOUND, "计划不存在或已删除");
   const allRefs = await prisma.planCaseRef.findMany({
-    where: { planId, refType: "functional_case" },
+    where: { planId },
     orderBy: { id: "asc" },
   });
-  const caseIds = allRefs.map((r) => r.refId);
+  // CASE-006/S2：接口用例关联行（refType=api_case）一并透出（名称经 ApiRefProvider，执行随 S4）
+  const fnRefs = allRefs.filter((r) => r.refType === "functional_case");
+  const apiRefs = allRefs.filter((r) => r.refType === "api_case");
+  const caseIds = fnRefs.map((r) => r.refId);
   const caseRows = caseIds.length
     ? await prisma.functionalCase.findMany({
         where: { id: { in: caseIds }, deletedAt: null },
@@ -114,8 +117,25 @@ export async function getPlan(projectId: string, planId: string) {
       })
     : [];
   const caseMap = new Map(caseRows.map((c) => [c.id, c]));
-  const refs = allRefs.filter((r) => caseMap.has(r.refId));
-  const stats = planPassRate(allRefs.map((r) => ({ status: r.status })));
+  const refs = fnRefs.filter((r) => caseMap.has(r.refId));
+  let apiSummaries: {
+    refId: string;
+    name: string;
+    apiName: string;
+    method: string;
+    path: string;
+    level: string;
+    status: string;
+    deleted: boolean;
+  }[] = [];
+  if (apiRefs.length > 0) {
+    // 接口域读只经 Provider 通道（禁止本文件直查 api 域模型——test-domain-model §3）
+    const { listApiRefSummary } = await import("@/server/domains/api/api-ref.provider");
+    apiSummaries = await listApiRefSummary(projectId, apiRefs.map((r) => r.refId));
+  }
+  const apiMap = new Map(apiSummaries.map((s) => [s.refId, s]));
+  // 统计口径不变：仅功能用例参与人工执行通过率（api_case 恒 NOT_RUN，执行随 S4）
+  const stats = planPassRate(fnRefs.map((r) => ({ status: r.status })));
   const settings = (p.settings ?? {}) as {
     threshold?: number;
     allowDuplicate?: boolean;
@@ -135,32 +155,64 @@ export async function getPlan(projectId: string, planId: string) {
     stats,
     passRate: stats.passRate,
     thresholdMet: stats.passRate === null ? null : stats.passRate >= (settings.threshold ?? 100),
-    caseCount: allRefs.length,
-    cases: refs.map((r) => {
-      const c = caseMap.get(r.refId)!;
-      return {
-        refId: r.id,
-        caseId: r.refId,
-        num: c.num,
-        name: c.name,
-        level: c.level,
-        tags: (c.tags ?? []) as string[],
-        steps: (c.steps ?? []) as { desc: string; expect: string }[],
-        execUserId: r.execUserId,
-        status: r.status,
-        result: (r.result ?? {}) as {
-          actualResult?: string;
-          steps?: { status: string; result: string }[];
-          comment?: string;
-        },
-        execHistory: (r.execHistory ?? []) as {
-          ts: string;
-          userId: string;
-          from: string;
-          to: string;
-        }[],
-      };
-    }),
+    caseCount: fnRefs.length,
+    cases: [
+      ...refs.map((r) => {
+        const c = caseMap.get(r.refId)!;
+        return {
+          refId: r.id,
+          refType: "functional_case" as const,
+          caseId: r.refId,
+          num: c.num,
+          name: c.name,
+          level: c.level,
+          tags: (c.tags ?? []) as string[],
+          steps: (c.steps ?? []) as { desc: string; expect: string }[],
+          execUserId: r.execUserId,
+          status: r.status,
+          result: (r.result ?? {}) as {
+            actualResult?: string;
+            steps?: { status: string; result: string }[];
+            comment?: string;
+          },
+          execHistory: (r.execHistory ?? []) as {
+            ts: string;
+            userId: string;
+            from: string;
+            to: string;
+          }[],
+        };
+      }),
+      ...apiRefs.flatMap((r) => {
+        const s = apiMap.get(r.refId);
+        return s
+          ? [
+              {
+                refId: r.id,
+                refType: "api_case" as const,
+                caseId: r.refId,
+                num: null,
+                name: s.name,
+                level: s.level,
+                tags: [] as string[],
+                steps: [] as { desc: string; expect: string }[],
+                execUserId: r.execUserId,
+                status: r.status,
+                result: {} as {
+                  actualResult?: string;
+                  steps?: { status: string; result: string }[];
+                  comment?: string;
+                },
+                execHistory: [] as { ts: string; userId: string; from: string; to: string }[],
+                apiName: s.apiName,
+                method: s.method,
+                path: s.path,
+                deleted: s.deleted,
+              },
+            ]
+          : [];
+      }),
+    ],
   };
 }
 
@@ -210,6 +262,8 @@ export async function addPlanCases(
   planId: string,
   caseIds: string[],
   execUserId?: string,
+  /** CASE-006：接口用例关联（refType=api_case 经 ApiRefProvider 校验，执行随 S4 PLAN-003） */
+  apiCaseIds: string[] = [],
 ) {
   const p = await loadPlan(projectId, planId);
   requireNotArchived(p.archivedAt);
@@ -218,6 +272,29 @@ export async function addPlanCases(
     where: { id: { in: caseIds }, projectId, deletedAt: null },
     select: { id: true },
   });
+  if (apiCaseIds.length > 0) {
+    // 接口用例走 Provider 通道（禁止本文件直查 api 域模型——test-domain-model §3）
+    const { batchValidateApiRefs, assertNoInvalidRef } = await import(
+      "@/server/domains/api/api-ref.provider"
+    );
+    const { valid, invalid } = await batchValidateApiRefs(projectId, apiCaseIds);
+    assertNoInvalidRef(invalid);
+    const apiExisting = await prisma.planCaseRef.findMany({
+      where: { planId, refType: "api_case", refId: { in: valid } },
+      select: { refId: true },
+    });
+    const apiExistingSet = new Set(apiExisting.map((e) => e.refId));
+    const apiDup = valid.filter((id) => apiExistingSet.has(id));
+    if (apiDup.length > 0 && !settings.allowDuplicate) {
+      throw new DomainError(ErrCode.DUP_ASSOC, `重复关联 ${apiDup.length} 条接口用例（计划未开启「允许重复关联」）`);
+    }
+    for (const refId of valid) {
+      if (apiExistingSet.has(refId)) continue;
+      await prisma.planCaseRef.create({
+        data: { planId, refType: "api_case", refId, status: "NOT_RUN" },
+      });
+    }
+  }
   const existing = await prisma.planCaseRef.findMany({
     where: { planId, refType: "functional_case", refId: { in: caseIds } },
     select: { refId: true },
@@ -272,7 +349,7 @@ export async function execPlanCase(
     select: { steps: true },
   });
   const caseSteps = (caseRow?.steps ?? []) as { desc: string; expect: string }[];
-  if (input.steps && input.steps.length > 0 && input.steps.length !== caseSteps.length) {
+  if (input.steps && input.steps.length !== caseSteps.length) {
     throw new DomainError(
       ErrCode.VALIDATION_FAILED,
       `步骤结果数量（${input.steps.length}）须与用例步骤数（${caseSteps.length}）一致`,
@@ -345,10 +422,30 @@ export async function getPlanReport(projectId: string, planId: string) {
     select: { id: true, summary: true, createdAt: true },
   });
   if (!report) {
-    // 懒创建计划报告（reportType=plan）
+    // 懒创建计划报告（reportType=plan）；taskId 外键→先建占位执行任务（S1 勘误：伪 id 违反 FK）
+    const task = await prisma.execTask.findFirst({
+      where: { type: "plan", refType: "plan", refId: planId },
+      select: { id: true },
+    });
+    const taskId =
+      task?.id ??
+      (
+        await prisma.execTask.create({
+          data: {
+            projectId,
+            type: "plan",
+            refType: "plan",
+            refId: planId,
+            status: "SUCCESS",
+            payload: { placeholder: true },
+            createdBy: "system",
+          },
+          select: { id: true },
+        })
+      ).id;
     const created = await prisma.report.create({
       data: {
-        taskId: `plan-${planId}`,
+        taskId,
         projectId,
         planId,
         reportType: "plan",
@@ -372,9 +469,29 @@ export async function updatePlanReportSummary(projectId: string, planId: string,
     await prisma.report.update({ where: { id: existing.id }, data: { summary } });
     return { reportId: existing.id };
   }
+  const task = await prisma.execTask.findFirst({
+    where: { type: "plan", refType: "plan", refId: planId },
+    select: { id: true },
+  });
+  const taskId =
+    task?.id ??
+    (
+      await prisma.execTask.create({
+        data: {
+          projectId,
+          type: "plan",
+          refType: "plan",
+          refId: planId,
+          status: "SUCCESS",
+          payload: { placeholder: true },
+          createdBy: "system",
+        },
+        select: { id: true },
+      })
+    ).id;
   const created = await prisma.report.create({
     data: {
-      taskId: `plan-${planId}`,
+      taskId,
       projectId,
       planId,
       reportType: "plan",

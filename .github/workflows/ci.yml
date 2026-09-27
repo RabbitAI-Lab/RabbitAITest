@@ -188,6 +188,7 @@ jobs:
             export REDIS_URL='"$REDIS_URL"' DATABASE_URL='"$DATABASE_URL"'
             export SESSION_SECRET=ci-jm-secret-32chars-ok!!!!!!
             export INTERNAL_TOKEN=ci-internal-token SESSION_COOKIE_SECURE=false
+            export RABBIT_USER_LIMIT=1000 # 与 e2e 口径一致：全量套件注册用户数 >30（产品默认 30 不变）
             pnpm --filter @rabbit/db migrate-deploy
             pnpm --filter @rabbit/db seed
             pnpm --filter web start > /tmp/web.log 2>&1 &

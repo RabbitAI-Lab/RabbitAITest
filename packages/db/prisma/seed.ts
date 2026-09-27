@@ -14,7 +14,7 @@ const prisma = new PrismaClient();
 
 /** 系统管理员（SYS-004/SYS-005 演示与接口测试账号；密码仅本地/CI 种子，不入文档） */
 const ADMIN_EMAIL = "admin@rabbit.test";
-const ADMIN_PASSWORD = "rabbit-admin-123";
+const ADMIN_PASSWORD = process.env.RABBIT_SEED_ADMIN_PASSWORD ?? "rabbit-admin-123";
 
 async function main() {
   // 1) 系统参数四组（SYS-005）

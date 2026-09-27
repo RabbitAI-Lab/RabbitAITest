@@ -71,7 +71,9 @@ async function ensureRedis() {
     await waitPort(port, "127.0.0.1", 20000);
   }
   process.env.E2E_REDIS_URL = `redis://127.0.0.1:${port}`;
-  process.env.RABBIT_USER_LIMIT = '200'; // 全量套件注册用户数 >30，测试环境放宽（产品默认 30 不变）
+  // 1000 而非 200：pg-e2e 常驻库跨轮累积用户（注册通道不查上限，仅管理端 createUser 查），
+  // 2026-09-27 累积 268>200 致 SYS-004-01 建用户 400 USER_TOO_MANY；产品默认 30 不变
+  process.env.RABBIT_USER_LIMIT = '1000';
   log(`redis(e2e) :${port}`);
 }
 
@@ -89,6 +91,8 @@ export default async function globalSetup() {
     WEB_URL: "http://localhost:3100",
     SESSION_SECRET: "e2e-session-secret-32chars-ok!!!!!",
     INTERNAL_TOKEN: "e2e-internal-token",
+    // e2e mock 独占 :4001（web 经 MOCK_PUBLIC_URL 展示/下发 4001 地址）——与开发栈 :4000 并存互不抢占
+    MOCK_PORT: "4001",
   };
   for (const k of ["DATABASE_URL", "REDIS_URL", "WEB_URL", "SESSION_SECRET", "INTERNAL_TOKEN"]) {
     if (env[k]) process.env[k] = env[k];
@@ -113,9 +117,24 @@ export default async function globalSetup() {
     const p = spawn("pnpm", ["--filter", pkg, "start"], { cwd: root, env, stdio: "inherit" });
     procs.push({ name, p });
   };
+  // :4001 若被上一轮残留占用先释放（e2e mock 专用端口，与开发栈 :4000 隔离）
+  try {
+    const holders = spawnSync("lsof", ["-ti", ":4001"], { encoding: "utf8" });
+    const pids = (holders.stdout ?? "").split("\n").map((s) => s.trim()).filter(Boolean);
+    for (const pid of pids) {
+      try {
+        process.kill(Number(pid), "SIGKILL");
+        log(`释放 :4001（杀残留进程 ${pid}）`);
+      } catch {
+        /* 已退出 */
+      }
+    }
+  } catch {
+    /* lsof 不可用时跳过 */
+  }
   start("engine", "engine");
   start("mock", "mock");
-  await waitPort(4000, "127.0.0.1", 20000).catch(() => log("mock 端口未就绪（继续，用例将失败）"));
+  await waitPort(4001, "127.0.0.1", 20000).catch(() => log("mock 端口未就绪（继续，用例将失败）"));
   await new Promise((r) => setTimeout(r, 2000));
 
   globalThis.__e2eEnv = { procs, pg };
