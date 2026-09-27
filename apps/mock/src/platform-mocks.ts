@@ -64,7 +64,8 @@ export function buildPlatformMocks(): Hono {
   let zentaoToken: { token: string; at: number } | null = null;
   app.post("/api.php/v1/tokens", async (c) => {
     const body = (await c.req.json()) as { account: string; password: string };
-    if (body.account === "mock-user" && body.password === "mock-pass") {
+    if (body.account && body.password) {
+      // 非空即过（e2e/CI 凭据经 env 注入；mock 不承载真实鉴权语义——rules/security 测试凭据纪律）
       zentaoToken = { token: `zt-${Date.now()}`, at: Date.now() };
       return c.json({ token: zentaoToken.token }, 201);
     }
@@ -103,8 +104,12 @@ export function buildPlatformMocks(): Hono {
   app.get("/quickstart/testauth", (c) => {
     const auth = c.req.header("authorization") ?? "";
     const decoded = Buffer.from(auth.replace("Basic ", ""), "base64").toString("utf8");
-    if (decoded !== "mock-user:mock-pass") return c.json({ status: -1, info: "auth failed" }, 401);
-    return c.json({ status: 1, data: { user: "tapd-mock", email: "tapd@example.com" } });
+    const idx = decoded.indexOf(":");
+    // 非空用户名+密码即过（同 zentao 口径：mock 不承载真实鉴权）
+    if (idx > 0 && decoded.slice(0, idx) && decoded.slice(idx + 1)) {
+      return c.json({ status: 1, data: { user: "tapd-mock", email: "tapd@example.com" } });
+    }
+    return c.json({ status: -1, info: "auth failed" }, 401);
   });
   app.post("/bugs", async (c) => {
     const body = (await c.req.json()) as { workspace_id: string; title: string };
