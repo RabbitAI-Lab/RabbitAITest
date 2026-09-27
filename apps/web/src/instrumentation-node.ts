@@ -58,6 +58,12 @@ export async function register(): Promise<void> {
           }
           return;
         }
+        if (job.name === "audit") {
+          // SYS-008 落库：schedule 队列复用（job name=audit）→ 批量直写
+          const data = job.data as { events?: Parameters<typeof directWrite>[0] };
+          if (data.events?.length) await directWrite(data.events);
+          return;
+        }
         if (job.name === "audit-purge") {
           const row = await prisma.systemParam.findUnique({ where: { key: "audit" } });
           const days = ((row?.value as { auditRetentionDays?: number } | undefined)?.auditRetentionDays) ?? 90;

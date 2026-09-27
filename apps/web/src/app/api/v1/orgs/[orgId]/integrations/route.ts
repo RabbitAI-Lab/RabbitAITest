@@ -20,7 +20,14 @@ export const GET = withOrgScope(async (ctx, _req) => {
 export const PUT = withOrgScope(async (ctx, req) => {
   try {
     ctx.requirePerm("ORG_INTEGRATION:UPDATE");
-    const body = integrationSaveSchema.parse(await req.json());
+    const pp = integrationSaveSchema.safeParse(await req.json());
+    if (!pp.success) {
+      return NextResponse.json(
+        { code: 20422, message: pp.error.issues[0]?.message ?? "参数校验失败", data: null },
+        { status: 422 },
+      );
+    }
+    const body = pp.data;
     await svc.saveIntegration(ctx.orgId, body);
     recordAudit({
       userId: ctx.userId,

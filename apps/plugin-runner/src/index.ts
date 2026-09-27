@@ -7,9 +7,9 @@
  */
 import { serve } from "@hono/node-server";
 import { Hono } from "hono";
-import { loadPlugin, unloadPlugin, callPlugin, status } from "./host.js";
-import { registerEchoBuiltin, ECHO_HANDLE } from "./builtins.js";
-import type { PluginHandle } from "./types.js";
+import { loadPlugin, unloadPlugin, callPlugin, status } from "./host";
+import { registerEchoBuiltin, ECHO_HANDLE } from "./builtins";
+import type { PluginHandle } from "./types";
 
 const globalForRunner = globalThis as unknown as { __rabbitRunnerStarted?: boolean };
 

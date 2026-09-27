@@ -4,9 +4,9 @@ CREATE TABLE "platform_integrations" (
     "org_id" TEXT NOT NULL,
     "platform" VARCHAR(32) NOT NULL,
     "address" VARCHAR(512) NOT NULL,
-    "auth_type" VARCHAR(16) NOT NULL,
+    "authType" VARCHAR(16) NOT NULL,
     "credential" TEXT NOT NULL,
-    "test_status" VARCHAR(16) NOT NULL DEFAULT 'NONE',
+    "testStatus" VARCHAR(16) NOT NULL DEFAULT 'NONE',
     "test_message" VARCHAR(512),
     "tested_at" TIMESTAMP(3),
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -21,5 +21,5 @@ CREATE UNIQUE INDEX "platform_integrations_org_id_platform_key" ON "platform_int
 -- CreateIndex
 CREATE INDEX "api_keys_prefix_idx" ON "api_keys"("prefix");
 
--- AddForeignKey
-ALTER TABLE "platform_integrations" ADD CONSTRAINT "platform_integrations_org_id_fkey" FOREIGN KEY ("org_id") REFERENCES "organizations"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+-- AddForeignKey（Organization 模型无 @@map——init 建表名为 "Organization"）
+ALTER TABLE "platform_integrations" ADD CONSTRAINT "platform_integrations_org_id_fkey" FOREIGN KEY ("org_id") REFERENCES "Organization"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

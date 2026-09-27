@@ -69,7 +69,7 @@ export async function createTask(projectId: string, input: TaskSave): Promise<Ta
     throw new DomainError(ErrCode.SWAGGER_TASKS_LIMIT_EXCEEDED, `同步任务上限 ${MAX_TASKS} 条`);
   }
   validateCron(input.cron);
-  assertSafeOutboundUrl(input.url);
+  await assertSafeOutboundUrl(input.url);
   const task: Task = {
     id: crypto.randomUUID(),
     name: input.name,
@@ -92,7 +92,7 @@ export async function updateTask(projectId: string, id: string, input: TaskSave 
   const idx = tasks.findIndex((t) => t.id === id);
   if (idx < 0) throw new DomainError(ErrCode.SWAGGER_SYNC_TASK_NOT_FOUND, "同步任务不存在");
   validateCron(input.cron);
-  assertSafeOutboundUrl(input.url);
+  await assertSafeOutboundUrl(input.url);
   tasks[idx] = {
     ...tasks[idx]!,
     name: input.name,
@@ -124,7 +124,7 @@ export async function runSync(projectId: string, taskId: string, userId = "syste
   const started = Date.now();
   let result: SyncResult;
   try {
-    assertSafeOutboundUrl(task.url);
+    await assertSafeOutboundUrl(task.url);
     const moduleId = task.moduleId ?? (await ensureApiModule(prisma, projectId));
     const res = await fetch(task.url, { signal: AbortSignal.timeout(10_000) });
     if (!res.ok) throw new DomainError(ErrCode.SWAGGER_FETCH_FAILED, `文档拉取失败 HTTP ${res.status}`);

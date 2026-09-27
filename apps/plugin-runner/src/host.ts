@@ -4,10 +4,20 @@
  */
 import { Worker } from "node:worker_threads";
 import { fileURLToPath } from "node:url";
+import path from "node:path";
 import { randomUUID } from "node:crypto";
-import type { CallResponse, PluginHandle, RunnerStatus } from "./types.js";
+import type { CallResponse, PluginHandle, RunnerStatus } from "./types";
 
-const WORKER_FILE = fileURLToPath(new URL("./worker-bootstrap.mjs", import.meta.url));
+// worker 入口路径：独立进程=源码目录（import.meta.url）；web 内嵌=webpack 改写 import.meta.url
+// 导致 fileURLToPath 失败 → 回退 monorepo 相对布局（apps/web → ../plugin-runner/src）
+function resolveWorkerFile(): string {
+  try {
+    return fileURLToPath(new URL("./worker-bootstrap.mjs", import.meta.url));
+  } catch {
+    return path.join(process.cwd(), "..", "plugin-runner", "src", "worker-bootstrap.mjs");
+  }
+}
+const WORKER_FILE = resolveWorkerFile();
 const CALL_TIMEOUT_MS = 30_000;
 
 interface Pending {

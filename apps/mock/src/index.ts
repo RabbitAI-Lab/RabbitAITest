@@ -3,7 +3,7 @@ import { Hono } from "hono";
 import type { Context } from "hono";
 import Redis from "ioredis";
 import type { MockProjectSnapshot, MockRuleSnapshotItem } from "@rabbit/shared";
-import { buildPlatformMocks } from "./platform-mocks.js";
+import { buildPlatformMocks, mountSwaggerDoc } from "./platform-mocks.js";
 
 /**
  * Mock 服务（API-005）：`/mock/{projectNum}/{...apiPath}` 规则匹配。
@@ -214,6 +214,7 @@ if (process.env.VITEST === undefined) {
   app.route("/mock-jira", platformMocks);
   app.route("/mock-zentao", platformMocks);
   app.route("/mock-tapd", platformMocks);
+  mountSwaggerDoc(app);
   serve({ fetch: app.fetch, port }, (info) => {
     console.log(`[mock] listening :${info.port}（/healthz /hello /mock/{projectNum}/{path} + mock-jira/zentao/tapd）`);
   });

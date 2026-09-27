@@ -172,6 +172,8 @@ jobs:
       - run: pnpm install --frozen-lockfile || pnpm install
       - run: pnpm --filter @rabbit/db generate
       - run: pnpm --filter web build
+      - name: build plugin tarballs（S6 PLUG/INTG jmx 上传依赖）
+        run: pnpm build:plugins
       - name: install jmeter
         run: |
           curl -sL https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-5.6.3.tgz | tar -xz -C /opt
@@ -181,6 +183,9 @@ jobs:
           export DATABASE_URL=postgresql://postgres:postgres@localhost:5432/rabbit_jm
           export REDIS_URL=redis://127.0.0.1:6379
           export NO_ENGINE=0
+          # S6：集成凭据加密密钥（jmx 断言值非真实凭据）；Swagger 同步目标为本地 mock → 放开私网出站
+          export RABBIT_INTEGRATION_SECRET=ci-jm-integration-secret-32chars!!
+          export OUTBOUND_ALLOW_PRIVATE=1
           # 复用本地栈脚本环境（端口 3101）
           bash -c '
             set -a
@@ -188,6 +193,8 @@ jobs:
             export REDIS_URL='"$REDIS_URL"' DATABASE_URL='"$DATABASE_URL"'
             export SESSION_SECRET=ci-jm-session-secret-32chars-ok!!!!!
             export INTERNAL_TOKEN=ci-internal-token SESSION_COOKIE_SECURE=false
+            export RABBIT_INTEGRATION_SECRET='"$RABBIT_INTEGRATION_SECRET"'
+            export OUTBOUND_ALLOW_PRIVATE=1
             export RABBIT_USER_LIMIT=1000 # 与 e2e 口径一致：全量套件注册用户数 >30（产品默认 30 不变）
             # S7 AI：mock 供应商(:4000) 在环回——SSRF 守卫仅豁免环回；种子内置 mock 模型（baseUrl 含 /ai 前缀）
             export AI_ALLOW_PRIVATE_BASEURL=1

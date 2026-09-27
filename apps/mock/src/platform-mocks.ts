@@ -139,3 +139,22 @@ export function buildPlatformMocks(): Hono {
 
   return app;
 }
+
+/** Swagger 定时同步 mock 文档（API-011）：挂主 app 根级（不经平台前缀） */
+export function mountSwaggerDoc(app: Hono): void {
+  app.get("/docs/openapi.json", (c) => {
+    return c.json({
+      openapi: "3.0.3",
+      info: { title: "Mock Order API", version: "1.0.0" },
+      paths: {
+        "/orders": {
+          get: { summary: "list orders", responses: { "200": { description: "ok" } } },
+          post: { summary: "create order", responses: { "201": { description: "created" } } },
+        },
+        "/orders/{orderId}": {
+          get: { summary: "get order", responses: { "200": { description: "ok" } } },
+        },
+      },
+    });
+  });
+}

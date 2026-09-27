@@ -2,8 +2,8 @@
  * 内置插件（PLUG-001 §1.2）：platform-echo —— SPI 全方法确定性实现，
  * 用于 PLUG-001 生命周期验收与 INTG 联调演示（无三方网络）。
  */
-import type { PluginHandle } from "./types.js";
-import { registerBuiltin } from "./host.js";
+import type { PluginHandle } from "./types";
+import { registerBuiltin } from "./host";
 
 export const ECHO_HANDLE: PluginHandle = {
   pluginId: "builtin-echo",

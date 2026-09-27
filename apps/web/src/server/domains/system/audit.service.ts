@@ -143,6 +143,7 @@ export async function queryAuditLogs(
   if (query.from && query.to && new Date(query.to) < new Date(query.from)) {
     throw new DomainError(ErrCode.AUDIT_QUERY_INVALID, "时间范围非法（to 早于 from）");
   }
+
   const range = query.from && query.to ? new Date(query.to).getTime() - new Date(query.from).getTime() : 0;
   if (Number.isFinite(range) && range > 366 * 24 * 3600 * 1000) {
     throw new DomainError(ErrCode.AUDIT_QUERY_INVALID, "时间范围超限（最长 366 天）");
