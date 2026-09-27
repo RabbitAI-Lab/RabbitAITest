@@ -57,6 +57,8 @@ import { MemberSelect } from "@/components/crosscut";
 import { DynamicFieldCell, DynamicFieldInput, type DynFieldDef } from "@/components/DynamicField";
 import { flattenModules, toTreeSelectData } from "@/components/CaseForm";
 import { useApp } from "@/hooks/useApp";
+import { AiCaseGenerateDrawer } from "@/components/ai/AiCaseGenerateDrawer";
+import { Sparkles } from "lucide-react";
 
 /** CASE-002：模块树 + 用例列表完整版（视图 Tabs / 高级筛选 / 批量操作 / 导入导出 / 列设置）。 */
 
@@ -117,6 +119,7 @@ export default function CaseListPage() {
   const [includeChildren, setIncludeChildren] = useState(true);
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<React.Key[]>([]);
+  const [aiOpen, setAiOpen] = useState(false);
 
   // 列设置（含动态字段列；用户偏好持久化）
   const [colPref, setColPref] = useState<string[] | null>(null);
@@ -534,17 +537,30 @@ export default function CaseListPage() {
                 回收站
               </span>
             </div>
-            {!recycled && canCreate && (
-              <Button
-                type="primary"
-                icon={<Plus size={14} />}
-                onClick={() =>
-                  router.push(moduleId ? `/cases/new?moduleId=${moduleId}` : "/cases/new")
-                }
-                data-testid="btn-new-case"
-              >
-                新建用例
-              </Button>
+            {!recycled && (
+              <div className="flex items-center gap-2">
+                {can("PROJECT_AI:READ") && (
+                  <Button
+                    icon={<Sparkles size={14} />}
+                    onClick={() => setAiOpen(true)}
+                    data-testid="btn-ai-generate"
+                  >
+                    AI 生成
+                  </Button>
+                )}
+                {canCreate && (
+                  <Button
+                    type="primary"
+                    icon={<Plus size={14} />}
+                    onClick={() =>
+                      router.push(moduleId ? `/cases/new?moduleId=${moduleId}` : "/cases/new")
+                    }
+                    data-testid="btn-new-case"
+                  >
+                    新建用例
+                  </Button>
+                )}
+              </div>
             )}
           </div>
         }
@@ -1470,6 +1486,13 @@ export default function CaseListPage() {
           </div>
         </div>
       </Modal>
+      <AiCaseGenerateDrawer
+        open={aiOpen}
+        onClose={() => setAiOpen(false)}
+        projectId={projectId ?? ""}
+        defaultModuleId={moduleId}
+        onImported={() => void qc.invalidateQueries({ queryKey: ["case", "list-v2"] })}
+      />
     </div>
   );
 }

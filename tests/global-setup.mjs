@@ -93,6 +93,9 @@ export default async function globalSetup() {
     INTERNAL_TOKEN: "e2e-internal-token",
     // e2e mock 独占 :4001（web 经 MOCK_PUBLIC_URL 展示/下发 4001 地址）——与开发栈 :4000 并存互不抢占
     MOCK_PORT: "4001",
+    // S7 AI：种子内置一台指向 e2e mock(:4001) 的模型（AI-002~005 spec 直接可用；环回豁免经 webServer env 注入；
+    // baseUrl 含 /ai 前缀——mock 路由 /ai/chat/completions）
+    RABBIT_SEED_AI_MOCK_BASE: "http://127.0.0.1:4001/ai",
   };
   for (const k of ["DATABASE_URL", "REDIS_URL", "WEB_URL", "SESSION_SECRET", "INTERNAL_TOKEN"]) {
     if (env[k]) process.env[k] = env[k];

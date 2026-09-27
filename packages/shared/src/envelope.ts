@@ -80,6 +80,17 @@ export const ErrCode = {
   // 60xxx 报告与分享
   REPORT_NOT_FOUND: 60404,
   SHARE_NOT_FOUND: 60414,
+  // 70xxx AI 能力（S7）
+  AI_MODEL_NOT_FOUND: 70404,
+  AI_CONVERSATION_NOT_FOUND: 70414,
+  AI_PROMPT_NOT_FOUND: 70424,
+  AI_NO_MODEL_AVAILABLE: 70444, // 无任何启用的模型（AI-002/003/004 消费前置）
+  AI_BASEURL_FORBIDDEN: 70422, // baseUrl 命中 SSRF 守卫（AI-001）
+  AI_PROVIDER_ERROR: 70501, // 供应商上游失败（透出上游状态，不泄 key）
+  AI_RESPONSE_UNPARSEABLE: 70502, // 生成结果无法解析为 JSON 数组（AI-002/003）
+  AI_OPENAPI_INVALID: 70503, // 批量生成 OpenAPI 文档解析失败（AI-003）
+  AI_PROMPT_DUP: 70504, // 提示词模板名称重复（AI-005）
+  AI_PROMPT_PLACEHOLDER_INVALID: 70505, // 提示词模板占位符未定义（AI-005）
 } as const;
 
 export const ErrMsg: Record<number, string> = {
@@ -131,4 +142,14 @@ export const ErrMsg: Record<number, string> = {
   [ErrCode.POOL_NOT_FOUND]: "资源池不存在",
   [ErrCode.REPORT_NOT_FOUND]: "报告不存在或已删除",
   [ErrCode.SHARE_NOT_FOUND]: "分享链接不存在或已过期",
+  [ErrCode.AI_MODEL_NOT_FOUND]: "AI 模型不存在或已删除",
+  [ErrCode.AI_CONVERSATION_NOT_FOUND]: "会话不存在或无权访问",
+  [ErrCode.AI_PROMPT_NOT_FOUND]: "提示词模板不存在或已删除",
+  [ErrCode.AI_NO_MODEL_AVAILABLE]: "尚未配置任何启用的 AI 模型，请联系管理员在系统管理-模型设置中配置",
+  [ErrCode.AI_BASEURL_FORBIDDEN]: "BaseUrl 指向内网/环回/云元数据地址，已被安全策略拒绝",
+  [ErrCode.AI_PROVIDER_ERROR]: "AI 供应商调用失败",
+  [ErrCode.AI_RESPONSE_UNPARSEABLE]: "AI 生成结果无法解析，请重试或调整提示词",
+  [ErrCode.AI_OPENAPI_INVALID]: "OpenAPI 文档解析失败（支持 3.x JSON）",
+  [ErrCode.AI_PROMPT_DUP]: "提示词模板名称已存在",
+  [ErrCode.AI_PROMPT_PLACEHOLDER_INVALID]: "提示词模板包含未定义的占位符",
 };

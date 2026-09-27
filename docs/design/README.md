@@ -33,6 +33,11 @@
 | API-009  | [import-export](./API-009-scenario-import-export/index.html)（导入上传/预览 + 导出模式二态） | 待确认 | — |
 | API-010  | [false-alarm-rules](./API-010-false-alarm-rules/index.html)（规则列表/编辑抽屉 + 报告误报两态） | 待确认 | — |
 | RPT-003  | [scenario-report](./RPT-003-scenario-report-share/index.html)（概览卡+步骤树+迭代分组+钻取 + 变量 Tab + 分享态） | 待确认 | — |
+| AI-001  | [model-gateway](./AI-001-model-gateway/index.html)（卡片列表/新建 Modal + SSRF/连接失败两态） | 待确认 | — |
+| AI-002  | [case-generation](./AI-002-case-generation/index.html)（列表入口 + 生成抽屉表单/草稿态 + 状态两态） | 待确认 | — |
+| AI-003  | [api-case-generation](./AI-003-api-case-generation/index.html)（单条模式 + OpenAPI 批量模式） | 待确认 | — |
+| AI-004  | [ai-assistant](./AI-004-ai-assistant/index.html)（顶栏入口面板 + 空态/错误态） | 待确认 | — |
+| AI-005  | [prompt-customization](./AI-005-prompt-customization/index.html)（scene Tab 列表/编辑抽屉 + 占位符校验两态） | 待确认 | — |
 
 **勘误 1（2026-09-26，原型透明度）**：Sprint 1 十一组原型（2026-09-26 产出）当前页高亮统一 `bg-[#574BFF]/10`（Tailwind v3 CDN 不编译 /8 透明度刻度，与 CASE-001 基线一致）。
 

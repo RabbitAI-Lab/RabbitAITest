@@ -37,6 +37,10 @@ export function toResponse(err: unknown): NextResponse {
                   ErrCode.SCENARIO_NOT_FOUND,
                   ErrCode.SCENARIO_STEP_NOT_FOUND,
                   ErrCode.FALSE_ALARM_RULE_NOT_FOUND,
+                  ErrCode.AI_MODEL_NOT_FOUND,
+                  ErrCode.AI_CONVERSATION_NOT_FOUND,
+                  ErrCode.AI_PROMPT_NOT_FOUND,
+                  ErrCode.AI_NO_MODEL_AVAILABLE,
                 ] as number[]
               ).includes(err.code)
             ? 404
@@ -59,13 +63,20 @@ export function toResponse(err: unknown): NextResponse {
                       ErrCode.SCHEDULE_SCENARIOS_EMPTY,
                       ErrCode.MATCHER_EMPTY,
                       ErrCode.RULES_LIMIT_EXCEEDED,
-                      ErrCode.CSV_TOO_LARGE,
-                      ErrCode.IMPORT_FILE_TOO_LARGE,
-                      ErrCode.IMPORT_FORMAT_UNKNOWN,
-                    ] as number[]
+                  ErrCode.CSV_TOO_LARGE,
+                  ErrCode.IMPORT_FILE_TOO_LARGE,
+                  ErrCode.IMPORT_FORMAT_UNKNOWN,
+                  ErrCode.AI_BASEURL_FORBIDDEN,
+                  ErrCode.AI_RESPONSE_UNPARSEABLE,
+                  ErrCode.AI_OPENAPI_INVALID,
+                  ErrCode.AI_PROMPT_DUP,
+                  ErrCode.AI_PROMPT_PLACEHOLDER_INVALID,
+                ] as number[]
                   ).includes(err.code)
                 ? 422
-                : 400;
+                : err.code === ErrCode.AI_PROVIDER_ERROR
+                  ? 502 // 供应商上游失败（网关语义；透出上游状态不泄 key）
+                  : 400;
     return NextResponse.json(fail(err.code, err.message ?? ErrMsg[err.code] ?? "业务错误"), {
       status,
     });

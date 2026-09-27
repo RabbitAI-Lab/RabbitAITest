@@ -9,7 +9,7 @@ import type { MockProjectSnapshot, MockRuleSnapshotItem } from "@rabbit/shared";
  * 规则来源=web 写入 Redis 的项目全量快照（engine-execution-architecture §6）；
  * 本服务无 DB、无状态——每次请求直读快照（本地 Redis 亚毫秒，天然热更新），可横向扩容。
  */
-const app = new Hono();
+export const app = new Hono();
 const redis = new Redis(process.env.REDIS_URL ?? "redis://127.0.0.1:6379", {
   lazyConnect: true,
   maxRetriesPerRequest: 1,
@@ -17,6 +17,76 @@ const redis = new Redis(process.env.REDIS_URL ?? "redis://127.0.0.1:6379", {
 
 app.get("/healthz", (c) => c.json({ status: "UP" }));
 app.get("/hello", (c) => c.json({ message: "hello", status: "UP" }));
+
+// ── AI 供应商 Mock（S7 AI-001~005 测试确定性出口；OpenAI 兼容 chat/completions）──
+// 分支依据=真实 system prompt 固定开头（shared 常量，生产代码零测试标记）：
+//   「测试用例生成助手」→ 2 条固定功能用例草稿 JSON；「接口用例生成助手」→ 1 条固定接口用例草稿；
+//   「智能助手」→ 3 片流式聊天文本；连通探测（Reply with exactly: pong）→ pong
+const MOCK_CASE_GEN_JSON = JSON.stringify([
+  {
+    name: "密码错误 5 次后锁定账户",
+    prerequisite: "已注册且未锁定的用户",
+    steps: [
+      { desc: "连续输错密码 5 次", expect: "提示「账户已锁定」" },
+      { desc: "锁定期间输入正确密码", expect: "仍拒绝登录" },
+      { desc: "等待 30 分钟后登录", expect: "成功进入工作台" },
+    ],
+    level: "high",
+    tags: ["安全", "登录"],
+  },
+  {
+    name: "锁定到期自动解锁",
+    prerequisite: "处于锁定态的账户",
+    steps: [
+      { desc: "锁定剩余 1 分钟时尝试登录", expect: "拒绝并提示剩余时长" },
+      { desc: "锁定期满后登录", expect: "成功" },
+    ],
+    level: "medium",
+    tags: ["登录"],
+  },
+]);
+const MOCK_API_CASE_JSON = JSON.stringify([
+  {
+    name: "创建订单 · 正向主路径",
+    request: { bodyJson: '{"skuId":"SKU-001","qty":1}' },
+    assertions: [
+      { source: "status", expression: "", operator: "eq", expected: "200" },
+      { source: "body", expression: "$.code", operator: "eq", expected: "0" },
+      { source: "body", expression: "$.data.orderId", operator: "exists", expected: "" },
+    ],
+  },
+]);
+const MOCK_CHAT_TEXT = "可以从三层设计：1. 边界值：第 4 次（未触发）与第 5 次（触发锁定）各一条；2. 锁定期间行为：正确密码也不放行；3. 时间边界：30 分钟整自动解锁。";
+
+app.post("/ai/chat/completions", async (c) => {
+  const body = (await c.req.json().catch(() => ({}))) as {
+    stream?: boolean;
+    messages?: { role: string; content: string }[];
+  };
+  const system = body.messages?.find((m) => m.role === "system")?.content ?? "";
+  let content: string;
+  if (system.includes("测试用例生成助手")) content = MOCK_CASE_GEN_JSON;
+  else if (system.includes("接口用例生成助手")) content = MOCK_API_CASE_JSON;
+  else if (system.includes("pong")) content = "pong";
+  else content = MOCK_CHAT_TEXT;
+  const mockModel = "mock-e2e-model";
+  if (body.stream) {
+    // 3 片 delta + [DONE]（打字机断言依赖）
+    const parts = content.match(/[\s\S]{1,12}/g) ?? [content];
+    const chunks = parts.map((text, i) =>
+      `data: ${JSON.stringify({ id: `mock-${i}`, model: mockModel, choices: [{ index: 0, delta: { content: text } }] })}\n\n`,
+    );
+    chunks.push("data: [DONE]\n\n");
+    return new Response(chunks.join(""), {
+      headers: { "content-type": "text/event-stream; charset=utf-8", "x-mock-ai": "1" },
+    });
+  }
+  return c.json({
+    id: "mock-chatcmpl",
+    model: mockModel,
+    choices: [{ index: 0, message: { role: "assistant", content }, finish_reason: "stop" }],
+  });
+});
 
 interface MatchedRule {
   rule: MockRuleSnapshotItem;

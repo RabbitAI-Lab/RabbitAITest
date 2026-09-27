@@ -981,3 +981,78 @@ model FalseAlarmHit {
 
   @@map("false_alarm_hits")
 }
+
+/// AI 模型配置（系统级；apiKey AES-256-GCM 密文，密钥自 SESSION_SECRET 派生——AI-001）
+model AiModel {
+  id        String   @id @default(uuid())
+  name      String   @db.VarChar(64)
+  provider  String   @db.VarChar(32) // deepseek | openai | zhipu
+  baseUrl   String   @db.VarChar(255) @map("base_url")
+  model     String   @db.VarChar(128)
+  apiKeyEnc String   @map("api_key_enc")
+  enabled   Boolean  @default(true)
+  isDefault Boolean  @default(false) @map("is_default")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("ai_models")
+}
+
+/// AI 助手会话（个人级软删；30 天清理——AI-004）
+model AiConversation {
+  id        String    @id @default(uuid())
+  userId    String    @map("user_id")
+  title     String    @db.VarChar(128)
+  modelId   String?   @map("model_id") @db.VarChar(64)
+  deletedAt DateTime? @map("deleted_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  @@index([userId, updatedAt])
+  @@map("ai_conversations")
+}
+
+/// AI 助手消息（content 结构化 {text}，预留 refs——AI-004）
+model AiMessage {
+  id             String   @id @default(uuid())
+  conversationId String   @map("conversation_id")
+  role           String   @db.VarChar(16) // user | assistant
+  content        Json
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  @@index([conversationId, createdAt])
+  @@map("ai_messages")
+}
+
+/// 项目级提示词模板（同 scene 默认唯一——AI-005）
+model AiPromptTemplate {
+  id           String   @id @default(uuid())
+  projectId    String   @map("project_id")
+  name         String   @db.VarChar(64)
+  scene        String   @db.VarChar(32) // case_gen | api_gen
+  template     String   @db.Text
+  designMethod String?  @map("design_method") @db.VarChar(128)
+  isDefault    Boolean  @default(false) @map("is_default")
+  enabled      Boolean  @default(true)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@unique([projectId, name])
+  @@map("ai_prompt_templates")
+}
+
+/// AI 生成留痕（prompt 快照全文；裸列不级联——AI-002/003）
+model AiGenRecord {
+  id             String   @id @default(uuid())
+  projectId      String   @map("project_id")
+  userId         String   @map("user_id")
+  modelId        String   @map("model_id") @db.VarChar(64)
+  scene          String   @db.VarChar(32) // case_gen | api_gen | api_gen_batch
+  generatedCount Int      @default(0) @map("generated_count")
+  importedCount  Int      @default(0) @map("imported_count")
+  promptSnapshot Json     @map("prompt_snapshot")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  @@index([projectId, createdAt])
+  @@map("ai_gen_records")
+}
