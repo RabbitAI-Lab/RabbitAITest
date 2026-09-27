@@ -560,19 +560,7 @@ export default function CaseListPage() {
               </span>
             </div>
             )}
-            {viewMode === "list" && !recycled && canCreate && (
-              <Button
-                type="primary"
-                icon={<Plus size={14} />}
-                onClick={() =>
-                  router.push(moduleId ? `/cases/new?moduleId=${moduleId}` : "/cases/new")
-                }
-                data-testid="btn-new-case"
-              >
-                新建用例
-              </Button>
-            )}
-            {!recycled && (
+            {viewMode === "list" && !recycled && (
               <div className="flex items-center gap-2">
                 {can("PROJECT_AI:READ") && (
                   <Button
