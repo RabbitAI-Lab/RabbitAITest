@@ -90,6 +90,14 @@ const PROJECT_REPORT = [
 ] as const;
 /** 任务中心与任务操作（API-003/SYS-006 随规格入库） */
 const PROJECT_EXEC_TASK = ["PROJECT_EXEC_TASK:READ", "PROJECT_EXEC_TASK:UPDATE"] as const;
+/** AI 能力（S7 AI-001~005 随规格入库：模型管理=系统级；生成/提示词模板=项目级；助手对话个人级不设点） */
+const SYSTEM_AI = ["SYSTEM_AI:READ", "SYSTEM_AI:CREATE", "SYSTEM_AI:UPDATE", "SYSTEM_AI:DELETE"] as const;
+const PROJECT_AI = [
+  "PROJECT_AI:READ",
+  "PROJECT_AI:CREATE",
+  "PROJECT_AI:UPDATE",
+  "PROJECT_AI:DELETE",
+] as const;
 
 export const PERMISSION_POINTS = [
   ...SYSTEM_USER,
@@ -114,6 +122,8 @@ export const PERMISSION_POINTS = [
   ...PROJECT_SCRIPT,
   ...PROJECT_REPORT,
   ...PROJECT_EXEC_TASK,
+  ...SYSTEM_AI,
+  ...PROJECT_AI,
 ] as const;
 
 export type PermissionPoint = (typeof PERMISSION_POINTS)[number];
@@ -148,6 +158,7 @@ export const PRESET_GROUP_PERMISSIONS = {
     "PROJECT_SCENARIO:READ",
     "PROJECT_ENV:READ",
     "PROJECT_FILE:READ",
+    "PROJECT_AI:READ",
     ...PROJECT_EXEC_TASK,
   ],
   ORG_MEMBER: ["ORG_PROJECT:READ"],
@@ -165,6 +176,7 @@ export const PRESET_GROUP_PERMISSIONS = {
     ...PROJECT_FILE,
     ...PROJECT_REPORT,
     ...PROJECT_EXEC_TASK,
+    ...PROJECT_AI,
   ],
   PROJECT_MEMBER: [
     "PROJECT_MEMBER:READ",
@@ -187,6 +199,7 @@ export const PRESET_GROUP_PERMISSIONS = {
     "PROJECT_ENV:CREATE",
     "PROJECT_FILE:READ",
     "PROJECT_FILE:CREATE",
+    "PROJECT_AI:READ",
     ...PROJECT_EXEC_TASK,
   ],
 } as const;

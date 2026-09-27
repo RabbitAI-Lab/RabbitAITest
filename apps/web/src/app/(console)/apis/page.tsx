@@ -6,7 +6,8 @@ import { Download, Plus, TerminalSquare, Upload as UploadIcon } from "lucide-rea
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { ApiError, apiApi, moduleApi, type ApiRow, type ModuleNodeDto } from "@rabbit/api-client";
+import { ApiError, apiApi, apiCaseApi, moduleApi, type ApiRow, type ModuleNodeDto } from "@rabbit/api-client";
+import { ApiCaseGenerateDrawer } from "@/components/ai/ApiCaseGenerateDrawer";
 import type { HttpMethod } from "@rabbit/shared";
 import { MethodTag } from "@rabbit/ui";
 import { useProjectStore } from "@/stores/project";
@@ -64,6 +65,8 @@ export default function ApiListPage() {
   const [keyword, setKeyword] = useState("");
   const [page, setPage] = useState(1);
   const [executingId, setExecutingId] = useState<string | null>(null);
+  const [aiOpen, setAiOpen] = useState(false);
+  const [aiTarget, setAiTarget] = useState<{ id: string; method: string; path: string; name: string } | null>(null);
 
   // 模块（新建/导入弹窗的目标模块下拉：树数据展平）
   const modulesQ = useQuery({
@@ -301,6 +304,21 @@ export default function ApiListPage() {
           >
             执行
           </Button>
+          <span className="text-[#E5E6EB]">|</span>
+          {can("PROJECT_AI:READ") && (
+            <Button
+              type="link"
+              size="small"
+              className="!px-0"
+              onClick={() => {
+                setAiTarget({ id: r.id, method: r.method, path: r.path, name: r.name });
+                setAiOpen(true);
+              }}
+              data-testid={`btn-ai-gen-api-${i + 1}`}
+            >
+              AI 生成
+            </Button>
+          )}
           <span className="text-[#E5E6EB]">|</span>
           {canDelete && (
             <Button
@@ -799,6 +817,33 @@ export default function ApiListPage() {
           )}
         </div>
       </Modal>
+      <ApiCaseGenerateDrawer
+        open={aiOpen}
+        onClose={() => setAiOpen(false)}
+        projectId={projectId ?? ""}
+        target={aiTarget}
+        onImported={async (items) => {
+          // 导入绑定目标定义（单条=该定义；批量=当前选中定义——AI-003 §6 登记简化，不自动建定义）
+          if (!aiTarget) {
+            message.warning("请先在列表行操作选择目标接口定义");
+            return 0;
+          }
+          let ok = 0;
+          for (const it of items) {
+            try {
+              await apiCaseApi.create(projectId!, aiTarget.id, {
+                name: it.name,
+                request: it.request as unknown as Parameters<typeof apiCaseApi.create>[2]["request"],
+              });
+              ok++;
+            } catch (e) {
+              message.error(`${it.name}：${e instanceof Error ? e.message : "导入失败"}`);
+            }
+          }
+          invalidateApis();
+          return ok;
+        }}
+      />
     </div>
   );
 }

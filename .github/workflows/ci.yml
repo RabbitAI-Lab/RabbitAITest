@@ -189,6 +189,9 @@ jobs:
             export SESSION_SECRET=ci-jm-session-secret-32chars-ok!!!!!
             export INTERNAL_TOKEN=ci-internal-token SESSION_COOKIE_SECURE=false
             export RABBIT_USER_LIMIT=1000 # 与 e2e 口径一致：全量套件注册用户数 >30（产品默认 30 不变）
+            # S7 AI：mock 供应商(:4000) 在环回——SSRF 守卫仅豁免环回；种子内置 mock 模型（baseUrl 含 /ai 前缀）
+            export AI_ALLOW_PRIVATE_BASEURL=1
+            export RABBIT_SEED_AI_MOCK_BASE=http://127.0.0.1:4000/ai
             pnpm --filter @rabbit/db migrate-deploy
             pnpm --filter @rabbit/db seed
             pnpm --filter web start > /tmp/web.log 2>&1 &

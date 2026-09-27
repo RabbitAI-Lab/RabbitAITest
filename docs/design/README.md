@@ -40,6 +40,11 @@
 | CASE-007 | [mindmap-mode](./CASE-007-mindmap-mode/index.html)（脑图三层层级+侧栏+快捷键条 / 多选批量+保存确认 / 计划脑图复用形态） | 待确认 | — |
 | CASE-008 | [case-dependency-history](./CASE-008-case-dependency-history/index.html)（依赖 Tab+选择器 / 环检测提示三态 / 变更分区徽标+BLOCKED 提示） | 待确认 | — |
 | DASH-002 | [todo-follow-create](./DASH-002-todo-follow-create/index.html)（三区七维度 / 关注入口拼板 / 幂等口径） | 待确认 | — |
+| AI-001  | [model-gateway](./AI-001-model-gateway/index.html)（卡片列表/新建 Modal + SSRF/连接失败两态） | 待确认 | — |
+| AI-002  | [case-generation](./AI-002-case-generation/index.html)（列表入口 + 生成抽屉表单/草稿态 + 状态两态） | 待确认 | — |
+| AI-003  | [api-case-generation](./AI-003-api-case-generation/index.html)（单条模式 + OpenAPI 批量模式） | 待确认 | — |
+| AI-004  | [ai-assistant](./AI-004-ai-assistant/index.html)（顶栏入口面板 + 空态/错误态） | 待确认 | — |
+| AI-005  | [prompt-customization](./AI-005-prompt-customization/index.html)（scene Tab 列表/编辑抽屉 + 占位符校验两态） | 待确认 | — |
 
 **勘误 1（2026-09-26，原型透明度）**：Sprint 1 十一组原型（2026-09-26 产出）当前页高亮统一 `bg-[#574BFF]/10`（Tailwind v3 CDN 不编译 /8 透明度刻度，与 CASE-001 基线一致）。
 

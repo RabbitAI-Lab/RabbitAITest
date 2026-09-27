@@ -31,7 +31,7 @@ export default defineConfig({
     command: [
       "bash -c '",
       "if [ -f /tmp/rabbit-e2e-root/apps/web/.next/BUILD_ID ]; then ",
-      'cd /tmp/rabbit-e2e-root/apps/web && exec env MOCK_PUBLIC_URL=http://127.0.0.1:4001 pnpm exec next start -p 3100;',
+      'cd /tmp/rabbit-e2e-root/apps/web && exec env MOCK_PUBLIC_URL=http://127.0.0.1:4001 AI_ALLOW_PRIVATE_BASEURL=1 pnpm exec next start -p 3100;',
       "else ",
       'export DATABASE_URL="${E2E_DATABASE_URL:-${DATABASE_URL:-postgresql://postgres:postgres@127.0.0.1:5434/rabbit_e2e}}"',
       'REDIS_URL="${E2E_REDIS_URL:-redis://127.0.0.1:6381}"',
@@ -41,6 +41,7 @@ export default defineConfig({
       "SESSION_COOKIE_SECURE=false",
       "RABBIT_USER_LIMIT=1000",
       "MOCK_PUBLIC_URL=http://127.0.0.1:4001",
+      "AI_ALLOW_PRIVATE_BASEURL=1",
       "PORT=3100;",
       "pnpm --filter web start;",
       "fi'",
@@ -63,6 +64,8 @@ export default defineConfig({
       RABBIT_USER_LIMIT: "1000",
       // e2e mock 独占 :4001（global-setup 以 MOCK_PORT=4001 启动），与开发栈 :4000 隔离
       MOCK_PUBLIC_URL: "http://127.0.0.1:4001",
+      // S7 AI-001：mock 供应商在环回 :4001——SSRF 守卫仅豁免环回（私网/元数据仍拦）
+      AI_ALLOW_PRIVATE_BASEURL: "1",
       PORT: "3100",
       ...process.env,
     },

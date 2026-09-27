@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="utf-8" />
+    <title>AI-002 功能用例 AI 生成（需求输入 · 草稿勾选导入）</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-slate-50 text-slate-800 text-sm">
+    <header class="h-12 bg-white border-b flex items-center px-4 gap-3">
+      <span class="font-semibold">RabbitAITest</span><span class="border rounded px-2 py-0.5">演示项目 #1</span>
+      <span class="ml-auto text-slate-400 text-xs">帮助 · 消息 · 用户</span>
+    </header>
+    <main class="p-4 space-y-4 max-w-[1100px]">
+      <!-- 画板一：入口 + 生成抽屉 -->
+      <section class="bg-white border rounded-md">
+        <div class="px-3 py-2 border-b bg-slate-50 font-medium">画板一 · 用例列表入口 + AI 生成抽屉（表单态 → 草稿态）</div>
+        <div class="flex">
+          <div class="w-[380px] p-3 border-r space-y-2 text-[13px]">
+            <p class="text-slate-500 text-xs">用例列表工具栏</p>
+            <div class="flex items-center gap-2"><button class="border rounded-md px-3 py-1.5">＋ 新建用例</button><button class="border rounded-md px-3 py-1.5">导入</button><button class="bg-[#574BFF]/10 border border-[#574BFF] text-[#574BFF] rounded-md px-3 py-1.5">✦ AI 生成</button><span class="text-xs text-slate-400">需 PROJECT_AI:READ</span></div>
+            <table class="w-full text-xs mt-2">
+              <thead class="text-slate-500"><tr class="text-left"><th class="py-1.5">名称</th><th>模块</th><th>等级</th></tr></thead>
+              <tbody class="divide-y">
+                <tr><td class="py-1.5">登录成功路径</td><td class="text-slate-400">认证</td><td><span class="text-[10px] border rounded px-1 bg-red-50 text-red-500">critical</span></td></tr>
+                <tr><td class="py-1.5 text-[#574BFF]">AI 生成 · 密码错误锁定 ← 新</td><td class="text-slate-400">认证</td><td><span class="text-[10px] border rounded px-1 bg-orange-50 text-orange-500">high</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="w-[400px] border-l p-4 text-[13px] space-y-3">
+            <p class="font-medium">AI 生成用例（抽屉 640px）</p>
+            <div><p class="text-slate-500 text-xs mb-1">需求描述 <span class="text-slate-300">0/8000</span></p><textarea rows="3" class="border rounded px-2 py-1.5 w-full text-xs" placeholder="粘贴需求/用户故事，AI 将生成测试用例草稿">用户连续输错密码 5 次应锁定 30 分钟，锁定期间正确密码也不放行，30 分钟后自动解锁并可正常登录。</textarea></div>
+            <div class="flex gap-2">
+              <div class="flex-1"><p class="text-slate-500 text-xs mb-1">目标模块</p><select class="border rounded px-2 py-1.5 w-full"><option>未分组</option><option selected>认证</option><option>订单</option></select></div>
+              <div class="flex-1"><p class="text-slate-500 text-xs mb-1">提示词模板</p><select class="border rounded px-2 py-1.5 w-full"><option>★ 默认（边界值侧重）</option><option>内置默认</option></select></div>
+            </div>
+            <div><p class="text-slate-500 text-xs mb-1">模型</p><select class="border rounded px-2 py-1.5 w-full"><option>★ glm-4.6（默认）</option><option>deepseek-chat</option></select></div>
+            <button class="bg-[#574BFF] text-white rounded px-4 py-1.5">生成草稿</button>
+          </div>
+          <div class="w-[320px] border-l p-4 text-[13px] space-y-3">
+            <p class="font-medium">草稿（2 条 · 默认全选）</p>
+            <label class="block border rounded-md p-2.5 space-y-1.5 cursor-pointer">
+              <div class="flex items-center gap-2"><input type="checkbox" checked /><span class="font-medium">密码错误 5 次后锁定账户</span><span class="text-[10px] border rounded px-1 bg-orange-50 text-orange-500 ml-auto">high</span></div>
+              <p class="text-xs text-slate-400">前置：已注册用户 · 步骤 4 条 · 标签：安全,登录</p>
+              <details class="text-xs text-slate-500"><summary class="cursor-pointer">查看步骤</summary><ol class="list-decimal pl-4 pt-1 space-y-0.5"><li>连续输错密码 5 次 <span class="text-slate-300">→</span> 提示「账户已锁定」</li><li>锁定期间输入正确密码 <span class="text-slate-300">→</span> 仍拒绝登录</li><li>等待 30 分钟后登录 <span class="text-slate-300">→</span> 成功并进入工作台</li></ol></details>
+            </label>
+            <label class="block border rounded-md p-2.5 space-y-1.5 cursor-pointer">
+              <div class="flex items-center gap-2"><input type="checkbox" /><span class="font-medium">锁定到期自动解锁</span><span class="text-[10px] border rounded px-1 bg-yellow-50 text-yellow-600 ml-auto">medium</span></div>
+              <p class="text-xs text-slate-400">前置：处于锁定态账户 · 步骤 3 条</p>
+            </label>
+            <div class="flex items-center gap-2"><button class="bg-[#574BFF] text-white rounded px-3 py-1.5">导入所选 (1)</button><span class="text-xs text-slate-400">导入走用例创建接口，模块/模板/权限真实校验</span></div>
+          </div>
+        </div>
+      </section>
+      <!-- 画板二：生成中/异常两态 -->
+      <section class="bg-white border rounded-md">
+        <div class="px-3 py-2 border-b bg-slate-50 font-medium">画板二 · 状态两态（生成中骨架 / 无可用模型引导）+ 导入结果</div>
+        <div class="p-4 grid grid-cols-3 gap-3 text-[13px]">
+          <div class="border rounded-md p-3 space-y-2">
+            <p class="font-medium">生成中</p>
+            <div class="space-y-1.5"><div class="h-3 bg-slate-100 rounded animate-pulse w-3/4"></div><div class="h-3 bg-slate-100 rounded animate-pulse w-1/2"></div><div class="h-3 bg-slate-100 rounded animate-pulse w-2/3"></div></div>
+            <button class="border rounded px-3 py-1 text-xs" disabled>生成草稿（调用中…）</button>
+          </div>
+          <div class="border rounded-md p-3 space-y-2">
+            <p class="font-medium">无可用模型（60444）</p>
+            <p class="text-xs text-slate-400">尚未配置任何启用的模型，用例生成不可用。</p>
+            <a class="text-xs text-[#574BFF] underline">前往 系统管理 → 模型设置 配置 →</a>
+          </div>
+          <div class="border rounded-md p-3 space-y-2">
+            <p class="font-medium">导入结果（部分成功语义）</p>
+            <p class="text-xs text-green-600">✓ 成功导入 1 条 → 模块「认证」</p>
+            <p class="text-xs text-red-500">✗ 失败 1 条：名称重复（30409）</p>
+            <p class="text-[11px] text-slate-400">留痕：AiGenRecord generated=2 · imported=1（生成历史可在留痕记录查看）</p>
+          </div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

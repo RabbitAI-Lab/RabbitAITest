@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="utf-8" />
+    <title>AI-001 模型网关（三供应商 · 加密 · SSRF 守卫）</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-slate-50 text-slate-800 text-sm">
+    <header class="h-12 bg-white border-b flex items-center px-4 gap-3">
+      <span class="font-semibold">RabbitAITest</span><span class="border rounded px-2 py-0.5">系统管理</span>
+      <span class="ml-auto text-slate-400 text-xs">admin@rabbit.dev</span>
+    </header>
+    <div class="flex">
+      <aside class="w-48 bg-white border-r min-h-[calc(100vh-3rem)] p-2 space-y-1 text-[13px]">
+        <p class="px-2 py-1 text-slate-400 text-xs">系统</p>
+        <a class="block px-2 py-1.5 rounded hover:bg-slate-100">用户与组</a>
+        <a class="block px-2 py-1.5 rounded hover:bg-slate-100">系统参数</a>
+        <a class="block px-2 py-1.5 rounded hover:bg-slate-100">资源池</a>
+        <a class="block px-2 py-1.5 rounded bg-[#574BFF]/10 text-[#574BFF] font-medium">模型设置（AI）</a>
+      </aside>
+      <main class="flex-1 p-4 space-y-4 max-w-[1100px]">
+        <!-- 画板一：模型列表 + 新建 Modal -->
+        <section class="bg-white border rounded-md">
+          <div class="px-3 py-2 border-b bg-slate-50 font-medium">画板一 · 模型设置页 /system/ai-models（卡片列表 + 新建 Modal）</div>
+          <div class="flex">
+            <div class="flex-1">
+              <div class="p-3 flex items-center gap-2 border-b">
+                <button class="bg-[#574BFF] text-white rounded-md px-3 py-1.5">＋ 新建模型</button>
+                <span class="text-xs text-slate-400">上限 10 个 · API Key 加密存储且不回显 · baseUrl 禁内网/元数据</span>
+              </div>
+              <div class="p-3 grid grid-cols-2 gap-3 text-[13px]">
+                <div class="border rounded-md p-3 space-y-2">
+                  <div class="flex items-center gap-2">
+                    <span class="text-[10px] border rounded px-1.5 py-0.5 bg-blue-50 text-blue-600 border-blue-200">智谱 AI</span>
+                    <span class="font-medium">主力生成模型</span>
+                    <span class="ml-auto text-amber-500" title="默认">★ 默认</span>
+                  </div>
+                  <p class="font-mono text-xs text-slate-500">glm-4.6 · https://open.bigmodel.cn/api/paas/v4</p>
+                  <p class="text-xs text-slate-400">API Key：sk-****a1b2 <span class="text-[10px] border rounded px-1 bg-slate-100">AES-GCM 加密</span></p>
+                  <div class="flex items-center gap-2 pt-1">
+                    <span class="w-9 h-5 rounded-full bg-[#574BFF] inline-block relative"><span class="absolute right-0.5 top-0.5 w-4 h-4 bg-white rounded-full"></span></span>
+                    <span class="text-green-600 text-xs">✓ 连接测试通过 · 412ms</span>
+                    <span class="ml-auto space-x-2 text-[#574BFF]"><a>测试</a><a>编辑</a><a class="text-red-500">删除</a></span>
+                  </div>
+                </div>
+                <div class="border rounded-md p-3 space-y-2">
+                  <div class="flex items-center gap-2">
+                    <span class="text-[10px] border rounded px-1.5 py-0.5 bg-purple-50 text-purple-600 border-purple-200">DeepSeek</span>
+                    <span class="font-medium">备用对话模型</span>
+                  </div>
+                  <p class="font-mono text-xs text-slate-500">deepseek-chat · https://api.deepseek.com</p>
+                  <p class="text-xs text-slate-400">API Key：sk-****c3d4 <span class="text-[10px] border rounded px-1 bg-slate-100">AES-GCM 加密</span></p>
+                  <div class="flex items-center gap-2 pt-1">
+                    <span class="w-9 h-5 rounded-full bg-[#574BFF] inline-block relative"><span class="absolute right-0.5 top-0.5 w-4 h-4 bg-white rounded-full"></span></span>
+                    <span class="text-xs text-[#574BFF]">测试</span>
+                    <span class="ml-auto space-x-2 text-[#574BFF]"><a>设为默认</a><a>编辑</a><a class="text-red-500">删除</a></span>
+                  </div>
+                </div>
+                <div class="border rounded-md p-3 space-y-2 opacity-60">
+                  <div class="flex items-center gap-2">
+                    <span class="text-[10px] border rounded px-1.5 py-0.5 bg-emerald-50 text-emerald-600 border-emerald-200">OpenAI</span>
+                    <span class="font-medium">gpt-4o（停用）</span>
+                  </div>
+                  <p class="font-mono text-xs text-slate-500">gpt-4o · https://api.openai.com</p>
+                  <div class="flex items-center gap-2 pt-1">
+                    <span class="w-9 h-5 rounded-full bg-slate-200 inline-block relative"><span class="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full"></span></span>
+                    <span class="ml-auto space-x-2 text-[#574BFF]"><a>编辑</a><a class="text-red-500">删除</a></span>
+                  </div>
+                </div>
+              </div>
+              <div class="px-3 pb-3 text-xs text-slate-400 border-t pt-2">空态：尚无模型——「新建模型」→ 填供应商/BaseUrl/模型名/API Key（用例生成与 AI 助手需至少一台启用模型）</div>
+            </div>
+            <!-- 新建 Modal -->
+            <div class="w-[360px] border-l p-4 text-[13px] space-y-3">
+              <p class="font-medium">新建模型</p>
+              <div><p class="text-slate-500 text-xs mb-1">名称</p><input class="border rounded px-2 py-1.5 w-full" placeholder="如：主力生成模型" /></div>
+              <div>
+                <p class="text-slate-500 text-xs mb-1">供应商</p>
+                <div class="flex gap-2">
+                  <button class="border rounded px-3 py-1.5 bg-[#574BFF]/10 border-[#574BFF] text-[#574BFF]">智谱 AI</button>
+                  <button class="border rounded px-3 py-1.5">DeepSeek</button>
+                  <button class="border rounded px-3 py-1.5">OpenAI</button>
+                </div>
+              </div>
+              <div><p class="text-slate-500 text-xs mb-1">BaseUrl</p><input class="border rounded px-2 py-1.5 w-full font-mono text-xs" value="https://open.bigmodel.cn/api/paas/v4" /><p class="text-[11px] text-slate-400 mt-1">按供应商预填，可改；内网/环回/云元数据地址将被拒绝（422）</p></div>
+              <div><p class="text-slate-500 text-xs mb-1">模型名</p><input class="border rounded px-2 py-1.5 w-full font-mono text-xs" placeholder="glm-4.6 / deepseek-chat / gpt-4o" /></div>
+              <div><p class="text-slate-500 text-xs mb-1">API Key</p><input type="password" class="border rounded px-2 py-1.5 w-full font-mono text-xs" placeholder="仅创建时输入；编辑留空=不修改" /><p class="text-[11px] text-slate-400 mt-1">AES-256-GCM 加密存储；任何响应只回显掩码</p></div>
+              <label class="flex items-center gap-2"><input type="checkbox" checked /> 创建后立即启用</label>
+              <div class="flex justify-end gap-2"><button class="border rounded px-3 py-1.5">取消</button><button class="bg-[#574BFF] text-white rounded px-3 py-1.5">保存并测试连接</button></div>
+            </div>
+          </div>
+        </section>
+        <!-- 画板二：SSRF 拒绝与连接失败两态 -->
+        <section class="bg-white border rounded-md">
+          <div class="px-3 py-2 border-b bg-slate-50 font-medium">画板二 · 校验两态（baseUrl 内网拒绝 422 60422 / 上游连接失败 502 60501）</div>
+          <div class="p-4 grid grid-cols-2 gap-3 text-[13px]">
+            <div class="border rounded-md p-3 space-y-2">
+              <p class="font-medium">保存被拒 · SSRF 守卫</p>
+              <input class="border border-red-300 rounded px-2 py-1.5 w-full font-mono text-xs" value="http://169.254.169.254/latest/meta-data" />
+              <p class="text-xs text-red-500">✗ BaseUrl 指向内网/云元数据段，已被安全策略拒绝（60422）</p>
+              <p class="text-xs text-slate-400">同类拒绝：127.0.0.0/8 · 10/172.16-31/192.168 私网 · fe80::/fe00::/7 · 0.0.0.0</p>
+            </div>
+            <div class="border rounded-md p-3 space-y-2">
+              <p class="font-medium">连接测试失败 · 上游异常</p>
+              <p class="text-xs text-red-500">✗ 供应商返回 401（API Key 无效）（60501 · 上游状态已透出，Key 不泄露）</p>
+              <p class="text-xs text-slate-400">成功态：✓ 连接测试通过 · 耗时 412ms · 模型回声 "pong"</p>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>

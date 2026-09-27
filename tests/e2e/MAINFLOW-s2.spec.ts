@@ -160,7 +160,8 @@ test("MAINFLOW-s2 Sprint2 主链路（环境→定义→调试→用例→批量
     const m = page.getByRole("dialog");
     await m.getByTestId("input-new-case-name").fill(name);
     await m.getByRole("button", { name: /^创\s*建$/ }).click();
-    await expect(page.getByText(/用例已创建/)).toBeVisible();
+    // .first()：CI 慢机上连建两条用例时 antd toast（3s）并存触发 strict violation（2026-09-27 S7 CI 首红定位）
+    await expect(page.getByText(/用例已创建/).first()).toBeVisible();
     // 修改失败用例断言：编辑抽屉把状态码期望改 500
     if (expected === "500") {
       const row = caseTable.getByRole("row", { name: new RegExp(name) });

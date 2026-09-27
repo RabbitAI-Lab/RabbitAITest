@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="utf-8" />
+    <title>AI-003 接口用例 AI 生成（单条按定义 · OpenAPI 批量）</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-slate-50 text-slate-800 text-sm">
+    <header class="h-12 bg-white border-b flex items-center px-4 gap-3">
+      <span class="font-semibold">RabbitAITest</span><span class="border rounded px-2 py-0.5">演示项目 #1</span>
+      <span class="ml-auto text-slate-400 text-xs">帮助 · 消息 · 用户</span>
+    </header>
+    <main class="p-4 space-y-4 max-w-[1100px]">
+      <!-- 画板一：单条模式 -->
+      <section class="bg-white border rounded-md">
+        <div class="px-3 py-2 border-b bg-slate-50 font-medium">画板一 · 接口定义页「AI 生成用例」抽屉 · 单条模式（按选中定义生成）</div>
+        <div class="flex">
+          <div class="flex-1 p-3 text-[13px] space-y-2">
+            <p class="text-slate-500 text-xs">接口定义列表（选中 1 条 → 工具栏点亮）</p>
+            <table class="w-full text-xs">
+              <thead class="text-slate-500"><tr class="text-left"><th class="py-1.5">Method</th><th>路径</th><th>名称</th><th class="text-right">操作</th></tr></thead>
+              <tbody class="divide-y">
+                <tr class="bg-[#574BFF]/5"><td><span class="text-[10px] border rounded px-1.5 py-0.5 bg-green-50 text-green-600 border-green-200 font-mono">POST</span></td><td class="font-mono">/api/orders</td><td>创建订单</td><td class="text-right text-[#574BFF]"><a>编辑</a> <a>用例</a> <a>Mock</a></td></tr>
+                <tr><td><span class="text-[10px] border rounded px-1.5 py-0.5 bg-blue-50 text-blue-600 border-blue-200 font-mono">GET</span></td><td class="font-mono">/api/orders/{id}</td><td>查询订单</td><td class="text-right text-[#574BFF]"><a>编辑</a> <a>用例</a> <a>Mock</a></td></tr>
+              </tbody>
+            </table>
+            <div class="flex items-center gap-2 pt-1"><button class="bg-[#574BFF]/10 border border-[#574BFF] text-[#574BFF] rounded-md px-3 py-1.5">✦ AI 生成用例</button><span class="text-xs text-slate-400">单条按定义 · 批量按 OpenAPI</span></div>
+          </div>
+          <div class="w-[430px] border-l p-4 text-[13px] space-y-3">
+            <div class="flex items-center gap-2">
+              <p class="font-medium">单条生成</p>
+              <span class="text-[10px] border rounded px-1.5 py-0.5 bg-green-50 text-green-600 border-green-200 font-mono">POST</span>
+              <span class="font-mono text-xs">/api/orders</span>
+              <span class="text-xs text-slate-400">创建订单</span>
+            </div>
+            <div class="flex gap-2">
+              <div class="flex-1"><p class="text-slate-500 text-xs mb-1">提示词模板</p><select class="border rounded px-2 py-1.5 w-full"><option>★ 默认（正向+异常）</option><option>内置默认</option></select></div>
+              <div class="flex-1"><p class="text-slate-500 text-xs mb-1">模型</p><select class="border rounded px-2 py-1.5 w-full"><option>★ glm-4.6</option></select></div>
+            </div>
+            <div class="border rounded-md p-2.5 space-y-2">
+              <div class="flex items-center gap-2"><input type="checkbox" checked /><span class="font-medium">创建订单 · 正向主路径</span></div>
+              <p class="text-xs text-slate-400 ml-5">请求差量：<span class="font-mono text-[11px] border rounded px-1 bg-slate-100">body: {"skuId":"SKU-001","qty":1}</span></p>
+              <table class="w-full text-xs ml-5 w-[calc(100%-1.25rem)]">
+                <thead class="text-slate-500"><tr class="text-left"><th>断言</th><th>算子</th><th>期望</th></tr></thead>
+                <tbody class="text-slate-600">
+                  <tr><td>status</td><td>eq</td><td class="font-mono">200</td></tr>
+                  <tr><td>body $.code</td><td>eq</td><td class="font-mono">0</td></tr>
+                  <tr><td>body $.data.orderId</td><td>exists</td><td class="font-mono">—</td></tr>
+                </tbody>
+              </table>
+              <button class="bg-[#574BFF] text-white rounded px-3 py-1.5 ml-5">导入该用例</button>
+            </div>
+          </div>
+        </div>
+      </section>
+      <!-- 画板二：批量模式 -->
+      <section class="bg-white border rounded-md">
+        <div class="px-3 py-2 border-b bg-slate-50 font-medium">画板二 · 批量模式（OpenAPI 粘贴/上传 → 解析清单 → 生成进度 → 分组草稿）</div>
+        <div class="flex text-[13px]">
+          <div class="w-[300px] p-4 space-y-2 border-r">
+            <p class="font-medium">OpenAPI 文档</p>
+            <textarea rows="7" class="border rounded px-2 py-1.5 w-full font-mono text-[11px]">{"openapi":"3.0.0","info":{"title":"订单服务"},"paths":{"/api/orders":{"post":{...}},"/api/orders/{id}":{"get":{...}},"/api/coupons":{"post":{...}}}}</textarea>
+            <p class="text-[11px] text-slate-400">支持 3.x JSON；单批 ≤20 接口；仅生成用例草稿，不建接口定义</p>
+            <div class="flex gap-2"><button class="border rounded px-3 py-1.5">上传文件</button><button class="bg-[#574BFF] text-white rounded px-3 py-1.5">解析文档</button></div>
+          </div>
+          <div class="flex-1 p-4 space-y-3">
+            <p class="text-slate-500 text-xs">解析结果（3/20）· 逐条生成中 2/3</p>
+            <table class="w-full text-xs">
+              <thead class="text-slate-500"><tr class="text-left"><th class="py-1.5 w-8"></th><th>Method</th><th>路径</th><th>摘要</th><th>状态</th></tr></thead>
+              <tbody class="divide-y">
+                <tr><td><input type="checkbox" checked /></td><td><span class="font-mono text-green-600">POST</span></td><td class="font-mono">/api/orders</td><td>创建订单</td><td class="text-green-600">✓ 已生成</td></tr>
+                <tr><td><input type="checkbox" checked /></td><td><span class="font-mono text-blue-600">GET</span></td><td class="font-mono">/api/orders/{id}</td><td>查询订单</td><td class="text-[#574BFF]">生成中…</td></tr>
+                <tr><td><input type="checkbox" /></td><td><span class="font-mono text-green-600">POST</span></td><td class="font-mono">/api/coupons</td><td>发券</td><td class="text-slate-400">待生成</td></tr>
+              </tbody>
+            </table>
+            <div class="border rounded-md p-2.5 space-y-1.5">
+              <p class="text-xs font-medium">已生成草稿 · 按接口分组</p>
+              <p class="text-xs text-slate-500">└ POST /api/orders —— 创建订单·正向主路径（3 断言）<input type="checkbox" checked class="ml-1" /></p>
+              <p class="text-[11px] text-slate-400">导入需选中目标接口定义（草稿绑定既有定义，不自动新建）</p>
+              <button class="bg-[#574BFF] text-white rounded px-3 py-1.5">导入所选 (1)</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

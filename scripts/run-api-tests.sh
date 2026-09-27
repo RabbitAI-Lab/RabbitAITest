@@ -17,13 +17,16 @@ if ! command -v jmeter >/dev/null 2>&1; then
 fi
 
 FAIL=0
+MOCK_BASE="${MOCK_BASE:-http://127.0.0.1:4000/ai}" # S7 AI：jmx 内 ${__P(MOCK_BASE)} 的 mock 供应商基地址（含 /ai 前缀——mock 路由 /ai/chat/completions）
+MOCKHOST="${MOCKHOST:-127.0.0.1}"              # API-005 直打 mock 的主机/端口（多栈并存端口漂移时注入）
+MOCKPORT="${MOCKPORT:-4000}"
 for plan in tests/api/*.jmx; do
   name="$(basename "$plan" .jmx)"
   echo "> $name"
   jtl="$OUT_DIR/$name.jtl"
   rm -f "$jtl" # jtl 追加式：清场避免上一轮失败行混入本轮计数
   jmeter -n -t "$plan" \
-    -JHOST="$HOST" -JPORT="$PORT" -JMOCK_URL="$MOCK_URL" \
+    -JHOST="$HOST" -JPORT="$PORT" -JMOCK_URL="$MOCK_URL" -JMOCK_BASE="$MOCK_BASE" -JMOCKHOST="$MOCKHOST" -JMOCKPORT="$MOCKPORT" \
     -l "$jtl" -j "$OUT_DIR/$name.log" >/dev/null 2>&1
   if [ ! -f "$jtl" ]; then
     echo "  FAIL: no jtl produced"

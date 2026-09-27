@@ -128,8 +128,38 @@ async function initContext(orgId: string, projectId: string, userId: string): Pr
   if (projAdmin) await addGroupMember(prisma, projAdmin.id, userId);
 }
 
+/** S7 AI：测试栈 mock 供应商种子（RABBIT_SEED_AI_MOCK_BASE 注入时创建；生产/dev 不设=不种）。
+ *  加密与 apps/web crypto.ts 同款派生（scrypt(SESSION_SECRET,"rabbit-ai-key",32) + AES-256-GCM），保证 web 侧可解密。 */
+async function seedAiMockModel(): Promise<void> {
+  const baseUrl = process.env.RABBIT_SEED_AI_MOCK_BASE;
+  if (!baseUrl) return;
+  const { createCipheriv, scryptSync, randomBytes } = await import("node:crypto");
+  const key = scryptSync(process.env.SESSION_SECRET ?? "dev-only-session-secret-32chars!!", "rabbit-ai-key", 32);
+  const iv = randomBytes(12);
+  const cipher = createCipheriv("aes-256-gcm", key, iv);
+  const ct = Buffer.concat([cipher.update(["mock", "not", "a", "real", "key"].join("-"), "utf8"), cipher.final()]);
+  const apiKeyEnc = ["v1", iv.toString("base64"), cipher.getAuthTag().toString("base64"), ct.toString("base64")].join(":");
+  await prisma.aiModel.upsert({
+    where: { id: "00000000-0000-0000-0000-0000000000a1" },
+    update: { baseUrl, enabled: true, isDefault: true },
+    create: {
+      id: "00000000-0000-0000-0000-0000000000a1",
+      name: "e2e-mock-模型",
+      provider: "zhipu",
+      baseUrl,
+      model: "mock-e2e-model",
+      apiKeyEnc,
+      enabled: true,
+      isDefault: true,
+    },
+  });
+}
+
 main()
-  .then(() => prisma.$disconnect())
+  .then(async () => {
+    await seedAiMockModel();
+    await prisma.$disconnect();
+  })
   .catch(async (e) => {
     console.error(e);
     await prisma.$disconnect();

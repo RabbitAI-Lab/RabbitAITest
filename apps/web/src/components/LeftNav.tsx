@@ -15,6 +15,7 @@ import {
   FolderKanban,
   ClipboardCheck,
   Workflow,
+  Sparkles,
 } from "lucide-react";
 import { usePermissions, useProjectInfo } from "@/hooks/usePermissions";
 
@@ -201,6 +202,13 @@ export function LeftNav() {
           perm: "PROJECT_ENV:READ",
           testid: "nav-settings-envs",
         },
+        {
+          href: "/settings/ai-prompts",
+          label: "AI 提示词",
+          icon: <Sparkles size={15} strokeWidth={1.8} />,
+          perm: "PROJECT_AI:READ",
+          testid: "nav-settings-ai-prompts",
+        },
       ],
     },
     {
@@ -233,6 +241,13 @@ export function LeftNav() {
           icon: <LayoutDashboard size={15} strokeWidth={1.8} />,
           perm: "SYSTEM_POOL:READ",
           testid: "nav-system-pools",
+        },
+        {
+          href: "/system/ai-models",
+          label: "模型设置",
+          icon: <Sparkles size={15} strokeWidth={1.8} />,
+          perm: "SYSTEM_AI:READ",
+          testid: "nav-system-ai-models",
         },
       ],
     },

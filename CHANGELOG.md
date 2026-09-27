@@ -4,7 +4,7 @@
 
 ## [Unreleased]
 
-## [v0.5.0] - 2026-09-27 — Sprint 4 计划完整与脑图（M5 里程碑）
+## [v0.5.1] - 2026-09-27 — Sprint 4 计划完整与脑图（M5 里程碑）
 
 #### 新增
 
@@ -37,6 +37,26 @@
 - JMeter 36 计划全绿（新增 7：PLAN-002~005、CASE-007/008、DASH-002；四类场景×四项断言）。
 - Playwright 119 用例全绿（新增 12 含 MAINFLOW-s4 主链路：建计划→建点→挂载接口用例→执行→报告点分组→CSV→工作台关注；三类断言 UI+Console+接口）。
 - 既有口径随 S4 语义同步更新：CASE-003 T1-3 自依赖断言 20422→30485；CASE-006-02「执行(S4) 禁用」断言更新为行内单条执行按钮激活；DASH-001 行 testid 兼容包裹 dash-item。
+
+## [v0.5.0] - 2026-09-27 — Sprint 7 AI 能力（并行启动：worktree 分支 sprint-7-ai）
+
+#### 新增
+
+- **模型网关（AI-001）**：系统级模型 CRUD（DeepSeek/OpenAI/智谱三供应商，协议统一 OpenAI 兼容 chat/completions）；apiKey AES-256-GCM 加密落库（密钥=scrypt(SESSION_SECRET) 派生，任何响应只回 `sk-****` 掩码、编辑留空=不改）；连接测试（探测分支回声）；设默认（事务内清旧置新）；baseUrl SSRF 守卫（私网/环回/链路本地/云元数据/CGNAT/IPv6 ULA 全拒，DNS resolve 后全 IP 复检；`AI_ALLOW_PRIVATE_BASEURL=1` 仅豁免环回供测试栈 mock 供应商）；登录可见启用模型下拉。权限点 SYSTEM_AI:CRUD（仅系统管理员）。
+- **功能用例 AI 生成（AI-002）**：用例列表「AI 生成」抽屉——需求输入+目标模块（TreeSelect）+提示词模板+模型选择 → 生成 1-10 条草稿（`extractJsonArray` 容错解析：剥栅栏/括号平衡/字符串转义安全）→ 条目弱校验（坏条剔除 skipped 明细）→ 勾选导入走 CASE-001 创建端点（level 映射 critical→P0…low→P3）；AiGenRecord 留痕（scene/generated/imported/prompt 快照）+ 只读列表。
+- **接口用例 AI 生成（AI-003）**：单条模式按 ApiDefinition 摘要（8KB 截断）生成接口用例草稿（请求差量+断言建议，operator 白名单五值，缺 status 断言自动补）；批量模式粘贴 OpenAPI 3.x 文档（复用 S2 解析器，≤20 接口/批）；断言映射纯函数 `aiDraftToAsserts`（AI 草稿→S2 六断言：status_code/body_jsonpath/response_header/response_time，exists 弱化 contains 登记简化）；导入走 API-003 创建端点（绑定目标定义，不自动建定义——与 API-011 边界）。
+- **AI 智能助手（AI-004）**：顶栏 ✦ 入口侧滑面板（560px）；个人会话管理（列表/新建/重命名（双击）/软删，30 天窗口）；SSE 流式对话（POST text/event-stream，delta/done/error 帧；打字机+AbortController 停止；错误帧不落库——半截不留）；上下文窗口最近 20 条；模型下拉（按会话记忆）；个人级隔离（service 层 userId 过滤防枚举 404）；平台身份 system prompt（无工具调用——ChatToolEngine 对标登记 Backlog）。
+- **提示词自定义（AI-005）**：项目级模板 CRUD（scene=case_gen/api_gen 两类 Tab）；占位符定义域校验（未知占位符 422 70505，合法集 case_gen={requirement,module,design_method}/api_gen={api_spec,design_method}）；`renderTemplate` 渲染（缺失变量回退空串）；设计方法字段（建议 chips）；同 scene 默认唯一（事务清旧置新）；停用模板不可默认且不出现在生成抽屉；内置默认模板常量回退（不可删改）。权限点 PROJECT_AI:CRUD（项目管理员全量/成员 READ）。
+- **数据模型**：ai 域 5 表（AiModel/AiConversation/AiMessage/AiPromptTemplate/AiGenRecord；迁移 s7_ai_domain）——S0 基线例外登记（AI 契约依赖规格定型，test-domain-model §6）；裸 FK 列（与 FalseAlarmRule 同款，不动 User/Project 存量模型）。
+- **mock 供应商端点**：apps/mock 增 `POST /ai/chat/completions`（OpenAI 兼容非流式+流式 SSE 分片；按真实 system prompt 固定开头分支确定性输出——测试契约，生产代码零测试标记）；测试栈种子（RABBIT_SEED_AI_MOCK_BASE 注入时内置 e2e-mock-模型，dev/生产不设=不种）。
+- **web 前端**：/system/ai-models 模型管理页（卡片列表/新建编辑 Modal/连接测试/设默认/启停）+LeftNav 系统设置入口；cases 页「AI 生成」按钮+AiCaseGenerateDrawer；apis 页行操作「AI 生成」+ApiCaseGenerateDrawer（单条/批量双 Tab）；TopBar ✦ 入口+AiAssistantDrawer；/settings/ai-prompts 提示词管理页+LeftNav 项目设置入口；OpenAPI 快照 188→203 paths。
+- **错误码 70xxx AI 段**：70404/70414/70422/70424/70444/70501-70505（HTTP 映射 404/422/502——供应商上游失败 502 透出状态不泄 key）。
+- **质量体系**：Vitest 163（新增 66：shared ai 27——extractJsonArray 栅栏/噪声/嵌套括号矩阵、renderTemplate/scanPlaceholders、断言映射、schema refine；web gateway 31——加密 roundtrip/GCM 篡改检测、SSRF 守卫 15 地址矩阵（DNS mock 离线确定）、ChatClient 流式聚合/上游错误；mock ai-mock 8——三分支+流式聚合）；JMeter 34 计划（新增 5：AI-001~005 四类场景×四项断言，含 SSE 采样器 content-type+rawContains 断言与 SSRF 422 真实拦截）；Playwright 114（新增 7：五规格三类断言 + 掩码脱敏/权限 403 + 会话隔离 404 防枚举）。
+- **文档**：test-domain-model §2.8 ai 域 + §6 例外登记；Sprint 7 概览 + 五份规格（Approved→Implemented）+ 五组高保真原型（docs/design/AI-001~005/，人工确认随验收走查）。
+
+#### 并行交付说明
+
+- Sprint 7 经依赖评估后**提前并行启动**（worktree `../RabbitAITest-s7` + 分支 `sprint-7-ai`，基线 main 77b74ca）：AI 域硬上游=SYS/CASE/API（S0-S2 已交付），S6 插件 SPI 对 AI 网关为前置无关项（dependency-graph §3）；范围收窄=AI 生成限定功能/接口用例（场景用例生成 Backlog）、个人级模型设置延后 SYS-007、AI-003 批量不做接口定义同步（API-011 S6 口径）。
 
 ## [v0.4.0] - 2026-09-27 — Sprint 3 场景自动化（M4 里程碑）
 
