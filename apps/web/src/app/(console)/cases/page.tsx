@@ -571,6 +571,7 @@ export default function CaseListPage() {
               >
                 新建用例
               </Button>
+            )}
             {!recycled && (
               <div className="flex items-center gap-2">
                 {can("PROJECT_AI:READ") && (

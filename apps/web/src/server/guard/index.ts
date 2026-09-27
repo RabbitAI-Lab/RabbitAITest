@@ -78,16 +78,12 @@ export function toResponse(err: unknown): NextResponse {
                       ErrCode.SELF_DEPENDENCY,
                       ErrCode.MINDMAP_TOO_LARGE,
                       ErrCode.PLAN_NO_EXECUTABLE,
+                      ErrCode.AI_BASEURL_FORBIDDEN,
+                      ErrCode.AI_RESPONSE_UNPARSEABLE,
+                      ErrCode.AI_OPENAPI_INVALID,
+                      ErrCode.AI_PROMPT_DUP,
+                      ErrCode.AI_PROMPT_PLACEHOLDER_INVALID,
                     ] as number[]
-                  ErrCode.CSV_TOO_LARGE,
-                  ErrCode.IMPORT_FILE_TOO_LARGE,
-                  ErrCode.IMPORT_FORMAT_UNKNOWN,
-                  ErrCode.AI_BASEURL_FORBIDDEN,
-                  ErrCode.AI_RESPONSE_UNPARSEABLE,
-                  ErrCode.AI_OPENAPI_INVALID,
-                  ErrCode.AI_PROMPT_DUP,
-                  ErrCode.AI_PROMPT_PLACEHOLDER_INVALID,
-                ] as number[]
                   ).includes(err.code)
                 ? 422
                 : err.code === ErrCode.AI_PROVIDER_ERROR
