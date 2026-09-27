@@ -2,19 +2,21 @@
 
 import { Badge, Button, Empty, Input, Popconfirm, Progress, Select, Table, Tag, Tooltip } from "antd";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { taskApi, type ExecTaskRow } from "@rabbit/api-client";
 import { PageHeader } from "@/components/PageHeader";
+import SchedulePanel from "@/components/scenario/SchedulePanel";
 import { useApp } from "@/hooks/useApp";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useProjectStore } from "@/stores/project";
 
-/** SYS-006：任务中心——范围 Tabs（本项目/全部项目）+ 实时任务（动态轮询）/ 定时任务（空态）。 */
+/** SYS-006：任务中心——范围 Tabs（本项目/全部项目）+ 实时任务（动态轮询）/ 定时任务（API-008 场景定时）。 */
 
 const TYPE_META: Record<string, { label: string; cls: string }> = {
   api_case: { label: "接口用例", cls: "bg-[#574BFF]/10 text-[#574BFF]" },
   api_debug: { label: "接口调试", cls: "bg-amber-50 text-amber-600" },
+  scenario: { label: "场 景", cls: "bg-[#1677FF]/10 text-[#1677FF]" },
 };
 
 /** 耗时人性化：ms → 842ms / 1.2s / 45s / 3min / 1.5h */
@@ -50,13 +52,15 @@ function StatusCell({ row }: { row: ExecTaskRow }) {
 
 export default function TaskCenterPage() {
   const router = useRouter();
+  const search = useSearchParams();
   const qc = useQueryClient();
   const { message } = useApp();
   const { can } = usePermissions();
   const { currentProjectId: projectId } = useProjectStore();
 
   const [scope, setScope] = useState<"project" | "all">("project");
-  const [subTab, setSubTab] = useState<"realtime" | "cron">("realtime");
+  const [subTab, setSubTab] = useState<"realtime" | "cron">(search.get("subTab") === "cron" ? "cron" : "realtime");
+  const focusTask = search.get("focus");
   const [typeFilter, setTypeFilter] = useState<string>();
   const [statusFilter, setStatusFilter] = useState<string>();
   const [creator, setCreator] = useState("");
@@ -193,18 +197,18 @@ export default function TaskCenterPage() {
         </div>
 
         {subTab === "cron" ? (
-          /* 定时任务：S3 场景定时 / S4 计划定时 / S6 Swagger 同步接入前为空态 */
-          <div
-            className="flex flex-col items-center justify-center py-14 text-center gap-2"
-            data-testid="cron-empty"
-          >
-            <span className="text-4xl">⏰</span>
-            <p className="text-[#3D4350]">暂无定时任务</p>
-            <p className="text-[13px] text-[#A8ABB0] max-w-md leading-6">
-              定时任务将随 <b>场景定时执行（Sprint 3）</b> / <b>计划定时（Sprint 4）</b> /{" "}
-              <b>Swagger 同步（Sprint 6）</b> 逐步接入
-            </p>
-          </div>
+          /* 定时任务（API-008）：场景定时（本项目口径）；计划定时（S4）/ Swagger 同步（S6）后续接入 */
+          scope === "project" && projectId ? (
+            <SchedulePanel />
+          ) : (
+            <div className="flex flex-col items-center justify-center py-14 text-center gap-2" data-testid="cron-empty">
+              <span className="text-4xl">⏰</span>
+              <p className="text-[#3D4350]">定时任务为项目级配置</p>
+              <p className="text-[13px] text-[#A8ABB0] max-w-md leading-6">
+                切换到「本项目」范围管理场景定时任务；计划定时（Sprint 4）/ Swagger 同步（Sprint 6）将逐步接入
+              </p>
+            </div>
+          )
         ) : (
           <>
             {/* 筛选条：类型 / 状态 / 创建人 / 时间区间（全部项目口径不支持创建人与时间，禁用） */}
@@ -221,6 +225,7 @@ export default function TaskCenterPage() {
                 options={[
                   { value: "api_debug", label: "接口调试" },
                   { value: "api_case", label: "接口用例" },
+                  { value: "scenario", label: "场景" },
                 ]}
                 data-testid="task-filter-type"
               />
@@ -314,6 +319,7 @@ export default function TaskCenterPage() {
                   "data-testid": `task-row-${i}`,
                 }) as React.HTMLAttributes<HTMLTableRowElement>
               }
+              rowClassName={(row) => (focusTask && row.id === focusTask ? "bg-[#574BFF]/[.06]" : "")}
               pagination={{
                 current: page,
                 pageSize: 20,

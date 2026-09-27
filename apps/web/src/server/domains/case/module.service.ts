@@ -28,7 +28,13 @@ export async function listModules(projectId: string, scene: string) {
               where: { projectId, deletedAt: null },
               _count: { _all: true },
             })
-          : scene === "file"
+          : scene === "scenario"
+            ? await prisma.scenario.groupBy({
+                by: ["moduleId"],
+                where: { projectId, deletedAt: null },
+                _count: { _all: true },
+              })
+            : scene === "file"
             ? await prisma.fileItem.groupBy({
                 by: ["moduleId"],
                 where: { projectId, deletedAt: null },

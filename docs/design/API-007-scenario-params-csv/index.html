@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="utf-8" />
+    <title>API-007 场景参数化（常量/列表/CSV · 变量视图）</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-slate-50 text-slate-800 text-sm">
+    <header class="h-12 bg-white border-b flex items-center px-4 gap-3">
+      <span class="font-semibold">RabbitAITest</span><span class="border rounded px-2 py-0.5">演示项目 #1</span>
+      <span class="ml-auto text-slate-400 text-xs">帮助 · 消息 · 用户</span>
+    </header>
+    <main class="p-4 space-y-4 max-w-[1200px]">
+      <!-- 画板一：场景参数 Tab（三分区） -->
+      <section class="bg-white border rounded-md">
+        <div class="px-3 py-2 border-b bg-slate-50 font-medium">画板一 · 场景编辑页「参数」Tab（常量 / 列表 / CSV 三分区）</div>
+        <div class="flex gap-1 px-3 pt-2 border-b text-[13px]">
+          <span class="px-3 py-2 text-slate-500">步骤配置</span><span class="px-3 py-2 border-b-2 border-[#574BFF] text-[#574BFF] font-medium">参数</span><span class="px-3 py-2 text-slate-500">前置/后置</span><span class="px-3 py-2 text-slate-500">断言</span><span class="px-3 py-2 text-slate-500">设置</span>
+          <button class="ml-auto my-1 border rounded px-2 py-1 text-xs">👁 变量视图</button>
+        </div>
+        <div class="p-4 grid grid-cols-3 gap-4 text-[13px]">
+          <div class="border rounded-md">
+            <div class="px-3 py-2 border-b flex items-center"><span class="font-medium">常量</span><button class="ml-auto text-xs border rounded px-2 py-0.5">＋ 添加</button></div>
+            <div class="p-2 space-y-1.5">
+              <div class="grid grid-cols-[1fr_1fr_auto] gap-1 items-center"><input class="border rounded px-2 py-1" value="host" /><input class="border rounded px-2 py-1 font-mono" value="http://127.0.0.1:4000" /><button class="text-red-400 px-1">✕</button></div>
+              <div class="grid grid-cols-[1fr_1fr_auto] gap-1 items-center"><input class="border rounded px-2 py-1" value="app_id" /><input class="border rounded px-2 py-1 font-mono" value="rabbit-demo" /><button class="text-red-400 px-1">✕</button></div>
+              <p class="text-xs text-slate-400">渲染：${host} · 覆盖同名环境变量</p>
+            </div>
+          </div>
+          <div class="border rounded-md">
+            <div class="px-3 py-2 border-b flex items-center"><span class="font-medium">列表</span><button class="ml-auto text-xs border rounded px-2 py-0.5">＋ 添加</button></div>
+            <div class="p-2 space-y-1.5">
+              <div class="border rounded p-2"><input class="border rounded px-2 py-1 w-24" value="user_names" /><textarea class="border rounded px-2 py-1 w-full mt-1 h-16 font-mono text-xs">alice
+bob
+carol</textarea><p class="text-xs text-slate-400 mt-1">3 项 · 供 ForEach 迭代或 ${user_names} 取当前值</p></div>
+            </div>
+          </div>
+          <div class="border rounded-md">
+            <div class="px-3 py-2 border-b flex items-center"><span class="font-medium">CSV</span><span class="text-[10px] text-slate-400 border rounded px-1 ml-1">场景级</span></div>
+            <div class="p-2 space-y-2">
+              <div class="flex gap-1 text-xs"><label class="border rounded px-2 py-1 flex-1 text-center bg-[#574BFF]/5 border-[#574BFF] text-[#574BFF]">文件管理关联</label><label class="border rounded px-2 py-1 flex-1 text-center text-slate-500">本地上传</label></div>
+              <select class="border rounded px-2 py-1.5 w-full"><option>users.csv（文件管理 · 2.1KB）</option></select>
+              <div class="flex gap-2 items-center"><span class="text-xs text-slate-500">分隔符</span><select class="border rounded px-2 py-1"><option selected>,</option><option>;</option><option>Tab</option></select><label class="flex items-center gap-1 text-xs"><input type="checkbox" checked /> 首行表头</label></div>
+              <table class="w-full text-xs border rounded overflow-hidden">
+                <thead class="bg-slate-50 text-slate-500"><tr><th class="px-2 py-1 text-left font-normal">name</th><th class="px-2 py-1 text-left font-normal">email</th><th class="px-2 py-1 text-left font-normal">age</th></tr></thead>
+                <tbody class="divide-y"><tr><td class="px-2 py-1 font-mono">alice</td><td class="px-2 py-1 font-mono">a@demo.io</td><td class="px-2 py-1">21</td></tr><tr><td class="px-2 py-1 font-mono">bob</td><td class="px-2 py-1 font-mono">b@demo.io</td><td class="px-2 py-1">25</td></tr><tr><td class="px-2 py-1 font-mono text-slate-400">…</td><td class="px-2 py-1 text-slate-400">…</td><td class="px-2 py-1 text-slate-400">…</td></tr></tbody>
+              </table>
+              <p class="text-xs text-slate-400">预览前 10 行 · 绑定 ForEach 后逐行注入 row.列名</p>
+            </div>
+          </div>
+        </div>
+      </section>
+      <!-- 画板二：ForEach 绑定（循环步骤配置态） -->
+      <section class="bg-white border rounded-md">
+        <div class="px-3 py-2 border-b bg-slate-50 font-medium">画板二 · ForEach 循环绑定（source 下拉 = 列表名 + CSV 列名）</div>
+        <div class="p-4 text-[13px] space-y-3 max-w-lg">
+          <div class="flex gap-2 items-center"><span class="text-slate-500 w-24">循环模式</span><label class="flex items-center gap-1"><input type="radio" /> 次数</label><label class="flex items-center gap-1 ml-2"><input type="radio" /> While</label><label class="flex items-center gap-1 ml-2"><input type="radio" checked /> ForEach</label></div>
+          <div class="flex gap-2 items-center"><span class="text-slate-500 w-24">数据源 source</span><select class="border rounded px-2 py-1.5 flex-1"><optgroup label="列表"><option>user_names（3 项）</option></optgroup><optgroup label="CSV 列"><option selected>users.csv · name</option><option>users.csv · email</option><option>users.csv · age</option></optgroup></select></div>
+          <div class="flex gap-2 items-center"><span class="text-slate-500 w-24">迭代变量 var</span><input class="border rounded px-2 py-1.5 flex-1 font-mono" value="row" /><span class="text-xs text-slate-400">row.name / row.email 经 row 保留字整行可取</span></div>
+        </div>
+      </section>
+      <!-- 画板三：变量视图抽屉（四级合并预览） -->
+      <section class="bg-white border rounded-md">
+        <div class="px-3 py-2 border-b bg-slate-50 font-medium">画板三 · 变量视图（四级来源合并 · 优先级自上而下）</div>
+        <table class="w-full text-[13px]">
+          <thead class="text-slate-500 text-xs bg-slate-50"><tr class="text-left"><th class="px-3 py-2 w-40">变量</th><th class="px-3 py-2 w-24">生效来源</th><th class="px-3 py-2">值</th><th class="px-3 py-2">覆盖说明</th></tr></thead>
+          <tbody class="divide-y">
+            <tr><td class="px-3 py-2 font-mono">token</td><td><span class="text-[10px] border rounded px-1.5 py-0.5 bg-fuchsia-50 text-fuchsia-600 border-fuchsia-200">步骤提取 temp</span></td><td class="px-3 py-2 font-mono truncate">eyJhbGciOi…</td><td class="px-3 py-2 text-slate-400">步骤 2 提取写回</td></tr>
+            <tr><td class="px-3 py-2 font-mono">name</td><td><span class="text-[10px] border rounded px-1.5 py-0.5 bg-blue-50 text-blue-600 border-blue-200">步骤参数</span></td><td class="px-3 py-2 font-mono">row.name</td><td class="px-3 py-2 text-slate-400">循环内覆盖场景参数同名</td></tr>
+            <tr><td class="px-3 py-2 font-mono">host</td><td><span class="text-[10px] border rounded px-1.5 py-0.5 bg-slate-100 text-slate-600">场景参数</span></td><td class="px-3 py-2 font-mono">http://127.0.0.1:4000</td><td class="px-3 py-2 text-slate-400">覆盖环境变量 host</td></tr>
+            <tr><td class="px-3 py-2 font-mono">app_id</td><td><span class="text-[10px] border rounded px-1.5 py-0.5 bg-green-50 text-green-700 border-green-200">环境变量</span></td><td class="px-3 py-2 font-mono">rabbit-demo</td><td class="px-3 py-2 text-slate-400">环境 dev 下发</td></tr>
+          </tbody>
+        </table>
+      </section>
+    </main>
+  </body>
+</html>

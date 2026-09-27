@@ -6,7 +6,10 @@
   "main": "./src/index.ts",
   "exports": {
     ".": "./src/index.ts",
-    "./execution": "./src/execution/index.ts"
+    "./execution": "./src/execution/index.ts",
+    "./execution/csv": "./src/execution/csv.ts",
+    "./execution/scenario-tree": "./src/execution/scenario-tree.ts",
+    "./execution/function-catalog": "./src/execution/function-catalog.ts"
   },
   "scripts": {
     "lint": "oxlint src",
@@ -15,6 +18,7 @@
     "build": "tsc --noEmit"
   },
   "dependencies": {
+    "fast-xml-parser": "^4.5.7",
     "zod": "^3.24.1"
   },
   "devDependencies": {

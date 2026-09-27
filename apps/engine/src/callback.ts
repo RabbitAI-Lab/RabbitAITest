@@ -12,8 +12,9 @@ export async function postCallback(taskId: string, cb: ExecCallback): Promise<bo
         body: JSON.stringify(cb),
       });
       if (res.ok) return true;
-    } catch {
-      // 网络错误重试
+      console.warn(`[engine] callback ${taskId} HTTP ${res.status}（attempt ${attempt + 1}/5）`);
+    } catch (e) {
+      console.warn(`[engine] callback ${taskId} 网络错误：${e instanceof Error ? e.message : e}（attempt ${attempt + 1}/5）`);
     }
     await new Promise((r) => setTimeout(r, 500 * 2 ** attempt));
   }

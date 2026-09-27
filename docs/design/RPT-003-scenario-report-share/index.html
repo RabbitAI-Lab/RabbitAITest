@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="utf-8" />
+    <title>RPT-003 场景报告（步骤树 · 迭代分组 · 变量终值 · 误报统计）</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-slate-50 text-slate-800 text-sm">
+    <header class="h-12 bg-white border-b flex items-center px-4 gap-3">
+      <span class="font-semibold">RabbitAITest</span><span class="border rounded px-2 py-0.5">演示项目 #1</span>
+      <span class="ml-auto text-slate-400 text-xs">帮助 · 消息 · 用户</span>
+    </header>
+    <main class="p-4 space-y-4 max-w-[1100px]">
+      <!-- 画板一：场景报告（概览卡 + 步骤树 + 迭代分组 + 钻取抽屉） -->
+      <section class="bg-white border rounded-md">
+        <div class="px-3 py-2 border-b bg-slate-50 font-medium">画板一 · 场景报告 /reports/{taskId}（scenario 分支 · 步骤树视图）</div>
+        <div class="p-3 border-b flex items-center gap-3 flex-wrap text-[13px]">
+          <span class="font-medium">批量执行 · 2026-09-27 10:32</span>
+          <span class="text-xs border rounded px-1.5 py-0.5 bg-blue-50 text-blue-600 border-blue-200">scenario</span>
+          <span class="text-xs text-slate-400">环境 dev · 默认池 · 触发：admin</span>
+          <span class="ml-auto flex gap-2"><button class="border rounded-md px-3 py-1.5">分享</button><button class="border rounded-md px-3 py-1.5">删除报告</button></span>
+        </div>
+        <div class="p-4">
+          <div class="flex gap-3 text-[13px] mb-4">
+            <div class="border rounded-md px-4 py-3 w-28"><p class="text-xs text-slate-400">执行项</p><p class="text-xl font-semibold">3</p></div>
+            <div class="border rounded-md px-4 py-3 w-28"><p class="text-xs text-slate-400">通过</p><p class="text-xl font-semibold text-green-600">2</p></div>
+            <div class="border rounded-md px-4 py-3 w-28"><p class="text-xs text-slate-400">失败</p><p class="text-xl font-semibold text-red-500">1</p></div>
+            <div class="border rounded-md px-4 py-3 w-28"><p class="text-xs text-slate-400">误报</p><p class="text-xl font-semibold text-orange-500">1</p></div>
+            <div class="border rounded-md px-4 py-3 w-32"><p class="text-xs text-slate-400">总耗时</p><p class="text-xl font-semibold">12.4s</p></div>
+          </div>
+          <div class="flex gap-4">
+            <!-- item 表 + 树 -->
+            <div class="w-[560px]">
+              <table class="w-full text-[13px] mb-3">
+                <thead class="text-slate-500 text-xs bg-slate-50"><tr class="text-left"><th class="px-2 py-1.5">场景</th><th class="px-2 py-1.5">状态</th><th class="px-2 py-1.5">步骤</th><th class="px-2 py-1.5">耗时</th></tr></thead>
+                <tbody class="divide-y">
+                  <tr class="bg-[#574BFF]/5"><td class="px-2 py-2"><a class="text-[#574BFF]">用户注册数据驱动 #1003</a></td><td><span class="text-red-500 font-medium">FAILED</span></td><td class="px-2 py-2">5 步 · 3 迭代</td><td class="px-2 py-2">3.1s</td></tr>
+                  <tr><td class="px-2 py-2"><a class="text-[#574BFF]">下单主流程 #1001</a></td><td><span class="text-green-600 font-medium">SUCCESS</span></td><td class="px-2 py-2">12 步</td><td class="px-2 py-2">6.2s</td></tr>
+                  <tr><td class="px-2 py-2"><a class="text-[#574BFF]">支付回调验证 #1002</a></td><td><span class="text-orange-500 font-medium">误报</span></td><td class="px-2 py-2">8 步</td><td class="px-2 py-2">3.1s</td></tr>
+                </tbody>
+              </table>
+              <!-- 步骤树（展开 #1003） -->
+              <div class="border rounded-md">
+                <div class="px-3 py-2 border-b flex items-center gap-2 text-[13px]"><span class="font-medium">步骤树 · 用户注册数据驱动 #1003</span><span class="ml-auto text-xs text-slate-400 flex gap-2"><button class="border rounded px-2 py-0.5">展开全部</button><button class="border rounded px-2 py-0.5">Tab：步骤 | <span class="text-[#574BFF]">变量</span></button></span></div>
+                <div class="p-2 text-[13px]">
+                  <div class="flex items-center gap-2 px-2 py-1.5 rounded"><span class="text-slate-400">▾</span><span class="text-xs border rounded px-1 py-0.5 bg-purple-50 text-purple-600 border-purple-200">循环 ForEach</span><span>遍历用户列表（3 行）</span><span class="ml-auto text-xs text-green-600">2/3 通过 · 1.8s</span></div>
+                  <div class="ml-5 border-l pl-3 py-1 space-y-0.5">
+                    <div class="flex items-center gap-2 px-2 py-1 text-xs text-slate-400"><span>▸ 迭代 #1</span><span class="ml-auto">3/3 通过 · 0.6s</span></div>
+                    <div class="flex items-center gap-2 px-2 py-1 text-xs text-slate-400"><span>▸ 迭代 #2</span><span class="ml-auto">3/3 通过 · 0.6s</span></div>
+                    <div class="flex items-center gap-2 px-2 py-1 text-xs"><span class="text-slate-400">▾ 迭代 #3</span><span class="ml-auto text-red-500">2/3 · 0.6s</span></div>
+                    <div class="ml-4 space-y-0.5">
+                      <div class="flex items-center gap-2 px-2 py-1 rounded hover:bg-slate-50"><span class="w-1 h-3.5 rounded bg-green-500"></span><span class="text-xs border rounded px-1 py-0.5 bg-blue-50 text-blue-600 border-blue-200">POST /users</span><span class="truncate">注册 alice</span><span class="ml-auto text-xs text-green-600">200 · 45ms</span></div>
+                      <div class="flex items-center gap-2 px-2 py-1 rounded hover:bg-slate-50"><span class="w-1 h-3.5 rounded bg-green-500"></span><span class="text-xs border rounded px-1 py-0.5 bg-amber-50 text-amber-600 border-amber-200">脚本</span><span class="truncate">校验 userId</span><span class="ml-auto text-xs text-green-600">OK · 8ms</span></div>
+                      <div class="flex items-center gap-2 px-2 py-1 rounded bg-red-50 border border-red-100"><span class="w-1 h-3.5 rounded bg-red-500"></span><span class="text-xs border rounded px-1 py-0.5 bg-blue-50 text-blue-600 border-blue-200">POST /profile</span><span class="truncate">建档（断言 body_jsonpath $.code）</span><span class="ml-auto text-xs text-red-500">断言失败 · 62ms</span></div>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-2 px-2 py-1.5 rounded opacity-60"><span class="text-slate-400">▸</span><span class="text-xs border rounded px-1 py-0.5 bg-slate-100 text-slate-500">条件</span><span>token 存在时下单（SKIPPED）</span><span class="ml-auto text-xs text-slate-400">跳过</span></div>
+                </div>
+              </div>
+            </div>
+            <!-- 钻取抽屉 -->
+            <div class="flex-1 border rounded-md p-3 text-[13px]">
+              <p class="font-medium mb-2">步骤钻取 · POST /profile（迭代 #3）</p>
+              <div class="flex gap-2 text-xs border-b pb-1 mb-2"><span class="border-b-2 border-[#574BFF] text-[#574BFF] px-1">断言 2</span><span class="px-1 text-slate-400">提取 1</span><span class="px-1 text-slate-400">请求快照</span><span class="px-1 text-slate-400">响应</span><span class="px-1 text-slate-400">日志</span></div>
+              <table class="w-full text-xs mb-2"><thead class="text-slate-400"><tr class="text-left"><th class="py-1">断言</th><th>期望</th><th>实际</th><th>结果</th></tr></thead><tbody>
+                <tr><td class="py-1 font-mono">status_code eq</td><td>200</td><td>200</td><td class="text-green-600">✓</td></tr>
+                <tr><td class="py-1 font-mono">$.code eq</td><td>0</td><td class="font-mono">1</td><td class="text-red-500">✗</td></tr>
+              </tbody></table>
+              <pre class="text-[11px] font-mono bg-slate-50 border rounded p-2 leading-5 overflow-auto">POST http://127.0.0.1:4000/mock/10001/profile
+{ "name": "${row.name}", "email": "${row.email}" }
+→ 渲染后：{ "name": "carol", "email": "c@demo.io" }
+响应 200 · {"code":1,"msg":"duplicate email"} · 62ms</pre>
+              <p class="text-xs text-slate-400 mt-2">请求快照=渲染后值（函数与变量求值结果可见）</p>
+            </div>
+          </div>
+        </div>
+      </section>
+      <!-- 画板二：变量终值 Tab + 免登分享态 -->
+      <section class="bg-white border rounded-md">
+        <div class="px-3 py-2 border-b bg-slate-50 font-medium">画板二 · 「变量」Tab（终值合并表）与免登分享页头（只读态）</div>
+        <div class="flex">
+          <table class="w-[520px] text-[13px]">
+            <thead class="text-slate-500 text-xs bg-slate-50"><tr class="text-left"><th class="px-3 py-2">变量</th><th class="px-3 py-2">来源</th><th class="px-3 py-2">终值</th></tr></thead>
+            <tbody class="divide-y">
+              <tr><td class="px-3 py-2 font-mono">row.name</td><td class="px-3 py-2 text-xs text-slate-400">CSV 末行</td><td class="px-3 py-2 font-mono">carol</td></tr>
+              <tr><td class="px-3 py-2 font-mono">user_id</td><td class="px-3 py-2 text-xs text-slate-400">步骤提取 temp</td><td class="px-3 py-2 font-mono truncate">10086</td></tr>
+              <tr><td class="px-3 py-2 font-mono">host</td><td class="px-3 py-2 text-xs text-slate-400">场景参数</td><td class="px-3 py-2 font-mono">http://127.0.0.1:4000</td></tr>
+            </tbody>
+          </table>
+          <div class="flex-1 border-l p-4 text-[13px]">
+            <div class="border rounded-md p-3 bg-slate-50">
+              <p class="text-xs text-slate-400 mb-1">免登分享页（/share/report/{token}）</p>
+              <p class="font-medium">场景报告分享 · 下单主流程</p>
+              <p class="text-xs text-slate-500 mt-1">只读视图 · 步骤树/钻取/变量/误报徽标同口径 · 无操作按钮</p>
+              <p class="text-xs text-orange-500 mt-1">支付回调验证：误报徽标与规则名 tooltip 同样可见</p>
+              <p class="text-xs text-slate-400 mt-2">有效期至 2026-09-28 10:32 · 过期后 404</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

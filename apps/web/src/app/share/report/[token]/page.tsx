@@ -9,13 +9,15 @@ import {
   ReportItemsTable,
   ReportSummaryCards,
 } from "@/components/report/ReportViewPanels";
+import { ScenarioReportView, ScenarioSummaryCards } from "@/components/report/ScenarioReportPanels";
 
-/** RPT-002：报告免登分享页（token 即凭证；404/过期统一灰空态）。
+/** RPT-002/RPT-003：报告免登分享页（token 即凭证；404/过期统一灰空态）。
  *  注：本页位于 (console) 路由组之外——console 布局含服务端登录重定向，免登页须独立于该布局。 */
 
 const TYPE_TEXT: Record<string, { label: string; cls: string }> = {
   api_case: { label: "接口用例", cls: "bg-[#574BFF]/10 text-[#574BFF]" },
   api_debug: { label: "调 试", cls: "bg-[#F2F3F5] text-[#646A73]" },
+  scenario: { label: "场 景", cls: "bg-[#1677FF]/10 text-[#1677FF]" },
 };
 
 export default function ShareReportPage() {
@@ -94,6 +96,12 @@ export default function ShareReportPage() {
             <ReportSummaryCards summary={data.summary} durationMs={data.durationMs} />
             {/* 只读 item 表（匿名访问无项目作用域 itemFrames 权限，钻取需登录后在详情页查看） */}
             <ReportItemsTable items={data.items} drillEnabled={false} />
+          </>
+        ) : data.type === "scenario" ? (
+          <>
+            <ScenarioSummaryCards summary={data.summary} durationMs={data.durationMs} />
+            {/* 误报徽标同口径；步骤树/变量需登录（scenarioTree 为项目作用域端点） */}
+            <ScenarioReportView detail={data} drillEnabled={false} />
           </>
         ) : (
           <DebugSingleView detail={data} liveFrames={[]} />

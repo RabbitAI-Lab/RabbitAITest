@@ -34,6 +34,9 @@ export function toResponse(err: unknown): NextResponse {
                   ErrCode.POOL_NOT_FOUND,
                   ErrCode.REPORT_NOT_FOUND,
                   ErrCode.SHARE_NOT_FOUND,
+                  ErrCode.SCENARIO_NOT_FOUND,
+                  ErrCode.SCENARIO_STEP_NOT_FOUND,
+                  ErrCode.FALSE_ALARM_RULE_NOT_FOUND,
                 ] as number[]
               ).includes(err.code)
             ? 404
@@ -51,6 +54,14 @@ export function toResponse(err: unknown): NextResponse {
                       ErrCode.REF_TARGET_INVALID,
                       ErrCode.TASK_NOT_RUNNING,
                       ErrCode.TASK_NOT_RERUNNABLE,
+                      ErrCode.SCENARIO_CIRCULAR_REF,
+                      ErrCode.CRON_INVALID,
+                      ErrCode.SCHEDULE_SCENARIOS_EMPTY,
+                      ErrCode.MATCHER_EMPTY,
+                      ErrCode.RULES_LIMIT_EXCEEDED,
+                      ErrCode.CSV_TOO_LARGE,
+                      ErrCode.IMPORT_FILE_TOO_LARGE,
+                      ErrCode.IMPORT_FORMAT_UNKNOWN,
                     ] as number[]
                   ).includes(err.code)
                 ? 422

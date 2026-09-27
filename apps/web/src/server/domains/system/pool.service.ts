@@ -5,7 +5,7 @@ import { prisma } from "@rabbit/db";
 const BEAT_INTERVAL_MS = 10_000;
 const OFFLINE_AFTER_BEATS = 3;
 /** 契约 v2 引擎版本（心跳版本协商：不一致节点标 UNMATCHED 仅供展示，不下发新类型任务） */
-const EXPECTED_ENGINE_VERSION = "0.2.0";
+const EXPECTED_ENGINE_VERSION = "0.3.0"; // 与 apps/engine runner/worker.ts VERSION 同步（契约 v3；升版须两端同改）
 
 interface NodeRow {
   nodeId: string;

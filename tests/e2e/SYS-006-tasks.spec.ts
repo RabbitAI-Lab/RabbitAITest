@@ -103,9 +103,13 @@ test("SYS-006-01 任务主链路：本项目行→终态操作两态→重跑「
   ).toBeVisible();
 
   // ── 定时任务 Tab 空态（S3/S4/S6 接入前）──
+  // S3 起定时任务数据源接入（API-008 SchedulePanel）：本项目范围显示面板；全部范围显示项目级配置指引空态
+  await page.getByTestId("scope-tab-project").click();
   await page.getByTestId("task-tab-cron").click();
+  await expect(page.getByTestId("schedule-panel")).toBeVisible();
+  await page.getByTestId("scope-tab-all").click();
   await expect(page.getByTestId("cron-empty")).toBeVisible();
-  await expect(page.getByTestId("cron-empty")).toContainText("暂无定时任务");
+  await expect(page.getByTestId("cron-empty")).toContainText("项目级配置");
 
   await expectNoConsoleErrors();
 });

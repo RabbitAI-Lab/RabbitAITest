@@ -14,6 +14,7 @@ import {
   SlidersHorizontal,
   FolderKanban,
   ClipboardCheck,
+  Workflow,
 } from "lucide-react";
 import { usePermissions, useProjectInfo } from "@/hooks/usePermissions";
 
@@ -91,6 +92,14 @@ export function LeftNav() {
           label: "接口调试",
           icon: <FlaskConical size={15} strokeWidth={1.8} />,
           module: "api",
+        },
+        {
+          href: "/scenarios",
+          label: "接口场景",
+          icon: <Workflow size={15} strokeWidth={1.8} />,
+          perm: "PROJECT_SCENARIO:READ",
+          module: "api",
+          testid: "nav-scenarios",
         },
         {
           href: "/reports",

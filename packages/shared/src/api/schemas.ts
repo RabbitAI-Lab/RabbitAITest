@@ -12,6 +12,17 @@ import {
   requestSpecSchema,
 } from "../execution/schemas";
 
+/** query 布尔：z.coerce.boolean 对字符串 "false" 误判 truthy（Boolean("false")=true）——
+ *  显式映射修复（S3 勘误：场景列表 recycle=false 曾因此恒查回收站）；缺省回落 def。 */
+export const queryBool = (def: boolean) =>
+  z.preprocess(
+    (v) => {
+      if (v === undefined || v === null || v === "") return def;
+      return v === "true" || v === true || v === 1 || v === "1";
+    },
+    z.boolean(),
+  );
+
 // ── 接口定义（API-002）──
 
 export const apiStatusSchema = z.enum(["DEBUG", "RELEASED"]);
@@ -53,7 +64,7 @@ export const apiUpdateSchema = z.object({
 
 export const apiListQuerySchema = z.object({
   moduleId: z.string().uuid().optional(),
-  includeChildren: z.coerce.boolean().default(true),
+  includeChildren: queryBool(true),
   method: httpMethodSchema.optional(),
   name: z.string().max(512).optional(),
   status: apiStatusSchema.optional(),
@@ -244,7 +255,7 @@ export const fileUpdateSchema = z.object({
 });
 export const fileListQuerySchema = z.object({
   moduleId: z.string().uuid().optional(),
-  includeChildren: z.coerce.boolean().default(true),
+  includeChildren: queryBool(true),
   keyword: z.string().max(128).optional(),
   page: z.coerce.number().int().min(1).default(1),
   pageSize: z.coerce.number().int().min(1).max(100).default(20),
@@ -253,7 +264,7 @@ export const fileListQuerySchema = z.object({
 // ── 任务中心（SYS-006）与报告（RPT-002）──
 
 export const execTaskListQuerySchema = z.object({
-  type: z.enum(["api_debug", "api_case"]).optional(),
+  type: z.enum(["api_debug", "api_case", "scenario"]).optional(),
   status: z.enum(["PENDING", "RUNNING", "SUCCESS", "FAILED", "STOPPED"]).optional(),
   creator: z.string().max(128).optional(),
   from: z.string().datetime().optional(),
@@ -262,7 +273,7 @@ export const execTaskListQuerySchema = z.object({
   pageSize: z.coerce.number().int().min(1).max(100).default(20),
 });
 export const reportListQuerySchema = z.object({
-  reportType: z.enum(["api_debug", "api_case"]).optional(),
+  reportType: z.enum(["api_debug", "api_case", "scenario"]).optional(),
   keyword: z.string().max(128).optional(),
   page: z.coerce.number().int().min(1).default(1),
   pageSize: z.coerce.number().int().min(1).max(100).default(20),
@@ -275,4 +286,129 @@ export const shareCreateSchema = z.object({
 
 export const caseApiRefCreateSchema = z.object({
   refIds: z.array(z.string().uuid()).min(1).max(100),
+});
+
+// ── 场景自动化（S3：API-006/007/008/009/010，存储形态 schema；命令形态见 execution/schemas）──
+
+import type { ScenarioStepNode } from "../execution/schemas";
+import { csvSourceSchema } from "../execution/csv";
+
+/** 步骤保存形态（前端树；uid=前端稳定键，stepPath 帧由执行序生成）。 */
+export const scenarioStepSaveSchema: z.ZodType<ScenarioStepNode, z.ZodTypeDef, unknown> = z.lazy(() =>
+  z.object({
+    uid: z.string().min(1).max(64),
+    stepType: z.enum(["ref_api", "ref_case", "ref_scenario", "custom", "loop", "condition", "once", "script", "wait"]),
+    name: z.string().min(1).max(256),
+    enabled: z.boolean().default(true),
+    config: z.record(z.string(), z.unknown()).default({}),
+    children: z.array(scenarioStepSaveSchema).max(200).default([]),
+  }),
+);
+
+/** 场景参数存储形态（CSV 为来源配置；任务创建时解析为 csvTable 内嵌命令，API-007）。 */
+export const scenarioParamsSaveSchema = z.object({
+  constants: z
+    .array(z.object({ name: z.string().min(1).max(128), value: z.string().max(8192).default(""), description: z.string().max(512).default("") }))
+    .max(200)
+    .default([]),
+  lists: z
+    .array(z.object({ name: z.string().min(1).max(128), values: z.array(z.string().max(8192)).max(1000).default([]) }))
+    .max(50)
+    .default([]),
+  csv: csvSourceSchema.default({ source: "inline", delimiter: ",", hasHeader: true }),
+});
+
+export const scenarioSaveSchema = z.object({
+  name: z.string().min(1).max(512),
+  moduleId: z.string().uuid(),
+  level: z.enum(["P0", "P1", "P2", "P3"]).default("P2"),
+  status: z.enum(["PREPARE", "UNDERWAY", "COMPLETED"]).default("UNDERWAY"),
+  tags: z.array(z.string().max(64)).max(10).default([]),
+  version: z.number().int().min(1).default(1), // 乐观锁
+  /** 五配置区存储：params/prePost/asserts/settings（steps 单独端点整树保存；
+   *  三对象可整体省略——内层字段全 default，部分保存（仅 params 等）合法） */
+  config: z
+    .object({
+      params: scenarioParamsSaveSchema.default({ constants: [], lists: [], csv: { source: "inline", delimiter: ",", hasHeader: true } }),
+      prePost: z
+        .object({
+          pre: z.array(z.unknown()).max(20).default([]),
+          post: z.array(z.unknown()).max(20).default([]),
+        })
+        .default({}),
+      asserts: z.array(z.unknown()).max(50).default([]),
+      settings: z
+        .object({
+          cookieMode: z.enum(["off", "keep"]).default("off"),
+          thinkTimeMs: z.number().int().min(0).max(30000).default(0),
+          onFailure: z.enum(["continue", "abort"]).default("abort"),
+        })
+        .default({}),
+    }),
+});
+
+/** 创建口径：config 可省（服务端补空五配置区；update 沿用 scenarioSaveSchema 全量校验）。 */
+export const scenarioCreateSchema = scenarioSaveSchema.extend({
+  config: scenarioSaveSchema.shape.config.default({
+    params: { constants: [], lists: [], csv: { source: "inline", delimiter: ",", hasHeader: true } },
+    prePost: { pre: [], post: [] },
+    asserts: [],
+    settings: { cookieMode: "off", thinkTimeMs: 0, onFailure: "abort" },
+  }),
+});
+
+export const scenarioListQuerySchema = z.object({
+  moduleId: z.string().uuid().optional(),
+  includeChildren: queryBool(true),
+  keyword: z.string().max(128).optional(),
+  level: z.enum(["P0", "P1", "P2", "P3"]).optional(),
+  status: z.enum(["PREPARE", "UNDERWAY", "COMPLETED"]).optional(),
+  tag: z.string().max(64).optional(),
+  recycle: queryBool(false), // true=回收站（已软删）
+  page: z.coerce.number().int().min(1).default(1),
+  pageSize: z.coerce.number().int().min(1).max(100).default(20),
+});
+
+export const scenarioStepsSaveSchema = z.object({
+  version: z.number().int().min(1),
+  steps: z.array(scenarioStepSaveSchema).max(500).default([]),
+});
+
+export const scenarioExecuteSchema = z.object({
+  scenarioIds: z.array(z.string().uuid()).min(1).max(50),
+  envId: z.string().uuid().optional(),
+  poolId: z.string().uuid().optional(),
+  stopOnFail: z.boolean().default(false),
+  mode: z.enum(["serial", "parallel"]).default("serial"),
+});
+
+export const scenarioBatchOpSchema = z.object({
+  ids: z.array(z.string().uuid()).min(1).max(200),
+  moduleId: z.string().uuid().optional(), // batch-move 目标模块
+});
+
+export const falseAlarmRuleSaveSchema = z.object({
+  name: z.string().min(1).max(128),
+  matcher: z.object({
+    status: z.number().int().min(100).max(599).optional(),
+    bodyContains: z.string().min(1).max(512).optional(),
+    headerContains: z.string().min(1).max(512).optional(),
+    responseTimeGt: z.number().int().min(1).max(600000).optional(),
+  }),
+  enabled: z.boolean().default(true),
+  description: z.string().max(512).default(""),
+});
+
+export const scenarioScheduleSaveSchema = z.object({
+  name: z.string().min(1).max(128),
+  cron: z.string().min(9).max(64),
+  scenarioIds: z.array(z.string().uuid()).min(1).max(50),
+  envId: z.string().uuid().optional(),
+  enabled: z.boolean().default(true),
+  notify: z.boolean().default(false), // 占位（S5 MSG-001 承接）
+});
+
+export const scenarioExportSchema = z.object({
+  ids: z.array(z.string().uuid()).min(1).max(50),
+  mode: z.enum(["ref", "flatten"]).default("ref"),
 });

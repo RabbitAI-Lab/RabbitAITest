@@ -15,13 +15,15 @@ import { useApp } from "@/hooks/useApp";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useProjectStore } from "@/stores/project";
 import { DebugSingleView, REPORT_STATUS_META, ReportItemsTable, ReportSummaryCards } from "@/components/report/ReportViewPanels";
+import { ScenarioReportView, ScenarioSummaryCards } from "@/components/report/ScenarioReportPanels";
 
-/** RPT-002：报告详情——api_case（统计三卡 + item 表 + 步骤钻取）/ api_debug（S0 单请求布局保留）。
+/** RPT-002/RPT-003：报告详情——api_case（统计三卡 + item 表 + 步骤钻取）/ scenario（五卡含误报 + 步骤树 + 变量）/ api_debug（S0 单请求布局保留）。
  *  运行中任务保留 SSE + 轮询刷新；重跑/分享/删除操作在头部。 */
 
 const TYPE_TEXT: Record<string, { label: string; cls: string }> = {
   api_case: { label: "接口用例", cls: "bg-[#574BFF]/10 text-[#574BFF]" },
   api_debug: { label: "调 试", cls: "bg-[#F2F3F5] text-[#646A73]" },
+  scenario: { label: "场 景", cls: "bg-[#1677FF]/10 text-[#1677FF]" },
 };
 
 export default function ReportPage() {
@@ -180,6 +182,17 @@ export default function ReportPage() {
           <ReportSummaryCards summary={data.summary} durationMs={data.durationMs} />
           {/* item 表 + 步骤钻取 */}
           <ReportItemsTable projectId={projectId} taskId={taskId} items={data.items} />
+          {data.message && status === "FAILED" && (
+            <div className="rabbit-card p-3 text-[13px] text-[#FF4D4F]" data-testid="report-failure-message">
+              失败信息：{data.message}
+            </div>
+          )}
+        </div>
+      ) : data.type === "scenario" ? (
+        <div className="mt-4 space-y-4" data-testid="report-scenario-view">
+          {/* RPT-003 五卡（含误报单列） + 场景 item 表 + 步骤树/变量 */}
+          <ScenarioSummaryCards summary={data.summary} durationMs={data.durationMs} />
+          <ScenarioReportView projectId={projectId} detail={data} />
           {data.message && status === "FAILED" && (
             <div className="rabbit-card p-3 text-[13px] text-[#FF4D4F]" data-testid="report-failure-message">
               失败信息：{data.message}

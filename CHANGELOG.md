@@ -4,6 +4,40 @@
 
 ## [Unreleased]
 
+## [v0.4.0] - 2026-09-27 — Sprint 3 场景自动化（M4 里程碑）
+
+#### 新增
+
+- **场景编排（API-006）**：场景 CRUD（等级 P0-P3/状态/标签/模块树 scene=scenario/回收站软删恢复彻底删/复制/批量移动复制删除/变更历史）；步骤树（9 类步骤：引用接口/用例/场景·复制或引用、自定义请求、循环×3（次数/While/ForEach·CSV 列表源）、条件 quickjs、仅一次、脚本、等待）；步骤操作（启停/复制/加子级/上下移/删除）；单步执行（以该步骤为根的临时场景）；步骤级覆盖（失败规则/追加断言/步骤参数）；五配置区（参数/前置后置/断言/设置：Cookie 策略·思考时间·失败规则）；执行契约 v3（EXEC_CONTRACT_VERSION=3，帧 additive：stepPath/iteration/step-op/step-skip/vars-final/FAKE_ERROR）。
+- **场景参数化（API-007）**：常量/列表/CSV 三类参数（CSV inline 或关联文件管理）；foreach 数据源=列表名或 CSV 列名（任务下发时服务端预展开迭代序列，row 保留字注入整行）；变量视图（四级来源合并展示：步骤提取>步骤参数>场景参数>环境变量）；渲染优先级链统一。
+- **批量执行与定时（API-008）**：列表勾选批量执行（环境/资源池/串行并行/失败停止，并行=池级 p-limit 并发）；定时任务（cron 词法校验最短 5 分钟、AppSetting 权威源+BullMQ repeatable 双轨、启停/立即执行/场景全删自动停用）；任务中心「定时任务」Tab 从空态兑现为数据源（场景定时）。
+- **导入导出（API-009）**：导出 Rabbit JSON（保留引用关系 ref / 展开为自定义请求 flatten 两模式）；导入 Rabbit JSON / JMeter jmx（HTTP 采样/循环/CSVDataSet/JSR223/等待映射）/ MeterSphere v3 JSON；导入预览（格式探测/场景步骤数/首步骤/警告）。
+- **内置函数库（EXEC-003）**：`${__func()}` 引擎函数 10 个（计数/随机/UUID/时间/时间偏移/摘要/Base64/URL 编码/变量判定/场景名）+ `@mock` 数据函数 12 个（字符串/整数/浮点/姓名/邮箱/手机号/日期/日期时间/省市/身份证/正则/列表取一）+ 管道叠加 8 种（md5/sha256/base64/substr/大小写/trim/default）；渲染管线统一（renderString 单点）；FUNCTION_CATALOG 抽纯数据模块（客户端提示与引擎实现同源，node:crypto 隔离）。
+- **误报规则（API-010）**：项目级规则 CRUD（匹配器状态码/响应体包含/响应头包含/耗时上限，多条件 AND 至少一项；上限 50）；执行终态对 FAILED item 匹配 → 改判 FAKE_ERROR + FalseAlarmHit 留痕（规则名+stepPath）；summary 误报单列；FAKE_ERROR 不计任务失败；停用/删除后新执行不再标记（不回溯）。
+- **场景报告（RPT-003）**：reportType=scenario 渲染——统计五卡（执行项/通过/失败/误报/总耗时）；场景 item 表（误报徽标+命中规则 tooltip）；步骤树视图（stepPath 树聚合+循环迭代分组+跳过原因）；步骤级钻取（渲染后请求快照/响应/断言/耗时）；变量终值 Tab（vars-final）；场景执行历史；分享链路复用 RPT-002（免登只读五卡+误报徽标同口径）。
+- **引擎内核 v0.3.0**：runScenarioItem 递归执行器（loop×3/condition/once/script/wait/失败规则/思考时间/CookieJar 变量作用域链/场景变量断言/vars-final 帧）；runStep 抽出 runner/step.ts（帧元数据/cookie/函数渲染）；serial 顺序 + parallel p-limit(poolConcurrency)；quickjs 条件求值 evalCondition；报告树聚合纯函数 buildScenarioTree（shared，剥无帧包装层）。
+- **权限与错误码**：新权限点 PROJECT_SCENARIO CRUD 入预置组（项目管理员全量/组织管理员只读集）；错误码 40474/40476/40484/40494/50005-50011 入册并接入 HTTP 分段映射（404/422）。
+- **web 前端**：/scenarios 列表页（模块树+场景/回收站页签+批量执行弹窗+导入导出+定时/误报入口）/scenarios/[id] 编辑页（步骤树面板+五配置区 Tab+变量视图+变更历史）/scenarios/false-alarm 规则页；任务中心定时 Tab（SchedulePanel）；报告页与免登分享页 scenario 分支；FunctionHintPopover（函数目录浮层）；OpenAPI 快照 164→188 paths。
+- **质量体系**：Vitest 97（shared 62：新增 s3-execution 20——函数库矩阵/CSV/误报 AND/树聚合/jmx 映射；engine 28：新增 scenario 执行器 10——控制器语义/foreach 注入/失败规则二态/变量断言/vars-final）；JMeter 29 计划（新增 5：API-006~010 四类场景×四项断言，含误报改判全链路与导入导出 multipart）全绿；Playwright 107（新增 16：五规格 UI+权限二态+误报改判对照+RPT-003 分享只读+MAINFLOW-s3 主链路：建场景→编排 7 类步骤→CSV→执行→报告树迭代→误报→导出）。
+- **文档**：Sprint 3 七份规格（Approved→Implemented 流转）+ 六组高保真原型（docs/design/，人工确认随验收走查）+ EXEC-003 接口契约评审替代。
+
+#### 修复
+
+- PROJECT_ADMIN 预置组仅含 PROJECT_SCENARIO:READ（缺 CREATE/UPDATE/DELETE）——注册用户建场景恒 403；ORG_ADMIN 只读集补 READ（受限成员二态恢复）
+- scenarioCreateSchema：config 必填致「仅名称+模块」创建 422；params/prePost/settings 三对象与 csv 子字段缺 default——部分保存（仅 params.lists 等）422
+- 列表分页信封返回 `list`（违反 api-conventions `items`，api-client 类型与前端三方不一致）——前端列表恒空
+- query 布尔经 z.coerce.boolean 对字符串 "false" 误判 truthy（recycle=false 恒查回收站）——queryBool 显式映射修复（includeChildren 同步）
+- saveSteps/import 将前端 uid/文件 uid 直接作 ScenarioStep 全局主键（跨场景同名 uid P2002）——一律服务端生成新 id + parentId 树重建
+- api-client s3 exportJson 走信封解析但端点返回 attachment 流（恒抛 50000）——改 downloadRaw；importPreview/import 的 FormData 经 post() 被 JSON.stringify（服务端 formData() 解析失败）——改 request 直传
+- guard 错误码 HTTP 分段表未含 S3 新码（40474/50005/50007 等落默认 400）——404/422 分段补齐
+- 场景编辑页保存后 invalidate 期间旧缓存先到触发 effect 重置（刚保存的参数被空配置覆盖）——await 缓存刷新后再解锁
+- scenario detail 缺 stepCount 字段、changes 端点返回裸数组（api-client 类型声明 {items}）——响应形状对齐
+- engine continue 失败规则吞掉失败状态（item 误判 SUCCESS，规格要求 FAILED）——WalkState.failed 补记
+- 场景树聚合含 engine 根前缀产生的无帧包装层（报告树多一层「步骤 0」）——纯包装层剥离（迭代组聚合形态保留）
+- 批量执行弹窗对无 SYSTEM_POOL:READ 的项目管理员拉系统池列表（页面恒 403 噪声）——按权限拉取回落默认池
+- instrumentation.ts 被双 runtime 编译（edge bundle 解析 pg/fs 失败）——S3 逻辑迁 instrumentation-node.ts（nodejs-only，Next 15.3+ 约定）；客户端组件误引 @rabbit/shared/execution 聚合入口（node:crypto 进浏览器 bundle）——csv/function-catalog 细粒度子路径导出
+
+
 ## [v0.3.0] - 2026-09-27 — Sprint 2 接口测试核心（M3 里程碑）
 
 #### 新增

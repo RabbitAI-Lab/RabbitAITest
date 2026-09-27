@@ -1,9 +1,11 @@
 import { z } from "zod";
 
 /**
- * 执行契约 v2（API-004 冻结，web ↔ engine 双方不得私改；engine-execution-architecture §3）。
+ * 执行契约 v3（API-006 冻结，web ↔ engine 双方不得私改；engine-execution-architecture §3）。
  * v1（EXEC-001 api_debug 单请求）是本文件 api_debug 分支的子集：事件帧新增字段全部可选、
  * 新增帧类型/additive 枚举，旧帧按宽松读兼容（报告=事件视图，历史数据不迁移）。
+ * v3（S3）：+scenario 命令分支（步骤树/参数/设置）、itemStatus+FAKE_ERROR、
+ * stepPath/iteration 帧字段、step-skip 帧类型、taskStats.fakeError——全部 additive。
  */
 
 export const httpMethodSchema = z.enum([
@@ -196,6 +198,130 @@ export const envSnapshotSchema = z.object({
 });
 export type EnvSnapshot = z.infer<typeof envSnapshotSchema>;
 
+// ───────────────────────── 场景（S3 API-006/007，契约 v3） ─────────────────────────
+
+/** CSV 表（web 解析后内嵌 command；columns=列名，rows=行数组）。 */
+export const csvTableSchema = z.object({
+  columns: z.array(z.string().min(1).max(128)).max(200).default([]),
+  rows: z.array(z.array(z.string().max(8192)).max(200)).max(10000).default([]),
+});
+export type CsvTable = z.infer<typeof csvTableSchema>;
+
+/** 场景参数（API-007）：常量/列表/CSV（CSV 在任务创建时由 web 预解析为行数组内嵌）。 */
+export const scenarioParamsSchema = z.object({
+  constants: z
+    .array(
+      z.object({
+        name: z.string().min(1).max(128),
+        value: z.string().max(8192).default(""),
+        description: z.string().max(512).default(""),
+      }),
+    )
+    .max(200)
+    .default([]),
+  lists: z
+    .array(z.object({ name: z.string().min(1).max(128), values: z.array(z.string().max(8192)).max(1000).default([]) }))
+    .max(50)
+    .default([]),
+  /** 命令形态：web 已按 delimiter/hasHeader 解析的表（存储形态见 web 侧 scenarioSaveSchema） */
+  csv: csvTableSchema,
+});
+
+/** 场景设置（API-006 §2）。 */
+export const scenarioSettingsSchema = z.object({
+  cookieMode: z.enum(["off", "keep"]).default("off"),
+  thinkTimeMs: z.number().int().min(0).max(30000).default(0),
+  onFailure: z.enum(["continue", "abort"]).default("abort"),
+});
+export type ScenarioSettings = z.infer<typeof scenarioSettingsSchema>;
+
+/** 步骤请求载荷（custom 与已解析的 ref_* 步骤共用；引用解析在 web 侧完成后内嵌）。 */
+export const stepBundleSchema = z.object({
+  request: requestSpecSchema,
+  asserts: z.array(assertSchema).max(50).default([]),
+  pre: z.array(processorSchema).max(20).default([]),
+  post: z.array(processorSchema).max(20).default([]),
+  extracts: z.array(extractorSchema).max(20).default([]),
+});
+export type StepBundle = z.infer<typeof stepBundleSchema>;
+
+/** 步骤级覆盖（ref_* 步骤在解析 bundle 之上叠加；custom 步骤直接编辑 bundle）。 */
+export const stepOverrideSchema = z.object({
+  asserts: z.array(assertSchema).max(50).default([]),
+  pre: z.array(processorSchema).max(20).default([]),
+  post: z.array(processorSchema).max(20).default([]),
+  extracts: z.array(extractorSchema).max(20).default([]),
+  /** 步骤参数（常量/列表子集，就近覆盖场景参数；CSV 仅场景级） */
+  params: z
+    .object({
+      constants: scenarioParamsSchema.shape.constants,
+      lists: scenarioParamsSchema.shape.lists,
+    })
+    .default({ constants: [], lists: [] }),
+  onFailure: z.enum(["continue", "abort"]).optional(),
+});
+
+/** 循环控制器配置（API-006 §2：次数/While/ForEach）。 */
+export const loopConfigSchema = z.discriminatedUnion("mode", [
+  z.object({ mode: z.literal("count"), count: z.number().int().min(1).max(10000) }),
+  z.object({
+    mode: z.literal("while"),
+    /** quickjs 表达式（作用域变量可见），truthy 继续循环 */
+    condition: z.string().min(1).max(2048),
+    maxLoops: z.number().int().min(1).max(10000).default(10000),
+  }),
+  z.object({
+    mode: z.literal("foreach"),
+    /** 迭代变量名（CSV 列迭代时 row 保留字注入整行） */
+    var: z.string().min(1).max(128),
+    /** 数据源：列表名 或 CSV 列名（仅展示用；engine 只消费 iterations 预展开序列） */
+    source: z.string().min(1).max(128),
+    /** web 预展开迭代序列：列表=仅 value；CSV 列=value+row 整行（row 注入为 `var` 与 `row.列名` 键） */
+    iterations: z
+      .array(z.object({ value: z.string().max(8192).default(""), row: z.record(z.string().min(1).max(128), z.string().max(8192)).default({}) }))
+      .max(10000)
+      .default([]),
+  }),
+]);
+export type LoopConfig = z.infer<typeof loopConfigSchema>;
+
+/** 场景步骤树节点（web 下发原样树；engine flatten+递归执行）。 */
+export const scenarioStepNodeSchema: z.ZodType<ScenarioStepNode, z.ZodTypeDef, unknown> = z.lazy(() =>
+  z.object({
+    uid: z.string().min(1).max(64),
+    stepType: z.enum(["ref_api", "ref_case", "ref_scenario", "custom", "loop", "condition", "once", "script", "wait"]),
+    name: z.string().min(1).max(256),
+    enabled: z.boolean().default(true),
+    config: z.record(z.string(), z.unknown()).default({}),
+    /** loop: LoopConfig / condition: {expression} / script: {script} / wait: {ms}
+     *  custom: {bundle: StepBundle} / ref_*: {bundle(已解析), override?, refMeta?{refMode,refName}} */
+    children: z.array(scenarioStepNodeSchema).max(200).default([]),
+  }),
+);
+export type ScenarioStepNode = {
+  uid: string;
+  stepType: "ref_api" | "ref_case" | "ref_scenario" | "custom" | "loop" | "condition" | "once" | "script" | "wait";
+  name: string;
+  enabled: boolean;
+  config: Record<string, unknown>;
+  children: ScenarioStepNode[];
+};
+
+/** scenario 任务条目（web 预建 ExecItem；steps 为已解析展开后的树，深度≤5）。 */
+export const scenarioItemCommandSchema = z.object({
+  itemId: z.string().uuid(),
+  scenarioId: z.string().uuid(),
+  name: z.string().min(1).max(512),
+  params: scenarioParamsSchema,
+  settings: scenarioSettingsSchema,
+  /** 场景级前后置（pre=首步前执行；post=终态后执行）与变量断言（终态对 tempVars 求值） */
+  pre: z.array(processorSchema).max(20).default([]),
+  post: z.array(processorSchema).max(20).default([]),
+  asserts: z.array(assertSchema).max(50).default([]),
+  steps: z.array(scenarioStepNodeSchema).max(500).default([]),
+});
+export type ScenarioItemCommand = z.infer<typeof scenarioItemCommandSchema>;
+
 /** api_case 任务条目（web 预建 ExecItem，itemId=ExecItem.id）。 */
 export const execItemCommandSchema = z.object({
   itemId: z.string().uuid(),
@@ -231,6 +357,16 @@ export const execCommandSchema = z.discriminatedUnion("type", [
     stopOnFail: z.boolean().default(false),
     items: z.array(execItemCommandSchema).min(1).max(200),
   }),
+  z.object({
+    taskId: z.string().uuid(),
+    projectId: z.string().uuid(),
+    type: z.literal("scenario"),
+    envSnapshot: envSnapshotSchema.optional(),
+    stopOnFail: z.boolean().default(false),
+    /** serial=顺序执行；parallel=item 级 p-limit(池并发)（API-008） */
+    mode: z.enum(["serial", "parallel"]).default("serial"),
+    items: z.array(scenarioItemCommandSchema).min(1).max(50),
+  }),
 ]);
 export type ExecCommand = z.infer<typeof execCommandSchema>;
 
@@ -254,7 +390,8 @@ export const itemStartFrame = z.object({
   name: z.string().max(512),
 });
 
-export const itemStatusSchema = z.enum(["SUCCESS", "FAILED", "SKIPPED", "STOPPED"]);
+/** v3：+FAKE_ERROR（误报命中改判，API-010；不计任务失败，报告单列）。 */
+export const itemStatusSchema = z.enum(["SUCCESS", "FAILED", "SKIPPED", "STOPPED", "FAKE_ERROR"]);
 
 export const itemFinalFrame = z.object({
   ...frameBase,
@@ -264,12 +401,15 @@ export const itemFinalFrame = z.object({
   message: z.string().max(2000).default(""),
 });
 
+/** v3：stepPath=树序数字路径（"0.2.1"），iteration=循环迭代号（1 起）——报告树视图聚合键。 */
 export const stepStartFrame = z.object({
   ...frameBase,
   type: z.literal("step-start"),
   itemId: z.string().uuid().optional(),
   method: httpMethodSchema,
   url: z.string(),
+  stepPath: z.string().max(64).optional(),
+  iteration: z.number().int().min(1).optional(),
 });
 
 export const assertResultSchema = z.object({
@@ -293,6 +433,9 @@ export const stepResultFrame = z.object({
   ...frameBase,
   type: z.literal("step-result"),
   itemId: z.string().uuid().optional(),
+  stepPath: z.string().max(64).optional(),
+  iteration: z.number().int().min(1).optional(),
+  stepName: z.string().max(256).default(""),
   status: z.number().int(),
   durationMs: z.number().int(),
   /** 渲染后请求快照（变量已代入、域名已拼接、认证头已加——报告展示实际请求） */
@@ -311,12 +454,38 @@ export const stepResultFrame = z.object({
   asserts: z.array(assertResultSchema),
   extracts: z.array(extractResultSchema).default([]),
 });
+/** v3：非请求步骤（script/wait）结果帧——报告树 script/wait 节点依据（API-006/RPT-003）。 */
+export const stepOpFrame = z.object({
+  ...frameBase,
+  type: z.literal("step-op"),
+  itemId: z.string().uuid().optional(),
+  stepPath: z.string().max(64),
+  stepName: z.string().max(256).default(""),
+  iteration: z.number().int().min(1).optional(),
+  op: z.enum(["script", "wait"]),
+  status: z.enum(["SUCCESS", "FAILED"]),
+  durationMs: z.number().int().default(0),
+  message: z.string().max(2000).default(""),
+});
 export const logFrame = z.object({
   ...frameBase,
   type: z.literal("log"),
   itemId: z.string().uuid().optional(),
   level: z.enum(["info", "warn", "error"]),
   message: z.string().max(4000),
+  /** v3：log 子类（"vars-final"=场景变量终值 JSON 于 message；引擎/报告约定，additive） */
+  kind: z.string().max(32).optional(),
+  stepPath: z.string().max(64).optional(),
+});
+/** v3：步骤跳过帧（disabled/condition/once/abort）——报告树灰色节点依据（API-006/RPT-003）。 */
+export const stepSkipFrame = z.object({
+  ...frameBase,
+  type: z.literal("step-skip"),
+  itemId: z.string().uuid().optional(),
+  stepPath: z.string().max(64),
+  stepName: z.string().max(256).default(""),
+  iteration: z.number().int().min(1).optional(),
+  reason: z.enum(["disabled", "condition", "once", "abort"]),
 });
 export const failureKindSchema = z.enum([
   "NETWORK_ERROR",
@@ -330,6 +499,8 @@ export const taskStatsSchema = z.object({
   total: z.number().int(),
   passed: z.number().int(),
   failed: z.number().int(),
+  /** v3：误报数（API-010，additive） */
+  fakeError: z.number().int().optional(),
 });
 export const taskFinalFrame = z.object({
   ...frameBase,
@@ -345,6 +516,8 @@ export const eventFrameSchema = z.discriminatedUnion("type", [
   itemFinalFrame,
   stepStartFrame,
   stepResultFrame,
+  stepSkipFrame,
+  stepOpFrame,
   logFrame,
   taskFinalFrame,
 ]);
@@ -388,4 +561,4 @@ export const taskStatusSchema = z.enum(["PENDING", "RUNNING", "SUCCESS", "FAILED
 export type TaskStatus = z.infer<typeof taskStatusSchema>;
 
 /** 引擎契约版本（心跳协商：不一致节点 web 标「版本不匹配」不下发新类型任务展示） */
-export const EXEC_CONTRACT_VERSION = 2;
+export const EXEC_CONTRACT_VERSION = 3;

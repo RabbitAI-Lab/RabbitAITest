@@ -289,6 +289,10 @@ export interface ReportItemView {
   assertTotal: number;
   assertPassed: number;
   name: string;
+  /** scenario 报告（S3）：step-result 帧数 */
+  stepCount?: number;
+  /** scenario 报告（S3）：误报命中规则（item.status=FAKE_ERROR 时徽标 tooltip） */
+  fakeAlarmHits?: { ruleName: string; stepPath?: string }[];
 }
 export interface ReportDetailV2 {
   taskId: string;
@@ -299,7 +303,8 @@ export interface ReportDetailV2 {
   message?: string;
   durationMs?: number;
   createdAt: string;
-  summary?: { total?: number; passed?: number; failed?: number };
+  /** scenario 报告（S3）额外含 fakeError 单列 */
+  summary?: { total?: number; passed?: number; failed?: number; fakeError?: number; durationMs?: number };
   items: ReportItemView[];
   request?: { method: string; url: string; headers: { key: string; value: string }[]; body: string };
   response?: { status: number; durationMs: number; headers: { key: string; value: string }[]; bodyText: string; truncated: boolean };

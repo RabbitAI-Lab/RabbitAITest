@@ -153,7 +153,22 @@ export async function ensureFileModule(tx: Tx, projectId: string): Promise<strin
   return m.id;
 }
 
-/** 注册/建项目时的完整预置初始化（org 组 + project 组 + 模板 + bug 模块 + 创建者入管理员组）。 */
+/** scenario 场景默认模块（API-006，懒创建口径与 bug/file 一致） */
+export async function ensureScenarioModule(tx: Tx, projectId: string): Promise<string> {
+  let m = await tx.moduleNode.findFirst({
+    where: { projectId, scene: "scenario", isDefault: true },
+    select: { id: true },
+  });
+  if (!m) {
+    m = await tx.moduleNode.create({
+      data: { projectId, scene: "scenario", name: "未规划场景", isDefault: true },
+      select: { id: true },
+    });
+  }
+  return m.id;
+}
+
+/** 注册/建项目时的完整预置初始化（org 组 + project 组 + 模板 + bug/file/scenario 模块 + 创建者入管理员组）。 */
 export async function initOrgAndProjectPresets(
   tx: Tx,
   orgId: string,
@@ -165,6 +180,7 @@ export async function initOrgAndProjectPresets(
   await ensureDefaultTemplates(tx, orgId);
   await ensureBugModule(tx, projectId);
   await ensureFileModule(tx, projectId);
+  await ensureScenarioModule(tx, projectId);
   const orgAdmin = await tx.group.findFirst({
     where: { scope: "org", orgId, name: "组织管理员" },
     select: { id: true },

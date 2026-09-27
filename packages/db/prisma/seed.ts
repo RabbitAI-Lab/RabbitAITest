@@ -70,6 +70,7 @@ async function main() {
     for (const [scene, name] of [
       ["case", "未规划用例"],
       ["api", "未规划接口"],
+      ["scenario", "未规划场景"],
     ] as const) {
       await prisma.moduleNode.create({
         data: { projectId: project.id, scene, name, isDefault: true },

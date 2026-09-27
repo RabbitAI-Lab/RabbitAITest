@@ -1,5 +1,6 @@
-/** EXEC 编排 v2（API-003/EXEC-002/SYS-006/RPT-002）：任务创建（api_debug/api_case）→ 入队；
- * 回调终态 → 事件流按 item 分组落库 + 报告聚合；停止/重跑；任务与报告列表；分享。 */
+/** EXEC 编排 v3（API-003/006/008/EXEC-002/SYS-006/RPT-002/003/API-010）：任务创建
+ * （api_debug/api_case/scenario）→ 入队；回调终态 → 事件流按 item 分组落库 +
+ * 误报改判 FAKE_ERROR + 报告聚合；停止/重跑；任务与报告列表；分享；场景树视图。 */
 import { randomUUID, randomBytes } from "node:crypto";
 import { DomainError, ErrCode, config } from "@rabbit/shared";
 import type {
@@ -11,6 +12,9 @@ import type {
   Processor,
   Extractor,
   RequestSpec,
+  ScenarioItemCommand,
+  ScenarioStepNode,
+  StepBundle,
 } from "@rabbit/shared/execution";
 import { eventFrameSchema, execCommandSchema } from "@rabbit/shared";
 import { execTaskListQuerySchema, reportListQuerySchema } from "@rabbit/shared";
@@ -18,6 +22,10 @@ import type { z } from "zod";
 import { prisma } from "@rabbit/db";
 import { execQueue, redis } from "@/server/redis";
 import { buildEnvSnapshot } from "@/server/domains/project/environment.service";
+import { parseCsv, type CsvSource } from "@rabbit/shared/execution";
+import { matchFalseAlarm, type FalseAlarmRuleLike, type FailedStepInput } from "@rabbit/shared/execution";
+import { buildScenarioTree } from "@rabbit/shared/execution";
+import { readFileObject } from "@/server/storage";
 
 /** ───────────── 任务创建 ───────────── */
 
@@ -181,7 +189,296 @@ export async function createApiCaseTask(projectId: string, userId: string, input
   return { taskId: created.id };
 }
 
+/** 单步调试（API-006 §2）：以该步骤为根的临时场景执行，不入 Scenario 表。 */
+export async function createAdhocScenarioTask(
+  projectId: string,
+  userId: string,
+  input: {
+    name: string;
+    steps: ScenarioStepNode[];
+    params: ScenarioItemCommand["params"];
+    settings: ScenarioItemCommand["settings"];
+    envId?: string;
+  },
+) {
+  const envSnapshot = await buildEnvSnapshot(projectId, input.envId);
+  const adhocId = "00000000-0000-0000-0000-000000000000";
+  const created = await prisma.$transaction(async (tx) => {
+    const task = await tx.execTask.create({
+      data: {
+        projectId,
+        type: "scenario",
+        status: "PENDING",
+        poolId: config.defaultPoolId,
+        envId: input.envId ?? null,
+        payload: { adhoc: true, stepDebug: true, scenarioIds: [adhocId] },
+        createdBy: userId,
+      },
+      select: { id: true },
+    });
+    const item = await tx.execItem.create({
+      data: { taskId: task.id, refType: "scenario", refId: `adhoc:${userId}`, status: "PENDING" },
+      select: { id: true },
+    });
+    return { taskId: task.id, itemId: item.id };
+  });
+  const commandItem: ScenarioItemCommand = {
+    itemId: created.itemId,
+    scenarioId: adhocId,
+    name: input.name,
+    params: input.params,
+    settings: input.settings,
+    pre: [],
+    post: [],
+    asserts: [],
+    steps: input.steps,
+  };
+  await execQueue().add(
+    "exec",
+    {
+      taskId: created.taskId,
+      projectId,
+      type: "scenario",
+      stopOnFail: true,
+      mode: "serial",
+      items: [commandItem],
+      ...(envSnapshot ? { envSnapshot } : {}),
+    },
+    { jobId: created.taskId, attempts: 1 },
+  );
+  return { taskId: created.taskId };
+}
+
 /** ───────────── 回调（engine → web）：终态幂等 + item 分组落库 + 报告聚合 ───────────── */
+
+export interface ScenarioTaskInput {
+  scenarioIds: string[];
+  envId?: string;
+  poolId?: string;
+  stopOnFail: boolean;
+  mode: "serial" | "parallel";
+  clientTaskId?: string;
+  createdBySystem?: boolean;
+}
+
+/** 步骤树 → 命令树：引用解析（ref_api/ref_case→bundle 快照；ref_scenario 递归展开≤5）+ foreach 迭代预展开。 */
+async function resolveScenarioSteps(
+  projectId: string,
+  steps: ScenarioStepNode[],
+  params: { lists: { name: string; values: string[] }[]; csvColumns: string[]; csvRows: string[][] },
+  depth: number,
+): Promise<ScenarioStepNode[]> {
+  if (depth > 5) throw new DomainError(ErrCode.SCENARIO_CIRCULAR_REF, "场景引用链深度超限（≤5）");
+  const out: ScenarioStepNode[] = [];
+  for (const n of steps) {
+    let node: ScenarioStepNode = { ...n, children: [...n.children] };
+    if (n.stepType === "ref_api" || n.stepType === "ref_case") {
+      const refId = (n.config as { refId?: string }).refId;
+      let bundle: StepBundle | undefined;
+      let moduleId: string | undefined;
+      if (n.stepType === "ref_api" && refId) {
+        const api = await prisma.apiDefinition.findFirst({
+          where: { id: refId, projectId, deletedAt: null },
+          select: { request: true, moduleId: true },
+        });
+        if (api) {
+          const r = api.request as { spec: RequestSpec; asserts?: AssertSpec[]; pre?: Processor[]; post?: Processor[]; extracts?: Extractor[] };
+          bundle = { request: r.spec, asserts: r.asserts ?? [], pre: r.pre ?? [], post: r.post ?? [], extracts: r.extracts ?? [] };
+          moduleId = api.moduleId;
+        }
+      } else if (n.stepType === "ref_case" && refId) {
+        const c = await prisma.apiCase.findFirst({
+          where: { id: refId, projectId, deletedAt: null },
+          include: { api: { select: { moduleId: true } } },
+        });
+        if (c) {
+          const r = c.request as { spec: RequestSpec; asserts?: AssertSpec[]; pre?: Processor[]; post?: Processor[]; extracts?: Extractor[] };
+          bundle = { request: r.spec, asserts: r.asserts ?? [], pre: r.pre ?? [], post: r.post ?? [], extracts: r.extracts ?? [] };
+          moduleId = c.api.moduleId;
+        }
+      }
+      if (bundle) {
+        node = {
+          ...node,
+          config: { ...(n.config as object), bundle, ...(moduleId ? { moduleId } : {}) } as Record<string, unknown>,
+        };
+      } else {
+        // 引用目标已删：降级为断言必失败的占位请求（帧可见，报告留痕）
+        node = {
+          ...node,
+          config: {
+            ...(n.config as object),
+            bundle: {
+              request: { method: "GET", url: "about:blank", headers: [], query: [], body: { kind: "none" }, auth: { kind: "none" } },
+              asserts: [{ kind: "status_code", path: "", op: "eq", expected: "-1" }],
+            },
+            __unresolvedRef: true,
+          } as Record<string, unknown>,
+        };
+      }
+    } else if (n.stepType === "ref_scenario") {
+      const refId = (n.config as { refId?: string }).refId;
+      if (refId) {
+        const sub = await prisma.scenario.findFirst({
+          where: { id: refId, projectId, deletedAt: null },
+          include: { steps: { orderBy: { order: "asc" } } },
+        });
+        if (sub) {
+          const childTree = buildStepTree(sub.steps);
+          node = { ...node, children: await resolveScenarioSteps(projectId, childTree, params, depth + 1) };
+        }
+      }
+    } else if (n.stepType === "loop") {
+      const cfg = n.config as { mode?: string; source?: string; var?: string };
+      if (cfg.mode === "foreach" && cfg.source) {
+        const list = params.lists.find((l) => l.name === cfg.source);
+        let iterations: { value: string; row: Record<string, string> }[];
+        if (list) {
+          iterations = list.values.map((v) => ({ value: v, row: {} }));
+        } else {
+          // CSV 列迭代：整行注入 row
+          const colIdx = params.csvColumns.indexOf(cfg.source);
+          iterations = params.csvRows.map((row) => {
+            const rowObj: Record<string, string> = {};
+            params.csvColumns.forEach((c, i) => { rowObj[c] = row[i] ?? ""; });
+            return { value: colIdx >= 0 ? (row[colIdx] ?? "") : "", row: rowObj };
+          });
+        }
+        node = { ...node, config: { ...(n.config as object), iterations } as Record<string, unknown> };
+      }
+      node = { ...node, children: await resolveScenarioSteps(projectId, n.children, params, depth) };
+    } else if (n.children.length > 0) {
+      node = { ...node, children: await resolveScenarioSteps(projectId, n.children, params, depth) };
+    }
+    out.push(node);
+  }
+  return out;
+}
+
+function buildStepTree(rows: { id: string; parentId: string | null; stepType: string; name: string; enabled: boolean; config: unknown; order: number }[]): ScenarioStepNode[] {
+  const byParent = new Map<string | null, typeof rows>();
+  for (const r of rows) {
+    if (!byParent.has(r.parentId)) byParent.set(r.parentId, []);
+    byParent.get(r.parentId)!.push(r);
+  }
+  const build = (parent: string | null): ScenarioStepNode[] =>
+    (byParent.get(parent) ?? []).map((r) => ({
+      uid: r.id,
+      stepType: r.stepType as ScenarioStepNode["stepType"],
+      name: r.name,
+      enabled: r.enabled,
+      config: (r.config as Record<string, unknown>) ?? {},
+      children: build(r.id),
+    }));
+  return build(null);
+}
+
+/** scenario 批量任务（API-006 单条 / API-008 批量共用）：引用解析 + CSV 预解析 → ExecItem 预建 → 入队。 */
+export async function createScenarioTask(projectId: string, userId: string, input: ScenarioTaskInput) {
+  const scenarios = await prisma.scenario.findMany({
+    where: { id: { in: input.scenarioIds }, projectId, deletedAt: null },
+    include: { steps: { orderBy: { order: "asc" } } },
+  });
+  if (scenarios.length === 0) throw new DomainError(ErrCode.SCENARIO_NOT_FOUND, "场景不存在或已删除");
+  const found = new Set(scenarios.map((s) => s.id));
+  const missing = input.scenarioIds.filter((id) => !found.has(id));
+  if (missing.length > 0) throw new DomainError(ErrCode.SCENARIO_NOT_FOUND, `部分场景不存在：${missing.length} 个`);
+  const ordered = input.scenarioIds.map((id) => scenarios.find((s) => s.id === id)!).filter(Boolean);
+
+  const envSnapshot = await buildEnvSnapshot(projectId, input.envId);
+  const items: ScenarioItemCommand[] = [];
+  const resolvedWarnings: string[] = [];
+  for (const s of ordered) {
+    const cfg = (s.config ?? {}) as {
+      params?: { constants?: { name: string; value: string }[]; lists?: { name: string; values: string[] }[]; csv?: CsvSource };
+      prePost?: { pre?: Processor[]; post?: Processor[] };
+      asserts?: AssertSpec[];
+      settings?: { cookieMode?: "off" | "keep"; thinkTimeMs?: number; onFailure?: "continue" | "abort" };
+    };
+    const constants = cfg.params?.constants ?? [];
+    const lists = (cfg.params?.lists ?? []).map((l) => ({ name: l.name, values: l.values ?? [] }));
+    // CSV 预解析（API-007：fileId 读文件管理 / inline 内嵌文本）
+    let csvColumns: string[] = [];
+    let csvRows: string[][] = [];
+    const csvSrc = cfg.params?.csv;
+    if (csvSrc) {
+      let text = "";
+      if (csvSrc.source === "file" && csvSrc.fileId) {
+        const f = await prisma.fileItem.findFirst({ where: { id: csvSrc.fileId, projectId, deletedAt: null } });
+        if (f) text = (await readFileObject(f.storageKey)).toString("utf8");
+        else resolvedWarnings.push(`CSV 文件不存在（fileId=${csvSrc.fileId}），CSV 参数按空表处理`);
+      } else if (csvSrc.inlineText) {
+        text = csvSrc.inlineText;
+      }
+      if (text) {
+        const parsed = parseCsv(text, { delimiter: csvSrc.delimiter ?? ",", hasHeader: csvSrc.hasHeader ?? true });
+        if (parsed.rows.length >= 10000) throw new DomainError(ErrCode.CSV_TOO_LARGE, "CSV 行数超限（≤10000）");
+        csvColumns = parsed.columns;
+        csvRows = parsed.rows;
+        for (const w of parsed.warnings) resolvedWarnings.push(`CSV「${s.name}」：${w}`);
+      }
+    }
+    const resolvedSteps = await resolveScenarioSteps(projectId, buildStepTree(s.steps), { lists, csvColumns, csvRows }, 0);
+    items.push({
+      itemId: "", // 事务内回填
+      scenarioId: s.id,
+      name: s.name,
+      params: {
+        constants: constants.map((c) => ({ name: c.name, value: c.value, description: "" })),
+        lists,
+        csv: { columns: csvColumns, rows: csvRows },
+      },
+      settings: {
+        cookieMode: cfg.settings?.cookieMode ?? "off",
+        thinkTimeMs: cfg.settings?.thinkTimeMs ?? 0,
+        onFailure: cfg.settings?.onFailure ?? "abort",
+      },
+      pre: (cfg.prePost?.pre ?? []) as Processor[],
+      post: (cfg.prePost?.post ?? []) as Processor[],
+      asserts: (cfg.asserts ?? []) as AssertSpec[],
+      steps: resolvedSteps,
+    });
+  }
+
+  const created = await prisma.$transaction(async (tx) => {
+    const task = await tx.execTask.create({
+      data: {
+        projectId,
+        type: "scenario",
+        status: "PENDING",
+        clientTaskId: input.clientTaskId ?? null,
+        poolId: input.poolId ?? config.defaultPoolId,
+        envId: input.envId ?? null,
+        payload: { stopOnFail: input.stopOnFail, mode: input.mode, scenarioIds: ordered.map((s) => s.id), warnings: resolvedWarnings },
+        createdBy: userId,
+      },
+      select: { id: true },
+    });
+    for (const it of items) {
+      const item = await tx.execItem.create({
+        data: { taskId: task.id, refType: "scenario", refId: it.scenarioId, status: "PENDING" },
+        select: { id: true },
+      });
+      it.itemId = item.id;
+    }
+    return task;
+  });
+
+  await execQueue().add(
+    "exec",
+    {
+      taskId: created.id,
+      projectId,
+      type: "scenario",
+      stopOnFail: input.stopOnFail,
+      mode: input.mode,
+      items,
+      ...(envSnapshot ? { envSnapshot } : {}),
+    },
+    { jobId: created.id, attempts: 2, backoff: { type: "exponential", delay: 2000 } },
+  );
+  return { taskId: created.id, warnings: resolvedWarnings };
+}
 
 export async function handleCallback(taskId: string, cb: ExecCallback) {
   const task = await prisma.execTask.findFirst({
@@ -221,19 +518,68 @@ export async function handleCallback(taskId: string, cb: ExecCallback) {
       select: { id: true },
     });
     if (existingItems.length > 0) {
-      // api_case：item 预建，帧按 itemId 分组落库 + item 状态聚合
+      // api_case/scenario：item 预建，帧按 itemId 分组落库 + item 状态聚合 + 误报改判（API-010）
+      // 报告先行创建（hits 的 FK 指向；summary 循环后回填）
+      const stepResult = frames.find(
+        (f): f is Extract<EventFrame, { type: "step-result" }> => f.type === "step-result",
+      );
+      const reportName =
+        task.type === "api_case"
+          ? `批量执行 · ${existingItems.length} 条用例`
+          : task.type === "scenario"
+            ? `场景执行 · ${existingItems.length} 个场景`
+            : stepResult
+              ? `${stepResult.requestSnapshot.method} ${shortUrl(stepResult.requestSnapshot.url)}`
+              : `任务 ${taskId.slice(0, 8)}`;
+      const existingReport = await tx.report.findFirst({ where: { taskId }, select: { id: true } });
+      const report =
+        existingReport ??
+        (await tx.report.create({
+          data: {
+            taskId,
+            projectId: task.projectId,
+            reportType: task.type,
+            name: reportName,
+            summary: JSON.stringify({ total: existingItems.length, passed: 0, failed: 0, fakeError: 0 }),
+            createdBy: task.createdBy,
+          },
+          select: { id: true },
+        }));
+      const faRules = await loadFalseAlarmRules(task.projectId);
+      let fakeErrorCount = 0;
       for (const item of existingItems) {
         const itemFrames = frames.filter((f) => "itemId" in f && f.itemId === item.id);
         const itemFinal = itemFrames.find(
           (f): f is Extract<EventFrame, { type: "item-final" }> => f.type === "item-final",
         );
+        let status = itemFinal?.status ?? "FAILED";
+        let resultPayload: object = itemFinal
+          ? { status: itemFinal.status, message: itemFinal.message }
+          : { status: "FAILED", message: "缺少 item 终态帧" };
+        // 误报改判：FAILED → 命中规则 → FAKE_ERROR + 留痕（仅新执行报告生效=回调时读当前规则，API-010 §2）
+        let fakeHits: { ruleId: string; ruleName: string; stepPath?: string }[] = [];
+        if (status === "FAILED" && faRules.length > 0) {
+          const failedSteps: FailedStepInput[] = itemFrames
+            .filter((f): f is Extract<EventFrame, { type: "step-result" }> => f.type === "step-result")
+            .map((f) => ({
+              status: f.status,
+              bodyText: (f.responseSummary.bodyText ?? "").slice(0, 4096),
+              headers: f.responseSummary.headers,
+              responseTimeMs: f.durationMs,
+              stepPath: f.stepPath,
+            }));
+          fakeHits = matchFalseAlarm(faRules, failedSteps);
+          if (fakeHits.length > 0) {
+            status = "FAKE_ERROR";
+            fakeErrorCount += 1;
+            resultPayload = { status: "FAKE_ERROR", message: itemFinal?.message ?? "", fakeAlarmHits: fakeHits.map((h) => h.ruleName) };
+          }
+        }
         await tx.execItem.update({
           where: { id: item.id },
           data: {
-            status: itemFinal?.status ?? "FAILED",
-            result: (itemFinal
-              ? { status: itemFinal.status, message: itemFinal.message }
-              : { status: "FAILED", message: "缺少 item 终态帧" }) as object,
+            status,
+            result: resultPayload,
             startedAt: startedAt ? new Date(startedAt.ts) : null,
             finishedAt: new Date(),
           },
@@ -243,6 +589,28 @@ export async function handleCallback(taskId: string, cb: ExecCallback) {
             data: itemFrames.map((f, i) => ({ itemId: item.id, seq: i + 1, frame: f as object })),
           });
         }
+        if (fakeHits.length > 0) {
+          await tx.falseAlarmHit.createMany({
+            data: fakeHits.map((h) => ({
+              reportId: report.id,
+              taskId,
+              ruleId: h.ruleId,
+              ruleName: h.ruleName,
+              stepPath: h.stepPath ?? null,
+            })),
+          });
+        }
+      }
+      // summary 回填（含误报单列）+ task 状态修正（FAKE_ERROR 不计失败，API-010 §2）
+      const after = await tx.execItem.findMany({ where: { taskId }, select: { status: true } });
+      const passed = after.filter((i) => i.status === "SUCCESS").length;
+      const failed = after.filter((i) => i.status === "FAILED").length;
+      await tx.report.update({
+        where: { id: report.id },
+        data: { summary: JSON.stringify({ total: after.length, passed, failed, fakeError: fakeErrorCount, durationMs }) },
+      });
+      if (failed === 0 && fakeErrorCount > 0 && cb.outcome === "failed") {
+        await tx.execTask.update({ where: { id: taskId }, data: { status: "SUCCESS", failureKind: null } });
       }
     } else {
       // api_debug（S0 兼容）：单 item 落库
@@ -259,38 +627,39 @@ export async function handleCallback(taskId: string, cb: ExecCallback) {
           data: frames.map((f, i) => ({ itemId: item.id, seq: i + 1, frame: f as object })),
         });
       }
-    }
-    // 报告聚合
-    const items = await tx.execItem.findMany({ where: { taskId }, select: { status: true } });
-    const passed = items.filter((i) => i.status === "SUCCESS").length;
-    const failed = items.filter((i) => i.status === "FAILED").length;
-    const stepResult = frames.find(
-      (f): f is Extract<EventFrame, { type: "step-result" }> => f.type === "step-result",
-    );
-    const existing = await tx.report.findFirst({ where: { taskId }, select: { id: true } });
-    const name =
-      task.type === "api_case"
-        ? `批量执行 · ${items.length} 条用例`
-        : stepResult
-          ? `${stepResult.requestSnapshot.method} ${shortUrl(stepResult.requestSnapshot.url)}`
-          : `任务 ${taskId.slice(0, 8)}`;
-    const summary = JSON.stringify({ total: items.length, passed, failed, durationMs });
-    if (existing) {
-      await tx.report.update({ where: { id: existing.id }, data: { summary } });
-    } else {
+      // api_debug 报告（items>0 分支的报告已在上文先行创建并回填 summary）
+      const stepResultDbg = frames.find(
+        (f): f is Extract<EventFrame, { type: "step-result" }> => f.type === "step-result",
+      );
+      const nameDbg = stepResultDbg
+        ? `${stepResultDbg.requestSnapshot.method} ${shortUrl(stepResultDbg.requestSnapshot.url)}`
+        : `任务 ${taskId.slice(0, 8)}`;
       await tx.report.create({
         data: {
           taskId,
           projectId: task.projectId,
           reportType: task.type,
-          name,
-          summary,
+          name: nameDbg,
+          summary: JSON.stringify({
+            total: 1,
+            passed: cb.outcome === "success" ? 1 : 0,
+            failed: cb.outcome === "success" ? 0 : 1,
+            durationMs,
+          }),
           createdBy: task.createdBy,
         },
       });
     }
   });
   return { idempotent: false, frames: frames.length };
+}
+
+/** 项目级启用中的误报规则（API-010：回调时读当前规则快照——仅对新执行生效）。 */
+async function loadFalseAlarmRules(projectId: string): Promise<FalseAlarmRuleLike[]> {
+  const rows = await prisma.falseAlarmRule.findMany({ where: { projectId, enabled: true }, select: { id: true, name: true, matcher: true } });
+  return rows
+    .map((r) => ({ id: r.id, name: r.name, matcher: r.matcher as FalseAlarmRuleLike["matcher"], enabled: true }))
+    .filter((r) => r.matcher && typeof r.matcher === "object");
 }
 
 async function applyVarUpdates(envId: string, updates: { name: string; value: string }[]) {
@@ -533,26 +902,32 @@ export async function reportDetail(projectId: string, taskId: string) {
       ).map((r) => ({ itemId: r.itemId, frame: r.frame as unknown as EventFrame }))
     : (await readStream(taskId)).map((f) => ({ itemId: items[0]?.id ?? "", frame: f }));
 
-  // item 汇总（api_case；按任务载荷顺序呈现——ExecItem 无排序列，uuid 序不稳定）
-  const payloadOrder = ((task.payload as { items?: { caseId: string; name: string }[] })?.items ?? []).map(
-    (i) => i.caseId,
-  );
+  // item 汇总（api_case/scenario；按任务载荷顺序呈现——ExecItem 无排序列，uuid 序不稳定）
+  const payloadRaw = task.payload as { items?: { caseId: string }[]; scenarioIds?: string[] };
+  const payloadOrder = payloadRaw.items?.map((i) => i.caseId) ?? payloadRaw.scenarioIds ?? [];
   const orderedItems = [...items].sort(
     (a, b) => (payloadOrder.indexOf(a.refId) + 1 || 99) - (payloadOrder.indexOf(b.refId) + 1 || 99),
   );
+  const reportRow = await prisma.report.findFirst({ where: { taskId }, select: { id: true } });
+  const hits = reportRow
+    ? await prisma.falseAlarmHit.findMany({ where: { reportId: reportRow.id }, select: { ruleName: true, stepPath: true, taskId: true } })
+    : [];
   const itemViews = orderedItems.map((item) => {
     const frames = stepFrames.filter((s) => s.itemId === item.id).map((s) => s.frame);
-    const stepResult = frames.find(
+    const stepResults = frames.filter(
       (f): f is Extract<EventFrame, { type: "step-result" }> => f.type === "step-result",
     );
+    const stepResult = stepResults[0];
     return {
       itemId: item.id,
       refType: item.refType,
       refId: item.refId,
       status: item.status,
-      durationMs: stepResult?.durationMs ?? null,
-      assertTotal: stepResult?.asserts.length ?? 0,
-      assertPassed: stepResult ? stepResult.asserts.filter((a) => a.passed).length : 0,
+      durationMs: stepResults.reduce((s, f) => s + f.durationMs, 0) || (stepResult?.durationMs ?? null),
+      assertTotal: stepResults.reduce((s, f) => s + f.asserts.length, 0),
+      assertPassed: stepResults.reduce((s, f) => s + f.asserts.filter((a) => a.passed).length, 0),
+      stepCount: stepResults.length,
+      fakeAlarmHits: hits.filter((h) => h.taskId === taskId).map((h) => ({ ruleName: h.ruleName, stepPath: h.stepPath ?? undefined })),
       name: itemName(item, frames),
     };
   });
@@ -604,7 +979,7 @@ export async function reportDetail(projectId: string, taskId: string) {
   };
 }
 
-function parseSummary(raw: string | null | undefined): { total?: number; passed?: number; failed?: number } | undefined {
+function parseSummary(raw: string | null | undefined): { total?: number; passed?: number; failed?: number; fakeError?: number; durationMs?: number } | undefined {
   if (!raw) return undefined;
   try {
     return JSON.parse(raw);
@@ -625,9 +1000,24 @@ function itemName(
   return r?.name ?? item.refType;
 }
 
+/** 场景步骤树视图（RPT-003 §4：帧 → stepPath 树 + 迭代分组 + 变量终值）。 */
+export async function scenarioTree(projectId: string, taskId: string, itemId: string) {
+  const task = await prisma.execTask.findFirst({ where: { id: taskId, projectId }, select: { id: true } });
+  if (!task) throw new DomainError(ErrCode.TASK_NOT_FOUND, "任务不存在或无权访问");
+  const item = await prisma.execItem.findFirst({ where: { id: itemId, taskId }, select: { id: true, status: true, result: true } });
+  if (!item) throw new DomainError(ErrCode.TASK_NOT_FOUND, "执行项不存在");
+  const name = (item.result as { name?: string } | null)?.name ?? item.id;
+  const frames = (
+    await prisma.execStepResult.findMany({ where: { itemId }, orderBy: { seq: "asc" }, select: { frame: true } })
+  ).map((r) => r.frame as unknown as Record<string, unknown>);
+  const live = frames.length
+    ? frames
+    : (await readStream(taskId)).map((f) => f as unknown as Record<string, unknown>);
+  return buildScenarioTree(item.id, name, item.status, live as unknown as Parameters<typeof buildScenarioTree>[3]);
+}
+
 /** item 级帧钻取（RPT-002 §4）。 */
-export async function itemFrames(projectId: string, taskId: string, itemId: string) {
-  const task = await prisma.execTask.findFirst({
+export async function itemFrames(projectId: string, taskId: string, itemId: string) {  const task = await prisma.execTask.findFirst({
     where: { id: taskId, projectId },
     select: { id: true },
   });

@@ -27,6 +27,12 @@
 | API-005  | [mock-service](./API-005-mock-service/index.html)（MOCK 页签 + 编辑/调试弹窗并列示意）                           | 待确认                    | —        |
 | RPT-002  | [list](./RPT-002-api-report-full/index.html) · [detail](./RPT-002-api-report-full/detail.html) · [share](./RPT-002-api-report-full/share.html) | 待确认 | — |
 | CASE-006 | [associate](./CASE-006-case-associate-api/index.html)（用例关联 Tab + 选择器 + 计划弹窗三段叠放） | 待确认 | — |
+| API-006  | [scenario-orchestration](./API-006-scenario-orchestration/index.html)（列表/回收站 + 编辑页步骤树+五配置区） | 待确认 | — |
+| API-007  | [scenario-params-csv](./API-007-scenario-params-csv/index.html)（参数三分区 + ForEach 绑定 + 变量视图） | 待确认 | — |
+| API-008  | [execution-batch](./API-008-scenario-execution-batch/index.html)（批量执行弹窗 + 定时任务 + 移动/复制） | 待确认 | — |
+| API-009  | [import-export](./API-009-scenario-import-export/index.html)（导入上传/预览 + 导出模式二态） | 待确认 | — |
+| API-010  | [false-alarm-rules](./API-010-false-alarm-rules/index.html)（规则列表/编辑抽屉 + 报告误报两态） | 待确认 | — |
+| RPT-003  | [scenario-report](./RPT-003-scenario-report-share/index.html)（概览卡+步骤树+迭代分组+钻取 + 变量 Tab + 分享态） | 待确认 | — |
 
 **勘误 1（2026-09-26，原型透明度）**：Sprint 1 十一组原型（2026-09-26 产出）当前页高亮统一 `bg-[#574BFF]/10`（Tailwind v3 CDN 不编译 /8 透明度刻度，与 CASE-001 基线一致）。
 

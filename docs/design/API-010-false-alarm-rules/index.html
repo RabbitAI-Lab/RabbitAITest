@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="utf-8" />
+    <title>API-010 误报规则（项目级匹配 · FAKE_ERROR）</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-slate-50 text-slate-800 text-sm">
+    <header class="h-12 bg-white border-b flex items-center px-4 gap-3">
+      <span class="font-semibold">RabbitAITest</span><span class="border rounded px-2 py-0.5">演示项目 #1</span>
+      <span class="ml-auto text-slate-400 text-xs">帮助 · 消息 · 用户</span>
+    </header>
+    <main class="p-4 space-y-4 max-w-[1100px]">
+      <!-- 画板一：规则列表 + 编辑抽屉 -->
+      <section class="bg-white border rounded-md">
+        <div class="px-3 py-2 border-b bg-slate-50 font-medium">画板一 · 误报规则页 /scenarios/false-alarm（列表 + 新建/编辑抽屉）</div>
+        <div class="flex">
+          <div class="flex-1">
+            <div class="p-3 flex items-center gap-2 border-b"><button class="bg-[#574BFF] text-white rounded-md px-3 py-1.5">＋ 新建规则</button><span class="text-xs text-slate-400">上限 50 条 · 仅对新执行报告生效 · 命中不算任务失败</span></div>
+            <table class="w-full text-[13px]">
+              <thead class="text-slate-500 text-xs bg-slate-50"><tr class="text-left"><th class="px-3 py-2">名称</th><th class="px-3 py-2">匹配器（AND）</th><th class="px-3 py-2">启用</th><th class="px-3 py-2">描述</th><th class="px-3 py-2">更新时间</th><th class="px-3 py-2">操作</th></tr></thead>
+              <tbody class="divide-y">
+                <tr>
+                  <td class="px-3 py-2">三方网关已知抖动</td>
+                  <td class="px-3 py-2"><span class="text-[10px] border rounded px-1.5 py-0.5 bg-blue-50 text-blue-600 border-blue-200">状态码 = 502</span> <span class="text-[10px] border rounded px-1.5 py-0.5 bg-slate-100 text-slate-600">体包含 "known-issue"</span></td>
+                  <td class="px-3 py-2"><span class="w-9 h-5 rounded-full bg-[#574BFF] inline-block relative"><span class="absolute right-0.5 top-0.5 w-4 h-4 bg-white rounded-full"></span></span></td>
+                  <td class="px-3 py-2 text-slate-400 text-xs">网关升级窗口误报</td><td class="px-3 py-2 text-slate-400 text-xs">09-26 18:02</td>
+                  <td class="px-3 py-2 space-x-2 text-[#574BFF]"><a>编辑</a><a class="text-red-500">删除</a></td>
+                </tr>
+                <tr>
+                  <td class="px-3 py-2">慢接口容忍</td>
+                  <td class="px-3 py-2"><span class="text-[10px] border rounded px-1.5 py-0.5 bg-amber-50 text-amber-600 border-amber-200">耗时 &gt; 5000ms</span></td>
+                  <td class="px-3 py-2"><span class="w-9 h-5 rounded-full bg-slate-200 inline-block relative"><span class="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full"></span></span></td>
+                  <td class="px-3 py-2 text-slate-400 text-xs">报表导出接口</td><td class="px-3 py-2 text-slate-400 text-xs">09-25 11:40</td>
+                  <td class="px-3 py-2 space-x-2 text-[#574BFF]"><a>编辑</a><a class="text-red-500">删除</a></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <!-- 编辑抽屉 -->
+          <div class="w-[340px] border-l p-4 text-[13px] space-y-3">
+            <p class="font-medium">编辑规则 · 三方网关已知抖动</p>
+            <div class="flex items-center gap-2"><span class="text-slate-500 w-16">名称</span><input class="border rounded px-2 py-1.5 flex-1" value="三方网关已知抖动" /></div>
+            <p class="text-slate-500 text-xs pt-1">匹配条件（多选 AND · 至少一项）</p>
+            <div class="space-y-2 border rounded p-2">
+              <label class="flex items-center gap-2"><input type="checkbox" checked /> 状态码 <input class="border rounded px-2 py-1 w-16" value="502" /></label>
+              <label class="flex items-center gap-2"><input type="checkbox" checked /> 响应体包含 <input class="border rounded px-2 py-1 flex-1 font-mono text-xs" value="known-issue" /></label>
+              <label class="flex items-center gap-2"><input type="checkbox" /> 响应头包含 <input class="border rounded px-2 py-1 flex-1 font-mono text-xs" placeholder="key=value" disabled /></label>
+              <label class="flex items-center gap-2"><input type="checkbox" /> 耗时大于 <input class="border rounded px-2 py-1 w-20" placeholder="ms" disabled /></label>
+            </div>
+            <label class="flex items-center gap-2"><input type="checkbox" checked /> 启用</label>
+            <div class="flex justify-end gap-2"><button class="border rounded px-3 py-1.5">取消</button><button class="bg-[#574BFF] text-white rounded px-3 py-1.5">保存</button></div>
+          </div>
+        </div>
+      </section>
+      <!-- 画板二：报告侧误报两态 -->
+      <section class="bg-white border rounded-md">
+        <div class="px-3 py-2 border-b bg-slate-50 font-medium">画板二 · 报告侧效果（FAILED 红 vs FAKE_ERROR 橙徽标 + 命中规则 tooltip）</div>
+        <div class="p-4 space-y-3 text-[13px]">
+          <div class="flex gap-3">
+            <div class="border rounded-md px-4 py-3 flex-1"><p class="text-xs text-slate-400">通过</p><p class="text-xl font-semibold text-green-600">3</p></div>
+            <div class="border rounded-md px-4 py-3 flex-1"><p class="text-xs text-slate-400">失败</p><p class="text-xl font-semibold text-red-500">1</p></div>
+            <div class="border rounded-md px-4 py-3 flex-1 relative"><p class="text-xs text-slate-400">误报 <span class="text-orange-400 underline decoration-dotted">ⓘ</span></p><p class="text-xl font-semibold text-orange-500">2</p>
+              <div class="absolute bottom-full mb-1 left-0 w-64 bg-slate-800 text-white text-xs rounded p-2 hidden group-hover:block">命中规则：三方网关已知抖动（2 次）<br />停用/删除规则后新执行不再标记</div>
+            </div>
+            <div class="border rounded-md px-4 py-3 flex-1"><p class="text-xs text-slate-400">总耗时</p><p class="text-xl font-semibold">12.4s</p></div>
+          </div>
+          <table class="w-full">
+            <thead class="text-slate-500 text-xs"><tr class="text-left"><th class="px-2 py-1.5">场景</th><th class="px-2 py-1.5">状态</th><th class="px-2 py-1.5">耗时</th><th class="px-2 py-1.5">误报</th></tr></thead>
+            <tbody class="divide-y">
+              <tr><td class="px-2 py-2">下单主流程 #1001</td><td><span class="text-green-600 font-medium">SUCCESS</span></td><td class="px-2 py-2">6.2s</td><td class="px-2 py-2 text-slate-400">—</td></tr>
+              <tr><td class="px-2 py-2">支付回调验证 #1002</td><td><span class="text-orange-500 font-medium">误报</span> <span class="text-[10px] border rounded px-1 py-0.5 bg-orange-50 text-orange-600 border-orange-200">三方网关已知抖动</span></td><td class="px-2 py-2">3.1s</td><td class="px-2 py-2 text-orange-500">1</td></tr>
+              <tr><td class="px-2 py-2">用户注册数据驱动 #1003</td><td><span class="text-red-500 font-medium">FAILED</span></td><td class="px-2 py-2">3.1s</td><td class="px-2 py-2 text-slate-400">—</td></tr>
+            </tbody>
+          </table>
+          <p class="text-xs text-slate-400">任务判定：任一 FAILED → 任务 FAILED；FAKE_ERROR 不计失败（误报单列统计）</p>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

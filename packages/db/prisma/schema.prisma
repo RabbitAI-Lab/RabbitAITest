@@ -974,6 +974,9 @@ model FalseAlarmHit {
   taskId    String   @map("task_id")
   task      ExecTask @relation(fields: [taskId], references: [id])
   ruleId    String   @map("rule_id") @db.VarChar(64)
+  /// 规则名冗余（S3 API-010：规则删除后留痕名称仍可展示——门禁 3 评审补齐）
+  ruleName  String   @map("rule_name") @db.VarChar(128)
+  stepPath  String?  @map("step_path") @db.VarChar(64)
   createdAt DateTime @default(now()) @map("created_at")
 
   @@map("false_alarm_hits")

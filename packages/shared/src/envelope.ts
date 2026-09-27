@@ -60,11 +60,23 @@ export const ErrCode = {
   API_IMPORT_INVALID: 40422,
   MOCK_NO_MATCH: 40401, // Mock 服务未命中响应体（对齐信封口径）
   REF_TARGET_INVALID: 40464, // 关联目标无效（CASE-006 batch_validate）
+  SCENARIO_NOT_FOUND: 40474, // S3 API-006
+  SCENARIO_CIRCULAR_REF: 40476, // 场景引用循环（API-006 §2）
+  SCENARIO_STEP_NOT_FOUND: 40484,
+  FALSE_ALARM_RULE_NOT_FOUND: 40494, // S3 API-010
   // 50xxx 执行引擎
   ENGINE_CALLBACK_INVALID: 50001,
   TASK_NOT_RUNNING: 50003,
   TASK_NOT_RERUNNABLE: 50004,
+  CRON_INVALID: 50005, // S3 API-008
+  SCHEDULE_SCENARIOS_EMPTY: 50006,
+  MATCHER_EMPTY: 50007, // S3 API-010 匹配器至少一项
+  RULES_LIMIT_EXCEEDED: 50008, // 误报规则上限 50
+  CSV_TOO_LARGE: 50009, // S3 API-007 行数/行宽超限
+  IMPORT_FILE_TOO_LARGE: 50010, // S3 API-009 ≤2MB
+  IMPORT_FORMAT_UNKNOWN: 50011, // 导入格式探测失败
   POOL_NOT_FOUND: 50404,
+  SCHEDULE_NOT_FOUND: 50414,
   // 60xxx 报告与分享
   REPORT_NOT_FOUND: 60404,
   SHARE_NOT_FOUND: 60414,
@@ -93,6 +105,18 @@ export const ErrMsg: Record<number, string> = {
   [ErrCode.VALIDATION_FAILED]: "参数校验失败",
   [ErrCode.VERSION_CONFLICT]: "内容已被他人修改，请刷新后重试",
   [ErrCode.TASK_NOT_FOUND]: "任务不存在或无权访问",
+  [ErrCode.SCENARIO_NOT_FOUND]: "场景不存在或已删除",
+  [ErrCode.SCENARIO_CIRCULAR_REF]: "场景引用形成循环（引用链深度超限）",
+  [ErrCode.SCENARIO_STEP_NOT_FOUND]: "场景步骤不存在",
+  [ErrCode.FALSE_ALARM_RULE_NOT_FOUND]: "误报规则不存在",
+  [ErrCode.CRON_INVALID]: "cron 表达式非法（5 段，最短间隔 5 分钟）",
+  [ErrCode.SCHEDULE_SCENARIOS_EMPTY]: "定时任务场景集为空（可能已被全部删除）",
+  [ErrCode.MATCHER_EMPTY]: "误报匹配器至少一项条件",
+  [ErrCode.RULES_LIMIT_EXCEEDED]: "误报规则数量超出上限（50）",
+  [ErrCode.CSV_TOO_LARGE]: "CSV 数据超限（行数≤10000，单行≤8KB）",
+  [ErrCode.IMPORT_FILE_TOO_LARGE]: "导入文件超出大小上限（2MB）",
+  [ErrCode.IMPORT_FORMAT_UNKNOWN]: "导入格式无法识别（支持 Rabbit/MeterSphere JSON 与 JMeter jmx）",
+  [ErrCode.SCHEDULE_NOT_FOUND]: "定时任务不存在",
   [ErrCode.ENGINE_CALLBACK_INVALID]: "引擎回调校验失败",
   [ErrCode.API_NOT_FOUND]: "接口定义不存在或已删除",
   [ErrCode.API_CASE_NOT_FOUND]: "接口用例不存在或已删除",

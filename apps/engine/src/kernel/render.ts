@@ -1,23 +1,27 @@
-/** API-004 kernel：变量渲染 + 环境域名解析 + HOST 映射（纯函数，单测覆盖）。 */
+/** API-004/006 kernel：变量渲染（S3 统一函数库词法）+ 环境域名解析 + HOST 映射（纯函数，单测覆盖）。 */
 import type { EnvHttpDomain, EnvSnapshot, RequestSpec } from "@rabbit/shared/execution";
+import { renderFunctions } from "@rabbit/shared/execution";
 
 export interface RenderContext {
   vars: Record<string, string>;
   env: EnvSnapshot | undefined;
   moduleId: string | undefined; // 域名条件：模块匹配
+  /** S3 函数库计数器（__counter 任务作用域；缺省进程级共享） */
+  counter?: Map<string, number>;
 }
 
-const VAR_RE = /\$\{([a-zA-Z_][a-zA-Z0-9_]*)\}/g;
+const processCounter = new Map<string, number>();
 
-/** 作用域链 临时 > 任务参数 > 环境变量 > 全局参数（合并已在 web 快照侧完成，此处=vars 单表）。 */
-export function renderString(input: string, vars: Record<string, string>): string {
-  return input.replace(VAR_RE, (whole, name: string) =>
-    Object.prototype.hasOwnProperty.call(vars, name) ? (vars[name] ?? whole) : whole,
-  );
+/**
+ * 渲染统一入口（S3 EXEC-003）：${var}（含 row.col 点路径与 |pipe 管道）+ ${__func()} + @func()
+ * 三形态；未定义变量/未知函数原样保留（S2 语义不变）；\${ 与 @@ 转义。
+ */
+export function renderString(input: string, vars: Record<string, string>, counter?: Map<string, number>): string {
+  return renderFunctions(input, { vars: new Map(Object.entries(vars)), counter: counter ?? processCounter });
 }
 
 export function renderRequest(spec: RequestSpec, ctx: RenderContext): RequestSpec {
-  const r = (s: string) => renderString(s, ctx.vars);
+  const r = (s: string) => renderString(s, ctx.vars, ctx.counter);
   return {
     ...spec,
     url: r(spec.url),
