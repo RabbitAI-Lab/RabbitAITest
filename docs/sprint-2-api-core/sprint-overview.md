@@ -108,7 +108,7 @@
 | 7. 文件：JAR 启用制引用执行；危险类型拒收；大小受限            | ✅   | PROJ-004-01（JAR 开关二态/下载字节/移动过滤）；PROJ-004-02（.exe 422 文案透出）；PROJ-004-03（form_data 引用执行 marker 命中二态，勘误 1：内容标记法）                              |
 | 8. 权限二态：PROJECT_API:READ 只读（按钮隐藏+直发 403 10003）；ENV/FILE/EXEC_TASK 同口径 | ✅   | API-002-05（受限成员：列表可见/新建隐藏/直发 403 code 10003，SYS-004-05 同款自降权法）；权限点入册（presets 预置组只读集 + guard）；jmx T2 未登录 401                        |
 | 9. 自动化测试齐备（门禁 7/8）                                 | ✅   | Vitest 84（新增 engine 18/web 10/mock 7）；**JMeter 24 计划于「真门禁」下全绿**（新增 10；门禁空转缺陷修复后全量复验，见 7.1）；Playwright 91 用例全新口径全绿（新增 29 含 MAINFLOW-s2；门禁 8 审计回补 6 项声明缺口：权限二态/clientTaskId 幂等/重复关联/已删除灰显/槽位生效/过期 token/文件引用执行，附产品修复 clientTaskId 幂等）；lint 0 错误；OpenAPI 164 paths 快照一致 |
-| 10. Sprint 收尾交付（门禁 9）                                 | ⏸   | **收尾进行中（2026-09-27 10:00 闸门）**：commit 被 Mimosa L3 提交门禁拦截（apps/engine/src/cli.ts「runTask 1 跳到 ssrf」high——本地开发 CLI 按操作者参数发请求的上下文盲误报；静态引擎原判为跨文件告警级）；6 处测试/种子凭据高危已诚实清零（env 化默认值不变）。全部改动已暂存待提交，待用户裁决后 push + CI 验证即补全本项 |
+| 10. Sprint 收尾交付（门禁 9）                                 | ✅   | push main 4de92f7→b066a90→834a08a；远端 CI run 36294771792 六作业全绿（审计/lint+typecheck+unit+OpenAPI/build/迁移重放/Playwright 91/JMeter 24——**JMeter 首次经真门禁真实验证**，CI 侧两处环境缺陷一并修复：SESSION_SECRET 29 字符低于 iron-session 下限（S1 起全端点 500 被空转门禁掩盖）、e2e mock 口径废弃 E2E_MOCK_URL=4000 旧值统一 :4001）；CHANGELOG v0.3.0；README M3 翻转 |
 
 ### 7.1 工程债清偿（S0 遗留 + S1 遗留）
 
