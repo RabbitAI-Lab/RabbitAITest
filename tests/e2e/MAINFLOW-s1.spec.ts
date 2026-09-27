@@ -63,7 +63,10 @@ test("MAINFLOW-s1 Sprint1 主链路（模块树→用例→评审→计划→执
   }
   expect(addSubOpened, "右键菜单「新建子模块」应在重试内可点开").toBe(true);
   const modChildApi = expectApi("**/api/v1/projects/*/modules?scene=case");
-  await page.locator('.ant-modal input[placeholder="模块名称"]').fill(childName);
+  // 菜单点击成功≠弹窗已渲染（antd 弹出动画/异步挂载，CI 慢机竞争）——等输入框可见再 fill
+  const childInput = page.locator('.ant-modal input[placeholder="模块名称"]');
+  await expect(childInput).toBeVisible({ timeout: 8000 });
+  await childInput.fill(childName);
   await page
     .locator(".ant-modal")
     .getByRole("button", { name: /确\s*定/ })
