@@ -121,6 +121,7 @@ jobs:
       - run: pnpm install --frozen-lockfile || pnpm install
       - run: pnpm --filter @rabbit/db generate
       - run: pnpm --filter web build
+      - run: pnpm build:plugins
       - run: pnpm exec playwright install --with-deps chromium
       - name: run e2e（含每用例截屏）
         run: pnpm test:e2e
