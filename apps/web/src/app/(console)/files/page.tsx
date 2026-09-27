@@ -1,10 +1,11 @@
 "use client";
 
-import { Button, Empty, Input, Modal, Popconfirm, Select, Switch, Table, Tooltip, Upload } from "antd";
+import { Button, Empty, Input, Modal, Popconfirm, Select, Switch, Table, Tag, Tooltip, Upload } from "antd";
 import { FolderInput, Pencil, Trash2, UploadCloud } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { fileApi, moduleApi, ApiError, type FileRow, type ModuleNodeDto } from "@rabbit/api-client";
+import { fileApi, fileRecycleApi, moduleApi, ApiError, type FileRow, type ModuleNodeDto } from "@rabbit/api-client";
+import { FileReposModal } from "./file-repos";
 import { ModuleTreePanel } from "@/components/ModuleTreePanel";
 import { useApp } from "@/hooks/useApp";
 import { usePermissions } from "@/hooks/usePermissions";
@@ -32,6 +33,8 @@ export default function FilesPage() {
   const [includeChildren, setIncludeChildren] = useState(true);
   const [keyword, setKeyword] = useState("");
   const [page, setPage] = useState(1);
+  const [view, setView] = useState<"list" | "recycle">("list");
+  const [reposOpen, setReposOpen] = useState(false);
   const [renameTarget, setRenameTarget] = useState<FileRow | null>(null);
   const [renameName, setRenameName] = useState("");
   const [moveTarget, setMoveTarget] = useState<FileRow | null>(null);
@@ -48,7 +51,7 @@ export default function FilesPage() {
   const defaultModuleId = flat.find((m) => m.isDefault)?.id;
 
   const filesQ = useQuery({
-    queryKey: ["files", projectId, selectedModuleId, includeChildren, keyword, page],
+    queryKey: ["files", projectId, selectedModuleId, includeChildren, keyword, page, view],
     queryFn: () =>
       fileApi.list(projectId!, {
         moduleId: selectedModuleId ?? undefined,
@@ -56,6 +59,7 @@ export default function FilesPage() {
         keyword: keyword || undefined,
         page,
         pageSize: 20,
+        ...(view === "recycle" ? { recycled: true } : {}),
       }),
     enabled: Boolean(projectId),
   });
@@ -89,6 +93,32 @@ export default function FilesPage() {
       message.success("文件已删除（软删，执行引用时任务将 CONFIG_ERROR）");
     },
     onError: (e) => message.error(e instanceof Error ? e.message : "删除失败"),
+  });
+
+  // S5 FILE-001：回收站恢复/彻底删除 + 仓库文件重新拉取
+  const restoreFile = useMutation({
+    mutationFn: (id: string) => fileRecycleApi.restore(projectId!, id),
+    onSuccess: () => {
+      invalidate();
+      message.success("已恢复");
+    },
+    onError: (e) => message.error(e instanceof Error ? e.message : "恢复失败"),
+  });
+  const purgeFile = useMutation({
+    mutationFn: (id: string) => fileRecycleApi.purge(projectId!, id),
+    onSuccess: () => {
+      invalidate();
+      message.success("已彻底删除");
+    },
+    onError: (e) => message.error(e instanceof Error ? e.message : "删除失败"),
+  });
+  const syncFile = useMutation({
+    mutationFn: (id: string) => fileRecycleApi.sync(projectId!, id),
+    onSuccess: () => {
+      invalidate();
+      message.success("已重新拉取（内容与大小刷新）");
+    },
+    onError: (e) => message.error(e instanceof Error ? e.message : "拉取失败"),
   });
 
   const rows = filesQ.data?.items ?? [];
@@ -145,9 +175,35 @@ export default function FilesPage() {
             }}
             data-testid="file-filter-keyword"
           />
+          <div className="flex border rounded overflow-hidden text-xs">
+            <button
+              className={`px-3 py-1 ${view === "list" ? "bg-[#574BFF] text-white" : "bg-white"}`}
+              onClick={() => {
+                setView("list");
+                setPage(1);
+              }}
+            >
+              文件列表
+            </button>
+            <button
+              className={`px-3 py-1 ${view === "recycle" ? "bg-[#574BFF] text-white" : "bg-white"}`}
+              onClick={() => {
+                setView("recycle");
+                setPage(1);
+              }}
+              data-testid="tab-file-recycle"
+            >
+              回收站
+            </button>
+          </div>
           <span className="text-xs text-[#A8ABB0] ml-auto">
-            同名文件允许上传，按上传时间区分 · 下载走鉴权流式 · 删除为软删
+            {view === "list" ? "同名文件允许上传，按上传时间区分 · 下载走鉴权流式 · 删除为软删" : "恢复回到原模块；彻底删除=物理删并清理对象存储（不可恢复）"}
           </span>
+          {view === "list" && can("PROJECT_FILE:CREATE") && (
+            <Button size="small" onClick={() => setReposOpen(true)} data-testid="btn-file-repos">
+              存储库
+            </Button>
+          )}
         </div>
 
         <Table<FileRow>
@@ -179,7 +235,33 @@ export default function FilesPage() {
             ),
           }}
           columns={[
-            { title: "名称", dataIndex: "name", render: (v: string) => <span className="font-medium">{v}</span> },
+            {
+              title: "名称",
+              dataIndex: "name",
+              render: (v: string, row) => (
+                <Tooltip title={row.repoPath ? `${row.branch} · ${row.repoPath}` : undefined}>
+                  <span className="font-medium">{v}</span>
+                </Tooltip>
+              ),
+            },
+            {
+              title: "来源",
+              dataIndex: "repoPlatform",
+              width: 100,
+              render: (v: string | null, row) =>
+                row.repoId ? (
+                  v ? (
+                    <Tag color="orange">{v}</Tag>
+                  ) : (
+                    <Tag className="opacity-50">已删仓库</Tag>
+                  )
+                ) : (
+                  <Tag>本地</Tag>
+                ),
+            },
+            ...(view === "recycle"
+              ? [{ title: "删除时间", dataIndex: "deletedAt", width: 140, render: (v: string | null) => <span className="text-[#87888D]">{fmtTime(v ?? "")}</span> }]
+              : []),
             { title: "大小", dataIndex: "sizeText", width: 90 },
             {
               title: "模块",
@@ -228,6 +310,22 @@ export default function FilesPage() {
                   >
                     下载
                   </Button>
+                  {view === "recycle" ? (
+                    <>
+                      <Button type="link" size="small" className="!px-0" onClick={() => restoreFile.mutate(row.id)} data-testid={`file-restore-${row.id}`}>
+                        恢复
+                      </Button>
+                      <Popconfirm title="彻底删除不可恢复（记录+对象存储一并清理）" onConfirm={() => purgeFile.mutate(row.id)}>
+                        <Button type="link" size="small" danger className="!px-0" data-testid={`file-purge-${row.id}`}>
+                          彻底删除
+                        </Button>
+                      </Popconfirm>
+                    </>
+                  ) : row.repoId && row.repoPlatform ? (
+                    <Button type="link" size="small" className="!px-0" loading={syncFile.isPending && syncFile.variables === row.id} onClick={() => syncFile.mutate(row.id)}>
+                      重新拉取
+                    </Button>
+                  ) : null}
                   {canUpdate && (
                     <>
                       <Button
@@ -322,6 +420,9 @@ export default function FilesPage() {
           data-testid="select-move-module"
         />
       </Modal>
+
+      {/* S5 FILE-001：存储库管理 */}
+      {reposOpen && projectId && <FileReposModal projectId={projectId} onClose={() => setReposOpen(false)} />}
     </div>
   );
 }

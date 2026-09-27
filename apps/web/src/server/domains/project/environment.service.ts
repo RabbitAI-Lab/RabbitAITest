@@ -170,14 +170,125 @@ export async function buildEnvSnapshot(projectId: string, envId: string | undefi
   const cfg = readConfig(env);
   const vars: Record<string, string> = { ...globalVars };
   for (const v of cfg.vars) if (v.enabled) vars[v.key] = v.value;
+  // S5 PROJ-005：环境全局前后置 scriptRef 构建期展开（engine 无感知）
+  const { resolveScriptRefs } = await import("./public-script.service");
   return {
     vars,
     http: cfg.http,
     hosts: cfg.hosts,
     database: cfg.database,
-    pre: cfg.pre,
-    post: cfg.post,
+    pre: await resolveScriptRefs(projectId, cfg.pre),
+    post: await resolveScriptRefs(projectId, cfg.post),
     asserts: cfg.asserts,
     extracts: cfg.extracts,
   };
+}
+
+// ── S5 PROJ-006：环境组 + 全局参数 ──
+
+import { ENV_GROUP_LIMIT, type EnvGroupUpsertInput } from "@rabbit/shared";
+
+const toJson2 = (v: unknown): Prisma.InputJsonValue =>
+  JSON.parse(JSON.stringify(v ?? {})) as Prisma.InputJsonValue;
+
+export async function listEnvGroups(projectId: string) {
+  const [total, items] = await Promise.all([
+    prisma.envGroup.count({ where: { projectId } }),
+    prisma.envGroup.findMany({ where: { projectId }, orderBy: { createdAt: "asc" } }),
+  ]);
+  return { total, items: items.map((g) => ({ id: g.id, name: g.name, environmentIds: g.environmentIds as string[], createdAt: g.createdAt.toISOString() })) };
+}
+
+async function validateGroupEnvs(projectId: string, environmentIds: string[]) {
+  const unique = [...new Set(environmentIds)];
+  if (unique.length === 0) throw new DomainError(ErrCode.VALIDATION_FAILED, "环境组至少包含一个环境");
+  const envs = await prisma.environment.findMany({
+    where: { id: { in: unique }, projectId, deletedAt: null },
+    select: { id: true },
+  });
+  if (envs.length !== unique.length) {
+    throw new DomainError(ErrCode.VALIDATION_FAILED, "包含不存在或已删除的环境");
+  }
+  return unique;
+}
+
+export async function createEnvGroup(projectId: string, input: EnvGroupUpsertInput) {
+  const count = await prisma.envGroup.count({ where: { projectId } });
+  if (count >= ENV_GROUP_LIMIT) {
+    throw new DomainError(ErrCode.VALIDATION_FAILED, `环境组数量超出上限（${ENV_GROUP_LIMIT}/项目）`);
+  }
+  const dup = await prisma.envGroup.findFirst({ where: { projectId, name: input.name }, select: { id: true } });
+  if (dup) throw new DomainError(ErrCode.VALIDATION_FAILED, "环境组名称已存在");
+  const environmentIds = await validateGroupEnvs(projectId, input.environmentIds);
+  const g = await prisma.envGroup.create({
+    data: { projectId, name: input.name, environmentIds: toJson2(environmentIds) },
+  });
+  return { id: g.id, name: g.name, environmentIds };
+}
+
+export async function updateEnvGroup(projectId: string, id: string, input: EnvGroupUpsertInput) {
+  const existing = await prisma.envGroup.findFirst({ where: { id, projectId } });
+  if (!existing) throw new DomainError(ErrCode.ENV_GROUP_NOT_FOUND, "环境组不存在");
+  const dup = await prisma.envGroup.findFirst({
+    where: { projectId, name: input.name, id: { not: id } },
+    select: { id: true },
+  });
+  if (dup) throw new DomainError(ErrCode.VALIDATION_FAILED, "环境组名称已存在");
+  const environmentIds = await validateGroupEnvs(projectId, input.environmentIds);
+  await prisma.envGroup.update({ where: { id }, data: { name: input.name, environmentIds: toJson2(environmentIds) } });
+  return { id, name: input.name, environmentIds };
+}
+
+/** 组删除=物理删（表无软删列；轻量编排对象，PROJ-006 §2 登记）。 */
+export async function deleteEnvGroup(projectId: string, id: string) {
+  const existing = await prisma.envGroup.findFirst({ where: { id, projectId } });
+  if (!existing) throw new DomainError(ErrCode.ENV_GROUP_NOT_FOUND, "环境组不存在");
+  await prisma.envGroup.delete({ where: { id } });
+  return { id };
+}
+
+/** 组展开：过滤软删环境，保序；全失效 → 422 ENV_GROUP_EMPTY。 */
+export async function expandEnvGroup(projectId: string, id: string) {
+  const g = await prisma.envGroup.findFirst({ where: { id, projectId } });
+  if (!g) throw new DomainError(ErrCode.ENV_GROUP_NOT_FOUND, "环境组不存在");
+  const ids = (g.environmentIds as string[]) ?? [];
+  const envs = ids.length
+    ? await prisma.environment.findMany({
+        where: { id: { in: ids }, projectId, deletedAt: null },
+        select: { id: true, name: true },
+      })
+    : [];
+  const byId = new Map(envs.map((e) => [e.id, e]));
+  const resolved = ids.map((id2) => byId.get(id2)).filter((e): e is { id: string; name: string } => Boolean(e));
+  if (resolved.length === 0) throw new DomainError(ErrCode.ENV_GROUP_EMPTY, "环境组内没有可用环境");
+  return { groupId: g.id, name: g.name, environments: resolved };
+}
+
+// ── 全局参数（项目级单例；buildEnvSnapshot 合并逻辑既有）──
+
+export async function getGlobalParams(projectId: string) {
+  const row = await prisma.globalParam.findUnique({ where: { projectId } });
+  const params = (row?.params as Record<string, string> | null) ?? {};
+  return {
+    params: Object.entries(params).map(([key, value]) => ({ key, value, description: "" })),
+  };
+}
+
+export async function upsertGlobalParams(
+  projectId: string,
+  input: { params: { key: string; value: string; description: string }[] },
+) {
+  const seen = new Set<string>();
+  const record: Record<string, string> = {};
+  for (const p of input.params) {
+    if (seen.has(p.key)) throw new DomainError(ErrCode.VALIDATION_FAILED, `全局参数重名：${p.key}`);
+    seen.add(p.key);
+    record[p.key] = p.value;
+  }
+  await prisma.globalParam.upsert({
+    where: { projectId },
+    update: { params: toJson2(record) },
+    create: { projectId, params: toJson2(record) },
+  });
+  return { params: input.params };
 }

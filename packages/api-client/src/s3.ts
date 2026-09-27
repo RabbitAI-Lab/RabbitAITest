@@ -82,8 +82,11 @@ export const scenarioApi = {
   // API-008 批量
   executeBatch: (
     projectId: string,
-    body: { scenarioIds: string[]; envId?: string; poolId?: string; stopOnFail?: boolean; mode?: "serial" | "parallel" },
-  ) => post<{ taskId: string; warnings?: string[] }>(`/api/v1/projects/${projectId}/scenarios/execute`, body),
+    body: { scenarioIds: string[]; envId?: string; envGroupId?: string; poolId?: string; stopOnFail?: boolean; mode?: "serial" | "parallel" },
+  ) =>
+    post<
+      { taskId: string; warnings?: string[] } | { tasks: { taskId: string; envId: string; envName: string }[]; warnings?: string[] }
+    >(`/api/v1/projects/${projectId}/scenarios/execute`, body),
   batchDelete: (projectId: string, ids: string[]) => post<{ count: number }>(`/api/v1/projects/${projectId}/scenarios/batch-delete`, { ids }),
   batchMove: (projectId: string, ids: string[], moduleId: string) =>
     post<{ count: number }>(`/api/v1/projects/${projectId}/scenarios/batch-move`, { ids, moduleId }),

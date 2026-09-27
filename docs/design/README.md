@@ -52,6 +52,12 @@
 | API-011  | [swagger-sync-openapi](./API-011-swagger-sync-openapi/index.html)（任务列表/编辑 Modal + 同步历史行级失败明细） | 待确认 | — |
 | SYS-008  | [audit-log](./SYS-008-audit-log/index.html)（筛选+日志表格 + 三级入口权限说明 + 保留时长参数位） | 待确认 | — |
 | PLUG-002 | 以接口契约评审替代（纯引擎类，规格 §4 SPI；AGENTS 门禁 2 豁免条款） | 契约评审通过（随规格 Approved） | — |
+| MSG-001 | [notification-robot](./MSG-001-notification-robot/index.html)（机器人 Tab 列表/新建弹窗 + 事件配置 Tab 五类分组 + 铃铛下拉/通知中心两态） | 待确认 | — |
+| BUG-002 | [bug-collaboration-recycle](./BUG-002-bug-collaboration-recycle/index.html)（回收站 Tab+批量栏+彻底删除确认 / 评论 @提及选择器与高亮） | 待确认 | — |
+| PROJ-005 | [public-scripts](./PROJ-005-public-scripts/index.html)（列表+状态二态 / 新建编辑抽屉+参数表 / 调试抽屉控制台 / 引用侧处理器下拉） | 待确认 | — |
+| PROJ-006 | [env-group-global-params](./PROJ-006-env-group-global-params/index.html)（环境组 Tab+调序弹窗 / 全局参数 KV 表 / 执行弹窗组选择） | 待确认 | — |
+| FILE-001 | [git-repository-files](./FILE-001-git-repository-files/index.html)（存储库弹窗+拉取结果 / 文件列表来源徽标 / 文件回收站 Tab） | 待确认 | — |
+| SYS-007 | [personal-center](./SYS-007-personal-center/index.html)（五子页容器：个人信息/密码/APIKEY 收编/本地执行/模型设置） | 待确认 | — |
 
 **勘误 1（2026-09-26，原型透明度）**：Sprint 1 十一组原型（2026-09-26 产出）当前页高亮统一 `bg-[#574BFF]/10`（Tailwind v3 CDN 不编译 /8 透明度刻度，与 CASE-001 基线一致）。
 

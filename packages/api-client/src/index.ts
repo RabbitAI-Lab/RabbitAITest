@@ -4,6 +4,7 @@ export * from "./s3";
 export * from "./s4";
 export * from "./s7";
 export * from "./s6";
+export * from "./s5";
 import type { AssertSpec, RequestSpec, TaskStatus } from "@rabbit/shared";
 import type { CaseCreateInput, CaseDetail, CaseListQuery } from "@rabbit/shared";
 import { get, post, put, del } from "./client";

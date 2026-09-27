@@ -214,8 +214,12 @@ if (process.env.VITEST === undefined) {
   app.route("/mock-jira", platformMocks);
   app.route("/mock-zentao", platformMocks);
   app.route("/mock-tapd", platformMocks);
+  // S5 MSG-001/FILE-001 e2e：机器人 webhook 接收 + Git 平台（标准 API 前缀 /api/v1|v3|v4|v5）
+  const { buildRobotMocks, buildGitMocks } = await import("./s5-mocks.js");
+  app.route("/mock-robot", buildRobotMocks());
+  app.route("/", buildGitMocks());
   mountSwaggerDoc(app);
   serve({ fetch: app.fetch, port }, (info) => {
-    console.log(`[mock] listening :${info.port}（/healthz /hello /mock/{projectNum}/{path} + mock-jira/zentao/tapd）`);
+    console.log(`[mock] listening :${info.port}（/healthz /hello /mock/{projectNum}/{path} + mock-jira/zentao/tapd + mock-robot + git-api）`);
   });
 }

@@ -32,7 +32,7 @@ export async function listFiles(projectId: string, query: ListQuery) {
     : undefined;
   const where = {
     projectId,
-    deletedAt: null,
+    deletedAt: query.recycled ? { not: null } : null,
     ...(moduleIds ? { moduleId: { in: moduleIds } } : {}),
     ...(query.keyword ? { name: { contains: query.keyword } } : {}),
   };
@@ -45,6 +45,12 @@ export async function listFiles(projectId: string, query: ListQuery) {
       take: query.pageSize,
     }),
   ]);
+  // S5 FILE-001：仓库文件溯源徽标（repoId → platform；仓库已删=灰态）
+  const repoIds = [...new Set(files.map((f) => f.repoId).filter((x): x is string => Boolean(x)))];
+  const repos = repoIds.length
+    ? await prisma.fileRepo.findMany({ where: { id: { in: repoIds } }, select: { id: true, platform: true } })
+    : [];
+  const repoPlatform = new Map(repos.map((r) => [r.id, r.platform]));
   return {
     total,
     items: files.map((f) => ({
@@ -56,6 +62,11 @@ export async function listFiles(projectId: string, query: ListQuery) {
       mime: f.mime ?? undefined,
       isJar: f.name.toLowerCase().endsWith(".jar"),
       jarEnabled: f.jarEnabled,
+      repoId: f.repoId ?? null,
+      repoPlatform: f.repoId ? repoPlatform.get(f.repoId) ?? null : null,
+      branch: f.branch ?? null,
+      repoPath: f.repoPath ?? null,
+      deletedAt: f.deletedAt?.toISOString() ?? null,
       createdAt: f.createdAt.toISOString(),
     })),
   };
@@ -126,6 +137,24 @@ export async function updateFile(
 export async function deleteFile(projectId: string, id: string) {
   const f = await getFile(projectId, id);
   await prisma.fileItem.update({ where: { id: f.id }, data: { deletedAt: new Date() } });
+  return { id };
+}
+
+/** S5 FILE-001：回收站恢复（PROJ-004 登记兑现）。 */
+export async function restoreFile(projectId: string, id: string) {
+  const f = await prisma.fileItem.findFirst({ where: { id, projectId, deletedAt: { not: null } } });
+  if (!f) throw new DomainError(ErrCode.FILE_NOT_FOUND, "文件不在回收站");
+  await prisma.fileItem.update({ where: { id }, data: { deletedAt: null } });
+  return { id };
+}
+
+/** S5 FILE-001：彻底删除（物理删记录 + best-effort 清理对象存储）。 */
+export async function purgeFile(projectId: string, id: string) {
+  const f = await prisma.fileItem.findFirst({ where: { id, projectId, deletedAt: { not: null } } });
+  if (!f) throw new DomainError(ErrCode.FILE_NOT_FOUND, "文件不在回收站");
+  const { deleteObject } = await import("@/server/storage");
+  await deleteObject(f.storageKey).catch(() => {}); // best-effort
+  await prisma.fileItem.delete({ where: { id } });
   return { id };
 }
 

@@ -118,6 +118,21 @@ export async function resolveRuntime(modelId?: string | null): Promise<AiModelRu
   return { id: m.id, name: m.name, baseUrl: m.baseUrl, model: m.model, apiKey: decryptSecret(m.apiKeyEnc) };
 }
 
+/** S5 SYS-007：用户态解析——显式 id > 个人默认（启用中）> 系统默认链。 */
+export async function resolveRuntimeForUser(
+  userId: string,
+  modelId?: string | null,
+): Promise<AiModelRuntime & { name: string }> {
+  if (modelId) return resolveRuntime(modelId);
+  const { personalAiModelId } = await import("../system/personal.service");
+  const personal = await personalAiModelId(userId).catch(() => null);
+  if (personal) {
+    const runtime = await resolveRuntime(personal).catch(() => null);
+    if (runtime) return runtime;
+  }
+  return resolveRuntime(null);
+}
+
 /** 登录可见的启用模型下拉（无敏感字段） */
 export async function listEnabledModelsForPicker() {
   const models = await prisma.aiModel.findMany({

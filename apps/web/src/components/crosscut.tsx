@@ -3,7 +3,7 @@
 import { Button, Input, List, Popconfirm, Select, Tag } from "antd";
 import { Pencil, Trash2 } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { commentApi, type CommentDto } from "@rabbit/api-client";
+import { commentApi, memberApi, type CommentDto } from "@rabbit/api-client";
 import { renderMarkdown } from "@rabbit/shared";
 import { useApp } from "@/hooks/useApp";
 import { usePermissions } from "@/hooks/usePermissions";
@@ -27,16 +27,27 @@ export function CommentThread({
   const [content, setContent] = useState("");
   const [replyTo, setReplyTo] = useState<string | null>(null);
   const [editing, setEditing] = useState<{ id: string; content: string } | null>(null);
+  // S5 BUG-002/CASE-003：@提及（项目成员；提交时随评论落库并通知被提及人）
+  const [mentionIds, setMentionIds] = useState<string[]>([]);
+  const membersQ = useQuery({
+    queryKey: ["members", projectId],
+    queryFn: () => memberApi.projectMembers(projectId),
+    staleTime: 60_000,
+  });
+  const memberOptions = (membersQ.data?.items ?? [])
+    .filter((m) => m.id !== currentUserId)
+    .map((m) => ({ value: m.id, label: m.name || m.email }));
   const { data } = useQuery({
     queryKey: ["comments", projectId, entity],
     queryFn: () => commentApi.list(projectId, entity),
   });
   const invalidate = () => qc.invalidateQueries({ queryKey: ["comments", projectId, entity] });
   const add = useMutation({
-    mutationFn: () => commentApi.create(projectId, entity, content, replyTo ?? undefined),
+    mutationFn: () => commentApi.create(projectId, entity, content, replyTo ?? undefined, mentionIds),
     onSuccess: () => {
       setContent("");
       setReplyTo(null);
+      setMentionIds([]);
       invalidate();
     },
     onError: (e) => message.error(e instanceof Error ? e.message : "发表失败"),
@@ -138,24 +149,39 @@ export function CommentThread({
   );
   return (
     <div data-testid="comment-thread">
-      <div className="flex gap-2 mb-2">
-        <Input.TextArea
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          placeholder={replyTo ? "回复…" : "发表评论…"}
-          rows={2}
-          maxLength={4000}
-          data-testid="comment-input"
-        />
-        <Button
-          type="primary"
-          onClick={() => add.mutate()}
-          loading={add.isPending}
-          disabled={!content.trim()}
-          data-testid="comment-submit"
-        >
-          发表
-        </Button>
+      <div className="mb-2" data-testid="comment-composer">
+        <div className="flex gap-2">
+          <Input.TextArea
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            placeholder={replyTo ? "回复…" : "发表评论…（可 @ 提及项目成员）"}
+            rows={2}
+            maxLength={4000}
+            data-testid="comment-input"
+          />
+          <Button
+            type="primary"
+            onClick={() => add.mutate()}
+            loading={add.isPending}
+            disabled={!content.trim()}
+            data-testid="comment-submit"
+          >
+            发表
+          </Button>
+        </div>
+        <div className="flex items-center gap-2 mt-1">
+          <span className="text-xs text-[#A8ABB0]">@</span>
+          <Select
+            mode="multiple"
+            size="small"
+            className="max-w-xs"
+            placeholder="提及成员（收到站内信）"
+            value={mentionIds}
+            options={memberOptions}
+            onChange={setMentionIds}
+            data-testid="comment-mentions"
+          />
+        </div>
       </div>
       {mains.length === 0 && <p className="text-[#A8ABB0] text-[13px]">暂无评论</p>}
       {mains.map((c) => render(c))}

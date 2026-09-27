@@ -415,10 +415,14 @@ model FileItem {
   jarEnabled Boolean   @default(false) @map("jar_enabled")
   repoId     String?   @map("repo_id")
   repo       FileRepo? @relation(fields: [repoId], references: [id])
+  /// S5 FILE-001 仓库文件溯源列（门禁 3 例外登记：test-domain-model §6 S5 条目）
+  branch     String?   @db.VarChar(128)
+  repoPath   String?   @map("repo_path") @db.VarChar(512)
   deletedAt  DateTime? @map("deleted_at")
   createdAt  DateTime  @default(now()) @map("created_at")
 
   @@index([projectId, deletedAt])
+  @@index([repoId])
   @@map("file_items")
 }
 

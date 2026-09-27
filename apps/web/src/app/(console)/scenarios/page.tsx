@@ -9,7 +9,7 @@ import { Download, Play, Plus, Upload } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { moduleApi, poolApi, scenarioApi } from "@rabbit/api-client";
+import { moduleApi, poolApi, scenarioApi, envGroupApi } from "@rabbit/api-client";
 import type { ScenarioRow } from "@rabbit/api-client";
 import { useApp } from "@/hooks/useApp";
 import { usePermissions } from "@/hooks/usePermissions";
@@ -588,6 +588,7 @@ function BatchExecModal({ rows, onClose }: { rows: ScenarioRow[]; onClose: () =>
   const { message } = useApp();
   const router = useRouter();
   const [envId, setEnvId] = useState<string | undefined>(undefined);
+  const [envGroupId, setEnvGroupId] = useState<string | undefined>(undefined);
   const [poolId, setPoolId] = useState<string>();
   const [mode, setMode] = useState<"serial" | "parallel">("serial");
   const [stopOnFail, setStopOnFail] = useState(false);
@@ -600,19 +601,33 @@ function BatchExecModal({ rows, onClose }: { rows: ScenarioRow[]; onClose: () =>
     enabled: can("SYSTEM_POOL:READ"),
   });
 
+  // S5 PROJ-006：环境组（与单环境互斥）
+  const groupsQ = useQuery({
+    queryKey: ["env-groups", projectId],
+    queryFn: () => envGroupApi.list(projectId!),
+    enabled: Boolean(projectId),
+  });
+
   const execM = useMutation({
     mutationFn: () =>
       scenarioApi.executeBatch(projectId!, {
         scenarioIds: rows.map((r) => r.id),
-        ...(envId ? { envId } : {}),
+        ...(envGroupId ? { envGroupId } : {}),
+        ...(!envGroupId && envId ? { envId } : {}),
         ...(poolId ? { poolId } : {}),
         stopOnFail,
         mode,
       }),
     onSuccess: (r) => {
-      message.success(`${rows.length} 个场景已提交（任务 ${r.taskId.slice(0, 8)}）`);
-      onClose();
-      router.push(`/tasks?focus=${r.taskId}`);
+      if ("tasks" in r) {
+        message.success(`按环境组执行：已生成 ${r.tasks.length} 个任务（${r.tasks.map((t) => t.envName).join(" → ")}）`);
+        onClose();
+        router.push("/tasks");
+      } else {
+        message.success(`${rows.length} 个场景已提交（任务 ${r.taskId.slice(0, 8)}）`);
+        onClose();
+        router.push(`/tasks?focus=${r.taskId}`);
+      }
     },
     onError: (e) => message.error(e instanceof Error ? e.message : "提交失败"),
   });
@@ -631,6 +646,24 @@ function BatchExecModal({ rows, onClose }: { rows: ScenarioRow[]; onClose: () =>
         <div className="flex items-center gap-2">
           <span className="w-16 text-xs text-[#646A73]">环境</span>
           <EnvSelect value={envId} onChange={(v) => setEnvId(v)} />
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="w-16 text-xs text-[#646A73]">环境组</span>
+          <Select
+            className="!w-56"
+            placeholder="按组执行（逐环境各建一个任务）"
+            allowClear
+            value={envGroupId}
+            onChange={(v) => {
+              setEnvGroupId(v);
+              if (v) setEnvId(undefined);
+            }}
+            data-testid="select-exec-env-group"
+            options={(groupsQ.data?.items ?? []).map((g) => ({
+              value: g.id,
+              label: `${g.name}（${g.environmentIds.length} 环境）`,
+            }))}
+          />
         </div>
         <div className="flex items-center gap-2">
           <span className="w-16 text-xs text-[#646A73]">资源池</span>

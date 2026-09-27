@@ -26,6 +26,12 @@ export const POST = withProjectScope(async (ctx, req) => {
       );
     }
     const body = bp.data;
-    return okResponse(await svc.addComment(ctx.userId, entityType, entityId, body.content, body.parentId), 201);
+    return okResponse(
+      await svc.addComment(ctx.userId, entityType, entityId, body.content, body.parentId, {
+        projectId: ctx.projectId,
+        ids: body.mentions ?? [],
+      }),
+      201,
+    );
   } catch (err) { return toResponse(err); }
 });

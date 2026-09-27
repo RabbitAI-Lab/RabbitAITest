@@ -20,6 +20,7 @@ import { useEffect, useState } from "react";
 import { envApi, moduleApi, ApiError, type EnvironmentRow } from "@rabbit/api-client";
 import type { AssertSpec, AssertKind, Extractor, Processor } from "@rabbit/shared";
 import { PageHeader } from "@/components/PageHeader";
+import { ScriptRefPanel } from "@/components/api/ScriptRefPanel";
 import { useApp } from "@/hooks/useApp";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useProjectStore } from "@/stores/project";
@@ -89,15 +90,35 @@ function ProcessorRows({
               else if (kind === "wait") patch(i, { kind: "wait", ms: 500 } as Processor);
             }}
           />
-          {p.kind === "script" && (
-            <Input.TextArea
-              className="flex-1 font-mono text-xs"
-              rows={3}
-              placeholder='// vars.set("k", "v") · log(...) · env.get(...)'
-              value={p.script}
-              onChange={(e) => patch(i, { script: e.target.value } as Processor)}
-            />
-          )}
+          {p.kind === "script" &&
+            ((p as { scriptRef?: unknown }).scriptRef ? (
+              <div className="flex-1">
+                <ScriptRefPanel
+                  value={(p as { scriptRef: { scriptId: string; params: Record<string, string> } }).scriptRef}
+                  onChange={(v) => patch(i, (v ? { script: "", scriptRef: v } : { script: "" }) as unknown as Processor)}
+                />
+                <button type="button" className="text-[11px] text-[#574BFF]" onClick={() => patch(i, { script: "" } as Processor)}>
+                  切换为内联脚本
+                </button>
+              </div>
+            ) : (
+              <div className="flex-1 flex gap-1">
+                <Input.TextArea
+                  className="flex-1 font-mono text-xs"
+                  rows={3}
+                  placeholder='// vars.set("k", "v") · log(...) · env.get(...)'
+                  value={p.script}
+                  onChange={(e) => patch(i, { script: e.target.value } as Processor)}
+                />
+                <button
+                  type="button"
+                  className="text-[11px] text-[#574BFF] shrink-0"
+                  onClick={() => patch(i, { script: "", scriptRef: { scriptId: "", params: {} } } as unknown as Processor)}
+                >
+                  引用公共脚本
+                </button>
+              </div>
+            ))}
           {p.kind === "wait" && (
             <span className="flex items-center gap-2 pt-1">
               <InputNumber
@@ -283,7 +304,7 @@ function ExtractRows({ list, onChange }: { list: Extractor[]; onChange: (next: E
   );
 }
 
-export default function EnvironmentSettingsPage() {
+function EnvironmentsView() {
   const qc = useQueryClient();
   const { message } = useApp();
   const { can } = usePermissions();
@@ -952,6 +973,26 @@ export default function EnvironmentSettingsPage() {
           </span>
         </div>
       </Modal>
+    </div>
+  );
+}
+
+// ── S5 PROJ-006：顶层三 Tab（环境 / 环境组 / 全局参数）──
+import { EnvGroupsTab, GlobalParamsTab } from "./env-extras";
+import { Tabs as AntTabsTop } from "antd";
+
+export default function EnvironmentSettingsPage() {
+  return (
+    <div>
+      <AntTabsTop
+        defaultActiveKey="envs"
+        items={[
+          { key: "envs", label: "环境", children: <EnvironmentsView /> },
+          { key: "groups", label: "环境组", children: <EnvGroupsTab /> },
+          { key: "global-params", label: "全局参数", children: <GlobalParamsTab /> },
+        ]}
+        data-testid="env-top-tabs"
+      />
     </div>
   );
 }

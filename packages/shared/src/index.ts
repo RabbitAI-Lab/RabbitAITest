@@ -15,3 +15,4 @@ export * from "./execution/schemas";
 export * from "./ai/schemas";
 export * from "./plugins/spi";
 export * from "./integration/schemas";
+export * from "./message/schemas";

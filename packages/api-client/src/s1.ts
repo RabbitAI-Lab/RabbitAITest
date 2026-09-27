@@ -509,10 +509,10 @@ export const commentApi = {
     get<{ items: CommentDto[] }>(
       `/api/v1/projects/${projectId}/comments?entity=${encodeURIComponent(entity)}`,
     ),
-  create: (projectId: string, entity: string, content: string, parentId?: string) =>
+  create: (projectId: string, entity: string, content: string, parentId?: string, mentions?: string[]) =>
     post<{ id: string }>(
       `/api/v1/projects/${projectId}/comments?entity=${encodeURIComponent(entity)}`,
-      { content, parentId },
+      { content, parentId, ...(mentions?.length ? { mentions } : {}) },
     ),
   update: (projectId: string, commentId: string, content: string) =>
     put<{ id: string }>(`/api/v1/projects/${projectId}/comments/${commentId}`, { content }),

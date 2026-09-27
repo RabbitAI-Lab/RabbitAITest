@@ -200,6 +200,7 @@ export async function listComments(entityType: string, entityId: string) {
     parentId: c.parentId,
     userId: c.userId,
     userName: c.user.name,
+    mentions: Array.isArray(c.mentions) ? (c.mentions as string[]) : [],
     createdAt: c.createdAt.toISOString(),
     updatedAt: c.updatedAt.toISOString(),
   }));
@@ -211,11 +212,79 @@ export async function addComment(
   entityId: string,
   content: string,
   parentId?: string,
+  /** S5 BUG-002/CASE-003：@提及（projectId 传入时做成员校验并触发通知） */
+  mention?: { projectId: string; ids: string[] },
 ) {
-  return prisma.comment.create({
-    data: { userId, entityType, entityId, content, parentId: parentId ?? null },
+  let mentions: string[] = [];
+  if (mention && mention.ids.length > 0) {
+    const unique = [...new Set(mention.ids)].filter((id) => id !== userId);
+    if (unique.length > 0) {
+      const members = await prisma.projectMember.findMany({
+        where: { projectId: mention.projectId, userId: { in: unique } },
+        select: { userId: true },
+      });
+      const memberSet = new Set(members.map((m) => m.userId));
+      const invalid = unique.filter((id) => !memberSet.has(id));
+      if (invalid.length > 0) {
+        throw new DomainError(ErrCode.VALIDATION_FAILED, "被提及的用户不是项目成员");
+      }
+      mentions = unique;
+    }
+  }
+  const created = await prisma.comment.create({
+    data: {
+      userId,
+      entityType,
+      entityId,
+      content,
+      parentId: parentId ?? null,
+      mentions: JSON.parse(JSON.stringify(mentions)),
+    },
     select: { id: true },
   });
+  if (mention && mentions.length > 0) {
+    void commentEventNotify(mention.projectId, userId, entityType, entityId, content, mentions);
+  }
+  return created;
+}
+
+/** 评论事件通知（缺陷/评审/用例三类 @提及；固定默认模板）。 */
+async function commentEventNotify(
+  projectId: string,
+  actorId: string,
+  entityType: string,
+  entityId: string,
+  content: string,
+  mentionIds: string[],
+): Promise<void> {
+  try {
+    const { dispatch } = await import("../message/notify.service");
+    const event = entityType === "bug" ? "BUG_COMMENT" : entityType === "review" ? "REVIEW_COMMENT" : "CASE_COMMENT";
+    let target = "对象";
+    if (entityType === "bug") {
+      const b = await prisma.bug.findFirst({ where: { id: entityId }, select: { title: true } });
+      target = `缺陷「${b?.title ?? entityId.slice(0, 8)}」`;
+    } else if (entityType === "review") {
+      const r = await prisma.caseReview.findFirst({ where: { id: entityId }, select: { name: true } });
+      target = `评审「${r?.name ?? entityId.slice(0, 8)}」`;
+    } else if (entityType === "case") {
+      const c = await prisma.functionalCase.findFirst({ where: { id: entityId }, select: { name: true } });
+      target = `用例「${c?.name ?? entityId.slice(0, 8)}」`;
+    }
+    const [user] = await Promise.all([
+      prisma.user.findUnique({ where: { id: actorId }, select: { name: true } }),
+    ]);
+    await dispatch({
+      projectId,
+      event,
+      title: `[提及] ${user?.name ?? actorId.slice(0, 8)} 在${target}评论中提到了你`,
+      content: `时间：${new Date().toLocaleString("zh-CN")}\n评论：${content.slice(0, 120)}`,
+      actorId,
+      receivers: { mentionIds },
+    });
+  } catch {
+    // 通知链路异常不阻断评论写路径
+  }
 }
 
 export async function updateComment(

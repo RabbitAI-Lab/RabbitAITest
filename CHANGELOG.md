@@ -2,6 +2,25 @@
 
 本项目的所有显著变更记录于此。格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本遵循语义化版本。
 
+## [v0.6.0] - 2026-09-28 — Sprint 5 协作通知（M6 里程碑）
+
+### 新增（全量交付：三层测试 + CI 全绿）
+
+- **通知机器人（MSG-001）**：机器人 CRUD（5 渠道 inapp/email/wecom/dingtalk/feishu，上限 10/项目，webhook 保存期+发送期双重 SSRF 守卫）；事件配置（AppSetting `message.events`，事件目录 11 键五大类：缺陷 5+评审评论+用例评论+计划执行完成+场景执行完成+定时任务启停）；分发服务 `notify.dispatch`（接收人∪@提及∪关注者−操作人同人去重；站内信同步落库/邮件尽力投递/三方机器人有界等待，全程不抛错）；事件接线五处（缺陷域/评论横切/exec 回调含定时 notify 标志/schedule 启停）；站内信中心（顶栏铃铛未读数 30s 轮询+下拉+近 90 天列表页+单条/全部已读）；mock 三平台 webhook 接收端点（收包断言控面）
+- **缺陷协作与回收站（BUG-002）**：回收站视图（?recycled=true）+批量恢复/批量彻底删除（ids≤100，级联集同单条）；评论 @提及（mentions 落库+成员校验+被提及人站内信，缺陷/评审/用例三处横切）；关注变更通知（缺陷更新/流转→关注者，操作人剔除）；「本地删除不推平台」口径文档化
+- **公共脚本（PROJ-005）**：脚本 CRUD（javascript/参数定义 name+默认值+必填/标签，上限 100）；状态二态 DRAFT↔ENABLED（仅发布可引用）；在线调试（web 侧 quickjs 沙箱，API 面与 engine processors 对齐，5s 超时强杀+log 200 行截断；`serverExternalPackages` 解决 Next 打包 wasm）；前后置引用（processor `scriptRef` additive——构建期展开为内联脚本+参数注入 vars `param.{name}`，api 用例/场景步骤/环境全局三链路，engine 无感知）；删除引用保护（409 附清单，?force 强删）
+- **环境组与全局参数（PROJ-006）**：全局参数项目级单例 KV（PUT 全量替换，`buildEnvSnapshot` 既有合并逻辑的入口交付——作用域链=临时>环境变量>全局参数）；环境组 CRUD（有序 environmentIds≤10，物理删）；组展开过滤软删环境+ENV_GROUP_EMPTY 422；按组执行（scenarios/execute 与 plans/{id}/execute 增 envGroupId 与 envId 互斥——按组内顺序逐环境各建一个任务）
+- **Git 仓库文件（FILE-001）**：存储库 CRUD（gitea/github/gitlab/gitee 四平台 adapter 归一化——contents 族+gitlab tree/raw；token AES-256-GCM 复用 S6 密钥体系，hasToken 掩码不回显）；连接测试（repo 元信息探活）；按分支+路径拉取（目录递归≤3/文件≤50/单文件≤SYS-005 上限；重复拉取=覆盖刷新）；`file_items` 补 branch/repo_path 溯源列（门禁 3 例外登记 test-domain-model §6）+来源徽标+单文件重新拉取；文件回收站（PROJ-004 登记兑现：recycled 过滤+恢复+purge 清对象存储）；mock 四平台标准 API 前缀端点
+- **个人中心（SYS-007）**：容器 `/personal`（五子页侧栏，APIKEY 收编复用 INTG-003）；个人信息查看/编辑（邮箱=登录名不可改；头像=首字母色块简化登记）；修改密码（argon2 旧密码校验 10020，无状态会话口径勘误 1）；本地执行配置（环回白名单校验 10021+3s 连通检测+优先本地开关，UserPreference 承载）；个人默认模型（S7 AI-001 挂点兑现：`resolveRuntimeForUser` 个人启用>系统默认，助手/生成四调用点接入）
+- **基础设施**：权限点 PROJECT_MESSAGE 四动作+PROJECT_SCRIPT 扩四动作（预置组同步）；错误码 10020-10022/20440-20446/20450-20454/20460-20461/40460-40463；guard toResponse 白名单同步；api-client patch 原语+s5.ts 域客户端；jmeter 栈注入 OUTBOUND_ALLOW_PRIVATE+RABBIT_INTEGRATION_SECRET；e2e s5-helpers（mock 基址/收包控面/跨用户通知读取）
+
+### 测试与收口
+
+- 单测新增 33（dispatch 分发矩阵 9：开关×渠道×并集去重/提及必收/投递失败不抛；adapter URL 解析+contents/gitlab 归一化 fetch 注入 18；quickjs 沙箱 6：log/vars/超时/截断；环回校验矩阵 8），web 85/85
+- JMeter 新增 6 计划（gen-jmx-s5.mjs 声明式生成，四类×四断言），全量 52 计划全绿；Playwright 新增 6 spec 17 用例（三类断言；含 mock 收包断言与跨用户通知断言），全量 150/150（workers=4）
+- OpenAPI 快照 251→277 paths（--check 通过）；实现侧缺陷修复 5 项+预防 1 项、生成器/栈脚本缺陷 5 项（见 sprint-overview §7.2：webhook 协议漏冒号/parseRepoUrl 丢端口/mock 契约缺元信息端点/quickjs 打包/表单回填/no-store 预防/UDV 驼峰名/UDV 自引用/假 uuid 版本位/MOCK_PORT 未透传/组重名唯一域）
+- 白名单登记 2 处：/bugs、/files 页 project store 水合前 `projects/null` 404 首帧竞态（S1 既有面）
+
 ## [v0.5.0] - 2026-09-27 — Sprint 6 集成与插件（M7 里程碑）
 
 ### 新增（全量交付：三层测试 + CI 全绿）

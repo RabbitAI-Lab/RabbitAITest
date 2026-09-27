@@ -97,13 +97,28 @@ export async function updateSchedule(projectId: string, id: string, input: SaveI
   return { id };
 }
 
-export async function toggleSchedule(projectId: string, id: string, enabled: boolean) {
+export async function toggleSchedule(projectId: string, id: string, enabled: boolean, actorId?: string) {
   const list = await readSchedules(projectId);
   const s = list.find((x) => x.id === id);
   if (!s) throw new DomainError(ErrCode.SCHEDULE_NOT_FOUND, "定时任务不存在");
   s.enabled = enabled;
   await writeSchedules(projectId, list);
   await syncRepeatable(s);
+  // S5 MSG-001：定时任务启停事件
+  if (actorId) {
+    try {
+      const { dispatch } = await import("@/server/domains/message/notify.service");
+      await dispatch({
+        projectId,
+        event: enabled ? "SCHEDULE_ENABLED" : "SCHEDULE_DISABLED",
+        title: `[定时任务] ${s.name} 已${enabled ? "启用" : "停用"}`,
+        content: `时间：${new Date().toLocaleString("zh-CN")}`,
+        actorId,
+      });
+    } catch {
+      // 通知失败不阻断（MSG-001 §2）
+    }
+  }
   return { id, enabled };
 }
 
@@ -142,6 +157,14 @@ export async function fireSchedule(scheduleId: string, projectId?: string | null
     stopOnFail: false,
     mode: "serial",
   });
+  // S5 MSG-001：定时来源与 notify 标志写入任务 payload（执行完成通知判定）
+  const t = await prisma.execTask.findUnique({ where: { id: r.taskId }, select: { payload: true } });
+  if (t) {
+    await prisma.execTask.update({
+      where: { id: r.taskId },
+      data: { payload: { ...((t.payload ?? {}) as object), scheduleId: s.id, notify: s.notify } },
+    });
+  }
   // 记录最近触发
   const list = await readSchedules(pid);
   const found = list.find((x) => x.id === s.id);
