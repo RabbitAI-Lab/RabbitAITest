@@ -24,12 +24,23 @@ function apiCaseItem(url: string): PlanItemCommand {
       caseId: UUID2,
       name: `接口用例 ${url}`,
       moduleId: UUID2,
-      request: { method: "GET", url, headers: [], query: [], body: { kind: "none" }, auth: { kind: "none" } },
+      request: {
+        method: "GET",
+        url,
+        headers: [],
+        query: [],
+        body: { kind: "none" },
+        auth: { kind: "none" },
+        timeoutMs: 10000,
+        followRedirects: false,
+        skipPre: false,
+        skipPost: false,
+      } as never,
       asserts: [],
       pre: [],
       post: [],
       extracts: [],
-    },
+    } as never,
   };
 }
 
@@ -95,14 +106,14 @@ describe("runPlanItem（PLAN-003 计划内核分派）", () => {
     runScenarioMock.mockResolvedValue({ status: "SUCCESS", message: "" } satisfies ScenarioItemOutcome);
     runScenarioMock.mockResolvedValueOnce({ status: "SUCCESS", message: "" } satisfies ScenarioItemOutcome);
     const deps = makeDeps();
-    const taskEnv = { name: "task", baseUrl: "", vars: {}, pre: [], post: [], extracts: [], asserts: [] };
-    const itemEnv = { name: "point", baseUrl: "", vars: { a: "1" }, pre: [], post: [], extracts: [], asserts: [] };
+    const taskEnv = { name: "task" } as never;
+    const itemEnv = { name: "point" } as never;
     await runPlanItem(deps, taskEnv, { ...scenarioItem(), envSnapshot: itemEnv });
-    const scenarioDeps = runScenarioMock.mock.calls.at(-1)![0] as { env: { name: string } };
+    const scenarioDeps = runScenarioMock.mock.calls.at(-1)![0] as unknown as { env: { name: string } };
     expect(scenarioDeps.env?.name).toBe("point");
     // 缺省回落任务级
     await runPlanItem(deps, taskEnv, scenarioItem());
-    const fallback = runScenarioMock.mock.calls.at(-1)![0] as { env: { name: string } };
+    const fallback = runScenarioMock.mock.calls.at(-1)![0] as unknown as { env: { name: string } };
     expect(fallback.env?.name).toBe("task");
   });
 
