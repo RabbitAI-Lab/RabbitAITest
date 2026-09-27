@@ -60,13 +60,13 @@ export async function uploadPlugin(
   if (res.status() === 201) {
     const body = (await res.json()) as { code: number; data: { id: string; manifest: { name: string } } };
     expect(body.code).toBe(0);
-    expect(body.data.manifest.name).toBe(tgzName.replace(/-1\.0\.1\.tgz$/, ""));
+    expect(body.data.manifest.name).toBe(tgzName.replace(/-\d+\.\d+\.\d+\.tgz$/, ""));
     return body.data.id;
   }
   // 409：按名回查
   const list = await request.get("/api/v1/system/plugins");
   const lb = (await list.json()) as { data: { list: Array<{ id: string; name: string }> } };
-  const found = lb.data.list.find((p) => p.name === tgzName.replace(/-1\.0\.1\.tgz$/, ""));
+  const found = lb.data.list.find((p) => p.name === tgzName.replace(/-\d+\.\d+\.\d+\.tgz$/, ""));
   expect(found, "409 后列表应含既有插件").toBeTruthy();
   return found!.id;
 }
