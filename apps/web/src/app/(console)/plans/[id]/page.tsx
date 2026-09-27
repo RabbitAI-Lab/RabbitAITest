@@ -35,6 +35,10 @@ import {
 } from "@rabbit/api-client";
 import { MethodTag } from "@rabbit/ui";
 import { MemberSelect } from "@/components/crosscut";
+import { PointsPanel } from "@/components/plan/PointsPanel";
+import { PlanExecBar, RunRefButton } from "@/components/plan/PlanExecBar";
+import { MindmapExecTab } from "@/components/plan/MindmapExecTab";
+import { PlanReportTabV2 } from "@/components/plan/PlanReportTabV2";
 import { useApp } from "@/hooks/useApp";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useProjectStore } from "@/stores/project";
@@ -67,7 +71,7 @@ export default function PlanDetailPage({ params }: { params: Promise<{ id: strin
   const { message } = useApp();
   const { can } = usePermissions();
   const { currentProjectId: projectId } = useProjectStore();
-  const [tab, setTab] = useState<"cases" | "report">("cases");
+  const [tab, setTab] = useState<"points" | "cases" | "mindmap" | "report">("cases");
   const [statusFilter, setStatusFilter] = useState<string | undefined>();
   const [executorFilter, setExecutorFilter] = useState<string | undefined>();
   const [selectedRefs, setSelectedRefs] = useState<string[]>([]);
@@ -224,6 +228,7 @@ export default function PlanDetailPage({ params }: { params: Promise<{ id: strin
               </p>
             </div>
           </div>
+          <PlanExecBar projectId={projectId} planId={id} writable={writable} pointOptions={[]} />
           <Button onClick={() => setSettingsOpen(true)} disabled={!canUpdate}>
             更多设置
           </Button>
@@ -267,17 +272,25 @@ export default function PlanDetailPage({ params }: { params: Promise<{ id: strin
         </div>
       )}
 
-      {/* Tab：用例清单 / 报告 */}
+      {/* Tab：测试规划 / 用例清单 / 脑图执行 / 报告（S4） */}
       <Tabs
         activeKey={tab}
-        onChange={(k) => setTab(k as "cases" | "report")}
+        onChange={(k) => setTab(k as "points" | "cases" | "mindmap" | "report")}
         items={[
+          { key: "points", label: <span data-testid="plan-points-tab">测试规划</span> },
           { key: "cases", label: <span data-testid="plan-cases-tab">用例清单（{total}）</span> },
+          { key: "mindmap", label: <span data-testid="plan-mindmap-tab">脑图执行</span> },
           { key: "report", label: <span data-testid="plan-report-tab">报告</span> },
         ]}
       />
 
-      {tab === "cases" ? (
+      {tab === "points" ? (
+        <PointsPanel projectId={projectId} planId={id} cases={cases} writable={writable} />
+      ) : tab === "mindmap" ? (
+        <MindmapExecTab projectId={projectId} planId={id} cases={cases} writable={writable} />
+      ) : tab === "report" ? (
+        <PlanReportTabV2 projectId={projectId} planId={id} planName={plan.name} />
+      ) : (
         <div className="rabbit-card" data-testid="plan-cases-table">
           {/* 工具条 */}
           <div className="flex gap-2 items-center p-3 border-b border-[#F0F1F3] flex-wrap">
@@ -319,8 +332,8 @@ export default function PlanDetailPage({ params }: { params: Promise<{ id: strin
               <span className="ml-auto text-xs text-[#A8ABB0]">
                 已执行 {stats.executed}/{total} · 通过 {stats.pass} · 失败 {stats.fail} · 阻塞{" "}
                 {stats.blocked} · 跳过 {stats.skipped} · 未执行 {stats.pending}
-                {cases.some((c) => c.refType === "api_case") &&
-                  ` · 接口用例 ${cases.filter((c) => c.refType === "api_case").length} 条（执行随 S4，不计入通过率）`}
+                {cases.some((c) => c.refType !== "functional_case") &&
+                  ` · 接口/场景 ${cases.filter((c) => c.refType !== "functional_case").length} 条（引擎执行，S4 起计入通过率）`}
               </span>
             )}
           </div>
@@ -333,14 +346,14 @@ export default function PlanDetailPage({ params }: { params: Promise<{ id: strin
               selectedRowKeys: selectedRefs,
               onChange: (keys) => setSelectedRefs(keys.map(String)),
               getCheckboxProps: (row) => ({
-                // 接口用例行不支持批量改执行人（人工执行口径），且随可写开关禁用
-                disabled: !writable || row.refType === "api_case",
+                // 接口/场景行不支持批量改执行人（人工执行口径），且随可写开关禁用
+                disabled: !writable || row.refType !== "functional_case",
               }),
             }}
             expandable={{
               expandedRowKeys: expandedKeys,
               onExpandedRowsChange: (keys) => setExpandedKeys(keys.map(String)),
-              rowExpandable: (row) => row.refType !== "api_case", // 接口用例无人工步骤执行
+              rowExpandable: (row) => row.refType === "functional_case", // 接口/场景无人工步骤执行（引擎执行）
               expandedRowRender: (row) => (
                 <StepExecPanel
                   projectId={projectId}
@@ -363,6 +376,13 @@ export default function PlanDetailPage({ params }: { params: Promise<{ id: strin
                       data-testid="plan-api-ref-badge"
                     >
                       接口
+                    </span>
+                  ) : row.refType === "scenario" ? (
+                    <span
+                      className="rounded px-1.5 py-0.5 text-xs bg-purple-50 text-purple-600"
+                      data-testid="plan-scenario-ref-badge"
+                    >
+                      场景
                     </span>
                   ) : (
                     <span className="text-[#87888D]">{padNum(n)}</span>
@@ -421,10 +441,15 @@ export default function PlanDetailPage({ params }: { params: Promise<{ id: strin
                 dataIndex: "status",
                 width: 130,
                 render: (v: string, row) =>
-                  row.refType === "api_case" ? (
-                    <Tooltip title="接口用例在计划内执行随 Sprint 4（PLAN-003）接入">
-                      <span className="text-xs text-[#87888D]">● 未执行（S4）</span>
-                    </Tooltip>
+                  row.refType === "api_case" || row.refType === "scenario" ? (
+                    (() => {
+                      const m = EXEC_META[v] ?? EXEC_META.NOT_RUN!;
+                      return (
+                        <span className="text-xs font-medium" style={{ color: m.color }} data-testid={`ref-status-${row.refId}`}>
+                          ● {m.label}
+                        </span>
+                      );
+                    })()
                   ) : (
                     <Select
                       className="w-full"
@@ -483,16 +508,24 @@ export default function PlanDetailPage({ params }: { params: Promise<{ id: strin
                 key: "op",
                 width: 220,
                 render: (_, row) =>
-                  row.refType === "api_case" ? (
-                    <span className="flex gap-1 whitespace-nowrap">
-                      <Tooltip title="接口用例计划内执行随 Sprint 4（PLAN-003）接入">
-                        <Button type="link" size="small" className="!px-0" disabled>
-                          执行(S4)
-                        </Button>
-                      </Tooltip>
+                  row.refType === "api_case" || row.refType === "scenario" ? (
+                    <span className="flex gap-1 whitespace-nowrap items-center">
+                      <RunRefButton projectId={projectId} planId={id} refId={row.refId} disabled={!writable} />
+                      {(() => {
+                        const r = row.result as { reportTaskId?: string };
+                        return r?.reportTaskId ? (
+                          <a
+                            className="text-[#574BFF] text-xs"
+                            href={`/reports/${r.reportTaskId}`}
+                            data-testid={`ref-report-link-${row.refId}`}
+                          >
+                            报告 ↗
+                          </a>
+                        ) : null;
+                      })()}
                       <Popconfirm
-                        title="取消关联该接口用例？"
-                        description="仅从计划移除，不删除接口用例本身。"
+                        title={`取消关联该${row.refType === "api_case" ? "接口用例" : "场景"}？`}
+                        description="仅从计划移除，不删除对象本身。"
                         okButtonProps={{ danger: true }}
                         onConfirm={() => removeCase.mutate(row.refId)}
                         disabled={!writable}
@@ -559,14 +592,6 @@ export default function PlanDetailPage({ params }: { params: Promise<{ id: strin
             ]}
           />
         </div>
-      ) : (
-        <PlanReportTab
-          projectId={projectId}
-          planId={id}
-          archived={archived}
-          canUpdate={canUpdate}
-          nameOf={nameOf}
-        />
       )}
 
       {/* 批量改执行人 */}
@@ -611,10 +636,8 @@ export default function PlanDetailPage({ params }: { params: Promise<{ id: strin
         onConfirm={async (caseIds, apiCaseIds) => {
           const r = await planApi.addCases(projectId, id, caseIds, apiCaseIds);
           invalidate();
-          // 注：响应 added 仅统计功能用例（服务端口径），接口用例按提交数提示
-          message.success(
-            `已关联 ${r.added + apiCaseIds.length} 条用例（功能 ${r.added} · 接口 ${apiCaseIds.length}）`,
-          );
+          // S4 口径：added=三类实际新建总数（服务端 before/after 计数）
+          message.success(`已关联 ${r.added} 条用例（功能 ${caseIds.length} 提交 · 接口 ${apiCaseIds.length} 提交）`);
         }}
       />
 

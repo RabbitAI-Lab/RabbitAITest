@@ -122,22 +122,43 @@ export interface ApiCaseTaskInput {
   clientTaskId?: string;
 }
 
-/** api_case 批量任务：预建 ExecItem（id 即 engine 侧 itemId）→ 入队（API-003 §2）。 */
-export async function createApiCaseTask(projectId: string, userId: string, input: ApiCaseTaskInput) {
+/** api_case 条目命令构造（S4 PLAN-003 复用：计划任务的 api_case 子命令；itemId 由调用方回填）。 */
+export async function buildApiCaseCommands(
+  projectId: string,
+  caseIds: string[],
+): Promise<(Omit<ExecItemCommand, "itemId"> & { apiProtocol: string })[]> {
   const cases = await prisma.apiCase.findMany({
-    where: { id: { in: input.caseIds }, projectId, deletedAt: null },
+    where: { id: { in: caseIds }, projectId, deletedAt: null },
     include: { api: { select: { id: true, moduleId: true, method: true, path: true, num: true, protocol: true } } },
   });
-  if (cases.length === 0)
-    throw new DomainError(ErrCode.API_CASE_NOT_FOUND, "接口用例不存在或已删除");
   const found = new Set(cases.map((c) => c.id));
-  const missing = input.caseIds.filter((id) => !found.has(id));
+  const missing = caseIds.filter((id) => !found.has(id));
   if (missing.length > 0)
     throw new DomainError(ErrCode.API_CASE_NOT_FOUND, `部分用例不存在：${missing.length} 条`);
-  // 保持调用方顺序
-  const ordered = input.caseIds
+  return caseIds
     .map((id) => cases.find((c) => c.id === id))
-    .filter((c): c is (typeof cases)[number] => Boolean(c));
+    .filter((c): c is (typeof cases)[number] => Boolean(c))
+    .map((c) => {
+      const bundle = c.request as { spec: RequestSpec; asserts?: AssertSpec[]; pre?: Processor[]; post?: Processor[]; extracts?: Extractor[] };
+      return {
+        caseId: c.id,
+        name: c.name,
+        moduleId: c.api.moduleId,
+        apiProtocol: c.api.protocol,
+        request: bundle.spec,
+        asserts: bundle.asserts ?? [],
+        pre: bundle.pre ?? [],
+        post: bundle.post ?? [],
+        extracts: bundle.extracts ?? [],
+      };
+    });
+}
+
+/** api_case 批量任务：预建 ExecItem（id 即 engine 侧 itemId）→ 入队（API-003 §2）。 */
+export async function createApiCaseTask(projectId: string, userId: string, input: ApiCaseTaskInput) {
+  const commands = await buildApiCaseCommands(projectId, input.caseIds);
+  if (commands.length === 0)
+    throw new DomainError(ErrCode.API_CASE_NOT_FOUND, "接口用例不存在或已删除");
 
   const envSnapshot = await buildEnvSnapshot(projectId, input.envId);
   const items: ExecItemCommand[] = [];
@@ -152,34 +173,33 @@ export async function createApiCaseTask(projectId: string, userId: string, input
         envId: input.envId ?? null,
         payload: {
           stopOnFail: input.stopOnFail,
-          caseIds: ordered.map((c) => c.id),
-          items: ordered.map((c) => ({
-            caseId: c.id,
+          caseIds: commands.map((c) => c.caseId),
+          items: commands.map((c) => ({
+            caseId: c.caseId,
             name: c.name,
-            bundle: c.request,
+            bundle: { spec: c.request, asserts: c.asserts, pre: c.pre, post: c.post, extracts: c.extracts },
           })),
         },
         createdBy: userId,
       },
       select: { id: true },
     });
-    for (const c of ordered) {
-      const bundle = c.request as { spec: RequestSpec; asserts?: AssertSpec[]; pre?: Processor[]; post?: Processor[]; extracts?: Extractor[] };
+    for (const c of commands) {
       const item = await tx.execItem.create({
-        data: { taskId: task.id, refType: "api_case", refId: c.id, status: "PENDING" },
+        data: { taskId: task.id, refType: "api_case", refId: c.caseId, status: "PENDING" },
         select: { id: true },
       });
       items.push({
         itemId: item.id,
-        caseId: c.id,
+        caseId: c.caseId,
         name: c.name,
-        moduleId: c.api.moduleId,
+        moduleId: c.moduleId,
         // S6 PLUG-002：定义协议 ≠ HTTP 时透传协议插件标识与配置（engine 注册表采样）
-        request: withProtocol(c.api.protocol, bundle.spec),
-        asserts: bundle.asserts ?? [],
-        pre: bundle.pre ?? [],
-        post: bundle.post ?? [],
-        extracts: bundle.extracts ?? [],
+        request: withProtocol(c.apiProtocol ?? "HTTP", c.request),
+        asserts: c.asserts,
+        pre: c.pre,
+        post: c.post,
+        extracts: c.extracts,
       });
     }
     return task;
@@ -384,20 +404,22 @@ function buildStepTree(rows: { id: string; parentId: string | null; stepType: st
   return build(null);
 }
 
-/** scenario 批量任务（API-006 单条 / API-008 批量共用）：引用解析 + CSV 预解析 → ExecItem 预建 → 入队。 */
-export async function createScenarioTask(projectId: string, userId: string, input: ScenarioTaskInput) {
+/** scenario 条目命令构造（S4 PLAN-003 复用：计划任务的 scenario 子命令；itemId 由调用方回填）。 */
+export async function buildScenarioCommands(
+  projectId: string,
+  scenarioIds: string[],
+): Promise<{ commands: Omit<ScenarioItemCommand, "itemId">[]; warnings: string[] }> {
   const scenarios = await prisma.scenario.findMany({
-    where: { id: { in: input.scenarioIds }, projectId, deletedAt: null },
+    where: { id: { in: scenarioIds }, projectId, deletedAt: null },
     include: { steps: { orderBy: { order: "asc" } } },
   });
   if (scenarios.length === 0) throw new DomainError(ErrCode.SCENARIO_NOT_FOUND, "场景不存在或已删除");
   const found = new Set(scenarios.map((s) => s.id));
-  const missing = input.scenarioIds.filter((id) => !found.has(id));
+  const missing = scenarioIds.filter((id) => !found.has(id));
   if (missing.length > 0) throw new DomainError(ErrCode.SCENARIO_NOT_FOUND, `部分场景不存在：${missing.length} 个`);
-  const ordered = input.scenarioIds.map((id) => scenarios.find((s) => s.id === id)!).filter(Boolean);
+  const ordered = scenarioIds.map((id) => scenarios.find((s) => s.id === id)!).filter(Boolean);
 
-  const envSnapshot = await buildEnvSnapshot(projectId, input.envId);
-  const items: ScenarioItemCommand[] = [];
+  const commands: Omit<ScenarioItemCommand, "itemId">[] = [];
   const resolvedWarnings: string[] = [];
   for (const s of ordered) {
     const cfg = (s.config ?? {}) as {
@@ -430,8 +452,7 @@ export async function createScenarioTask(projectId: string, userId: string, inpu
       }
     }
     const resolvedSteps = await resolveScenarioSteps(projectId, buildStepTree(s.steps), { lists, csvColumns, csvRows }, 0);
-    items.push({
-      itemId: "", // 事务内回填
+    commands.push({
       scenarioId: s.id,
       name: s.name,
       params: {
@@ -450,6 +471,14 @@ export async function createScenarioTask(projectId: string, userId: string, inpu
       steps: resolvedSteps,
     });
   }
+  return { commands, warnings: resolvedWarnings };
+}
+
+/** scenario 批量任务（API-006 单条 / API-008 批量共用）：引用解析 + CSV 预解析 → ExecItem 预建 → 入队。 */
+export async function createScenarioTask(projectId: string, userId: string, input: ScenarioTaskInput) {
+  const { commands, warnings } = await buildScenarioCommands(projectId, input.scenarioIds);
+  const envSnapshot = await buildEnvSnapshot(projectId, input.envId);
+  const items: ScenarioItemCommand[] = [];
 
   const created = await prisma.$transaction(async (tx) => {
     const task = await tx.execTask.create({
@@ -460,17 +489,17 @@ export async function createScenarioTask(projectId: string, userId: string, inpu
         clientTaskId: input.clientTaskId ?? null,
         poolId: input.poolId ?? config.defaultPoolId,
         envId: input.envId ?? null,
-        payload: { stopOnFail: input.stopOnFail, mode: input.mode, scenarioIds: ordered.map((s) => s.id), warnings: resolvedWarnings },
+        payload: { stopOnFail: input.stopOnFail, mode: input.mode, scenarioIds: commands.map((c) => c.scenarioId), warnings },
         createdBy: userId,
       },
       select: { id: true },
     });
-    for (const it of items) {
+    for (const it of commands) {
       const item = await tx.execItem.create({
         data: { taskId: task.id, refType: "scenario", refId: it.scenarioId, status: "PENDING" },
         select: { id: true },
       });
-      it.itemId = item.id;
+      items.push({ itemId: item.id, ...it });
     }
     return task;
   });
@@ -488,7 +517,7 @@ export async function createScenarioTask(projectId: string, userId: string, inpu
     },
     { jobId: created.id, attempts: 2, backoff: { type: "exponential", delay: 2000 } },
   );
-  return { taskId: created.id, warnings: resolvedWarnings };
+  return { taskId: created.id, warnings };
 }
 
 export async function handleCallback(taskId: string, cb: ExecCallback) {
@@ -539,9 +568,11 @@ export async function handleCallback(taskId: string, cb: ExecCallback) {
           ? `批量执行 · ${existingItems.length} 条用例`
           : task.type === "scenario"
             ? `场景执行 · ${existingItems.length} 个场景`
-            : stepResult
-              ? `${stepResult.requestSnapshot.method} ${shortUrl(stepResult.requestSnapshot.url)}`
-              : `任务 ${taskId.slice(0, 8)}`;
+            : task.type === "plan"
+              ? `计划执行 · ${existingItems.length} 条用例`
+              : stepResult
+                ? `${stepResult.requestSnapshot.method} ${shortUrl(stepResult.requestSnapshot.url)}`
+                : `任务 ${taskId.slice(0, 8)}`;
       const existingReport = await tx.report.findFirst({ where: { taskId }, select: { id: true } });
       const report =
         existingReport ??
@@ -623,6 +654,11 @@ export async function handleCallback(taskId: string, cb: ExecCallback) {
       if (failed === 0 && fakeErrorCount > 0 && cb.outcome === "failed") {
         await tx.execTask.update({ where: { id: taskId }, data: { status: "SUCCESS", failureKind: null } });
       }
+      // v4（PLAN-003）：plan 任务报告挂 planId（计划报告列表/详情关联）
+      if (task.type === "plan") {
+        const planId = (task.payload as { planId?: string }).planId ?? null;
+        if (planId) await tx.report.updateMany({ where: { taskId }, data: { planId } });
+      }
     } else {
       // api_debug（S0 兼容）：单 item 落库
       const item = await tx.execItem.create({
@@ -662,6 +698,15 @@ export async function handleCallback(taskId: string, cb: ExecCallback) {
       });
     }
   });
+  // v4（PLAN-003）：计划任务回写 PlanCaseRef/自动更新状态/计划状态刷新——事务提交后经 plan 域服务（域边界）
+  if (task.type === "plan") {
+    const items = await prisma.execItem.findMany({
+      where: { taskId, refType: "plan_case" },
+      select: { id: true, refId: true, status: true },
+    });
+    const { applyPlanTaskResult } = await import("@/server/domains/plan/plan-exec.service");
+    await applyPlanTaskResult(taskId, task.projectId, items);
+  }
   return { idempotent: false, frames: frames.length };
 }
 

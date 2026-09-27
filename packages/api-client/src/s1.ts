@@ -752,8 +752,8 @@ export interface PlanRow {
 }
 export interface PlanCaseRow {
   refId: string;
-  /** 关联类型（CASE-006/S2：api_case 行的人工执行随 S4 PLAN-003 接入，前端只读展示） */
-  refType?: "functional_case" | "api_case";
+  /** 关联类型（S4：+scenario 场景关联；api_case/scenario 经引擎执行回写状态） */
+  refType?: "functional_case" | "api_case" | "scenario";
   caseId: string;
   /** api_case 行无功能用例编号（null） */
   num: number | null;
@@ -770,6 +770,9 @@ export interface PlanCaseRow {
   method?: string;
   path?: string;
   deleted?: boolean;
+  /** S4：场景行/挂点补充（服务端 getPlan 透出） */
+  pointId?: string | null;
+  scenarioStatus?: string;
 }
 export interface PlanDetail extends Omit<PlanRow, "caseCount" | "executed" | "progress"> {
   stats: {
@@ -858,8 +861,10 @@ export const dashApi = {
     ),
   todo: (projectId: string, kind: string, page = 1) =>
     get<PageOf<DashItem>>(`/api/v1/projects/${projectId}/dashboard/todo${qs({ kind, page })}`),
-  followed: (projectId: string, page = 1) =>
-    get<PageOf<DashItem>>(`/api/v1/projects/${projectId}/dashboard/followed${qs({ page })}`),
+  followed: (projectId: string, kind?: string, page = 1) =>
+    get<PageOf<DashItem>>(
+      `/api/v1/projects/${projectId}/dashboard/followed${qs({ kind, page })}`,
+    ),
   created: (projectId: string, kind: string, page = 1) =>
     get<PageOf<DashItem>>(`/api/v1/projects/${projectId}/dashboard/created${qs({ kind, page })}`),
 };

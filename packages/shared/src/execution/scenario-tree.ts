@@ -104,6 +104,12 @@ export function buildScenarioTree(itemId: string, name: string, status: string, 
       }
       continue;
     }
+    // v4：控制器命名帧（loop/condition/once 节点名——S3 遗留「报告树 fallback 名」修复；早于子帧到达即建名）
+    if (frame.type === "log" && frame.kind === "node-name" && frame.stepPath) {
+      const node = ensureNode(frame.stepPath, frame.message || `步骤 ${frame.stepPath}`);
+      if (node.name.startsWith("步骤 ")) node.name = frame.message || node.name;
+      continue;
+    }
     if (!frame.stepPath) continue;
     directPaths.add(frame.stepPath);
     if (frame.type === "step-skip") {

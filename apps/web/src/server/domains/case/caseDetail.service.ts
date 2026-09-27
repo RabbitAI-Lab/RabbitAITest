@@ -35,7 +35,7 @@ export async function listDependencies(projectId: string, caseId: string) {
 }
 
 export async function addDependency(projectId: string, preCaseId: string, postCaseId: string) {
-  if (preCaseId === postCaseId) throw new DomainError(ErrCode.VALIDATION_FAILED, "不能依赖自身");
+  if (preCaseId === postCaseId) throw new DomainError(ErrCode.SELF_DEPENDENCY, "用例不能依赖自身");
   const cases = await prisma.functionalCase.findMany({
     where: { id: { in: [preCaseId, postCaseId] }, projectId, deletedAt: null },
     select: { id: true },
@@ -46,7 +46,41 @@ export async function addDependency(projectId: string, preCaseId: string, postCa
     select: { id: true },
   });
   if (dup) throw new DomainError(ErrCode.VALIDATION_FAILED, "依赖关系已存在");
+  // S4 CASE-008 环检测：post 沿后置闭包（BFS，深度≤100）可达 pre 即成环
+  await assertNoDependencyCycle(preCaseId, postCaseId);
   return prisma.caseDependency.create({ data: { preCaseId, postCaseId }, select: { id: true } });
+}
+
+/** 新增边 (pre→post) 前沿 post 的后置闭包检查：可达 pre = 成环（DEPENDENCY_CYCLE）。 */
+export async function assertNoDependencyCycle(preCaseId: string, postCaseId: string) {
+  const edges = await prisma.caseDependency.findMany({
+    select: { preCaseId: true, postCaseId: true },
+  });
+  const adj = new Map<string, string[]>();
+  for (const e of edges) {
+    const list = adj.get(e.preCaseId) ?? [];
+    list.push(e.postCaseId);
+    adj.set(e.preCaseId, list);
+  }
+  const queue = [postCaseId];
+  const seen = new Set<string>([postCaseId]);
+  let depth = 0;
+  while (queue.length > 0 && depth < 100) {
+    const next: string[] = [];
+    for (const cur of queue) {
+      for (const succ of adj.get(cur) ?? []) {
+        if (succ === preCaseId)
+          throw new DomainError(ErrCode.DEPENDENCY_CYCLE, "将形成循环依赖（直接或经既有依赖间接成环）");
+        if (!seen.has(succ)) {
+          seen.add(succ);
+          next.push(succ);
+        }
+      }
+    }
+    queue.length = 0;
+    queue.push(...next);
+    depth += 1;
+  }
 }
 
 export async function removeDependency(projectId: string, id: string) {

@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="utf-8" />
+    <title>PLAN-005 计划报告导出（点维度明细 · 一键总结 · 分享 · PDF/CSV）</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-slate-50 text-slate-800 text-sm">
+    <header class="h-12 bg-white border-b flex items-center px-4 gap-3">
+      <span class="font-semibold">RabbitAITest</span><span class="border rounded px-2 py-0.5">演示项目 #1</span>
+      <span class="ml-auto text-slate-400 text-xs">帮助 · 消息 · 用户</span>
+    </header>
+    <main class="p-4 space-y-4 max-w-[1200px]">
+      <!-- 画板一：报告 Tab 完整版 -->
+      <section class="bg-white border rounded-md">
+        <div class="px-3 py-2 border-b bg-slate-50 font-medium">画板一 · 计划报告 Tab（概览六卡 + 阈值横幅 + 测试点维度明细 + 总结 + 操作区）</div>
+        <div class="p-4 space-y-3 text-[13px]">
+          <div class="flex items-center gap-2">
+            <button class="border rounded-md px-3 py-1.5">↻ 刷新</button>
+            <button class="border rounded-md px-3 py-1.5">✨ 一键总结</button>
+            <button class="border rounded-md px-3 py-1.5">🔗 分享</button>
+            <button class="border rounded-md px-3 py-1.5">🖨 导出 PDF</button>
+            <button class="bg-[#574BFF] text-white rounded-md px-3 py-1.5">⬇ 导出 CSV</button>
+            <span class="text-xs text-slate-400 ml-auto">报告生成于 2026-09-27 14:32 · 执行完成自动刷新</span>
+          </div>
+          <div class="bg-green-50 border border-green-200 text-green-700 rounded px-3 py-1.5 text-xs">✓ 通过率 85% ≥ 阈值 80% —— 达标</div>
+          <div class="flex gap-3">
+            <div class="border rounded-md px-4 py-3 flex-1"><p class="text-xs text-slate-400">用例总数</p><p class="text-xl font-semibold">16</p></div>
+            <div class="border rounded-md px-4 py-3 flex-1"><p class="text-xs text-slate-400">已执行</p><p class="text-xl font-semibold">10</p></div>
+            <div class="border rounded-md px-4 py-3 flex-1"><p class="text-xs text-slate-400">通过</p><p class="text-xl font-semibold text-green-600">9</p></div>
+            <div class="border rounded-md px-4 py-3 flex-1"><p class="text-xs text-slate-400">失败</p><p class="text-xl font-semibold text-red-500">2</p></div>
+            <div class="border rounded-md px-4 py-3 flex-1"><p class="text-xs text-slate-400">阻塞</p><p class="text-xl font-semibold text-orange-500">1</p></div>
+            <div class="border rounded-md px-4 py-3 flex-1"><p class="text-xs text-slate-400">误报</p><p class="text-xl font-semibold text-orange-400">1</p></div>
+          </div>
+          <!-- 测试点维度 -->
+          <div class="border rounded">
+            <div class="px-3 py-2 border-b bg-slate-50 font-medium flex items-center gap-2">▾ 测试点：支付域 / 扫码支付 <span class="ml-auto text-[10px] border rounded px-1 py-0.5 bg-green-50 text-green-600 border-green-200">通过率 100%</span></div>
+            <table class="w-full">
+              <thead class="text-slate-500 text-xs"><tr class="text-left"><th class="px-3 py-1.5">类型</th><th class="px-3 py-1.5">名称</th><th class="px-3 py-1.5">执行人</th><th class="px-3 py-1.5">状态</th><th class="px-3 py-1.5">实际结果</th><th class="px-3 py-1.5">最近执行</th><th class="px-3 py-1.5"></th></tr></thead>
+              <tbody class="divide-y">
+                <tr><td><span class="text-[10px] border rounded px-1.5 py-0.5 bg-blue-50 text-blue-600 border-blue-200">接口</span></td><td>扫码下单正向</td><td>张三</td><td class="text-green-600 font-medium">PASS</td><td class="text-slate-400 text-xs">—</td><td class="text-slate-400 text-xs">09-27 14:20</td><td class="text-[#574BFF] text-xs">执行报告 ↗</td></tr>
+              </tbody>
+            </table>
+            <div class="px-3 py-2 border-b bg-slate-50 font-medium flex items-center gap-2">▸ 测试点：余额支付 <span class="ml-auto text-[10px] border rounded px-1 py-0.5 bg-red-50 text-red-600 border-red-200">通过率 33%</span></div>
+          </div>
+          <div class="border rounded p-3">
+            <div class="flex items-center gap-2"><p class="font-medium">报告总结</p><button class="ml-auto text-[#574BFF] text-xs">编辑</button></div>
+            <p class="text-[13px] pt-1 text-slate-600">共 16 条用例，已执行 10，通过率 85%（阈值 80% 达标）；失败 2 条、阻塞 1 条、误报 1 条。最薄弱测试点：余额支付（33%）。建议：优先回归余额支付失败项…</p>
+          </div>
+        </div>
+      </section>
+      <!-- 画板二：一键总结确认 + 分享弹窗 -->
+      <section class="bg-white border rounded-md">
+        <div class="px-3 py-2 border-b bg-slate-50 font-medium">画板二 · 一键总结（覆盖确认）/ 分享管理弹窗（token 列表·有效期四档）</div>
+        <div class="grid grid-cols-2 gap-4 p-4 text-[13px]">
+          <div class="border rounded shadow-lg p-3 max-w-[400px]">
+            <p class="font-medium pb-1">一键生成总结草稿？</p>
+            <p class="text-xs text-slate-500 pb-2">按执行统计自动生成；已有保存的总结将被覆盖（可先复制留存）</p>
+            <div class="bg-slate-50 border rounded p-2 text-xs text-slate-600">草稿预览：共 16 条用例，已执行 10，通过率 85%（阈值 80% 达标）…</div>
+            <div class="flex justify-end gap-2 pt-3"><button class="border rounded px-3 py-1.5">取消</button><button class="bg-[#574BFF] text-white rounded px-3 py-1.5">生成并覆盖</button></div>
+          </div>
+          <div class="border rounded shadow-lg p-3 max-w-[420px]">
+            <p class="font-medium pb-2">分享 · 支付域回归 V1.2 计划报告</p>
+            <table class="w-full text-xs">
+              <thead class="text-slate-400"><tr class="text-left"><th class="pb-1.5">链接</th><th>有效期</th><th>创建</th><th></th></tr></thead>
+              <tbody class="divide-y">
+                <tr><td class="py-1.5 font-mono">/share/plan/a3f9…c2</td><td>7 天</td><td class="text-slate-400">09-27</td><td><a class="text-red-400">吊销</a></td></tr>
+              </tbody>
+            </table>
+            <div class="flex items-center gap-2 pt-2"><select class="border rounded px-2 py-1 text-xs"><option>1 小时</option><option selected>1 天</option><option>7 天</option><option>30 天</option></select><button class="bg-[#574BFF] text-white rounded px-3 py-1 text-xs">新建分享链接</button></div>
+          </div>
+        </div>
+      </section>
+      <!-- 画板三：打印页（A4 白底）+ CSV -->
+      <section class="bg-white border rounded-md">
+        <div class="px-3 py-2 border-b bg-slate-50 font-medium">画板三 · PDF 导出=打印友好页（无侧栏顶栏 · A4 · window.print）/ CSV 明细下载</div>
+        <div class="grid grid-cols-2 gap-4 p-4 text-[13px]">
+          <div class="border-2 border-dashed border-slate-300 rounded p-4 bg-white">
+            <p class="text-center font-medium pb-1">支付域回归 V1.2 · 测试计划报告</p>
+            <p class="text-center text-[11px] text-slate-400 pb-2">RabbitAITest · 生成于 2026-09-27 14:32</p>
+            <div class="flex gap-2 text-center text-[11px]">
+              <div class="border rounded flex-1 py-1.5">通过率 <b class="text-green-600">85%</b></div>
+              <div class="border rounded flex-1 py-1.5">已执行 <b>10/16</b></div>
+              <div class="border rounded flex-1 py-1.5">失败 <b class="text-red-500">2</b></div>
+            </div>
+            <table class="w-full text-[10px] pt-2">
+              <thead class="text-slate-400 border-b"><tr><th class="text-left py-1">测试点</th><th>用例</th><th>状态</th></tr></thead>
+              <tbody>
+                <tr class="border-b"><td>扫码支付</td><td>扫码下单正向</td><td class="text-green-600">PASS</td></tr>
+                <tr class="border-b"><td>余额支付</td><td>余额不足提示</td><td class="text-red-500">FAIL</td></tr>
+              </tbody>
+            </table>
+            <p class="text-[10px] text-slate-400 pt-2 border-t">总结：共 16 条用例…（页脚）</p>
+            <p class="text-[10px] text-center text-slate-300 pt-1">— 第 1 / 2 页 —</p>
+          </div>
+          <div class="space-y-2">
+            <div class="bg-blue-50 border border-blue-200 text-blue-700 rounded px-3 py-2 text-xs">⬇ 计划报告明细.csv 已下载（16 行 · UTF-8 BOM · Excel 兼容）</div>
+            <table class="border rounded w-full text-[10px] font-mono">
+              <thead class="bg-slate-50 text-slate-400"><tr><th class="px-2 py-1 text-left">测试点,类型,名称,执行人,状态,最近执行</th></tr></thead>
+              <tbody class="text-slate-600">
+                <tr><td class="px-2 py-1">扫码支付,接口,扫码下单正向,张三,PASS,09-27 14:20</td></tr>
+                <tr><td class="px-2 py-1">余额支付,功能,余额不足提示,李四,FAIL,09-27 14:25</td></tr>
+                <tr><td class="px-2 py-1 text-slate-300">…（16 行）</td></tr>
+              </tbody>
+            </table>
+            <p class="text-[11px] text-slate-400">导出=attachment 下载（非信封）；列含实际结果摘要与执行报告链接</p>
+          </div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

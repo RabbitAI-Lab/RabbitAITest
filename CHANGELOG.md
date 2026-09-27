@@ -21,6 +21,40 @@
 - JMeter 5 份（四类×四断言三轮稳定全绿）；Playwright 15 条 + MAINFLOW-s6（三类断言）；全量 e2e 131/131（S6+S7 共存口径）；OpenAPI 快照 225 paths；变基 S7 main 后合并修复（guard 三元链/LeftNav 拆分/run-api-tests 融合）；CI e2e job 补 build:plugins
 - 调试挖出的深层缺陷：instrumentation.ts 自 S3 起未导入 node 版（schedule/audit 消费者死代码）；插件并发上传竞态（name+kind 唯一索引）；SPI since ISO 契约；bugs 列表平台徽标漏交付；插件页信封消费崩溃等
 
+## [v0.5.1] - 2026-09-27 — Sprint 4 计划完整与脑图（M5 里程碑）
+
+#### 新增
+
+- **测试规划与测试点（PLAN-002）**：测试点树 CRUD/同级重排/挂载移动（TestPoint 预建模型零迁移）；配置继承链 `resolvePointConfig`（点显式 > 祖先链最近显式 > 计划默认；环防御+深度上限 20，shared 纯函数）；三类用例（功能/接口/场景）挂点关联与未分组平铺兼容（PLAN-001 老数据 pointId=null 不迁移）；点内清单计数分色徽标；执行本点（限定点范围引擎任务）。
+- **计划执行（PLAN-003）**：**执行契约 v4**（EXEC_CONTRACT_VERSION=4，全 additive）：plan 命令（items=api_case/scenario 子命令复用既有构造器，点级 env 覆盖，串行/并行 p-limit/失败停止 SKIPPED 余项）+ 控制器命名帧（log kind=node-name——S3 遗留「报告树 loop 节点 fallback 名」修复）；引擎 plan 内核（kernel/plan.ts 分派 runStep/runScenarioItem，env 优先级 item>task）；回调回写 PlanCaseRef（SUCCESS→PASS/FAILED·FAKE_ERROR→FAIL/SKIPPED→SKIPPED）+ 自动更新状态激活（PASS 方向：CASE-006 关联功能用例 NOT_RUN→自动 PASS，execHistory source=auto）+ 计划状态推进；执行历史（ExecTask type=plan 分页）；单条引擎执行（行内 ▶ 构造单项 plan 任务）；执行配置四项从 PLAN-001 占位全激活；脑图执行 Tab（S/E/B/K 快捷标记+右侧详情面板+步骤对位）。
+- **计划分组与归档增强（PLAN-004）**：计划组 CRUD（type=GROUP，手册口径社区版无 License 门控——对标差异显式登记）；成员移入移出（单计划至多一组）；列表组视图（组行聚合进度/通过率/阈值达标 N/M+成员嵌套+未分组平铺）；组聚合报告（reportType=plan_group 懒创建+组总结编辑保存）；组归档级联成员（恢复=整组）；批量归档/恢复（计划与组混选）。
+- **计划报告导出（PLAN-005）**：报告完整视图（概览六卡含误报单列+阈值横幅+测试点维度折叠明细+接口/场景行执行报告钻取链接）；一键总结草稿（服务端统计模板：达标口径/失败阻塞误报/最薄弱点/最近执行——不落库，确认后保存）；分享链接（token 复用 ReportShare 四档有效期+吊销+免登录只读页 /share/plan/{token}）；导出 PDF（打印友好页 /plans/{id}/report/print 与分享打印页，自动 window.print）；导出 CSV（UTF-8 BOM Excel 兼容，attachment 下载）。
+- **脑图模式（CASE-007）**：自研通用脑图组件（MindmapTree 受控组件+layout 纯函数布局+useMindmapKeyboard 快捷键状态机，零三方依赖）；用例列表/脑图双模式双向同步（URL ?view=mindmap 持久化）；层级 模块→用例→步骤（desc/expect 行内）；快捷键体系（Enter 同级/Tab 子级/Ctrl+Enter 进入/M 模块/C 用例/Backspace 删除/F2 重命名/方向键导航/输入框内全屏蔽）；批量保存（模块批+用例批一事务，tmpId→idMap 回传，版本冲突软收集）；多选批量移动/删除；无 UPDATE 权限只读。
+- **用例依赖与历史增强（CASE-008）**：循环依赖检测（新增边 BFS 后置闭包，直接/间接成环 422/30484，深度上限 100）；自依赖专码 30485；执行联动（计划内标记时前置 FAIL→blockedBy 提示默认 BLOCKED，软提示可强制改标，result.blockedBy 留痕）；变更历史分区摘要（diff.partitions：字段级 from→to+步骤增删改计数；旧记录兼容）。
+- **待办跟进创建（DASH-002）**：我关注的七维度筛选（case/plan/review/api_case/scenario/bug，服务端 kind 过滤+项目维度）；我创建的修正为 createdBy=me 口径（原实现项目全量——缺陷修正）+ 扩展接口用例/场景两维度；我的待办-我的执行纳入接口/场景 refs（类型徽标）；Follow 通用横切（follow.service 白名单+幂等+目标存在性 404/30504）四域入口补齐（计划列表行+详情/场景详情 S3 去向兑现/接口用例详情/评审详情）。
+- **基础设施**：S4 错误码分段（30xxx 测试管理族 12 枚+50012）；guard `zodParse` 统一出口（ZodError→20422）；api-client s4.ts（pointApi/planCaseApi/planExecApi/planGroupApi/planReportApi/planShareApi/mindmapApi/followApi）；OpenAPI 快照 188→214 paths；JMeter 生成器 gen-jmx-s4.mjs（多提取器 supports extracts[]）。
+
+#### 修复
+
+- zod 裸 .parse 在路由层抛 ZodError 落 500（guard 新增 zodParse 统一转 20422，16 个 S4 路由接入）。
+- S4 新错误码未入 guard 404/422 分段表（POINT/GROUP/DEPENDENCY/MINDMAP/FOLLOW 族误落 400）。
+- scenarios API 路由 slug 命名冲突（新 follow 路由 [scenarioId] 与既有 [id] 并存致 Next 构建「different slug names」报错）。
+- createPlanTask 对空场景集仍调 buildScenarioCommands（纯接口用例计划执行抛 40474 场景不存在）。
+- exec-tasks 列表 type 枚举缺 plan（过滤 422「Invalid enum value」）。
+- addPlanCases added 计数仅统计功能用例（改三类 before/after 计数）且 api_case/scenario 行漏落 execUserId（我的待办-我的执行看不到接口用例）。
+- listPlanGroups 成员查询 where 误排未分组计划（`groupId: {not: null}` 致计划列表恒空）。
+- CaseMindmapView 拉取 pageSize=500 超列表契约上限 100（脑图「数据加载失败」）。
+- 计划关联 Toast 文案随 added 口径升级翻倍（「已关联 4 条（功能 2·接口 2）」→按提交数呈现）。
+- pool EXPECTED_ENGINE_VERSION 滞留 0.3.0（契约 v4 引擎 0.4.0 节点被标 UNMATCHED 不显示在线）。
+- dashApi.followed 客户端缺 kind 参数（工作台七维度改服务端过滤）。
+
+#### 测试
+
+- Vitest 108（shared 76：resolvePointChain 继承矩阵/组聚合/总结草稿/CSV 转义/脑图契约/执行契约 v4 plan 命令与旧分支兼容；engine 32：plan 内核分派/env 优先级/STOPPED 透传）。
+- JMeter 36 计划全绿（新增 7：PLAN-002~005、CASE-007/008、DASH-002；四类场景×四项断言）。
+- Playwright 119 用例全绿（新增 12 含 MAINFLOW-s4 主链路：建计划→建点→挂载接口用例→执行→报告点分组→CSV→工作台关注；三类断言 UI+Console+接口）。
+- 既有口径随 S4 语义同步更新：CASE-003 T1-3 自依赖断言 20422→30485；CASE-006-02「执行(S4) 禁用」断言更新为行内单条执行按钮激活；DASH-001 行 testid 兼容包裹 dash-item。
+
 ## [v0.5.0] - 2026-09-27 — Sprint 7 AI 能力（并行启动：worktree 分支 sprint-7-ai）
 
 #### 新增

@@ -9,14 +9,47 @@ import { useProjectStore } from "@/stores/project";
 import { useApp } from "@/hooks/useApp";
 import { useEffect, useState } from "react";
 
-/** DASH-001：工作台首页（看板 + 我的待办/我关注的/我创建的）。 */
+/** DASH-001/DASH-002：工作台首页（看板 + 我的待办/我关注的/我创建的——七维度子筛选）。 */
 const KIND_META: Record<string, { label: string; cls: string }> = {
   case: { label: "用例", cls: "bg-blue-50 text-blue-600 border-blue-200" },
   review: { label: "评审", cls: "bg-purple-50 text-purple-600 border-purple-200" },
   plan: { label: "计划", cls: "bg-cyan-50 text-cyan-600 border-cyan-200" },
   bug: { label: "缺陷", cls: "bg-red-50 text-red-600 border-red-200" },
   exec: { label: "执行", cls: "bg-orange-50 text-orange-600 border-orange-200" },
+  api_case: { label: "接口", cls: "bg-violet-50 text-violet-600 border-violet-200" },
+  scenario: { label: "场景", cls: "bg-teal-50 text-teal-600 border-teal-200" },
 };
+
+/** DASH-002：我关注的七枚子筛选（全部 + case/plan/review/api_case/scenario/bug）。 */
+const FOLLOWED_KINDS: { k: string; label: string }[] = [
+  { k: "all", label: "全部" },
+  { k: "case", label: "用例" },
+  { k: "plan", label: "测试计划" },
+  { k: "review", label: "用例评审" },
+  { k: "api_case", label: "接口用例" },
+  { k: "scenario", label: "场景" },
+  { k: "bug", label: "缺陷" },
+];
+
+/** DASH-002：我创建的六枚子筛选（原四枚 + 接口用例/场景）。 */
+const CREATED_KINDS: { k: string; label: string }[] = [
+  { k: "case", label: "用例" },
+  { k: "review", label: "评审" },
+  { k: "plan", label: "计划" },
+  { k: "bug", label: "缺陷" },
+  { k: "api_case", label: "接口用例" },
+  { k: "scenario", label: "场景" },
+];
+
+/** 我的执行行 refType 徽标（todo exec 项在 kind 之外附 refType：功能/接口/场景 三色小 Tag）。 */
+const REF_TYPE_META: Record<string, { label: string; cls: string }> = {
+  functional_case: { label: "功能", cls: "bg-blue-50 text-blue-600 border border-blue-200" },
+  api_case: { label: "接口", cls: "bg-[#574BFF]/10 text-[#574BFF] border border-[#574BFF]/20" },
+  scenario: { label: "场景", cls: "bg-teal-50 text-teal-600 border border-teal-200" },
+};
+
+/** todo(exec) 行额外携带 refType（DashItem 类型未声明，本地扩展）。 */
+type DashRow = DashItem & { refType?: string };
 
 export default function DashboardPage() {
   const { currentProjectId } = useProjectStore();
@@ -174,12 +207,12 @@ export default function DashboardPage() {
             },
             {
               key: "followed",
-              label: "我关注的",
+              label: <span data-testid="dash-tab-followed">我关注的</span>,
               children: <DashList projectId={currentProjectId} kind="followed" />,
             },
             {
               key: "created",
-              label: "我创建的",
+              label: <span data-testid="dash-tab-created">我创建的</span>,
               children: <DashList projectId={currentProjectId} kind="created" />,
             },
           ]}
@@ -198,22 +231,24 @@ function DashList({
 }) {
   const [todoKind, setTodoKind] = useState("review");
   const [createdKind, setCreatedKind] = useState("case");
+  const [followedKind, setFollowedKind] = useState("all");
   void useQueryClient();
   const { data, isLoading } = useQuery({
     queryKey: [
       "dash-list",
       projectId,
       kind,
-      kind === "todo" ? todoKind : kind === "created" ? createdKind : "all",
+      kind === "todo" ? todoKind : kind === "created" ? createdKind : followedKind,
     ],
     queryFn: () =>
       kind === "todo"
         ? dashApi.todo(projectId, todoKind)
         : kind === "followed"
-          ? dashApi.followed(projectId)
+          ? // DASH-002：kind 七维度服务端过滤（all=全部不传）
+            dashApi.followed(projectId, followedKind === "all" ? undefined : followedKind)
           : dashApi.created(projectId, createdKind),
   });
-  const items: DashItem[] = data?.items ?? [];
+  const items: DashRow[] = data?.items ?? [];
   return (
     <div>
       {kind === "todo" && (
@@ -231,16 +266,32 @@ function DashList({
           ))}
         </div>
       )}
-      {kind === "created" && (
-        <div className="flex gap-2 mb-3">
-          {["case", "review", "plan", "bug"].map((k) => (
+      {kind === "followed" && (
+        <div className="flex gap-2 mb-3 flex-wrap">
+          {FOLLOWED_KINDS.map((f) => (
             <Button
-              key={k}
+              key={f.k}
               size="small"
-              type={createdKind === k ? "primary" : "default"}
-              onClick={() => setCreatedKind(k)}
+              type={followedKind === f.k ? "primary" : "default"}
+              onClick={() => setFollowedKind(f.k)}
+              data-testid={`dash-followed-kind-${f.k}`}
             >
-              {{ case: "用例", review: "评审", plan: "计划", bug: "缺陷" }[k]}
+              {f.label}
+            </Button>
+          ))}
+        </div>
+      )}
+      {kind === "created" && (
+        <div className="flex gap-2 mb-3 flex-wrap">
+          {CREATED_KINDS.map((f) => (
+            <Button
+              key={f.k}
+              size="small"
+              type={createdKind === f.k ? "primary" : "default"}
+              onClick={() => setCreatedKind(f.k)}
+              data-testid={`dash-created-kind-${f.k}`}
+            >
+              {f.label}
             </Button>
           ))}
         </div>
@@ -256,18 +307,28 @@ function DashList({
               label: it.kind,
               cls: "bg-slate-50 text-slate-600 border-slate-200",
             };
+            const refMeta = it.refType ? REF_TYPE_META[it.refType] : undefined;
             return (
+              <div key={it.id} data-testid="dash-item">
               <Link
-                key={it.id}
                 href={it.href}
                 className="flex items-center gap-3 py-2.5 hover:bg-[#F7F8FA] px-2 rounded"
-                data-testid="dash-item"
+                data-testid={`dash-${kind}-row-${it.id}`}
               >
                 <span
                   className={`w-11 text-center text-xs border rounded px-1 py-0.5 shrink-0 ${meta.cls}`}
                 >
                   {meta.label}
                 </span>
+                {/* 我的执行行：refType 类型徽标（功能/接口/场景） */}
+                {refMeta && (
+                  <span
+                    className={`text-[10px] rounded px-1 py-0.5 shrink-0 ${refMeta.cls}`}
+                    data-testid={`dash-ref-type-${it.id}`}
+                  >
+                    {refMeta.label}
+                  </span>
+                )}
                 <span className="text-[13px] flex-1 truncate">{it.title}</span>
                 {it.context && (
                   <span className="text-xs text-[#A8ABB0] truncate max-w-40">{it.context}</span>
@@ -276,6 +337,7 @@ function DashList({
                   {(it.createdAt ?? it.updatedAt ?? "").replace("T", " ").slice(0, 16)}
                 </span>
               </Link>
+              </div>
             );
           })}
         </div>

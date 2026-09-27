@@ -96,3 +96,63 @@ export async function removeCaseApiRef(projectId: string, caseId: string, refId:
   await prisma.caseApiRef.deleteMany({ where: { caseId, refType: "api_case", refId } });
   return { refId };
 }
+
+/** S4 PLAN-002：场景存在性批量校验（plan 域关联 refType=scenario 经本通道；无效明细返回）。 */
+export async function batchValidateScenarioRefs(
+  projectId: string,
+  refIds: string[],
+): Promise<{ valid: string[]; invalid: string[] }> {
+  const rows = await prisma.scenario.findMany({
+    where: { id: { in: refIds }, projectId, deletedAt: null },
+    select: { id: true },
+  });
+  const validSet = new Set(rows.map((r) => r.id));
+  const invalid = refIds.filter((id) => !validSet.has(id));
+  return { valid: [...validSet], invalid };
+}
+
+/** S4 PLAN-002/DASH-002：场景摘要（名称/等级/状态）——计划清单与工作台关注列表消费。 */
+export async function listScenarioRefSummary(
+  projectId: string,
+  refIds: string[],
+): Promise<{ refId: string; name: string; level: string; status: string; updatedAt: string }[]> {
+  if (refIds.length === 0) return [];
+  const rows = await prisma.scenario.findMany({
+    where: { id: { in: refIds }, projectId, deletedAt: null },
+    select: { id: true, name: true, level: true, status: true, updatedAt: true },
+  });
+  return rows.map((r) => ({
+    refId: r.id,
+    name: r.name,
+    level: r.level,
+    status: r.status,
+    updatedAt: r.updatedAt.toISOString(),
+  }));
+}
+
+/** S4 DASH-002：我创建的接口用例（dash 域聚合消费；跨域经 Provider 归口）。 */
+export async function listCreatedApiCases(
+  projectId: string,
+  userId: string,
+): Promise<{ id: string; name: string; apiId: string; createdAt: string }[]> {
+  const rows = await prisma.apiCase.findMany({
+    where: { projectId, deletedAt: null, createdBy: userId },
+    orderBy: { createdAt: "desc" },
+    include: { api: { select: { id: true, deletedAt: true } } },
+  });
+  return rows
+    .filter((c) => c.api.deletedAt === null)
+    .map((c) => ({ id: c.id, name: c.name, apiId: c.api.id, createdAt: c.createdAt.toISOString() }));
+}
+
+/** S4 DASH-002：我创建的场景（dash 域聚合消费）。 */
+export async function listCreatedScenarios(
+  projectId: string,
+  userId: string,
+): Promise<{ id: string; name: string; createdAt: string }[]> {
+  const rows = await prisma.scenario.findMany({
+    where: { projectId, deletedAt: null, createdBy: userId },
+    orderBy: { createdAt: "desc" },
+  });
+  return rows.map((s) => ({ id: s.id, name: s.name, createdAt: s.createdAt.toISOString() }));
+}

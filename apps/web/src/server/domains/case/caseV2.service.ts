@@ -60,6 +60,38 @@ function serialize(c: CaseRow) {
   };
 }
 
+type SerializedCase = ReturnType<typeof serialize>;
+
+/** S4 CASE-008：变更分区摘要——字段级 from→to + 步骤增删改计数（时间线徽标渲染依据；无变更返回 null）。 */
+export function buildDiffPartitions(
+  before: SerializedCase,
+  after: SerializedCase,
+): { fields: { key: string; from: unknown; to: unknown }[]; steps?: { added: number; removed: number; changed: number } } | null {
+  const fields: { key: string; from: unknown; to: unknown }[] = [];
+  for (const f of ["name", "level", "precondition"] as const) {
+    if (JSON.stringify(before[f]) !== JSON.stringify(after[f]))
+      fields.push({ key: f, from: before[f], to: after[f] });
+  }
+  if (JSON.stringify(before.tags) !== JSON.stringify(after.tags))
+    fields.push({ key: "tags", from: before.tags, to: after.tags });
+  if (before.moduleId !== after.moduleId)
+    fields.push({ key: "module", from: before.moduleId, to: after.moduleId });
+  const bSteps = before.steps;
+  const aSteps = after.steps;
+  let steps: { added: number; removed: number; changed: number } | undefined;
+  if (JSON.stringify(bSteps) !== JSON.stringify(aSteps)) {
+    const keyOf = (s: { desc: string; expect: string }) => `${s.desc}\u0000${s.expect}`;
+    const bKeys = new Map(bSteps.map((s, i) => [keyOf(s), i]));
+    const aKeys = new Map(aSteps.map((s, i) => [keyOf(s), i]));
+    const added = aSteps.filter((s) => !bKeys.has(keyOf(s))).length;
+    const removed = bSteps.filter((s) => !aKeys.has(keyOf(s))).length;
+    const changed = aSteps.filter((s, i) => bKeys.has(keyOf(s)) && bKeys.get(keyOf(s)) !== i).length;
+    steps = { added, removed, changed };
+  }
+  if (fields.length === 0 && !steps) return null;
+  return { fields, ...(steps ? { steps } : {}) };
+}
+
 /** 动态字段校验（按生效模板绑定的字段定义）。 */
 async function validateFields(
   orgId: string,
@@ -238,6 +270,8 @@ export async function updateCaseV2(
       dynDiff[k] = { before: before.fields[k], after: after.fields[k] };
   }
   if (Object.keys(dynDiff).length) diff.fields = { before: "…", after: dynDiff };
+  // S4 CASE-008：分区摘要（fields/steps 徽标渲染依据；旧记录无 partitions 兼容原样展示）
+  const partitions = buildDiffPartitions(before, after);
   await prisma.changeLog.create({
     data: {
       entityType: "functional_case",
@@ -245,7 +279,7 @@ export async function updateCaseV2(
       seq: updated.version,
       action: "update",
       userId,
-      diff: toJson(diff),
+      diff: toJson({ ...diff, ...(partitions ? { partitions } : {}) }),
     },
   });
   // CASE-005 重新提审：白名单字段变更触发（受项目应用设置开关控制）
