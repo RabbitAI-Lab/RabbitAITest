@@ -1,14 +1,17 @@
 {
-  "name": "plugin-runner",
+  "name": "@rabbit/plugin-runner",
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
   "scripts": {
     "dev": "tsx src/index.ts",
     "start": "tsx src/index.ts",
     "lint": "oxlint src",
     "typecheck": "tsc --noEmit",
-    "test": "echo no tests",
+    "test": "vitest run --passWithNoTests",
     "build": "tsc --noEmit"
   },
   "dependencies": {
@@ -19,6 +22,7 @@
     "@types/node": "^22.10.0",
     "oxlint": "^0.15.0",
     "tsx": "^4.19.2",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
   }
 }

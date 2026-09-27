@@ -41,6 +41,9 @@ export function toResponse(err: unknown): NextResponse {
                   ErrCode.AI_CONVERSATION_NOT_FOUND,
                   ErrCode.AI_PROMPT_NOT_FOUND,
                   ErrCode.AI_NO_MODEL_AVAILABLE,
+                  ErrCode.PLUGIN_NOT_FOUND,
+                  ErrCode.INTEGRATION_NOT_FOUND,
+                  ErrCode.SWAGGER_SYNC_TASK_NOT_FOUND,
                 ] as number[]
               ).includes(err.code)
             ? 404
@@ -77,6 +80,28 @@ export function toResponse(err: unknown): NextResponse {
                 : err.code === ErrCode.AI_PROVIDER_ERROR
                   ? 502 // 供应商上游失败（网关语义；透出上游状态不泄 key）
                   : 400;
+                      ErrCode.CSV_TOO_LARGE,
+                      ErrCode.IMPORT_FILE_TOO_LARGE,
+                      ErrCode.IMPORT_FORMAT_UNKNOWN,
+                      ErrCode.PLUGIN_PACKAGE_INVALID,
+                      ErrCode.PLUGIN_SPI_INCOMPATIBLE,
+                      ErrCode.APIKEY_LIMIT_EXCEEDED,
+                      ErrCode.APIKEY_INVALID,
+                      ErrCode.PROTOCOL_NOT_SUPPORTED,
+                      ErrCode.SWAGGER_SYNC_URL_BLOCKED,
+                      ErrCode.SWAGGER_FETCH_FAILED,
+                      ErrCode.SWAGGER_PARSE_FAILED,
+                      ErrCode.SWAGGER_TASKS_LIMIT_EXCEEDED,
+                      ErrCode.AUDIT_QUERY_INVALID,
+                      ErrCode.INTEGRATION_SECRET_MISSING,
+                    ] as number[]
+                  ).includes(err.code)
+                ? 422
+                : err.code === ErrCode.PLUGIN_VERSION_CONFLICT || err.code === ErrCode.PLUGIN_DELETE_FORBIDDEN
+                  ? 409
+                  : err.code === ErrCode.OPEN_RATE_LIMITED
+                    ? 429
+                    : 400;
     return NextResponse.json(fail(err.code, err.message ?? ErrMsg[err.code] ?? "业务错误"), {
       status,
     });

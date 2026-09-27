@@ -3,6 +3,7 @@ import { Hono } from "hono";
 import type { Context } from "hono";
 import Redis from "ioredis";
 import type { MockProjectSnapshot, MockRuleSnapshotItem } from "@rabbit/shared";
+import { buildPlatformMocks } from "./platform-mocks.js";
 
 /**
  * Mock 服务（API-005）：`/mock/{projectNum}/{...apiPath}` 规则匹配。
@@ -208,7 +209,12 @@ app.all("/mock/:projectNum/*", async (c: Context) => {
 
 const port = Number(process.env.MOCK_PORT ?? 4000);
 if (process.env.VITEST === undefined) {
+  // S6 INTG e2e：三方平台 mock 挂载（/mock-jira /mock-zentao... 经 basePath 前缀路由到同一组处理器）
+  const platformMocks = buildPlatformMocks();
+  app.route("/mock-jira", platformMocks);
+  app.route("/mock-zentao", platformMocks);
+  app.route("/mock-tapd", platformMocks);
   serve({ fetch: app.fetch, port }, (info) => {
-    console.log(`[mock] listening :${info.port}（/healthz /hello /mock/{projectNum}/{path}）`);
+    console.log(`[mock] listening :${info.port}（/healthz /hello /mock/{projectNum}/{path} + mock-jira/zentao/tapd）`);
   });
 }

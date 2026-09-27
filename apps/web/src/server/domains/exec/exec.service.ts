@@ -29,8 +29,18 @@ import { readFileObject } from "@/server/storage";
 
 /** ───────────── 任务创建 ───────────── */
 
-export interface DebugTaskInput {
-  request: RequestSpec;
+/** S6 PLUG-002：定义协议（ApiDefinition.protocol，默认 HTTP）≠ http(s) 时注入 request.protocol/protocolConfig */
+function withProtocol(definitionProtocol: string, spec: RequestSpec): RequestSpec {
+  const p = (definitionProtocol ?? "HTTP").toLowerCase();
+  if (p === "http" || p === "https") return spec;
+  return {
+    ...spec,
+    protocol: p,
+    protocolConfig: (spec as { protocolConfig?: Record<string, unknown> }).protocolConfig ?? {},
+  };
+}
+
+export interface DebugTaskInput {  request: RequestSpec;
   asserts: AssertSpec[];
   pre: Processor[];
   post: Processor[];
@@ -116,7 +126,7 @@ export interface ApiCaseTaskInput {
 export async function createApiCaseTask(projectId: string, userId: string, input: ApiCaseTaskInput) {
   const cases = await prisma.apiCase.findMany({
     where: { id: { in: input.caseIds }, projectId, deletedAt: null },
-    include: { api: { select: { id: true, moduleId: true, method: true, path: true, num: true } } },
+    include: { api: { select: { id: true, moduleId: true, method: true, path: true, num: true, protocol: true } } },
   });
   if (cases.length === 0)
     throw new DomainError(ErrCode.API_CASE_NOT_FOUND, "接口用例不存在或已删除");
@@ -164,7 +174,8 @@ export async function createApiCaseTask(projectId: string, userId: string, input
         caseId: c.id,
         name: c.name,
         moduleId: c.api.moduleId,
-        request: bundle.spec,
+        // S6 PLUG-002：定义协议 ≠ HTTP 时透传协议插件标识与配置（engine 注册表采样）
+        request: withProtocol(c.api.protocol, bundle.spec),
         asserts: bundle.asserts ?? [],
         pre: bundle.pre ?? [],
         post: bundle.post ?? [],

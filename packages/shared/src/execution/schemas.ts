@@ -92,6 +92,10 @@ export type RequestAuth = z.infer<typeof authSchema>;
 export const requestSpecSchema = z.object({
   method: httpMethodSchema,
   url: z.string().min(1).max(2048),
+  /** S6 PLUG-002：http/https=内置管线；其余=协议插件标识（tcp-conn 等，engine 注册表查证） */
+  protocol: z.string().min(1).max(32).optional(),
+  /** 协议插件配置（tcp: host/port/timeout；schema 由插件声明，前端动态表单）。z.any()：Prisma JsonValue 直存 */
+  protocolConfig: z.record(z.string(), z.any()).optional(),
   headers: z.array(kvSchema).max(50).default([]),
   query: z.array(kvSchema).max(50).default([]),
   body: requestBodySchema.default({ kind: "raw_json", content: "" }),

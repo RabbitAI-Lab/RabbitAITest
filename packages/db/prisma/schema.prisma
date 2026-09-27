@@ -49,8 +49,9 @@ model Organization {
   updatedAt   DateTime  @updatedAt @map("updated_at")
   deletedAt   DateTime? @map("deleted_at")
 
-  members  OrgMember[]
-  projects Project[]
+  members       OrgMember[]
+  projects      Project[]
+  integrations  PlatformIntegration[]
 }
 
 model OrgMember {
@@ -240,7 +241,27 @@ model ApiKey {
   createdAt  DateTime  @default(now()) @map("created_at")
   revokedAt  DateTime? @map("revoked_at")
 
+  @@index([prefix])
   @@map("api_keys")
+}
+
+/// 组织级三方平台服务集成（INTG-001/002：地址+凭据密文；一组织一平台一条）
+model PlatformIntegration {
+  id          String    @id @default(uuid())
+  orgId       String    @map("org_id")
+  org         Organization @relation(fields: [orgId], references: [id])
+  platform    String    @db.VarChar(32) // jira | zentao | tapd
+  address     String    @db.VarChar(512)
+  authType    String    @db.VarChar(16) // BASIC | BEARER（jira）；zentao/tapd 固定 BASIC 语义
+  credential  String // AES-256-GCM 密文（env RABBIT_INTEGRATION_SECRET 派生密钥；永不回显）
+  testStatus  String    @default("NONE") @db.VarChar(16) // NONE | OK | FAILED
+  testMessage String?   @map("test_message") @db.VarChar(512)
+  testedAt    DateTime? @map("tested_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@unique([orgId, platform])
+  @@map("platform_integrations")
 }
 
 model SystemParam {

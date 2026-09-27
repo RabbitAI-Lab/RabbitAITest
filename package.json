@@ -17,6 +17,7 @@
     "prepare": "husky",
     "postinstall": "node scripts/fix-embedded-pg.mjs || true",
     "lint:boundaries": "node scripts/check-boundaries.mjs",
+    "build:plugins": "node scripts/build-plugins.mjs",
     "test:visual": "playwright test -c tests/playwright.config.ts VISUAL",
     "visual:diff": "node scripts/visual-diff.mjs --enforce"
   },
@@ -25,6 +26,7 @@
     "@playwright/test": "^1.49.0",
     "commitlint": "^19.6.0",
     "embedded-postgres": "^17.5.0-beta.15",
+    "esbuild": "^0.24.2",
     "husky": "^9.1.7",
     "oxfmt": "^0.70.0",
     "turbo": "^2.3.3",

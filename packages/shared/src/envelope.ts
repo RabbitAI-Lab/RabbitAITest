@@ -39,6 +39,9 @@ export const ErrCode = {
   REVIEW_ENDED: 10007, // 评审已结束（CASE-005）
   PLAN_ARCHIVED: 10008, // 计划已归档（PLAN-001）
   DUP_ASSOC: 10009, // 重复关联（PLAN-001 重复关联开关）
+  APIKEY_INVALID: 10010, // S6 INTG-003：APIKEY 无效/已吊销
+  APIKEY_LIMIT_EXCEEDED: 10011, // APIKEY 超上限（5 条/人）
+  OPEN_RATE_LIMITED: 10012, // 开放 API 限流（10 QPS/key）
   // 20xxx 项目与配置
   PROJECT_NOT_FOUND: 20404,
   TEMPLATE_NOT_FOUND: 20414,
@@ -64,6 +67,13 @@ export const ErrCode = {
   SCENARIO_CIRCULAR_REF: 40476, // 场景引用循环（API-006 §2）
   SCENARIO_STEP_NOT_FOUND: 40484,
   FALSE_ALARM_RULE_NOT_FOUND: 40494, // S3 API-010
+  PROTOCOL_NOT_SUPPORTED: 40510, // S6 PLUG-002：执行时协议插件不可用
+  PROTOCOL_PLUGIN_LOAD_FAILED: 40511, // S6 PLUG-002：定义保存时协议加载失败
+  SWAGGER_SYNC_TASK_NOT_FOUND: 40520, // S6 API-011
+  SWAGGER_SYNC_URL_BLOCKED: 40521, // URL 被 SSRF 守卫拦截
+  SWAGGER_FETCH_FAILED: 40522,
+  SWAGGER_PARSE_FAILED: 40523,
+  SWAGGER_TASKS_LIMIT_EXCEEDED: 40524, // 同步任务上限 10
   // 50xxx 执行引擎
   ENGINE_CALLBACK_INVALID: 50001,
   TASK_NOT_RUNNING: 50003,
@@ -91,6 +101,21 @@ export const ErrCode = {
   AI_OPENAPI_INVALID: 70503, // 批量生成 OpenAPI 文档解析失败（AI-003）
   AI_PROMPT_DUP: 70504, // 提示词模板名称重复（AI-005）
   AI_PROMPT_PLACEHOLDER_INVALID: 70505, // 提示词模板占位符未定义（AI-005）
+  // 70xxx 集成与插件（S6）
+  PLUGIN_NOT_FOUND: 70001,
+  PLUGIN_PACKAGE_INVALID: 70002,
+  PLUGIN_SPI_INCOMPATIBLE: 70003,
+  PLUGIN_RUNNER_UNAVAILABLE: 70004,
+  PLUGIN_VERSION_CONFLICT: 70005,
+  PLUGIN_DELETE_FORBIDDEN: 70006,
+  PROTOCOL_PLUGIN_CONFLICT: 70007, // 协议标识与已启用插件冲突（保留）
+  INTEGRATION_NOT_FOUND: 70010,
+  INTEGRATION_CONNECT_FAILED: 70011,
+  PLATFORM_SYNC_CONFIG_INVALID: 70012,
+  SYNC_TASK_FAILED: 70013,
+  PLATFORM_UNAUTHORIZED: 70014,
+  INTEGRATION_SECRET_MISSING: 70015,
+  AUDIT_QUERY_INVALID: 70030, // S6 SYS-008
 } as const;
 
 export const ErrMsg: Record<number, string> = {
@@ -152,4 +177,28 @@ export const ErrMsg: Record<number, string> = {
   [ErrCode.AI_OPENAPI_INVALID]: "OpenAPI 文档解析失败（支持 3.x JSON）",
   [ErrCode.AI_PROMPT_DUP]: "提示词模板名称已存在",
   [ErrCode.AI_PROMPT_PLACEHOLDER_INVALID]: "提示词模板包含未定义的占位符",
+  [ErrCode.APIKEY_INVALID]: "APIKEY 无效或已吊销",
+  [ErrCode.APIKEY_LIMIT_EXCEEDED]: "APIKEY 数量超出上限（5 条）",
+  [ErrCode.OPEN_RATE_LIMITED]: "请求过于频繁（每 key 10 次/秒）",
+  [ErrCode.PROTOCOL_NOT_SUPPORTED]: "该协议未启用或协议插件不可用",
+  [ErrCode.PROTOCOL_PLUGIN_LOAD_FAILED]: "协议插件加载失败",
+  [ErrCode.SWAGGER_SYNC_TASK_NOT_FOUND]: "同步任务不存在",
+  [ErrCode.SWAGGER_SYNC_URL_BLOCKED]: "文档 URL 不允许（内网/元数据地址被守卫拦截）",
+  [ErrCode.SWAGGER_FETCH_FAILED]: "文档拉取失败（超时或非 2xx）",
+  [ErrCode.SWAGGER_PARSE_FAILED]: "文档解析失败（仅支持 OpenAPI/Swagger 3.0 json/yaml）",
+  [ErrCode.SWAGGER_TASKS_LIMIT_EXCEEDED]: "同步任务数量超出上限（10）",
+  [ErrCode.PLUGIN_NOT_FOUND]: "插件不存在",
+  [ErrCode.PLUGIN_PACKAGE_INVALID]: "插件包非法（清单缺失或字段不合法）",
+  [ErrCode.PLUGIN_SPI_INCOMPATIBLE]: "插件 SPI 版本与宿主不兼容",
+  [ErrCode.PLUGIN_RUNNER_UNAVAILABLE]: "插件运行时不可用（plugin-runner 未就绪）",
+  [ErrCode.PLUGIN_VERSION_CONFLICT]: "同名同版本插件已存在（版本号需递增）",
+  [ErrCode.PLUGIN_DELETE_FORBIDDEN]: "插件启用中或被引用，禁止删除",
+  [ErrCode.PROTOCOL_PLUGIN_CONFLICT]: "协议标识与已启用插件冲突",
+  [ErrCode.INTEGRATION_NOT_FOUND]: "服务集成配置不存在",
+  [ErrCode.INTEGRATION_CONNECT_FAILED]: "平台连接失败",
+  [ErrCode.PLATFORM_SYNC_CONFIG_INVALID]: "项目同步关联配置无效（组织未配置该平台或参数非法）",
+  [ErrCode.SYNC_TASK_FAILED]: "同步任务执行失败",
+  [ErrCode.PLATFORM_UNAUTHORIZED]: "平台凭据失效（401/403），请重新配置",
+  [ErrCode.INTEGRATION_SECRET_MISSING]: "集成加密密钥未配置（RABBIT_INTEGRATION_SECRET）",
+  [ErrCode.AUDIT_QUERY_INVALID]: "审计查询参数非法",
 };
