@@ -337,6 +337,23 @@ export const execItemCommandSchema = z.object({
 export type ExecItemCommand = z.infer<typeof execItemCommandSchema>;
 
 /** 执行指令（web → engine，经 BullMQ；按 type 判别）。 */
+export const planItemCommandSchema = z.discriminatedUnion("refKind", [
+  z.object({
+    /** refKind=api_case：复用 api_case 条目管线（runStep） */
+    refKind: z.literal("api_case"),
+    /** 点级 env 覆盖（缺省回落任务级 envSnapshot） */
+    envSnapshot: z.lazy(() => envSnapshotSchema).optional(),
+    command: execItemCommandSchema,
+  }),
+  z.object({
+    /** refKind=scenario：复用场景内核（runScenarioItem） */
+    refKind: z.literal("scenario"),
+    envSnapshot: z.lazy(() => envSnapshotSchema).optional(),
+    command: scenarioItemCommandSchema,
+  }),
+]);
+export type PlanItemCommand = z.infer<typeof planItemCommandSchema>;
+
 export const execCommandSchema = z.discriminatedUnion("type", [
   z.object({
     taskId: z.string().uuid(),
@@ -366,6 +383,17 @@ export const execCommandSchema = z.discriminatedUnion("type", [
     /** serial=顺序执行；parallel=item 级 p-limit(池并发)（API-008） */
     mode: z.enum(["serial", "parallel"]).default("serial"),
     items: z.array(scenarioItemCommandSchema).min(1).max(50),
+  }),
+  z.object({
+    /** v4（PLAN-003）：计划任务——item=PlanCaseRef（api_case/scenario 子命令复用，功能用例不进引擎）。 */
+    taskId: z.string().uuid(),
+    projectId: z.string().uuid(),
+    type: z.literal("plan"),
+    planId: z.string().uuid(),
+    envSnapshot: envSnapshotSchema.optional(),
+    stopOnFail: z.boolean().default(false),
+    mode: z.enum(["serial", "parallel"]).default("serial"),
+    items: z.array(planItemCommandSchema).min(1).max(200),
   }),
 ]);
 export type ExecCommand = z.infer<typeof execCommandSchema>;
@@ -401,7 +429,8 @@ export const itemFinalFrame = z.object({
   message: z.string().max(2000).default(""),
 });
 
-/** v3：stepPath=树序数字路径（"0.2.1"），iteration=循环迭代号（1 起）——报告树视图聚合键。 */
+/** v3：stepPath=树序数字路径（"0.2.1"），iteration=循环迭代号（1 起）——报告树视图聚合键。
+ * v4：+stepName（控制器名经帧传递——S3 遗留「报告树 loop 节点 fallback 名」修复，additive）。 */
 export const stepStartFrame = z.object({
   ...frameBase,
   type: z.literal("step-start"),
@@ -409,6 +438,7 @@ export const stepStartFrame = z.object({
   method: httpMethodSchema,
   url: z.string(),
   stepPath: z.string().max(64).optional(),
+  stepName: z.string().max(256).default(""),
   iteration: z.number().int().min(1).optional(),
 });
 
@@ -560,5 +590,6 @@ export function execStopKey(taskId: string): string {
 export const taskStatusSchema = z.enum(["PENDING", "RUNNING", "SUCCESS", "FAILED", "STOPPED"]);
 export type TaskStatus = z.infer<typeof taskStatusSchema>;
 
-/** 引擎契约版本（心跳协商：不一致节点 web 标「版本不匹配」不下发新类型任务展示） */
-export const EXEC_CONTRACT_VERSION = 3;
+/** 引擎契约版本（心跳协商：不一致节点 web 标「版本不匹配」不下发新类型任务展示）
+ * v4（S4 PLAN-003）：+plan 命令（计划引擎执行）、step-start 帧 +stepName——全 additive。 */
+export const EXEC_CONTRACT_VERSION = 4;

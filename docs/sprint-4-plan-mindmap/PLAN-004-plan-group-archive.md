@@ -6,7 +6,7 @@
 | 所属迭代     | Sprint 4 — 计划完整与脑图                                                                                                                                              |
 | 优先级       | P2                                                                                                                                                                     |
 | 所属模块     | 测试计划（plan 域）                                                                                                                                                     |
-| 文档状态     | Approved（2026-09-27 自评审冻结；交付后翻 Implemented）                                                                                                                 |
+| 文档状态     | Implemented（2026-09-27 交付：代码+单测+JMeter+Playwright 全绿；走查随验收）                                                                                              |
 | 最后更新日期 | 2026-09-27                                                                                                                                                             |
 | 上游依赖     | PLAN-001（归档与列表基线）                                                                                                                                             |
 | 下游消费     | PLAN-005（组报告聚合）、DASH-002（组维度筛选登记）                                                                                                                     |
@@ -92,4 +92,4 @@ DoD 前置：高保真人工确认（S0 §8.1 先例）。联调重点：级联�
 
 ## 8. 勘误登记
 
-（交付后回填）
+- 勘误 1（2026-09-27，错误码分段对齐）：组码最终 PLAN_GROUP_NOT_FOUND=30464（404）、PLAN_GROUP_NOT_EMPTY=30465、GROUP_NESTED=30466、GROUP_NOT_EXECUTABLE=30467（均 422）；组报告 reportType=plan_group、name 前缀 `组报告:{groupId}:`。

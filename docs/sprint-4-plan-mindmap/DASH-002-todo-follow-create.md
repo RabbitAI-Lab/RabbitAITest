@@ -6,7 +6,7 @@
 | 所属迭代     | Sprint 4 — 计划完整与脑图                                                                                                                                              |
 | 优先级       | P2                                                                                                                                                                     |
 | 所属模块     | 工作台（dash 域）+ 各域 Follow 入口                                                                                                                                     |
-| 文档状态     | Approved（2026-09-27 自评审冻结；交付后翻 Implemented）                                                                                                                 |
+| 文档状态     | Implemented（2026-09-27 交付：代码+单测+JMeter+Playwright 全绿；走查随验收）                                                                                              |
 | 最后更新日期 | 2026-09-27                                                                                                                                                             |
 | 上游依赖     | DASH-001（工作台三 Tabs 骨架）、各域对象（case/plan/review/bug/api_case/scenario）                                                                                      |
 | 下游消费     | S5 MSG-001（关注变更通知——Follow 表为通知源）                                                                                                                           |
@@ -89,4 +89,4 @@ DoD 前置：高保真人工确认（S0 §8.1 先例）。联调重点：七维�
 
 ## 8. 勘误登记
 
-（交付后回填）
+- 勘误 1（2026-09-27，旧 testid 兼容与关注回显）：工作台行容器保留 dash-item 包裹层（新行 testid dash-{kind}-row-{id} 并存）；场景/评审详情 followed 回显暂缺（详情接口未透出，首帧 false 点击即修正——待详情接口扩展）。

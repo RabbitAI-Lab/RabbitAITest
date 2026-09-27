@@ -9,13 +9,14 @@ import { ArrowLeft, Eye, History, Play, Save } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { fileApi, scenarioApi } from "@rabbit/api-client";
+import { fileApi, followApi, scenarioApi } from "@rabbit/api-client";
 import type { ScenarioConfigSave, ScenarioDetail } from "@rabbit/api-client";
 import type { AssertSpec, Processor, ScenarioStepNode } from "@rabbit/shared";
 import { parseCsv } from "@rabbit/shared/execution/csv";
 import { useApp } from "@/hooks/useApp";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useProjectStore } from "@/stores/project";
+import { FollowStar } from "@/components/FollowStar";
 import EnvSelect from "@/components/api/EnvSelect";
 import { ChangeTimeline } from "@/components/crosscut";
 import StepTreePanel, { findNode } from "@/components/scenario/StepTreePanel";
@@ -133,6 +134,21 @@ export default function ScenarioEditPage() {
     onError: (e) => message.error(e instanceof Error ? e.message : "执行失败"),
   });
 
+  // DASH-002 关注星：followed 回显待详情接口扩展（scenarioApi.detail 暂无 followed 字段），首帧 false，点击后即与真实状态同步
+  const [scenarioFollowed, setScenarioFollowed] = useState(false);
+  const followM = useMutation({
+    mutationFn: (on: boolean) => followApi.scenario(projectId!, id, on),
+    onMutate: (on) => setScenarioFollowed(on),
+    onSuccess: (r) => {
+      setScenarioFollowed(r.followed);
+      void qc.invalidateQueries({ queryKey: ["scenarios", "detail", projectId, id] });
+    },
+    onError: (e, on) => {
+      setScenarioFollowed(!on);
+      message.error(e instanceof Error ? e.message : "关注操作失败");
+    },
+  });
+
   const stepDebugM = useMutation({
     mutationFn: (stepId: string) => scenarioApi.executeStep(projectId!, id, stepId, envId ? { envId } : {}),
     onSuccess: (r) => {
@@ -204,6 +220,15 @@ export default function ScenarioEditPage() {
       {/* 头部：基本信息 + 操作 */}
       <div className="rabbit-card flex flex-wrap items-center gap-2 p-3">
         <Input className="!w-56" value={name} disabled={!canUpdate} data-testid="input-scenario-name" onChange={(e) => setName(e.target.value)} />
+        {can("PROJECT_SCENARIO:READ") && (
+          <FollowStar
+            entityType="scenario"
+            entityId={id}
+            followed={scenarioFollowed}
+            onToggle={(on) => followM.mutateAsync(on).catch(() => undefined)}
+            testid={`scenario-follow-${id}`}
+          />
+        )}
         <Select className="!w-20" value={level} disabled={!canUpdate} onChange={setLevel} options={LEVELS.map((l) => ({ value: l, label: l }))} data-testid="select-scenario-level" />
         <Select className="!w-28" value={status} disabled={!canUpdate} onChange={setStatus} options={STATUSES} data-testid="select-scenario-status" />
         <Input className="!w-52" placeholder="标签（逗号分隔）" value={tagsText} disabled={!canUpdate} onChange={(e) => setTagsText(e.target.value)} />

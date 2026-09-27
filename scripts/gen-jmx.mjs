@@ -815,12 +815,12 @@ emit(
         contains: ["$.data.post", "用例B"],
       },
       {
-        name: "T1-3 自依赖 422",
+        name: "T1-3 自依赖 422(30485)",
         method: "POST",
         path: "/api/v1/projects/${PROJECT_ID}/cases/${CASE_A}/dependencies",
         body: { preCaseId: "${CASE_A}", postCaseId: "${CASE_A}" },
         status: 422,
-        code: 20422,
+        code: 30485,
       },
       {
         name: "T1-4 发表评论",

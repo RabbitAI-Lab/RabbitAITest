@@ -10,6 +10,7 @@ import {
   Popconfirm,
   Popover,
   Radio,
+  Segmented,
   Select,
   Steps,
   Table,
@@ -30,7 +31,7 @@ import {
   X,
 } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import dayjs, { type Dayjs } from "dayjs";
 import {
@@ -56,6 +57,7 @@ import { ModuleTreePanel } from "@/components/ModuleTreePanel";
 import { MemberSelect } from "@/components/crosscut";
 import { DynamicFieldCell, DynamicFieldInput, type DynFieldDef } from "@/components/DynamicField";
 import { flattenModules, toTreeSelectData } from "@/components/CaseForm";
+import { CaseMindmapView } from "@/components/mindmap/CaseMindmapView";
 import { useApp } from "@/hooks/useApp";
 
 /** CASE-002：模块树 + 用例列表完整版（视图 Tabs / 高级筛选 / 批量操作 / 导入导出 / 列设置）。 */
@@ -100,6 +102,7 @@ function saveBlob(blob: Blob, filename: string) {
 
 export default function CaseListPage() {
   const router = useRouter();
+  const search = useSearchParams();
   const qc = useQueryClient();
   const { message, modal } = useApp();
   const { can } = usePermissions();
@@ -117,6 +120,16 @@ export default function CaseListPage() {
   const [includeChildren, setIncludeChildren] = useState(true);
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<React.Key[]>([]);
+
+  // CASE-007：列表/脑图双模式（URL ?view=mindmap 持久化，replace 不刷页）
+  const viewMode = search.get("view") === "mindmap" ? "mindmap" : "list";
+  const switchView = (v: string) => {
+    const params = new URLSearchParams(search.toString());
+    if (v === "mindmap") params.set("view", "mindmap");
+    else params.delete("view");
+    const qsStr = params.toString();
+    router.replace(qsStr ? `/cases?${qsStr}` : "/cases", { scroll: false });
+  };
 
   // 列设置（含动态字段列；用户偏好持久化）
   const [colPref, setColPref] = useState<string[] | null>(null);
@@ -511,7 +524,16 @@ export default function CaseListPage() {
         sub={recycled ? "已删除用例可恢复或彻底删除" : "项目内全部功能测试用例"}
         extra={
           <div className="flex items-center gap-2">
-            <div className="flex bg-white border border-[#E5E6EB] rounded-md p-0.5 text-[13px]">
+            <Segmented
+              value={viewMode}
+              onChange={(v) => switchView(String(v))}
+              options={[
+                { value: "list", label: <span data-testid="view-list">列表</span> },
+                { value: "mindmap", label: <span data-testid="view-mindmap">脑图</span> },
+              ]}
+            />
+            {viewMode === "list" && (
+              <div className="flex bg-white border border-[#E5E6EB] rounded-md p-0.5 text-[13px]">
               <span
                 data-testid="tab-all"
                 className={`px-3 py-1 rounded cursor-pointer transition-colors ${!recycled ? "bg-[#574BFF]/8 text-[#574BFF] font-medium" : "text-[#646A73]"}`}
@@ -534,7 +556,8 @@ export default function CaseListPage() {
                 回收站
               </span>
             </div>
-            {!recycled && canCreate && (
+            )}
+            {viewMode === "list" && !recycled && canCreate && (
               <Button
                 type="primary"
                 icon={<Plus size={14} />}
@@ -550,6 +573,11 @@ export default function CaseListPage() {
         }
       />
 
+      {/* CASE-007：脑图模式隐藏列表工具条/表格与列表弹窗，渲染脑图视图；列表模式行为不变 */}
+      {viewMode === "mindmap" ? (
+        <CaseMindmapView />
+      ) : (
+        <>
       <div className="flex gap-4 items-stretch">
         {!recycled && (
           <ModuleTreePanel
@@ -1470,6 +1498,8 @@ export default function CaseListPage() {
           </div>
         </div>
       </Modal>
+        </>
+      )}
     </div>
   );
 }

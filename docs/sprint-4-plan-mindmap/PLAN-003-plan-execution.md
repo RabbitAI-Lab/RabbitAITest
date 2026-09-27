@@ -6,7 +6,7 @@
 | 所属迭代     | Sprint 4 — 计划完整与脑图                                                                                                                                              |
 | 优先级       | P2（迭代内 P1，最重）                                                                                                                                                  |
 | 所属模块     | 测试计划（plan 域）+ 执行（exec 域）+ 引擎（engine）                                                                                                                    |
-| 文档状态     | Approved（2026-09-27 自评审冻结；交付后翻 Implemented）                                                                                                                 |
+| 文档状态     | Implemented（2026-09-27 交付：代码+单测+JMeter+Playwright 全绿；走查随验收）                                                                                              |
 | 最后更新日期 | 2026-09-27                                                                                                                                                             |
 | 上游依赖     | PLAN-001（执行配置与状态机）、PLAN-002（点配置继承）、API-003/EXEC-002（api_case 执行命令）、API-006（scenario 命令与内核）、CASE-008（依赖联动）、CASE-007（脑图组件）  |
 | 下游消费     | PLAN-005（报告导出消费 plan 报告）、DASH-002（待办-我的执行含接口域）                                                                                                   |
@@ -101,4 +101,4 @@ DoD 前置：高保真人工确认（S0 §8.1 先例）。最重联调点：契�
 
 ## 8. 勘误登记
 
-（交付后回填）
+- 勘误 1（2026-09-27，实现形态对齐）：①S3 遗留「step-start 帧 +stepName」的控制器命名修复，落地为控制器命名帧（log kind=node-name）+树聚合消费——控制器不发 step-start（无 method/url），纯命名帧最小 additive；②错误码最终为 PLAN_NO_EXECUTABLE=50012（422）、坏点 404/30454；③依赖 BLOCKED 推导收敛于人工标记边界（§2 修订口径与实现一致）；④报告页复用 /reports/{taskId}（type=plan 分支），报告命名「计划执行 · N 条用例」。

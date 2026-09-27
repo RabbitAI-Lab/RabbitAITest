@@ -50,6 +50,17 @@ export const ErrCode = {
   REVIEW_NOT_FOUND: 30424,
   PLAN_NOT_FOUND: 30434,
   BUG_NOT_FOUND: 30444,
+  POINT_NOT_FOUND: 30454, // S4 PLAN-002 测试点
+  POINT_NOT_EMPTY: 30455, // 点下有用例或子点不可删
+  POINT_CYCLE: 30456, // parent 指向自身或后代
+  PLAN_GROUP_NOT_FOUND: 30464, // S4 PLAN-004
+  PLAN_GROUP_NOT_EMPTY: 30465,
+  GROUP_NESTED: 30466, // 组不可挂 groupId（不嵌套）
+  GROUP_NOT_EXECUTABLE: 30467, // 组不可执行/关联用例
+  DEPENDENCY_CYCLE: 30484, // S4 CASE-008 依赖成环
+  SELF_DEPENDENCY: 30485,
+  MINDMAP_TOO_LARGE: 30495, // S4 CASE-007 节点超 500
+  FOLLOW_TARGET_NOT_FOUND: 30504, // S4 DASH-002
   // 40xxx 接口测试
   TASK_NOT_FOUND: 40404,
   API_NOT_FOUND: 40414,
@@ -75,6 +86,7 @@ export const ErrCode = {
   CSV_TOO_LARGE: 50009, // S3 API-007 行数/行宽超限
   IMPORT_FILE_TOO_LARGE: 50010, // S3 API-009 ≤2MB
   IMPORT_FORMAT_UNKNOWN: 50011, // 导入格式探测失败
+  PLAN_NO_EXECUTABLE: 50012, // S4 PLAN-003 计划内无可引擎执行项
   POOL_NOT_FOUND: 50404,
   SCHEDULE_NOT_FOUND: 50414,
   // 60xxx 报告与分享
@@ -131,4 +143,16 @@ export const ErrMsg: Record<number, string> = {
   [ErrCode.POOL_NOT_FOUND]: "资源池不存在",
   [ErrCode.REPORT_NOT_FOUND]: "报告不存在或已删除",
   [ErrCode.SHARE_NOT_FOUND]: "分享链接不存在或已过期",
+  [ErrCode.POINT_NOT_FOUND]: "测试点不存在",
+  [ErrCode.POINT_NOT_EMPTY]: "测试点下还有用例或子点，请先清空",
+  [ErrCode.POINT_CYCLE]: "父测试点不能指向自身或后代",
+  [ErrCode.PLAN_GROUP_NOT_FOUND]: "计划组不存在或已删除",
+  [ErrCode.PLAN_GROUP_NOT_EMPTY]: "计划组内还有成员计划，请先移出",
+  [ErrCode.GROUP_NESTED]: "计划组不可嵌套",
+  [ErrCode.GROUP_NOT_EXECUTABLE]: "计划组不支持该操作（组不可执行或关联用例）",
+  [ErrCode.DEPENDENCY_CYCLE]: "将形成循环依赖",
+  [ErrCode.SELF_DEPENDENCY]: "用例不能依赖自身",
+  [ErrCode.MINDMAP_TOO_LARGE]: "脑图节点数超上限（500）",
+  [ErrCode.FOLLOW_TARGET_NOT_FOUND]: "关注目标不存在或已删除",
+  [ErrCode.PLAN_NO_EXECUTABLE]: "计划内没有可引擎执行的用例（接口用例/场景）",
 };

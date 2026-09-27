@@ -19,10 +19,11 @@ import { Plus } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { use, useEffect, useMemo, useState } from "react";
 import type { DataNode } from "antd/es/tree";
-import { caseApiV2, memberApi, moduleApi, reviewApi, type ReviewCaseRow } from "@rabbit/api-client";
+import { caseApiV2, followApi, memberApi, moduleApi, reviewApi, type ReviewCaseRow } from "@rabbit/api-client";
 import { useApp } from "@/hooks/useApp";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useProjectStore } from "@/stores/project";
+import { FollowStar } from "@/components/FollowStar";
 
 const MODE_TIP: Record<string, string> = {
   SINGLE: "单人评审：最后评审结果生效",
@@ -131,6 +132,21 @@ export default function ReviewDetailPage({ params }: { params: Promise<{ id: str
     onError: (e) => message.error(e instanceof Error ? e.message : "操作失败"),
   });
 
+  // DASH-002 关注星：followed 回显待详情接口扩展（reviewApi.detail 暂无 followed 字段），首帧 false，点击后即与真实状态同步
+  const [reviewFollowed, setReviewFollowed] = useState(false);
+  const followM = useMutation({
+    mutationFn: (on: boolean) => followApi.review(projectId!, id, on),
+    onMutate: (on) => setReviewFollowed(on),
+    onSuccess: (r) => {
+      setReviewFollowed(r.followed);
+      void qc.invalidateQueries({ queryKey: ["review", projectId, id] });
+    },
+    onError: (e, on) => {
+      setReviewFollowed(!on);
+      message.error(e instanceof Error ? e.message : "关注操作失败");
+    },
+  });
+
   if (!projectId)
     return (
       <div className="rabbit-card p-16 flex justify-center">
@@ -167,6 +183,15 @@ export default function ReviewDetailPage({ params }: { params: Promise<{ id: str
           </p>
           <div className="flex items-center gap-2 flex-wrap">
             <h1 className="text-lg font-medium m-0">{review.name}</h1>
+            {can("PROJECT_CASE_REVIEW:READ") && (
+              <FollowStar
+                entityType="case_review"
+                entityId={id}
+                followed={reviewFollowed}
+                onToggle={(on) => followM.mutateAsync(on).catch(() => undefined)}
+                testid={`review-follow-${id}`}
+              />
+            )}
             <Tooltip title={MODE_TIP[review.reviewMode]}>
               <Tag
                 color={review.reviewMode === "MULTI" ? "blue" : "default"}

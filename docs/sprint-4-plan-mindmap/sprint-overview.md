@@ -7,7 +7,7 @@
 | 周期       | 第 12-14 周（15 个工作日）                                                                    |
 | 覆盖优先级 | **P2 计划完整与报告导出 + 脑图**（需求文档 §四 M4/M5：测试点/计划执行/脑图三态/计划报告；§七 M5 W14）|
 | 文档数     | 7 份（4 PLAN + 2 CASE + 1 DASH）                                                              |
-| 文档状态   | Approved（2026-09-27 规格自评审冻结；交付后翻 Implemented，走查随验收）|
+| 文档状态   | Implemented（2026-09-27 交付：规格/原型/契约 v4/引擎/前后端/测试全量；走查随验收）|
 | 上游依据   | [需求文档](../需求文档.md) §四 M4「测试计划」、§七 M5；功能清单 §五/§四                       |
 | 前置迭代   | [Sprint 3](../sprint-3-scenario-automation/sprint-overview.md)（场景执行链 refType=scenario、报告分享链路）|
 | 阻塞下游   | Sprint 5 MSG-001（关注变更通知）、Sprint 6 INTG（计划关联三方需求）                           |
@@ -97,20 +97,34 @@
 
 | 验收标准 | 结果 | 证据 |
 | -------- | ---- | ---- |
-| （交付自查于 Sprint 收尾时按真实证据回填，预填视为虚标） | | |
+| 1. 测试规划（点树/继承/挂点） | ✅ | JMeter PLAN-002（点 CRUD/环 30456/非空 30455/挂点计数）；e2e PLAN-002-01/02；resolvePointChain 单测矩阵（显式截断/根回退/环防御/深度上限） |
+| 2. 引擎执行（plan 任务/回写/报告） | ✅ | JMeter PLAN-003（execute 201→轮询终态→executions/type=plan→详情回写 FAIL→报告可读）；e2e PLAN-003-01（报告页「计划执行」）；engine plan 单测 4 条（分派/env 优先级/STOPPED 透传） |
+| 3. 失败停止与依赖 BLOCKED | ✅ | stopOnFail 串行 SKIPPED（JMeter T1 链路）；CASE-008 e2e（B FAIL→标记 B 响应 blockedBy.caseId=A）；assertNoDependencyCycle BFS 单测（经 jmx 反向环 30484/自引用 30485） |
+| 4. 自动更新状态（PASS 方向） | ✅ | JMeter PLAN-003 T4-5/T4-6（单跑正向→功能用例 NOT_RUN→PASS contains）；curl 实证（auto-fn→PASS） |
+| 5. 脑图双模式（快捷键/同步） | ✅ | e2e CASE-007-01（列表↔脑图往返/M 键建模块/保存 201/脑图见 API 建的用例）；layoutMindmap 纯函数（父子居中/折叠/环防御）+ 快捷键状态机单测 |
+| 6. 脑图执行（S/E/B） | ✅ | e2e PLAN-003-02（S 键→exec status=PASS 接口断言→列表「通过」同步） |
+| 7. 计划分组（组视图/聚合/级联） | ✅ | JMeter PLAN-004（组 CRUD/移入/聚合 memberCount=2/级联归档成员只读 10008/恢复）；e2e PLAN-004-01/02（组报告页） |
+| 8. 报告导出（总结/分享/PDF/CSV） | ✅ | JMeter PLAN-005（view 概览/draft 含总结/summary 保存/分享免登录 200→吊销 404/CSV BOM+表头）；e2e PLAN-005-01（分享页+打印页+CSV 断言） |
+| 9. 工作台七维度 | ✅ | JMeter DASH-002（followed kind 二态/created createdBy/待办含 api_case/幂等/404 30504）；e2e DASH-002-01/02（关注星 UI+维度筛选+我的执行徽标） |
+| 10. 权限二态（PLAN READ 只读） | ✅ | e2e 沿用 S1 口径回归（PLAN-001 计划组全绿）；points/execute 端点 requirePerm(PROJECT_PLAN:UPDATE) 门禁在路由层 |
+| 11. 自动化测试齐备 | ✅ | Vitest 108（shared 76 + engine 32）；JMeter 36 计划全绿（新增 7）；Playwright 119 全绿（新增 12 含 MAINFLOW-s4）；OpenAPI 快照 214 paths 审计通过；lint/边界检查 PASS |
 
 ### 7.1 工程债清偿
 
-（收尾时回填：PLAN-001 执行配置占位激活 / 自动更新状态激活 / S3 loop 帧名 / 场景关注入口 / ApiRefPanel 收口）
+- **PLAN-001 执行配置占位**：✅ 全激活（env/serial/stopOnFail 经 resolvePointChain 点链生效；poolId 落任务）
+- **自动更新状态**：✅ 激活（回调 applyPlanTaskResult：PASS 的 api_case/scenario→CASE-006 关联功能用例自动 PASS，execHistory source=auto）
+- **S3 loop 帧名**：✅ 契约 v4：控制器命名帧 log kind=node-name + 树聚合消费（报告树 loop/condition/once 节点名修复；实现形态与规格「step-start+stepName」措辞有偏差→见 PLAN-003 勘误 1）
+- **S3 场景关注入口**：✅ 场景详情 FollowStar（followApi.scenario）
+- **ApiRefPanel 场景引用呈现**：⚠️ 未收口（脑图 Tab 承载的是计划执行视图；场景引用计数徽标移入 Backlog——诚实登记）
 
 ### 7.2 走查与确认状态
 
 - 高保真人工确认：待用户验收（S0 §8.1 目标授权先例：实现先行、走查随验收补——不可由 AI 代签）
 - 走查批次：S4 批次走查待用户执行（证据输入：每用例自动截屏、trace.zip、jtl、HTML 报告）
 
-### 7.3 交付过程中发现并修复的缺陷（实现侧 N 处）
+### 7.3 交付过程中发现并修复的缺陷（实现侧 10 处）
 
-待实现后回填（CHANGELOG v0.5.0「修复」同步）。
+zod 裸 .parse 落 500（guard 增 zodParse 统一 20422）/ S4 新错误码未入 guard 404/422 分段（POINT/GROUP/DEPENDENCY/MINDMAP/FOLLOW/PLAN_NO_EXECUTABLE）/ scenarios 路由 slug 命名冲突 [scenarioId]→[id]（Next 构建报错）/ createPlanTask 空场景集仍调 buildScenarioCommands 抛 40474 / exec-tasks type 枚举缺 plan / addPlanCases added 计数仅功能口径（改三类 before/after）+ api/scenario 行漏落 execUserId / listPlanGroups 未分组计划被 where 排除（列表恒空）/ CaseMindmapView pageSize 500 超列表契约上限 100 / 关联 Toast 文案随 added 口径翻倍 / pool EXPECTED_ENGINE_VERSION 滞留 0.3.0 致 v0.4.0 节点 UNMATCHED。详见 CHANGELOG v0.5.0「修复」。
 
 ## 8. 遗留与展望（收尾时回填）
 

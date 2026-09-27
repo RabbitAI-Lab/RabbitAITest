@@ -150,14 +150,14 @@ test("CASE-006-02 计划侧：关联弹窗「接口用例」Tab→勾选 2→清
   const linkPayload = linkRawRes.request().postDataJSON() as { caseIds: string[]; apiCaseIds: string[] };
   expect(linkPayload.caseIds).toEqual([]);
   expect(linkPayload.apiCaseIds.sort()).toEqual([cA.id, cB.id].sort());
-  await expect(page.getByText(/已关联 2 条用例（功能 0 · 接口 2）/)).toBeVisible();
+  await expect(page.getByText(/已关联 2 条用例（功能 0 提交 · 接口 2 提交）/)).toBeVisible();
 
-  // ── 计划清单：「接口」徽标行 ×2，未执行（S4）+ 执行(S4) 禁用；功能行共存 ──
+  // ── 计划清单：「接口」徽标行 ×2，未执行徽标 + 行内单条执行按钮（S4 PLAN-003 激活）；功能行共存 ──
   await expect(page.getByTestId("plan-cases-tab")).toContainText("用例清单（3）");
   await expect(page.getByTestId("plan-api-ref-badge")).toHaveCount(2);
   const apiRowA = page.getByRole("row", { name: new RegExp(apiCaseA) });
-  await expect(apiRowA.getByText("● 未执行（S4）")).toBeVisible();
-  await expect(apiRowA.getByRole("button", { name: /执行\(S4\)/ })).toBeDisabled();
+  await expect(apiRowA.getByText("● 未执行")).toBeVisible();
+  await expect(apiRowA.getByRole("button", { name: "▶" })).toBeEnabled();
   // 混合共存：功能用例行仍是链接 + 可展开
   const funcRow = page.getByRole("row", { name: new RegExp(funcName) });
   await expect(funcRow.getByRole("link", { name: funcName })).toBeVisible();

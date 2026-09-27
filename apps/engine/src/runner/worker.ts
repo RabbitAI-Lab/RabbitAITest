@@ -1,4 +1,4 @@
-/** EXEC-002/006 runner v3：api_debug 单请求 + api_case 批量（串行）+ scenario 场景（串行/并行）。 */
+/** EXEC-002/006 runner v4：api_debug 单请求 + api_case 批量（串行）+ scenario 场景（串行/并行）+ plan 计划（S4）。 */
 import { config, execCommandSchema, execStopKey } from "@rabbit/shared";
 import type { ExecCallback, ExecCommand } from "@rabbit/shared/execution";
 import { heartbeatResponseSchema } from "@rabbit/shared/execution";
@@ -8,10 +8,11 @@ import Redis from "ioredis";
 import { EventWriter } from "../events.js";
 import { postCallback } from "../callback.js";
 import { runScenarioItem, type ScenarioItemOutcome } from "../kernel/scenario.js";
+import { runPlanItem } from "../kernel/plan.js";
 import { runStep } from "./step.js";
 
 const NODE_ID = `node-${process.pid}`;
-const VERSION = "0.3.0"; // 契约 v3（心跳协商：scenario 命令与 FAKE_ERROR/stepPath 帧）
+const VERSION = "0.4.0"; // 契约 v4（plan 命令、step-start 帧 stepName）
 /** 池当前并发上限（心跳下发动态更新；parallel 模式 p-limit 取此值） */
 let poolConcurrency = 4;
 
@@ -127,6 +128,65 @@ export async function runTask(redis: Redis, command: unknown): Promise<"success"
       outcome,
       failed > 0 ? "ASSERT_FAILED" : undefined,
       failed > 0 ? `${failed}/${cmd.items.length} 个场景失败` : stopped ? "任务被停止" : "",
+      { total: cmd.items.length, passed, failed },
+    );
+  }
+
+  if (cmd.type === "plan") {
+    // S4 PLAN-003：计划任务——item 分派（api_case 单步管线 / scenario 内核）；serial/parallel/stopOnFail 与 scenario 分支同构
+    const outcomes = new Map<string, { status: string; message: string }>();
+    let stopped = false;
+    let stoppedAll = false;
+    const planDeps = { redis, writer, envVarUpdates, counter };
+    const runOne = async (item: (typeof cmd.items)[number]) => {
+      const r = await runPlanItem(planDeps, cmd.envSnapshot, item);
+      outcomes.set(item.command.itemId, r);
+      return r;
+    };
+    if (cmd.mode === "serial") {
+      for (const item of cmd.items) {
+        if (stoppedAll) {
+          await writer.emit({ type: "item-final", itemId: item.command.itemId, status: "SKIPPED", message: "前序失败（失败停止）" });
+          outcomes.set(item.command.itemId, { status: "SKIPPED", message: "前序失败（失败停止）" });
+          continue;
+        }
+        if (await isStopped(redis, cmd.taskId)) {
+          stoppedAll = true;
+          await writer.emit({ type: "item-final", itemId: item.command.itemId, status: "STOPPED", message: "任务被停止" });
+          outcomes.set(item.command.itemId, { status: "STOPPED", message: "任务被停止" });
+          continue;
+        }
+        const r = await runOne(item);
+        if (r.status === "STOPPED") {
+          stopped = true;
+          stoppedAll = true;
+        } else if (r.status !== "SUCCESS" && cmd.stopOnFail) {
+          stoppedAll = true;
+        }
+      }
+    } else {
+      const limit = pLimit(poolConcurrency);
+      const jobs = cmd.items.map((item) =>
+        limit(async () => {
+          if (stoppedAll) {
+            await writer.emit({ type: "item-final", itemId: item.command.itemId, status: "SKIPPED", message: "失败停止（未开始）" });
+            outcomes.set(item.command.itemId, { status: "SKIPPED", message: "失败停止（未开始）" });
+            return;
+          }
+          const r = await runOne(item);
+          if (r.status !== "SUCCESS" && cmd.stopOnFail) stoppedAll = true;
+        }),
+      );
+      await Promise.all(jobs);
+      if (await isStopped(redis, cmd.taskId)) stopped = true;
+    }
+    const passed = [...outcomes.values()].filter((r) => r.status === "SUCCESS").length;
+    const failed = [...outcomes.values()].filter((r) => r.status === "FAILED").length;
+    const outcome: "success" | "failed" | "stopped" = stopped && failed === 0 ? "stopped" : failed > 0 ? "failed" : "success";
+    return finish(
+      outcome,
+      failed > 0 ? "ASSERT_FAILED" : undefined,
+      failed > 0 ? `${failed}/${cmd.items.length} 条计划用例失败` : stopped ? "任务被停止" : "",
       { total: cmd.items.length, passed, failed },
     );
   }

@@ -37,6 +37,9 @@ export function toResponse(err: unknown): NextResponse {
                   ErrCode.SCENARIO_NOT_FOUND,
                   ErrCode.SCENARIO_STEP_NOT_FOUND,
                   ErrCode.FALSE_ALARM_RULE_NOT_FOUND,
+                  ErrCode.POINT_NOT_FOUND,
+                  ErrCode.PLAN_GROUP_NOT_FOUND,
+                  ErrCode.FOLLOW_TARGET_NOT_FOUND,
                 ] as number[]
               ).includes(err.code)
             ? 404
@@ -62,6 +65,15 @@ export function toResponse(err: unknown): NextResponse {
                       ErrCode.CSV_TOO_LARGE,
                       ErrCode.IMPORT_FILE_TOO_LARGE,
                       ErrCode.IMPORT_FORMAT_UNKNOWN,
+                      ErrCode.POINT_NOT_EMPTY,
+                      ErrCode.POINT_CYCLE,
+                      ErrCode.PLAN_GROUP_NOT_EMPTY,
+                      ErrCode.GROUP_NESTED,
+                      ErrCode.GROUP_NOT_EXECUTABLE,
+                      ErrCode.DEPENDENCY_CYCLE,
+                      ErrCode.SELF_DEPENDENCY,
+                      ErrCode.MINDMAP_TOO_LARGE,
+                      ErrCode.PLAN_NO_EXECUTABLE,
                     ] as number[]
                   ).includes(err.code)
                 ? 422
@@ -72,6 +84,19 @@ export function toResponse(err: unknown): NextResponse {
   }
   console.error("[unhandled]", err);
   return NextResponse.json(fail(50000, "服务内部错误"), { status: 500 });
+}
+
+/** S4：请求体 zod 解析统一出口（ZodError → DomainError 20422，避免裸抛落 500）。 */
+export function zodParse<T>(schema: { safeParse: (d: unknown) => { success: true; data: T } | { success: false; error: { issues: { path: (string | number)[]; message: string }[] } } }, data: unknown): T {
+  const parsed = schema.safeParse(data);
+  if (!parsed.success) {
+    const first = parsed.error.issues[0];
+    throw new DomainError(
+      ErrCode.VALIDATION_FAILED,
+      first ? `${first.path.join(".")}: ${first.message}` : "参数校验失败",
+    );
+  }
+  return parsed.data;
 }
 
 export interface AuthedCtx {

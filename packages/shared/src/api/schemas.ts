@@ -264,7 +264,7 @@ export const fileListQuerySchema = z.object({
 // ── 任务中心（SYS-006）与报告（RPT-002）──
 
 export const execTaskListQuerySchema = z.object({
-  type: z.enum(["api_debug", "api_case", "scenario"]).optional(),
+  type: z.enum(["api_debug", "api_case", "scenario", "plan"]).optional(),
   status: z.enum(["PENDING", "RUNNING", "SUCCESS", "FAILED", "STOPPED"]).optional(),
   creator: z.string().max(128).optional(),
   from: z.string().datetime().optional(),
@@ -273,7 +273,7 @@ export const execTaskListQuerySchema = z.object({
   pageSize: z.coerce.number().int().min(1).max(100).default(20),
 });
 export const reportListQuerySchema = z.object({
-  reportType: z.enum(["api_debug", "api_case", "scenario"]).optional(),
+  reportType: z.enum(["api_debug", "api_case", "scenario", "plan"]).optional(),
   keyword: z.string().max(128).optional(),
   page: z.coerce.number().int().min(1).default(1),
   pageSize: z.coerce.number().int().min(1).max(100).default(20),

@@ -6,7 +6,7 @@
 | 所属迭代     | Sprint 4 — 计划完整与脑图                                                                                                                                              |
 | 优先级       | P2（迭代内 P1）                                                                                                                                                        |
 | 所属模块     | 测试计划（plan 域）                                                                                                                                                     |
-| 文档状态     | Approved（2026-09-27 自评审冻结；交付后翻 Implemented）                                                                                                                 |
+| 文档状态     | Implemented（2026-09-27 交付：代码+单测+JMeter+Playwright 全绿；走查随验收）                                                                                              |
 | 最后更新日期 | 2026-09-27                                                                                                                                                             |
 | 上游依赖     | PLAN-001（计划基础与用例关联）、CASE-006（接口用例关联 refType=api_case）、API-006（场景 refType=scenario）                                                            |
 | 下游消费     | PLAN-003（执行配置继承与按点执行）、PLAN-005（报告按点维度明细）                                                                                                        |
@@ -89,4 +89,4 @@ DoD 前置：高保真人工确认（S0 §8.1 先例：目标授权下实现先�
 
 ## 8. 勘误登记
 
-（交付后回填）
+- 勘误 1（2026-09-27，错误码分段对齐）：§4 所列示意码（40430/50012/42207）按 api-conventions 分段落最终实现为 POINT_NOT_FOUND=30454（404）、POINT_NOT_EMPTY=30455（422）、POINT_CYCLE=30456（422）；§4 端点集以 OpenAPI 快照 214 paths 为准（点内清单并入 getPlan cases 透出 pointId，未单列 GET /cases?pointId）。

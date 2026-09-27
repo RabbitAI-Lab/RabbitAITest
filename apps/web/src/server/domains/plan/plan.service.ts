@@ -109,6 +109,7 @@ export async function getPlan(projectId: string, planId: string) {
   // CASE-006/S2：接口用例关联行（refType=api_case）一并透出（名称经 ApiRefProvider，执行随 S4）
   const fnRefs = allRefs.filter((r) => r.refType === "functional_case");
   const apiRefs = allRefs.filter((r) => r.refType === "api_case");
+  const scenarioRefs = allRefs.filter((r) => r.refType === "scenario");
   const caseIds = fnRefs.map((r) => r.refId);
   const caseRows = caseIds.length
     ? await prisma.functionalCase.findMany({
@@ -134,12 +135,19 @@ export async function getPlan(projectId: string, planId: string) {
     apiSummaries = await listApiRefSummary(projectId, apiRefs.map((r) => r.refId));
   }
   const apiMap = new Map(apiSummaries.map((s) => [s.refId, s]));
-  // 统计口径不变：仅功能用例参与人工执行通过率（api_case 恒 NOT_RUN，执行随 S4）
-  const stats = planPassRate(fnRefs.map((r) => ({ status: r.status })));
+  let scenarioSummaries: { refId: string; name: string; level: string; status: string; updatedAt: string }[] = [];
+  if (scenarioRefs.length > 0) {
+    const { listScenarioRefSummary } = await import("@/server/domains/api/api-ref.provider");
+    scenarioSummaries = await listScenarioRefSummary(projectId, scenarioRefs.map((r) => r.refId));
+  }
+  const scenarioMap = new Map(scenarioSummaries.map((s) => [s.refId, s]));
+  // S4 统计口径升级：三类 refs 统一参与（引擎执行回写 api_case/scenario 状态；功能用例人工/自动）
+  const stats = planPassRate(allRefs.map((r) => ({ status: r.status })));
   const settings = (p.settings ?? {}) as {
     threshold?: number;
     allowDuplicate?: boolean;
     autoUpdateStatus?: boolean;
+    execConfig?: Record<string, unknown>;
   };
   return {
     id: p.id,
@@ -155,7 +163,7 @@ export async function getPlan(projectId: string, planId: string) {
     stats,
     passRate: stats.passRate,
     thresholdMet: stats.passRate === null ? null : stats.passRate >= (settings.threshold ?? 100),
-    caseCount: fnRefs.length,
+    caseCount: allRefs.length,
     cases: [
       ...refs.map((r) => {
         const c = caseMap.get(r.refId)!;
@@ -163,6 +171,7 @@ export async function getPlan(projectId: string, planId: string) {
           refId: r.id,
           refType: "functional_case" as const,
           caseId: r.refId,
+          pointId: r.pointId,
           num: c.num,
           name: c.name,
           level: c.level,
@@ -191,6 +200,7 @@ export async function getPlan(projectId: string, planId: string) {
                 refId: r.id,
                 refType: "api_case" as const,
                 caseId: r.refId,
+                pointId: r.pointId,
                 num: null,
                 name: s.name,
                 level: s.level,
@@ -198,16 +208,46 @@ export async function getPlan(projectId: string, planId: string) {
                 steps: [] as { desc: string; expect: string }[],
                 execUserId: r.execUserId,
                 status: r.status,
-                result: {} as {
-                  actualResult?: string;
-                  steps?: { status: string; result: string }[];
-                  comment?: string;
-                },
-                execHistory: [] as { ts: string; userId: string; from: string; to: string }[],
+                result: (r.result ?? {}) as Record<string, unknown>,
+                execHistory: (r.execHistory ?? []) as {
+                  ts: string;
+                  userId: string;
+                  from: string;
+                  to: string;
+                }[],
                 apiName: s.apiName,
                 method: s.method,
                 path: s.path,
                 deleted: s.deleted,
+              },
+            ]
+          : [];
+      }),
+      ...scenarioRefs.flatMap((r) => {
+        const s = scenarioMap.get(r.refId);
+        return s
+          ? [
+              {
+                refId: r.id,
+                refType: "scenario" as const,
+                caseId: r.refId,
+                pointId: r.pointId,
+                num: null,
+                name: s.name,
+                level: s.level,
+                tags: [] as string[],
+                steps: [] as { desc: string; expect: string }[],
+                execUserId: r.execUserId,
+                status: r.status,
+                result: (r.result ?? {}) as Record<string, unknown>,
+                execHistory: (r.execHistory ?? []) as {
+                  ts: string;
+                  userId: string;
+                  from: string;
+                  to: string;
+                }[],
+                scenarioStatus: s.status,
+                deleted: false,
               },
             ]
           : [];
@@ -256,7 +296,8 @@ export async function archivePlan(projectId: string, planId: string, archived: b
   return { id: planId, archived };
 }
 
-/** 批量关联用例：重复关联开关关闭时同用例二次关联 422（code 10009）。 */
+/** 批量关联用例：重复关联开关关闭时同用例二次关联 422（code 10009）。
+ * S4 PLAN-002：+pointId 挂点、+scenarioIds（refType=scenario，经场景域校验）。 */
 export async function addPlanCases(
   projectId: string,
   planId: string,
@@ -264,14 +305,46 @@ export async function addPlanCases(
   execUserId?: string,
   /** CASE-006：接口用例关联（refType=api_case 经 ApiRefProvider 校验，执行随 S4 PLAN-003） */
   apiCaseIds: string[] = [],
+  /** S4：场景关联（refType=scenario 经场景域存在性校验） */
+  scenarioIds: string[] = [],
+  /** S4：挂载测试点（null=未分组） */
+  pointId: string | null = null,
 ) {
   const p = await loadPlan(projectId, planId);
   requireNotArchived(p.archivedAt);
+  const beforeCount = await prisma.planCaseRef.count({ where: { planId } });
   const settings = (p.settings ?? {}) as { allowDuplicate?: boolean };
+  if (pointId) {
+    const point = await prisma.testPoint.findFirst({ where: { id: pointId, planId }, select: { id: true } });
+    if (!point) throw new DomainError(ErrCode.POINT_NOT_FOUND, "测试点不存在");
+  }
   const cases = await prisma.functionalCase.findMany({
     where: { id: { in: caseIds }, projectId, deletedAt: null },
     select: { id: true },
   });
+  if (scenarioIds.length > 0) {
+    // 场景域读经 api-ref.provider（禁止本文件直查 api 域模型——test-domain-model §3）
+    const { batchValidateScenarioRefs, assertNoInvalidRef } = await import(
+      "@/server/domains/api/api-ref.provider"
+    );
+    const { valid, invalid } = await batchValidateScenarioRefs(projectId, scenarioIds);
+    assertNoInvalidRef(invalid);
+    const existing = await prisma.planCaseRef.findMany({
+      where: { planId, refType: "scenario", refId: { in: valid } },
+      select: { refId: true },
+    });
+    const existingSet = new Set(existing.map((e) => e.refId));
+    const dup = valid.filter((id) => existingSet.has(id));
+    if (dup.length > 0 && !settings.allowDuplicate) {
+      throw new DomainError(ErrCode.DUP_ASSOC, `重复关联 ${dup.length} 个场景（计划未开启「允许重复关联」）`);
+    }
+    for (const refId of valid) {
+      if (existingSet.has(refId)) continue;
+      await prisma.planCaseRef.create({
+        data: { planId, refType: "scenario", refId, pointId, execUserId: execUserId ?? null, status: "NOT_RUN" },
+      });
+    }
+  }
   if (apiCaseIds.length > 0) {
     // 接口用例走 Provider 通道（禁止本文件直查 api 域模型——test-domain-model §3）
     const { batchValidateApiRefs, assertNoInvalidRef } = await import(
@@ -291,7 +364,7 @@ export async function addPlanCases(
     for (const refId of valid) {
       if (apiExistingSet.has(refId)) continue;
       await prisma.planCaseRef.create({
-        data: { planId, refType: "api_case", refId, status: "NOT_RUN" },
+        data: { planId, refType: "api_case", refId, pointId, execUserId: execUserId ?? null, status: "NOT_RUN" },
       });
     }
   }
@@ -314,13 +387,16 @@ export async function addPlanCases(
         planId,
         refType: "functional_case",
         refId: c.id,
+        pointId,
         execUserId: execUserId ?? null,
         status: "NOT_RUN",
       },
     });
   }
   await refreshPlanStatus(planId);
-  return { added: cases.length - dup.length };
+  // added=三类实际新建数（S4 口径：仅功能用例计数的老口径废弃）
+  const after = await prisma.planCaseRef.count({ where: { planId } });
+  return { added: after - beforeCount };
 }
 
 export async function removePlanCase(projectId: string, planId: string, refId: string) {
@@ -361,6 +437,8 @@ export async function execPlanCase(
       status: input.status === "NOT_RUN" ? "NOT_RUN" : input.status,
       result: "",
     }));
+  // S4 CASE-008 执行联动：前置用例在本计划内最近结果=FAIL → blockedBy 提示（软提示不硬阻断，默认建议 BLOCKED）
+  const blockedBy = await findBlockingPredecessors(planId, ref.refId);
   const history = (ref.execHistory ?? []) as {
     ts: string;
     userId: string;
@@ -373,13 +451,41 @@ export async function execPlanCase(
     data: {
       status: input.status,
       result: JSON.parse(
-        JSON.stringify({ actualResult: input.actualResult, steps, comment: input.comment }),
+        JSON.stringify({
+          actualResult: input.actualResult,
+          steps,
+          comment: input.comment,
+          ...(input.status === "BLOCKED" && blockedBy.length > 0 ? { blockedBy } : {}),
+        }),
       ) as object,
       execHistory: JSON.parse(JSON.stringify(history)) as object[],
     },
   });
   await refreshPlanStatus(planId);
-  return { refId, status: input.status };
+  return { refId, status: input.status, ...(blockedBy.length > 0 ? { blockedBy } : {}) };
+}
+
+/** 依赖联动（CASE-008 §2）：本用例前置 ∩ 本计划 refs 中最近结果=FAIL 的集合（提示层）。 */
+async function findBlockingPredecessors(
+  planId: string,
+  caseId: string,
+): Promise<{ caseId: string; name: string }[]> {
+  const deps = await prisma.caseDependency.findMany({
+    where: { postCaseId: caseId },
+    select: { preCaseId: true },
+  });
+  if (deps.length === 0) return [];
+  const preIds = deps.map((d) => d.preCaseId);
+  const failedRefs = await prisma.planCaseRef.findMany({
+    where: { planId, refType: "functional_case", refId: { in: preIds }, status: "FAIL" },
+    select: { refId: true },
+  });
+  if (failedRefs.length === 0) return [];
+  const failedCases = await prisma.functionalCase.findMany({
+    where: { id: { in: failedRefs.map((r) => r.refId) }, deletedAt: null },
+    select: { id: true, name: true },
+  });
+  return failedCases.map((c) => ({ caseId: c.id, name: c.name }));
 }
 
 export async function batchExecutor(
@@ -397,8 +503,8 @@ export async function batchExecutor(
   return { affected: r.count };
 }
 
-/** 计划状态推进：有关联未执行→进行中；全部终态→已完成（无归档干扰）。 */
-async function refreshPlanStatus(planId: string) {
+/** 计划状态推进：有关联未执行→进行中；全部终态→已完成（无归档干扰）。（S4 导出：plan-exec 回调复用） */
+export async function refreshPlanStatus(planId: string) {
   const refs = await prisma.planCaseRef.findMany({ where: { planId }, select: { status: true } });
   const plan = await prisma.testPlan.findFirst({
     where: { id: planId },

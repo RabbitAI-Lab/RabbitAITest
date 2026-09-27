@@ -232,6 +232,17 @@ async function walkNodes(
     }
 
     try {
+      // v4：控制器名经帧传递（RPT-003 报告树 loop/condition/once 节点名——S3 遗留修复；log kind=node-name 纯命名帧）
+      if (node.stepType === "loop" || node.stepType === "condition" || node.stepType === "once") {
+        await writer.emit({
+          type: "log",
+          level: "info",
+          kind: "node-name",
+          itemId: item.itemId,
+          stepPath,
+          message: node.name,
+        });
+      }
       switch (node.stepType) {
         case "custom":
         case "ref_api":
