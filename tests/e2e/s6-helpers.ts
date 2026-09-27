@@ -32,7 +32,7 @@ export async function newAdminContext(playwright: Playwright): Promise<APIReques
 
 /** 允许上传的插件包白名单（构建产物目录固定四个；防路径穿越——basename 严格匹配） */
 const PLUGIN_TGZ_WHITELIST = new Set([
-  "jira-platform-1.0.1.tgz",
+  "jira-platform-1.0.2.tgz",
   "zentao-platform-1.0.1.tgz",
   "tapd-platform-1.0.1.tgz",
   "tcp-conn-1.0.1.tgz",

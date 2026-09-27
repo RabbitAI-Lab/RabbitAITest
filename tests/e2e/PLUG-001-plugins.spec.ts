@@ -87,10 +87,10 @@ test("PLUG-001-T4 上传负路径：同名同版本 409 70005（版本递增规�
 }) => {
   const admin = await newAdminContext(playwright);
   // jira-platform 由 INTG-001 用例上传（字母序 PLUG 在 INTG 后跑；若未上传则先上传）
-  await uploadPlugin(admin, "jira-platform-1.0.1.tgz");
+  await uploadPlugin(admin, "jira-platform-1.0.2.tgz");
   // 再次上传同版本 → 409
   const dup = await admin.post("/api/v1/system/plugins", {
-    data: { filename: "jira-platform-1.0.1.tgz", contentBase64: readPluginB64("jira-platform-1.0.1.tgz"), orgScope: "ALL" },
+    data: { filename: "jira-platform-1.0.2.tgz", contentBase64: readPluginB64("jira-platform-1.0.2.tgz"), orgScope: "ALL" },
   });
   expect(dup.status()).toBe(409);
   const body = (await dup.json()) as { code: number; message: string };

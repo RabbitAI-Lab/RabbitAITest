@@ -51,7 +51,7 @@
           <stringProp name="HTTPSampler.port">${__P(PORT,3100)}</stringProp>
           <stringProp name="HTTPSampler.path">/api/v1/auth/login</stringProp>
           <stringProp name="HTTPSampler.method">POST</stringProp>
-          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">false</boolProp>
         </HTTPSamplerProxy>
         <hashTree>
           <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="HTTP 200">
@@ -81,10 +81,20 @@
         <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="T0.1 上传 jira-platform 插件（幂等容忍：已存在则 409 亦放行本步目的——用 IfController 探测列表）">
           <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments">
             <collectionProp name="Arguments.arguments">
-              <elementProp name="" elementType="HTTPArgument">
+              <elementProp name="orgScope" elementType="HTTPArgument">
                 <boolProp name="HTTPArgument.always_encode">false</boolProp>
-                <stringProp name="Argument.value">{&quot;filename&quot;:&quot;jira-platform-1.0.0.tgz&quot;,&quot;contentBase64&quot;:&quot;${TGZ_B64}&quot;,&quot;orgScope&quot;:&quot;ALL&quot;}</stringProp>
+                <stringProp name="Argument.name">orgScope</stringProp>
+                <stringProp name="Argument.value">ALL</stringProp>
                 <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+          <elementProp name="HTTPsampler.Files" elementType="HTTPFileArgs">
+            <collectionProp name="HTTPFileArgs.files">
+              <elementProp name="" elementType="HTTPFileArg">
+                <stringProp name="File.path">plugins/dist/jira-platform-1.0.2.tgz</stringProp>
+                <stringProp name="File.paramname">file</stringProp>
+                <stringProp name="File.mimetype">application/gzip</stringProp>
               </elementProp>
             </collectionProp>
           </elementProp>
@@ -92,15 +102,9 @@
           <stringProp name="HTTPSampler.port">${__P(PORT,3100)}</stringProp>
           <stringProp name="HTTPSampler.path">/api/v1/system/plugins</stringProp>
           <stringProp name="HTTPSampler.method">POST</stringProp>
-          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">false</boolProp>
         </HTTPSamplerProxy>
         <hashTree>
-          <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="读 tarball 转 base64">
-          <stringProp name="scriptLanguage">groovy</stringProp>
-          <stringProp name="parameters">plugins/dist/jira-platform-1.0.0.tgz</stringProp>
-          <stringProp name="script">def f = new File(parameters.trim()); vars.put("TGZ_B64", f.bytes.encodeBase64().toString().replaceAll("\\s", ""))</stringProp>
-        </JSR223PreProcessor>
-          <hashTree/>
           <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="提取 JIRA_PLUGIN_ID">
             <stringProp name="JSONPostProcessor.referenceNames">JIRA_PLUGIN_ID</stringProp>
             <stringProp name="JSONPostProcessor.jsonPathExprs">$.data.id</stringProp>
@@ -108,12 +112,10 @@
             <stringProp name="JSONPostProcessor.defaultValues">NONE</stringProp>
           </JSONPostProcessor>
           <hashTree/>
-          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="HTTP 201 或 409（重复上传容忍）">
-            <collectionProp name="Asserion.test_strings"><stringProp name="49586">201</stringProp><stringProp name="49587">409</stringProp></collectionProp>
-            <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
-            <intProp name="Assertion.test_type">8</intProp>
-            <boolProp name="Assertion.assume_success">false</boolProp>
-          </ResponseAssertion>
+          <JSR223Assertion guiclass="TestBeanGUI" testclass="JSR223Assertion" testname="容忍 201/409（幂等上传）">
+            <stringProp name="scriptLanguage">groovy</stringProp>
+            <stringProp name="script">def c = prev.getResponseCode(); if (!(c == &quot;201&quot; || c == &quot;409&quot;)) { AssertionResult.setFailure(true); AssertionResult.setFailureMessage(&quot;expect 201/409 got &quot; + c) }</stringProp>
+          </JSR223Assertion>
           <hashTree/>
           <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="code=0 或 70005">
             <stringProp name="JSON_PATH">$.code</stringProp>
@@ -133,7 +135,7 @@
           <stringProp name="HTTPSampler.port">${__P(PORT,3100)}</stringProp>
           <stringProp name="HTTPSampler.path">/api/v1/system/plugins</stringProp>
           <stringProp name="HTTPSampler.method">GET</stringProp>
-          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">false</boolProp>
         </HTTPSamplerProxy>
         <hashTree>
           <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="提取 JIRA_PLUGIN_ID（按 name 过滤）">
@@ -181,7 +183,7 @@
           <stringProp name="HTTPSampler.port">${__P(PORT,3100)}</stringProp>
           <stringProp name="HTTPSampler.path">/api/v1/system/plugins/${JIRA_PLUGIN_ID}</stringProp>
           <stringProp name="HTTPSampler.method">PUT</stringProp>
-          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">false</boolProp>
         </HTTPSamplerProxy>
         <hashTree>
           <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="HTTP 200">
@@ -236,7 +238,7 @@
           <stringProp name="HTTPSampler.port">${__P(PORT,3100)}</stringProp>
           <stringProp name="HTTPSampler.path">/api/v1/auth/register</stringProp>
           <stringProp name="HTTPSampler.method">POST</stringProp>
-          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">false</boolProp>
         </HTTPSamplerProxy>
         <hashTree>
           <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="提取 PROJECT_ID">
@@ -275,7 +277,7 @@
           <stringProp name="HTTPSampler.port">${__P(PORT,3100)}</stringProp>
           <stringProp name="HTTPSampler.path">/api/v1/projects/${PROJECT_ID}/info</stringProp>
           <stringProp name="HTTPSampler.method">GET</stringProp>
-          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">false</boolProp>
         </HTTPSamplerProxy>
         <hashTree>
           <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="提取 ORG_ID">
@@ -328,7 +330,7 @@
           <stringProp name="HTTPSampler.port">${__P(PORT,3100)}</stringProp>
           <stringProp name="HTTPSampler.path">/api/v1/orgs/${ORG_ID}/integrations</stringProp>
           <stringProp name="HTTPSampler.method">PUT</stringProp>
-          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">false</boolProp>
         </HTTPSamplerProxy>
         <hashTree>
           <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="HTTP 200">
@@ -360,7 +362,7 @@
           <stringProp name="HTTPSampler.port">${__P(PORT,3100)}</stringProp>
           <stringProp name="HTTPSampler.path">/api/v1/orgs/${ORG_ID}/integrations</stringProp>
           <stringProp name="HTTPSampler.method">GET</stringProp>
-          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">false</boolProp>
         </HTTPSamplerProxy>
         <hashTree>
           <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="HTTP 200">
@@ -407,7 +409,7 @@
           <stringProp name="HTTPSampler.port">${__P(PORT,3100)}</stringProp>
           <stringProp name="HTTPSampler.path">/api/v1/orgs/${ORG_ID}/integrations/test</stringProp>
           <stringProp name="HTTPSampler.method">POST</stringProp>
-          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">false</boolProp>
         </HTTPSamplerProxy>
         <hashTree>
           <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="HTTP 200">
@@ -448,7 +450,7 @@
           <stringProp name="HTTPSampler.port">${__P(PORT,3100)}</stringProp>
           <stringProp name="HTTPSampler.path">/api/v1/projects/${PROJECT_ID}/integration</stringProp>
           <stringProp name="HTTPSampler.method">PUT</stringProp>
-          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">false</boolProp>
         </HTTPSamplerProxy>
         <hashTree>
           <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="HTTP 200">
@@ -489,7 +491,7 @@
           <stringProp name="HTTPSampler.port">${__P(PORT,3100)}</stringProp>
           <stringProp name="HTTPSampler.path">/api/v1/projects/${PROJECT_ID}/bugs</stringProp>
           <stringProp name="HTTPSampler.method">POST</stringProp>
-          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">false</boolProp>
         </HTTPSamplerProxy>
         <hashTree>
           <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="提取 BUG_ID">
@@ -523,7 +525,7 @@
           <stringProp name="HTTPSampler.port">${__P(PORT,3100)}</stringProp>
           <stringProp name="HTTPSampler.path">/api/v1/projects/${PROJECT_ID}/bugs/${BUG_ID}/sync</stringProp>
           <stringProp name="HTTPSampler.method">POST</stringProp>
-          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">false</boolProp>
         </HTTPSamplerProxy>
         <hashTree>
           <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="提取 PLATFORM_KEY">
@@ -571,7 +573,7 @@
           <stringProp name="HTTPSampler.port">${__P(MOCK_PORT,4000)}</stringProp>
           <stringProp name="HTTPSampler.path">/mock-jira/_test/set-status</stringProp>
           <stringProp name="HTTPSampler.method">POST</stringProp>
-          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">false</boolProp>
         </HTTPSamplerProxy>
         <hashTree>
           <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="HTTP 200">
@@ -598,7 +600,7 @@
           <stringProp name="HTTPSampler.port">${__P(PORT,3100)}</stringProp>
           <stringProp name="HTTPSampler.path">/api/v1/projects/${PROJECT_ID}/integration/pull</stringProp>
           <stringProp name="HTTPSampler.method">POST</stringProp>
-          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">false</boolProp>
         </HTTPSamplerProxy>
         <hashTree>
           <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="HTTP 200">
@@ -631,7 +633,7 @@
           <stringProp name="HTTPSampler.port">${__P(PORT,3100)}</stringProp>
           <stringProp name="HTTPSampler.path">/api/v1/projects/${PROJECT_ID}/bugs/${BUG_ID}</stringProp>
           <stringProp name="HTTPSampler.method">GET</stringProp>
-          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">false</boolProp>
         </HTTPSamplerProxy>
         <hashTree>
           <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="HTTP 200">
@@ -663,7 +665,7 @@
           <stringProp name="HTTPSampler.port">${__P(PORT,3100)}</stringProp>
           <stringProp name="HTTPSampler.path">/api/v1/projects/${PROJECT_ID}/integration/sync-history?page=1&amp;pageSize=10</stringProp>
           <stringProp name="HTTPSampler.method">GET</stringProp>
-          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">false</boolProp>
         </HTTPSamplerProxy>
         <hashTree>
           <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="HTTP 200">
@@ -704,12 +706,13 @@
           <stringProp name="HTTPSampler.port">${__P(PORT,3100)}</stringProp>
           <stringProp name="HTTPSampler.path">/api/v1/orgs/${ORG_ID}/integrations</stringProp>
           <stringProp name="HTTPSampler.method">PUT</stringProp>
-          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">false</boolProp>
         </HTTPSamplerProxy>
         <hashTree>
           <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="HTTP 422">
             <collectionProp name="Asserion.test_strings"><stringProp name="49586">422</stringProp></collectionProp>
             <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+            <boolProp name="Assertion.assume_success">true</boolProp>
             <intProp name="Assertion.test_type">8</intProp>
           </ResponseAssertion>
           <hashTree/>
@@ -740,12 +743,13 @@
           <stringProp name="HTTPSampler.port">${__P(PORT,3100)}</stringProp>
           <stringProp name="HTTPSampler.path">/api/v1/projects/${PROJECT_ID}/integration</stringProp>
           <stringProp name="HTTPSampler.method">PUT</stringProp>
-          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">false</boolProp>
         </HTTPSamplerProxy>
         <hashTree>
           <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="HTTP 422">
             <collectionProp name="Asserion.test_strings"><stringProp name="49586">422</stringProp></collectionProp>
             <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+            <boolProp name="Assertion.assume_success">true</boolProp>
             <intProp name="Assertion.test_type">8</intProp>
           </ResponseAssertion>
           <hashTree/>
@@ -795,7 +799,7 @@
           <stringProp name="HTTPSampler.port">${__P(PORT,3100)}</stringProp>
           <stringProp name="HTTPSampler.path">/api/v1/auth/register</stringProp>
           <stringProp name="HTTPSampler.method">POST</stringProp>
-          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">false</boolProp>
         </HTTPSamplerProxy>
         <hashTree>
           <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="HTTP 201">
@@ -827,6 +831,7 @@
           <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="HTTP 404">
             <collectionProp name="Asserion.test_strings"><stringProp name="49586">404</stringProp></collectionProp>
             <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+            <boolProp name="Assertion.assume_success">true</boolProp>
             <intProp name="Assertion.test_type">8</intProp>
           </ResponseAssertion>
           <hashTree/>

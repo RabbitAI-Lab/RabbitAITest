@@ -41,9 +41,14 @@
           <stringProp name="HTTPSampler.port">${__P(PORT,3100)}</stringProp>
           <stringProp name="HTTPSampler.path">/api/v1/auth/register</stringProp>
           <stringProp name="HTTPSampler.method">POST</stringProp>
-          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">false</boolProp>
         </HTTPSamplerProxy>
         <hashTree>
+          <JSR223PostProcessor guiclass="TestBeanGUI" testclass="JSR223PostProcessor" testname="RAS 会话 cookie 存 Property">
+            <stringProp name="scriptLanguage">groovy</stringProp>
+            <stringProp name="script">def m = prev.getResponseHeaders() =~ /(?i)set-cookie: ras=([^;]+)/; if (m.find()) props.put(&quot;RAS&quot;, m.group(1))</stringProp>
+          </JSR223PostProcessor>
+          <hashTree/>
           <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="HTTP 201">
             <collectionProp name="Asserion.test_strings"><stringProp name="49586">201</stringProp></collectionProp>
             <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
@@ -82,15 +87,34 @@
           <stringProp name="HTTPSampler.port">${__P(PORT,3100)}</stringProp>
           <stringProp name="HTTPSampler.path">/api/v1/personal/api-keys</stringProp>
           <stringProp name="HTTPSampler.method">POST</stringProp>
-          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">false</boolProp>
         </HTTPSamplerProxy>
         <hashTree>
-          <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="提取 AK/SK/ID">
-            <stringProp name="JSONPostProcessor.referenceNames">AK;SK;KEY_ID</stringProp>
-            <stringProp name="JSONPostProcessor.jsonPathExprs">$.data.accessKey;$.data.secretKey;$.data.id</stringProp>
+          <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="提取 AK">
+            <stringProp name="JSONPostProcessor.referenceNames">AK</stringProp>
+            <stringProp name="JSONPostProcessor.jsonPathExprs">$.data.accessKey</stringProp>
             <stringProp name="JSONPostProcessor.match_numbers">1</stringProp>
             <stringProp name="JSONPostProcessor.defaultValues">NOT_FOUND</stringProp>
           </JSONPostProcessor>
+          <hashTree/>
+          <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="提取 SK">
+            <stringProp name="JSONPostProcessor.referenceNames">SK</stringProp>
+            <stringProp name="JSONPostProcessor.jsonPathExprs">$.data.secretKey</stringProp>
+            <stringProp name="JSONPostProcessor.match_numbers">1</stringProp>
+            <stringProp name="JSONPostProcessor.defaultValues">NOT_FOUND</stringProp>
+          </JSONPostProcessor>
+          <hashTree/>
+          <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="提取 KEY_ID">
+            <stringProp name="JSONPostProcessor.referenceNames">KEY_ID</stringProp>
+            <stringProp name="JSONPostProcessor.jsonPathExprs">$.data.id</stringProp>
+            <stringProp name="JSONPostProcessor.match_numbers">1</stringProp>
+            <stringProp name="JSONPostProcessor.defaultValues">NOT_FOUND</stringProp>
+          </JSONPostProcessor>
+          <hashTree/>
+          <JSR223PostProcessor guiclass="TestBeanGUI" testclass="JSR223PostProcessor" testname="AK/SK/KEY_ID 存 Property（跨线程组）">
+            <stringProp name="scriptLanguage">groovy</stringProp>
+            <stringProp name="script">props.put("AK", vars.get("AK")); props.put("SK", vars.get("SK")); props.put("KEY_ID", vars.get("KEY_ID"))</stringProp>
+          </JSR223PostProcessor>
           <hashTree/>
           <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="HTTP 201">
             <collectionProp name="Asserion.test_strings"><stringProp name="49586">201</stringProp></collectionProp>
@@ -121,7 +145,7 @@
           <stringProp name="HTTPSampler.port">${__P(PORT,3100)}</stringProp>
           <stringProp name="HTTPSampler.path">/api/v1/personal/api-keys</stringProp>
           <stringProp name="HTTPSampler.method">GET</stringProp>
-          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">false</boolProp>
         </HTTPSamplerProxy>
         <hashTree>
           <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="HTTP 200">
@@ -149,15 +173,79 @@
         </hashTree>
 
 
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="T1.4 吊销 APIKEY">
+        
+
+      </hashTree>
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="open 面认证（无会话）">
+        <stringProp name="ThreadGroup.num_threads">1</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">1</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController">
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+          <stringProp name="LoopController.loops">1</stringProp>
+        </elementProp>
+      </ThreadGroup>
+      <hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="T1.3 Bearer 有效 key 调 open（认证通过 → 任务不存在 404）">
           <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments"/>
           <stringProp name="HTTPSampler.domain">${__P(HOST,localhost)}</stringProp>
           <stringProp name="HTTPSampler.port">${__P(PORT,3100)}</stringProp>
-          <stringProp name="HTTPSampler.path">/api/v1/personal/api-keys/${KEY_ID}/revoke</stringProp>
-          <stringProp name="HTTPSampler.method">PUT</stringProp>
-          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <stringProp name="HTTPSampler.path">/api/v1/open/exec/00000000-0000-4000-8000-000000000000</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">false</boolProp>
         </HTTPSamplerProxy>
         <hashTree>
+                    <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="Bearer ${AK}.${SK}">
+            <collectionProp name="HeaderManager.headers">
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">Authorization</stringProp>
+                <stringProp name="Header.value">Bearer ${__P(AK)}.${__P(SK)}</stringProp>
+              </elementProp>
+            </collectionProp>
+          </HeaderManager>
+          <hashTree/>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="HTTP 404（非 401=认证通过）">
+            <collectionProp name="Asserion.test_strings"><stringProp name="49586">404</stringProp></collectionProp>
+            <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+            <boolProp name="Assertion.assume_success">true</boolProp>
+            <intProp name="Assertion.test_type">8</intProp>
+          </ResponseAssertion>
+          <hashTree/>
+          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="code=40404">
+            <stringProp name="JSON_PATH">$.code</stringProp>
+            <stringProp name="EXPECTED_VALUE">40404</stringProp>
+            <boolProp name="JSONVALIDATION">true</boolProp>
+          </JSONPathAssertion>
+          <hashTree/>
+          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="msg contains 任务不存在">
+            <stringProp name="JSON_PATH">$.message</stringProp>
+            <stringProp name="EXPECTED_VALUE">任务不存在</stringProp>
+            <boolProp name="JSONVALIDATION">false</boolProp>
+          </JSONPathAssertion>
+          <hashTree/>
+          <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion" testname="&lt;5000ms">
+            <stringProp name="DurationAssertion.duration">5000</stringProp>
+          </DurationAssertion>
+          <hashTree/>
+        </hashTree>
+
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="T2.0 吊销 APIKEY（session cookie 经 props 传递）">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments"/>
+          <stringProp name="HTTPSampler.domain">${__P(HOST,localhost)}</stringProp>
+          <stringProp name="HTTPSampler.port">${__P(PORT,3100)}</stringProp>
+          <stringProp name="HTTPSampler.path">/api/v1/personal/api-keys/${__P(KEY_ID)}/revoke</stringProp>
+          <stringProp name="HTTPSampler.method">PUT</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">false</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="session cookie">
+            <collectionProp name="HeaderManager.headers">
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">Cookie</stringProp>
+                <stringProp name="Header.value">ras=${__P(RAS)}</stringProp>
+              </elementProp>
+            </collectionProp>
+          </HeaderManager>
+          <hashTree/>
           <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="HTTP 200">
             <collectionProp name="Asserion.test_strings"><stringProp name="49586">200</stringProp></collectionProp>
             <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
@@ -182,73 +270,20 @@
           <hashTree/>
         </hashTree>
 
-
-      </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="open 面认证（无会话）">
-        <stringProp name="ThreadGroup.num_threads">1</stringProp>
-        <stringProp name="ThreadGroup.ramp_time">1</stringProp>
-        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController">
-          <boolProp name="LoopController.continue_forever">false</boolProp>
-          <stringProp name="LoopController.loops">1</stringProp>
-        </elementProp>
-      </ThreadGroup>
-      <hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="T1.3 Basic ak:sk 调 open（认证通过 → 任务不存在 404）">
-          <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments"/>
-          <stringProp name="HTTPSampler.domain">${__P(HOST,localhost)}</stringProp>
-          <stringProp name="HTTPSampler.port">${__P(PORT,3100)}</stringProp>
-          <stringProp name="HTTPSampler.path">/api/v1/open/exec/00000000-0000-4000-8000-000000000000</stringProp>
-          <stringProp name="HTTPSampler.method">GET</stringProp>
-          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
-        </HTTPSamplerProxy>
-        <hashTree>
-          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="Basic ${AK}:${SK}">
-            <collectionProp name="HeaderManager.headers">
-              <elementProp name="" elementType="Header">
-                <stringProp name="Header.name">Authorization</stringProp>
-                <stringProp name="Header.value">Basic ${__base64Encode(${AK}:${SK})}</stringProp>
-              </elementProp>
-            </collectionProp>
-          </HeaderManager>
-          <hashTree/>
-          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="HTTP 404（非 401=认证通过）">
-            <collectionProp name="Asserion.test_strings"><stringProp name="49586">404</stringProp></collectionProp>
-            <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
-            <intProp name="Assertion.test_type">8</intProp>
-          </ResponseAssertion>
-          <hashTree/>
-          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="code=40404">
-            <stringProp name="JSON_PATH">$.code</stringProp>
-            <stringProp name="EXPECTED_VALUE">40404</stringProp>
-            <boolProp name="JSONVALIDATION">true</boolProp>
-          </JSONPathAssertion>
-          <hashTree/>
-          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="msg contains 任务不存在">
-            <stringProp name="JSON_PATH">$.message</stringProp>
-            <stringProp name="EXPECTED_VALUE">任务不存在</stringProp>
-            <boolProp name="JSONVALIDATION">false</boolProp>
-          </JSONPathAssertion>
-          <hashTree/>
-          <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion" testname="&lt;5000ms">
-            <stringProp name="DurationAssertion.duration">5000</stringProp>
-          </DurationAssertion>
-          <hashTree/>
-        </hashTree>
-
         <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="T2.1 吊销后同 key 调 open → 401 10010（401 权限类）">
           <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments"/>
           <stringProp name="HTTPSampler.domain">${__P(HOST,localhost)}</stringProp>
           <stringProp name="HTTPSampler.port">${__P(PORT,3100)}</stringProp>
           <stringProp name="HTTPSampler.path">/api/v1/open/exec/00000000-0000-4000-8000-000000000000</stringProp>
           <stringProp name="HTTPSampler.method">GET</stringProp>
-          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">false</boolProp>
         </HTTPSamplerProxy>
         <hashTree>
-          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="Basic 已吊销 key">
+          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="Bearer 已吊销 key">
             <collectionProp name="HeaderManager.headers">
               <elementProp name="" elementType="Header">
                 <stringProp name="Header.name">Authorization</stringProp>
-                <stringProp name="Header.value">Basic ${__base64Encode(${AK}:${SK})}</stringProp>
+                <stringProp name="Header.value">Bearer ${__P(AK)}.${__P(SK)}</stringProp>
               </elementProp>
             </collectionProp>
           </HeaderManager>
@@ -256,6 +291,7 @@
           <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="HTTP 401">
             <collectionProp name="Asserion.test_strings"><stringProp name="49586">401</stringProp></collectionProp>
             <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+            <boolProp name="Assertion.assume_success">true</boolProp>
             <intProp name="Assertion.test_type">8</intProp>
           </ResponseAssertion>
           <hashTree/>
@@ -283,7 +319,7 @@
           <stringProp name="HTTPSampler.port">${__P(PORT,3100)}</stringProp>
           <stringProp name="HTTPSampler.path">/api/v1/open/exec/00000000-0000-4000-8000-000000000000</stringProp>
           <stringProp name="HTTPSampler.method">GET</stringProp>
-          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">false</boolProp>
         </HTTPSamplerProxy>
         <hashTree>
           <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="清 Cookie 头（session 通道隔离验证）">
@@ -298,6 +334,7 @@
           <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="HTTP 401">
             <collectionProp name="Asserion.test_strings"><stringProp name="49586">401</stringProp></collectionProp>
             <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+            <boolProp name="Assertion.assume_success">true</boolProp>
             <intProp name="Assertion.test_type">8</intProp>
           </ResponseAssertion>
           <hashTree/>

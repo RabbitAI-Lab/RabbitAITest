@@ -20,7 +20,7 @@ test("MAINFLOW-s6 插件→集成→同步→APIKEY→审计 全链路", async (
 }) => {
   // 1. 管理员上传并启用 jira 插件（独立 adminCtx——步骤 5 的审计查询亦用它）
   const admin = await newAdminContext(playwright);
-  const pluginId = await uploadPlugin(admin, "jira-platform-1.0.1.tgz");
+  const pluginId = await uploadPlugin(admin, "jira-platform-1.0.2.tgz");
   await enablePlugin(admin, pluginId);
 
   // 2. 项目 owner 配置组织集成 + 项目关联（用户态 request）

@@ -38,7 +38,7 @@ test("INTG-001-T2 集成配置→测试连接→推送缺陷（platformKey 回�
 }) => {
   // 管理员前置：独立 adminCtx（不覆盖浏览器用户会话）
   const admin = await newAdminContext(playwright);
-  const pluginId = await uploadPlugin(admin, "jira-platform-1.0.1.tgz");
+  const pluginId = await uploadPlugin(admin, "jira-platform-1.0.2.tgz");
   await enablePlugin(admin, pluginId);
   await admin.dispose();
 
@@ -89,7 +89,7 @@ test("INTG-001-T3 拉取回写两态：平台 done → 本地已解决", async (
   authedPage,
 }) => {
   const admin = await newAdminContext(playwright);
-  const pluginId = await uploadPlugin(admin, "jira-platform-1.0.1.tgz");
+  const pluginId = await uploadPlugin(admin, "jira-platform-1.0.2.tgz");
   await enablePlugin(admin, pluginId);
   await admin.dispose();
   const { projectId } = authedPage;

@@ -15,7 +15,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 /** 插件清单表（版本随发布递增） */
 const PLUGINS = [
-  { name: "jira-platform", kind: "platform", version: "1.0.1", spiVersion: "1.0", entry: "index.js" },
+  { name: "jira-platform", kind: "platform", version: "1.0.2", spiVersion: "1.0", entry: "index.js" },
   { name: "zentao-platform", kind: "platform", version: "1.0.1", spiVersion: "1.0", entry: "index.js" },
   { name: "tapd-platform", kind: "platform", version: "1.0.1", spiVersion: "1.0", entry: "index.js" },
   { name: "tcp-conn", kind: "protocol", version: "1.0.1", spiVersion: "1.0", entry: "index.js" },
