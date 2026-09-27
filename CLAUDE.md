@@ -4,7 +4,7 @@
 
 核心约束速览（详见 AGENTS.md）：
 
-1. **高保真门禁**：每个功能点必须先产出高保真原型（`docs/design/{MODULE}-NNN-*/`），人工确认后才能开始功能迭代开发；规格元信息「高保真确认」字段未确认不得编码。
+1. **高保真门禁（含任务排序铁律）**：每个功能点必须先产出高保真原型（`docs/design/{MODULE}-NNN-*/`），人工确认后才能开始功能迭代开发；规格元信息「高保真确认」字段未确认不得编码。**排序是硬约束**：任务清单/执行计划中「产出原型」必须排在对应功能编码之前，禁止原型未产出即编码、禁止「开发完再补原型」；可后置的仅**人工确认与走查**（S0 §8.1 先例），原型文件未创建前规格不得写「原型已产出」。
 2. **文档先行**：无 Approved 规格文档（`docs/sprint-*/MODULE-NNN-*.md`）不得开发对应功能。
 3. **技术栈**：Monorepo（pnpm + Turborepo，纯 TS）｜全栈 Next.js（App Router，API 走 Route Handlers /api/v1）｜React 19 + AntD + Tailwind｜**embedded-postgres**（可外接 PostgreSQL）+ Prisma｜BullMQ + Redis｜执行引擎为自研 Node worker（不用 JMeter 做执行引擎）。
 4. **自动化测试 = 完成的定义**：功能点完成必须交付 ① Vitest 单测；② **JMeter 接口用例**（`tests/api/`，四类场景 + 状态码/业务码/JSONPath/响应时间四项断言）；③ **Playwright UI 用例**（`tests/e2e/`，每条必须同时含 **UI 断言 + Console 断言（无 error/pageerror）+ 接口断言（网络请求状态码/响应体/请求负载）** 三类断言）。缺一项 PR 不合并；主链路 E2E 全绿是 Release Gate。

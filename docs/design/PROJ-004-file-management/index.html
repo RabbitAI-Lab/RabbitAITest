@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="utf-8" />
+    <title>PROJ-004 文件管理 · 列表</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-slate-50 text-slate-800 text-sm">
+    <header class="h-12 bg-white border-b flex items-center px-4 gap-3">
+      <span class="font-semibold">RabbitAITest</span
+      ><span class="border rounded px-2 py-0.5">演示项目 #1</span>
+      <span class="ml-auto text-slate-400 text-xs">帮助 · 消息 · 用户</span>
+    </header>
+    <div class="flex" style="min-height: calc(100vh - 48px)">
+      <aside class="w-[208px] bg-white border-r py-3 shrink-0 text-[13px]">
+        <p class="px-4 pb-1 text-xs text-slate-400">工作区</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md">工作台</p>
+        <p class="px-4 pt-3 pb-1 text-xs text-slate-400">测试管理</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md">测试用例</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md">用例评审</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md">测试计划</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md">缺陷管理</p>
+        <p class="px-4 pt-3 pb-1 text-xs text-slate-400">接口测试</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md">接口定义</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md">接口调试</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md">接口报告</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md bg-[#574BFF]/10 text-[#574BFF] font-medium relative">
+          <span class="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 rounded-r bg-[#574BFF]"></span>
+          文件管理
+        </p>
+        <p class="mx-2 mt-3 px-3 py-[7px] rounded-md">任务中心</p>
+        <p class="px-4 pt-3 pb-1 text-xs text-slate-400">组织</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md">项目管理</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md">成员管理</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md">用户组</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md">模板管理</p>
+        <p class="px-4 pt-3 pb-1 text-xs text-slate-400">项目设置</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md">基本信息</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md">成员管理</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md">用户组</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md">模板管理</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md">环境管理</p>
+        <p class="px-4 pt-3 pb-1 text-xs text-slate-400">系统设置</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md">用户管理</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md">用户组</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md">参数设置</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md">资源池</p>
+      </aside>
+      <main class="flex-1 p-4 flex gap-3">
+        <!-- 左：file 场景模块树 -->
+        <div class="w-60 shrink-0 bg-white border rounded-md flex flex-col" data-testid="proto-file-module-tree">
+          <div class="flex items-center justify-between px-3 py-2 border-b">
+            <span class="font-medium">模块</span>
+            <span class="flex gap-2 text-slate-400">＋ ⟳</span>
+          </div>
+          <div class="p-2 space-y-0.5 text-[13px]">
+            <div class="px-2 py-1.5 rounded bg-[#574BFF]/10 text-[#574BFF] flex items-center justify-between">
+              <span>未规划文件 <span class="text-xs text-slate-400">1</span></span>
+              <span class="text-xs text-slate-300">（默认，不可删）</span>
+            </div>
+            <div class="px-2 py-1.5 rounded hover:bg-slate-50 cursor-pointer flex justify-between">
+              <span>📁 CSV 数据 <span class="text-xs text-slate-400">1</span></span>
+            </div>
+            <div class="px-2 py-1.5 rounded hover:bg-slate-50 cursor-pointer flex justify-between">
+              <span>📁 脚本包 <span class="text-xs text-slate-400">2</span></span>
+            </div>
+          </div>
+          <div class="mt-auto px-3 py-2 border-t text-xs text-slate-400">
+            列表按模块过滤（含子级）· 右键：重命名 / 删除 / 排序 · 拖拽移动子树
+          </div>
+        </div>
+        <!-- 右：上传区 + 筛选 + 列表 -->
+        <div class="flex-1 min-w-0 flex flex-col gap-3">
+          <div class="bg-white border rounded-md flex flex-col" data-testid="proto-file-list">
+            <!-- 上传区 -->
+            <div class="p-3 border-b flex gap-3 items-stretch">
+              <div
+                class="flex-1 border-2 border-dashed border-slate-300 rounded-md flex flex-col items-center justify-center gap-1 py-6 text-center hover:border-[#574BFF] cursor-pointer"
+                data-testid="proto-file-dropzone"
+              >
+                <span class="text-2xl">⬆</span>
+                <p class="text-[13px]">拖拽文件到此处或<span class="text-[#574BFF]">点击上传</span>（支持多文件）</p>
+                <p class="text-xs text-slate-400">
+                  支持 jar / csv / js / ts / json / txt / xmind / zip / png / jpg / xlsx · 单文件 ≤ 系统参数上限（SYS-005 file.maxSizeMB，当前 50MB）
+                </p>
+              </div>
+              <div class="flex flex-col justify-center gap-2">
+                <button class="bg-[#574BFF] text-white rounded-md px-4 py-1.5" data-testid="proto-file-upload-btn">上传文件</button>
+                <p class="text-xs text-slate-400 w-32 leading-5">同名文件允许上传，<br />靠时间戳区分展示</p>
+              </div>
+            </div>
+            <!-- 筛选行 -->
+            <div class="flex items-center gap-2 px-3 py-2.5 border-b flex-wrap text-[13px]">
+              <input class="border rounded px-2 py-1.5 w-44" placeholder="名称关键字" data-testid="proto-file-filter-name" />
+              <select class="border rounded px-2 py-1.5" data-testid="proto-file-filter-module">
+                <option>模块：全部</option>
+                <option selected>未规划文件</option>
+                <option>CSV 数据</option>
+                <option>脚本包</option>
+              </select>
+              <select class="border rounded px-2 py-1.5">
+                <option>类型：全部</option><option>jar</option><option>csv</option><option>js</option><option>ts</option>
+                <option>json</option><option>txt</option><option>xmind</option><option>zip</option><option>png</option>
+                <option>jpg</option><option>xlsx</option>
+              </select>
+            </div>
+            <!-- 文件表格 -->
+            <table class="w-full text-[13px]">
+              <thead class="text-slate-500 bg-slate-50 border-b">
+                <tr>
+                  <th class="text-left font-normal px-3 py-2">名称</th>
+                  <th class="text-left font-normal px-3 py-2 w-20">大小</th>
+                  <th class="text-left font-normal px-3 py-2 w-24">模块</th>
+                  <th class="text-left font-normal px-3 py-2 w-28">JAR 状态</th>
+                  <th class="text-left font-normal px-3 py-2 w-20">上传人</th>
+                  <th class="text-left font-normal px-3 py-2 w-32">时间</th>
+                  <th class="text-left font-normal px-3 py-2 w-52">操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="border-b hover:bg-slate-50">
+                  <td class="px-3 py-2.5">📦 crypto-utils.jar</td>
+                  <td class="px-3 py-2.5">1.2 MB</td>
+                  <td class="px-3 py-2.5">脚本包</td>
+                  <!-- jar 启用态（绿） -->
+                  <td class="px-3 py-2.5">
+                    <span class="relative inline-block w-9 h-5 rounded-full bg-[#52C41A] cursor-pointer align-middle" title="JAR 已启用：项目内前后置脚本可引用（S5 公共脚本消费）" data-testid="proto-file-jar-on">
+                      <span class="absolute right-0.5 top-0.5 w-4 h-4 rounded-full bg-white"></span>
+                    </span>
+                  </td>
+                  <td class="px-3 py-2.5">admin</td>
+                  <td class="px-3 py-2.5 text-slate-400">2026-09-27 10:05</td>
+                  <td class="px-3 py-2.5 space-x-2 text-[#574BFF]">
+                    <span>下载</span><span>重命名</span><span>移动</span><span class="text-[#FF4D4F]">删除</span>
+                  </td>
+                </tr>
+                <tr class="border-b hover:bg-slate-50">
+                  <td class="px-3 py-2.5">📦 sign-plugin.jar</td>
+                  <td class="px-3 py-2.5">864 KB</td>
+                  <td class="px-3 py-2.5">脚本包</td>
+                  <!-- jar 禁用态（灰，默认 jarEnabled=false） -->
+                  <td class="px-3 py-2.5">
+                    <span class="relative inline-block w-9 h-5 rounded-full bg-slate-300 cursor-pointer align-middle" title="JAR 默认禁用（安全口径）：启用需确认安全提示，启用后=项目内可引用" data-testid="proto-file-jar-off">
+                      <span class="absolute left-0.5 top-0.5 w-4 h-4 rounded-full bg-white"></span>
+                    </span>
+                  </td>
+                  <td class="px-3 py-2.5">admin</td>
+                  <td class="px-3 py-2.5 text-slate-400">2026-09-26 18:22</td>
+                  <td class="px-3 py-2.5 space-x-2 text-[#574BFF]">
+                    <span>下载</span><span>重命名</span><span>移动</span><span class="text-[#FF4D4F]">删除</span>
+                  </td>
+                </tr>
+                <tr class="border-b hover:bg-slate-50">
+                  <td class="px-3 py-2.5">📄 pets.csv</td>
+                  <td class="px-3 py-2.5">18 KB</td>
+                  <td class="px-3 py-2.5">CSV 数据</td>
+                  <!-- 非 jar：开关列不可切 -->
+                  <td class="px-3 py-2.5 text-slate-300" title="仅 .jar 文件可切换启用状态">—</td>
+                  <td class="px-3 py-2.5">tester</td>
+                  <td class="px-3 py-2.5 text-slate-400">2026-09-26 15:40</td>
+                  <td class="px-3 py-2.5 space-x-2 text-[#574BFF]">
+                    <span>下载</span><span>重命名</span><span>移动</span><span class="text-[#FF4D4F]">删除</span>
+                  </td>
+                </tr>
+                <tr class="hover:bg-slate-50">
+                  <td class="px-3 py-2.5">🖼️ banner.png</td>
+                  <td class="px-3 py-2.5">96 KB</td>
+                  <td class="px-3 py-2.5">未规划文件</td>
+                  <td class="px-3 py-2.5 text-slate-300">—</td>
+                  <td class="px-3 py-2.5">tester</td>
+                  <td class="px-3 py-2.5 text-slate-400">2026-09-25 11:12</td>
+                  <td class="px-3 py-2.5 space-x-2 text-[#574BFF]">
+                    <span>下载</span><span>重命名</span><span>移动</span><span class="text-[#FF4D4F]">删除</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="mt-auto flex items-center justify-between px-3 py-2 border-t text-xs text-slate-500">
+              <span>共 4 条 · 每页 20 条 · 下载走鉴权流式 · 删除为软删（已删文件被执行引用时任务 CONFIG_ERROR）</span>
+              <span class="flex gap-1">
+                <button class="border rounded px-2 py-0.5">‹</button>
+                <button class="border rounded px-2 py-0.5 bg-[#574BFF] text-white">1</button>
+                <button class="border rounded px-2 py-0.5">›</button>
+              </span>
+            </div>
+            <!-- 空态（切态参考）：无文件引导上传
+            <div class="flex-1 flex flex-col items-center justify-center text-slate-400 gap-2 py-16">
+              <span>🗂️</span><p>暂无文件</p>
+              <p class="text-xs">拖拽或点击上方上传区，支持 jar / csv / js / xlsx 等类型</p>
+            </div>
+            -->
+          </div>
+
+          <!-- 状态示意：上传 Toast（超限 / 类型拒收） + 空态 -->
+          <div class="grid grid-cols-2 gap-3">
+            <div class="bg-white border rounded-md p-3" data-testid="proto-file-toast-demo">
+              <p class="text-xs text-slate-400 mb-2">状态示意 A：上传失败 Toast（422 code 20422，消息明示上限值）</p>
+              <div class="space-y-2">
+                <div class="flex items-start gap-2 rounded border border-[#FF4D4F]/40 bg-[#FF4D4F]/5 px-3 py-2 text-[13px]">
+                  <span class="text-[#FF4D4F]">✕</span>
+                  <p>upload-big.csv（62 MB）超过单文件上限 50 MB，已拒收 <span class="text-xs text-slate-400">（file.maxSizeMB）</span></p>
+                </div>
+                <div class="flex items-start gap-2 rounded border border-[#FF4D4F]/40 bg-[#FF4D4F]/5 px-3 py-2 text-[13px]">
+                  <span class="text-[#FF4D4F]">✕</span>
+                  <p>plugin.exe 不在类型白名单，已拒收 <span class="text-xs text-slate-400">（HTTP 422 · code 20422）</span></p>
+                </div>
+              </div>
+            </div>
+            <div class="bg-white border rounded-md p-3" data-testid="proto-file-empty-demo">
+              <p class="text-xs text-slate-400 mb-2">状态示意 B：空态（无文件引导上传）</p>
+              <div class="flex flex-col items-center justify-center text-slate-400 gap-1.5 py-8 border border-dashed rounded">
+                <span class="text-2xl">🗂️</span>
+                <p>暂无文件</p>
+                <p class="text-xs">拖拽或点击上方上传区，支持 jar / csv / js / xlsx 等类型</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </body>
+</html>

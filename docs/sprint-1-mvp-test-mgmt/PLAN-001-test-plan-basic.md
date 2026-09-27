@@ -90,3 +90,4 @@ DoD 前置：高保真人工确认。验收对应 sprint-overview 验收 6；与
 ## 8. 勘误登记
 
 - 勘误 1（2026-09-26）：PlanCaseRef.result/exec_history 列 S1 首迁移遗漏已补齐；execHistory @map 缺失曾致生产 P2022，已修复。
+- 勘误 2（2026-09-27，S2 修复）：计划报告懒创建曾以伪 taskId（`plan-{id}`）违反 reports.taskId 外键导致报告读取/总结保存 500（被 S1 期 JMeter 门禁缺陷掩盖，见 Sprint 2 交付自查）；S2 改为合成 type=plan 占位 ExecTask（任务中心列表排除该类型）。

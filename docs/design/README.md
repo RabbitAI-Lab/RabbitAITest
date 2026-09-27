@@ -18,6 +18,15 @@
 | BUG-001  | [list](./BUG-001-local-bug-management/list.html) · [detail](./BUG-001-local-bug-management/detail.html)         | 待确认                    | —        |
 | PLAN-001 | [list](./PLAN-001-test-plan-basic/list.html) · [detail](./PLAN-001-test-plan-basic/detail.html)                 | 待确认                    | —        |
 | DASH-001 | [workbench](./DASH-001-workbench-home/index.html)                                                               | 待确认                    | —        |
+| PROJ-003 | [list](./PROJ-003-environment-management/index.html) · [edit](./PROJ-003-environment-management/edit.html)       | 待确认                    | —        |
+| PROJ-004 | [files](./PROJ-004-file-management/index.html)                                                                  | 待确认                    | —        |
+| SYS-006  | [task-center](./SYS-006-task-center/index.html)                                                                 | 待确认                    | —        |
+| API-002  | [list](./API-002-api-definition/index.html) · [detail](./API-002-api-definition/detail.html)                     | 待确认                    | —        |
+| API-004  | [request-editor](./API-004-request-params-system/index.html)（七区平铺）                                         | 待确认                    | —        |
+| API-003  | [case-management](./API-003-api-case-management/index.html)（CASE 页签 + 抽屉/diff/弹窗并列示意）                | 待确认                    | —        |
+| API-005  | [mock-service](./API-005-mock-service/index.html)（MOCK 页签 + 编辑/调试弹窗并列示意）                           | 待确认                    | —        |
+| RPT-002  | [list](./RPT-002-api-report-full/index.html) · [detail](./RPT-002-api-report-full/detail.html) · [share](./RPT-002-api-report-full/share.html) | 待确认 | — |
+| CASE-006 | [associate](./CASE-006-case-associate-api/index.html)（用例关联 Tab + 选择器 + 计划弹窗三段叠放） | 待确认 | — |
 
 **勘误 1（2026-09-26，原型透明度）**：Sprint 1 十一组原型（2026-09-26 产出）当前页高亮统一 `bg-[#574BFF]/10`（Tailwind v3 CDN 不编译 /8 透明度刻度，与 CASE-001 基线一致）。
 

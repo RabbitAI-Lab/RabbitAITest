@@ -4,6 +4,25 @@
 
 ## [Unreleased]
 
+## [v0.3.0] - 2026-09-27 — Sprint 2 接口测试核心（M3 里程碑）
+
+#### 新增
+
+- **请求参数体系与执行契约 v2（API-004）**：请求体 7 类（none/form_data/form_urlencoded/raw_json/raw_xml/raw_text/binary）；前后置处理器（JS 脚本 quickjs 沙箱 5s 强杀、SQL 只读数据源延后 S3 显式 CONFIG_ERROR、等待）；提取（JSONPath/正则）写回变量并在报告回显；断言 6 种（状态码/响应头/响应体 JSONPath/响应体正则/响应时间/变量）；认证 none/basic/digest（RFC7616）；超时与重定向（≤5 次、307/308 保方法）；变量作用域链 base→环境→参数覆盖渲染 `${var}`；契约 zod 冻结于 shared/execution（事件帧只增不破，S0 兼容读）。
+- **环境管理（PROJ-003）**：环境 CRUD/复制/导入导出（同名跳过/覆盖二态）；变量与 HTTP 多域名条件匹配（路径条件>模块条件>默认）；HOST 映射；数据源（内置 PostgreSQL）；全局前后置与断言；执行时环境快照注入引擎（engine 无 DB）。
+- **文件管理（PROJ-004）**：file 模块树；上传（JAR/CSV/脚本，JAR 默认禁用启用制）、下载、删除、移动；执行引用（form-data/binary 请求体）；危险类型拒收（.exe 422）；大小受系统参数限制。
+- **接口定义（API-002）**：api 模块树 + 列表筛选；API/CASE/MOCK 三页签；导入（OpenAPI3/Postman 粘贴与文件、Rabbit 格式、cURL；覆盖/不覆盖二态）；变更历史；引用关系；列表行内执行跳报告。
+- **接口用例（API-003）**：用例 CRUD（差量请求 bundle）；单条/批量执行（选环境+默认池+失败停止开关）；执行历史抽屉；API 定义变更后的差异同步（分区 diff + 待同步标记 + 一键同步）；**clientTaskId 幂等提交**（同键连点/重试复用同一任务，与 (project_id, client_task_id) 唯一索引同语义，含 P2002 并发兜底——收尾审计发现规格声明未实现，补齐）。
+- **Mock 服务（API-005）**：规则 CRUD（头/Query/REST 路径/体匹配→响应+延迟）；跟随 API；独立 Mock 服务（开发 :4000/e2e :4001）规则热更新（Redis 全量快照+版本号+PUBLISH 失效，懒加载重读）；未命中 404（code 40401）。
+- **资源池调度（EXEC-002）**：默认池并发编辑、节点心跳在线状态、任务停止（非运行中 422 code 50003）、失败重跑（副本重建、不可重跑态 422 code 50004）、并发槽动态生效。
+- **任务中心（SYS-006）**：项目/全部两级实时任务列表；执行详情跳报告；停止/重跑；状态筛选；定时任务框架空态（数据源 S3+）。
+- **接口报告完整版（RPT-002）**：报告列表/删除；用例级+步骤级钻取（渲染后请求快照/响应/断言表/提取值/日志）；分享链接免登只读+有效期过期失效；保留期外定时清理；重跑入口；api_debug 单请求视图兼容保留。
+- **用例关联接口（CASE-006）**：功能用例详情「关联」Tab（case 域经 Provider 读 api_test 域，批量校验非法目标 422 code 40464）；测试计划关联接口用例（执行 S4）。
+- **引擎内核 v2**：kernel 纯函数化拆分（render/extract/asserts/processors）；BullMQ 持久化 attempts 2 + 心跳超时回收（引擎重启不丢任务）；回调按 item 分组落库。
+- **权限与错误码**：新权限点 PROJECT_ENV/PROJECT_FILE 细化 CRUD、PROJECT_API、PROJECT_EXEC_TASK；错误码 40xxx（API/ENV/FILE/MOCK）与 50xxx（停止/重跑/池）、60xxx（报告/分享）分段入册。
+- **质量体系**：Vitest 84（新增 engine kernel 18：渲染/提取/断言矩阵、脚本 5s 强杀、Digest；web 10：OpenAPI/Postman 导入解析、分区 diff；mock 7）；JMeter 24 计划（新增 10：四类场景×四项断言）全绿；Playwright 91 用例（新增 29 + 主链路 MAINFLOW-s2：环境→定义→调试→用例→批量执行→任务中心→报告→分享→Mock 命中→关联）；门禁 8 审计回补 6 项规格声明缺口（API-002-05 权限二态/API-003-04 clientTaskId 幂等/CASE-006-03 重复关联 422·10009+已删除灰显/EXEC-002-01 并发槽位生效/RPT-002-01 过期 token 直改库复验/PROJ-004-03 form-data 文件引用执行内容标记命中二态）；OpenAPI 快照 120→164 paths + api-client s2.ts 手写路径反漂移审计；e2e 常驻库用户累积 268>200 撞 USER_TOO_MANY 致 SYS-004-01 400——测试环境 RABBIT_USER_LIMIT 200→1000（注册通道不查上限仅管理端查，产品默认 30 不变）；4 条调试用例写死 mock `:4000` 依赖宿主机残留 dev mock 侥幸通过——统一 MOCK_BASE/E2E_MOCK_URL 口径、默认环境域名端口从 MOCK_BASE 推导；api-diff 单测字面量类型拓宽致 typecheck 红（改经 schema.parse 构造）。两起环境事故已制度化 rules/testing §3.4.2。凭据 env 化收尾加固（Mimosa 门禁 6 处高危清零）：种子管理员密码 `RABBIT_SEED_ADMIN_PASSWORD`、e2e 测试用户密码 `E2E_USER_PASSWORD` 可 env 覆盖，默认值与既有行为不变（seed/fixtures/SYS-004/PROJ-001）。
+- **文档**：Sprint 2 十份规格（Approved→Implemented 流转）+ 十组高保真原型（docs/design/，人工确认随验收走查）。
+
 ## [v0.2.0] - 2026-09-26 — Sprint 1 测试管理 MVP（M2 里程碑）
 
 #### 新增

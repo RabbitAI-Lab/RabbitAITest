@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="utf-8" />
+    <title>RPT-002 报告详情（用例级表格 + 步骤钻取 + 分享）</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-slate-50 text-slate-800 text-sm">
+    <header class="h-12 bg-white border-b flex items-center px-4 gap-3">
+      <span class="font-semibold">RabbitAITest</span
+      ><span class="border rounded px-2 py-0.5">演示项目 #1</span>
+      <span class="ml-auto text-slate-400 text-xs">帮助 · 消息 · 用户</span>
+    </header>
+    <div class="flex" style="min-height: calc(100vh - 48px)">
+      <aside class="w-[208px] bg-white border-r py-3 shrink-0">
+        <p class="px-4 pb-1 text-xs text-slate-400">工作区</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md">工作台</p>
+        <p class="px-4 pt-3 pb-1 text-xs text-slate-400">测试管理</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md">测试用例</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md">用例评审</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md">测试计划</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md">缺陷管理</p>
+        <p class="px-4 pt-3 pb-1 text-xs text-slate-400">接口测试</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md">接口定义</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md">接口调试</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md bg-[#574BFF]/10 text-[#574BFF] font-medium relative">
+          <span class="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 rounded-r bg-[#574BFF]"></span>
+          接口报告
+        </p>
+        <p class="mx-2 px-3 py-[7px] rounded-md">文件管理</p>
+        <p class="px-4 pt-3 pb-1 text-xs text-slate-400">任务中心</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md text-slate-400">实时任务 / 定时任务</p>
+        <p class="px-4 pt-3 pb-1 text-xs text-slate-400">组织</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md">项目管理</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md">成员管理</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md">用户组</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md">模板管理</p>
+        <p class="px-4 pt-3 pb-1 text-xs text-slate-400">项目设置</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md">基本信息</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md">成员管理</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md">用户组</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md">模板管理</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md">环境管理</p>
+        <p class="px-4 pt-3 pb-1 text-xs text-slate-400">系统设置</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md">用户管理</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md">用户组</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md">参数设置</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md">资源池</p>
+      </aside>
+      <main class="flex-1 p-4 space-y-3 min-w-0">
+        <!-- ===== 头部：名称 + 状态徽标 + 元信息 + 操作（重跑 · 分享 · 返回列表） ===== -->
+        <div class="bg-white border rounded-md p-3 flex items-center gap-3 flex-wrap" data-testid="proto-report-header">
+          <a class="text-slate-400 text-xs" href="index.html">‹ 返回列表</a>
+          <h1 class="text-base font-medium">批量执行 · 3 条用例</h1>
+          <span class="rounded-full bg-red-50 text-[#FF4D4F] text-xs px-2 py-0.5 font-medium">失败</span>
+          <span class="bg-[#574BFF]/10 text-[#574BFF] rounded px-1.5 py-0.5 text-xs">接口用例</span>
+          <span class="text-xs text-slate-400">T-0107 · admin · 2026-09-27 10:32</span>
+          <span class="ml-auto flex items-center gap-2">
+            <button class="border rounded-md px-3 py-1.5" data-testid="proto-btn-rerun">重 跑</button>
+            <button class="border rounded-md px-3 py-1.5" data-testid="proto-btn-share">分 享</button>
+            <a class="border rounded-md px-3 py-1.5 text-slate-600" href="index.html">返回列表</a>
+          </span>
+        </div>
+        <!-- ===== 统计三卡：通过 / 失败 / 总耗时 ===== -->
+        <div class="grid grid-cols-3 gap-3" data-testid="proto-report-summary">
+          <div class="bg-white border rounded-md p-3">
+            <p class="text-xs text-slate-400">通过</p>
+            <p class="text-2xl font-semibold mt-0.5 text-[#52C41A]">2</p>
+          </div>
+          <div class="bg-white border rounded-md p-3">
+            <p class="text-xs text-slate-400">失败</p>
+            <p class="text-2xl font-semibold mt-0.5 text-[#FF4D4F]">1</p>
+          </div>
+          <div class="bg-white border rounded-md p-3">
+            <p class="text-xs text-slate-400">总耗时</p>
+            <p class="text-2xl font-semibold mt-0.5">1.2<span class="text-sm font-normal text-slate-400">s</span></p>
+          </div>
+        </div>
+        <!-- ===== 用例级表格（行点击展开/下钻；RUNNING 报告行状态随 SSE 实时刷新） ===== -->
+        <div class="bg-white border rounded-md" data-testid="proto-report-items">
+          <div class="flex items-center justify-between px-3 py-2.5 border-b">
+            <p class="font-medium">用例级结果 <span class="text-xs text-slate-400 font-normal">（api_case 聚合 · 点击行展开步骤钻取）</span></p>
+            <p class="text-xs text-slate-400">
+              执行中报告：行状态徽标（RUNNING 蓝 #1677FF）随 SSE 增量实时刷新
+            </p>
+          </div>
+          <table class="w-full text-[13px]">
+            <thead class="text-slate-500 bg-slate-50 border-b">
+              <tr>
+                <th class="text-left font-normal px-3 py-2">用例名</th>
+                <th class="text-left font-normal px-3 py-2 w-24">状态</th>
+                <th class="text-left font-normal px-3 py-2 w-24">耗时</th>
+                <th class="text-left font-normal px-3 py-2 w-24">断言</th>
+                <th class="text-left font-normal px-3 py-2 w-16"></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="border-b hover:bg-slate-50 cursor-pointer">
+                <td class="px-3 py-2.5">item#1 · 查询宠物-狗 <span class="text-slate-400 text-xs">AC-1001</span></td>
+                <td class="px-3 py-2.5"><span class="text-[#52C41A]">SUCCESS</span></td>
+                <td class="px-3 py-2.5">302ms</td>
+                <td class="px-3 py-2.5"><span class="text-[#52C41A]">3/3</span></td>
+                <td class="px-3 py-2.5 text-slate-400">▸</td>
+              </tr>
+              <!-- 选中/展开行（失败行，高亮底 + ▾）：下方钻取区即该 item 的全帧视图 -->
+              <tr class="border-b bg-[#574BFF]/[.05] cursor-pointer" data-testid="proto-item-failed">
+                <td class="px-3 py-2.5">item#2 · 查询宠物-猫 <span class="text-slate-400 text-xs">AC-1002</span></td>
+                <td class="px-3 py-2.5"><span class="text-[#FF4D4F] font-medium">FAILED</span></td>
+                <td class="px-3 py-2.5">458ms</td>
+                <td class="px-3 py-2.5"><span class="text-[#FF4D4F]">1/3</span></td>
+                <td class="px-3 py-2.5 text-[#574BFF]">▾</td>
+              </tr>
+              <tr class="hover:bg-slate-50 cursor-pointer">
+                <td class="px-3 py-2.5">item#3 · 新建订单 <span class="text-slate-400 text-xs">AC-1007</span></td>
+                <td class="px-3 py-2.5"><span class="text-[#52C41A]">SUCCESS</span></td>
+                <td class="px-3 py-2.5">442ms</td>
+                <td class="px-3 py-2.5"><span class="text-[#52C41A]">2/2</span></td>
+                <td class="px-3 py-2.5 text-slate-400">▸</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <!-- ===== 步骤钻取区：item#2 查询宠物-猫（失败行展开的全帧视图） ===== -->
+        <div class="bg-white border rounded-md" data-testid="proto-item-drilldown">
+          <p class="px-3 py-2.5 border-b font-medium">
+            步骤钻取 <span class="text-xs text-slate-400 font-normal">item#2 · 查询宠物-猫 · FAILED · 458ms</span>
+          </p>
+          <div class="p-3 space-y-3">
+            <div class="grid grid-cols-2 gap-3">
+              <!-- 左：请求快照卡（渲染后实际值） -->
+              <div class="border rounded-md" data-testid="proto-drill-request">
+                <p class="px-3 py-2 border-b text-[13px] font-medium">
+                  请求快照
+                  <span class="text-xs text-slate-400 font-normal">（${var} 渲染后实际值）</span>
+                </p>
+                <div class="p-3 space-y-2 text-[13px]">
+                  <p class="font-mono text-xs break-all">
+                    <span class="text-green-600 font-bold">GET</span>
+                    http://127.0.0.1:4000/pets/9
+                  </p>
+                  <p class="text-[11px] text-slate-400 font-mono">← 渲染自 ${base}/pets/${petId}（base=http://127.0.0.1:4000 · petId=9）</p>
+                  <table class="w-full text-xs">
+                    <thead class="text-slate-400">
+                      <tr class="border-b"><th class="text-left font-normal py-1 w-32">Header</th><th class="text-left font-normal py-1">值</th></tr>
+                    </thead>
+                    <tbody>
+                      <tr class="border-b"><td class="py-1 font-mono">Authorization</td><td class="py-1 font-mono break-all">Bearer eyJhbGciOiJIUzI1NiJ9…（渲染自 ${token}）</td></tr>
+                      <tr class="border-b"><td class="py-1 font-mono">Accept</td><td class="py-1 font-mono">application/json</td></tr>
+                      <tr><td class="py-1 font-mono">X-Request-Id</td><td class="py-1 font-mono">5f3a-c2e1</td></tr>
+                    </tbody>
+                  </table>
+                  <p class="text-xs text-slate-400 font-mono">— 无 Body（GET）—</p>
+                  <!-- POST 用例时此区展示 raw_json（monospace，变量同样展示渲染后值） -->
+                </div>
+              </div>
+              <!-- 右：响应卡 -->
+              <div class="border rounded-md" data-testid="proto-drill-response">
+                <p class="px-3 py-2 border-b text-[13px] font-medium flex justify-between">
+                  响应
+                  <span class="text-xs font-normal"><span class="text-green-600 font-semibold">200</span> · 458ms</span>
+                </p>
+                <div class="p-3 space-y-2 text-[13px]">
+                  <table class="w-full text-xs">
+                    <thead class="text-slate-400">
+                      <tr class="border-b"><th class="text-left font-normal py-1 w-32">Header</th><th class="text-left font-normal py-1">值</th></tr>
+                    </thead>
+                    <tbody>
+                      <tr class="border-b"><td class="py-1 font-mono">Content-Type</td><td class="py-1 font-mono">application/json</td></tr>
+                      <tr><td class="py-1 font-mono">Content-Length</td><td class="py-1 font-mono">58</td></tr>
+                    </tbody>
+                  </table>
+                  <pre class="bg-slate-50 border rounded p-2 font-mono text-xs overflow-auto">{
+  "code": 0,
+  "data": { "id": 9, "name": "小红", "kind": "cat" }
+}</pre>
+                </div>
+              </div>
+            </div>
+            <!-- 断言表：失败行红底，实际值展示 -->
+            <div class="border rounded-md" data-testid="proto-drill-asserts">
+              <p class="px-3 py-2 border-b text-[13px] font-medium">
+                断言 <span class="text-xs text-slate-400 font-normal">3 条 · 1 失败</span>
+              </p>
+              <table class="w-full text-[13px]">
+                <thead class="text-slate-400 text-xs">
+                  <tr class="border-b">
+                    <th class="text-left font-normal p-2">类型</th>
+                    <th class="text-left font-normal p-2">期望</th>
+                    <th class="text-left font-normal p-2">实际</th>
+                    <th class="text-left font-normal p-2 w-20">结果</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr class="border-b">
+                    <td class="p-2">状态码</td>
+                    <td class="p-2 font-mono text-xs">200</td>
+                    <td class="p-2 font-mono text-xs">200</td>
+                    <td class="p-2 text-[#52C41A]">✓ 通过</td>
+                  </tr>
+                  <tr class="border-b bg-red-50" data-testid="proto-assert-failed-row">
+                    <td class="p-2">响应体 JSONPath <span class="font-mono text-xs">$.data.kind</span></td>
+                    <td class="p-2 font-mono text-xs">等于 dog</td>
+                    <td class="p-2 font-mono text-xs text-[#FF4D4F]">cat</td>
+                    <td class="p-2 text-[#FF4D4F] font-medium">✗ 失败</td>
+                  </tr>
+                  <tr>
+                    <td class="p-2">响应体 JSONPath <span class="font-mono text-xs">$.data.id</span></td>
+                    <td class="p-2 font-mono text-xs">等于 9</td>
+                    <td class="p-2 font-mono text-xs">9</td>
+                    <td class="p-2 text-[#52C41A]">✓ 通过</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <!-- 提取值表：变量 / 值 / 作用域 -->
+            <div class="border rounded-md" data-testid="proto-drill-extracts">
+              <p class="px-3 py-2 border-b text-[13px] font-medium">提取值 <span class="text-xs text-slate-400 font-normal">（与 API-004 后置提取结构一致）</span></p>
+              <table class="w-full text-[13px]">
+                <thead class="text-slate-400 text-xs">
+                  <tr class="border-b">
+                    <th class="text-left font-normal p-2">变量</th>
+                    <th class="text-left font-normal p-2">值</th>
+                    <th class="text-left font-normal p-2 w-28">作用域</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr class="border-b">
+                    <td class="p-2 font-mono text-xs">token</td>
+                    <td class="p-2 font-mono text-xs break-all">eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9…</td>
+                    <td class="p-2">环境</td>
+                  </tr>
+                  <tr>
+                    <td class="p-2 font-mono text-xs">petName</td>
+                    <td class="p-2 font-mono text-xs">小红</td>
+                    <td class="p-2">用例（临时）</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <!-- 日志流：级别着色（info 灰 / warn 黄 / error 红） -->
+            <div class="border rounded-md" data-testid="proto-drill-logs">
+              <p class="px-3 py-2 border-b text-[13px] font-medium">
+                日志流 <span class="text-xs text-slate-400 font-normal">（item 级 · RUNNING 时 SSE 实时追加）</span>
+              </p>
+              <div class="p-3 font-mono text-xs space-y-1">
+                <p class="text-slate-500">10:32:05.102 [info] item#2 开始执行：查询宠物-猫（GET /pets/9）</p>
+                <p class="text-amber-500">10:32:05.108 [warn] 环境变量 retry 未定义，重试配置跳过</p>
+                <p class="text-red-500">10:32:05.560 [error] 断言失败：$.data.kind 期望 dog，实际 cat</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- ===== 分享弹窗（静态示意：有效期单选 + 生成后复制链接 + 已存在链接列表·撤销） ===== -->
+        <div class="max-w-2xl bg-white border rounded-md shadow-lg" data-testid="proto-share-dialog">
+          <p class="px-4 py-3 border-b font-medium flex justify-between">
+            分享报告
+            <span class="text-slate-400">✕</span>
+          </p>
+          <div class="p-4 space-y-3 text-[13px]">
+            <p class="text-slate-500">有效期</p>
+            <div class="flex gap-2">
+              <span class="border rounded px-3 py-1 cursor-pointer">1 小时</span>
+              <span class="border rounded px-3 py-1 bg-[#574BFF] text-white cursor-pointer">1 天</span>
+              <span class="border rounded px-3 py-1 cursor-pointer">7 天</span>
+              <span class="border rounded px-3 py-1 cursor-pointer">30 天</span>
+            </div>
+            <div class="flex gap-2">
+              <!-- 生成后态：链接框 + 复制 -->
+              <input
+                class="flex-1 border rounded px-2 py-1.5 font-mono text-xs bg-slate-50"
+                value="https://rabbitaitest.local/share/report/9f3a8c01d24e6b7a（免登只读）"
+                readonly
+              />
+              <button class="bg-[#574BFF] text-white rounded-md px-3 py-1.5">复制链接</button>
+            </div>
+            <div class="border rounded-md">
+              <p class="px-3 py-2 border-b text-xs text-slate-500">已存在链接（同报告多链接并存，重复创建=新 token）</p>
+              <div class="flex items-center gap-2 px-3 py-2 border-b text-xs">
+                <span class="font-mono text-slate-500">9f3a8c01…</span>
+                <span class="text-slate-400">至 2026-10-04 10:00</span>
+                <span class="text-[#52C41A]">有效</span>
+                <button class="ml-auto text-[#FF4D4F]">撤销</button>
+              </div>
+              <div class="flex items-center gap-2 px-3 py-2 text-xs text-slate-400">
+                <span class="font-mono">71b0e5aa…</span>
+                <span>至 2026-09-20 10:00</span>
+                <span>已过期</span>
+                <span class="ml-auto text-slate-300">撤销（不可用）</span>
+              </div>
+            </div>
+            <p class="text-xs text-slate-400">
+              撤销/过期/不存在的 token 访问免登页统一呈现 404 空态（见 share.html）；密码保护与可导出开关为 S3 RPT-003 基线项
+            </p>
+          </div>
+          <div class="flex justify-end gap-2 px-4 py-3 border-t">
+            <button class="border rounded-md px-3 py-1.5">关 闭</button>
+            <button class="bg-[#574BFF] text-white rounded-md px-3 py-1.5">生成链接</button>
+          </div>
+        </div>
+        <!-- ===== api_debug 单请求报告：保留 S0 布局（RPT-001），无 item 表（示意） ===== -->
+        <div class="bg-white border rounded-md p-3" data-testid="proto-apidebug-s0">
+          <p class="text-[13px] font-medium mb-2">
+            调试报告（api_debug）详情 <span class="text-xs text-slate-400 font-normal">——保留 S0 布局：请求/响应双卡 + 断言表 + 日志，无统计三卡与用例表格</span>
+          </p>
+          <div class="grid grid-cols-2 gap-3 opacity-80">
+            <div class="border rounded p-2 font-mono text-xs space-y-1">
+              <p class="border-b pb-1 font-sans font-medium">请求</p>
+              <p><span class="text-green-600 font-bold">GET</span> https://httpbin.org/get</p>
+              <p class="text-slate-500">Accept: application/json</p>
+              <p class="text-slate-400">— 无 Body —</p>
+            </div>
+            <div class="border rounded p-2 font-mono text-xs space-y-1">
+              <p class="border-b pb-1 font-sans font-medium flex justify-between">
+                响应 <span><span class="text-green-600">200</span> · 842ms</span>
+              </p>
+              <pre class="bg-slate-50 rounded p-1.5">{ "url": "https://httpbin.org/get" }</pre>
+            </div>
+          </div>
+        </div>
+        <!-- 交互注释：
+        · 重跑：复用 EXEC-002 端点，生成新报告并跳转其详情（本页只读，不覆盖）
+        · 行点击钻取：frames(itemId) 按需加载（GET .../reports/{taskId}/items/{itemId}/frames）
+        · 分享弹窗由头部「分享」打开；有效期 1h/1d/7d/30d 单选 → expireHours ∈ {1,24,168,720}
+        · RUNNING 报告：统计三卡与 item 行随 SSE 增量刷新（既有 stream 消费） -->
+      </main>
+    </div>
+  </body>
+</html>

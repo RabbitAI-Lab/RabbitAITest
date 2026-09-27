@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="utf-8" />
+    <title>API-005 Mock 服务（规则匹配 · 独立服务）</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-slate-50 text-slate-800 text-sm">
+    <header class="h-12 bg-white border-b flex items-center px-4 gap-3">
+      <span class="font-semibold">RabbitAITest</span
+      ><span class="border rounded px-2 py-0.5">演示项目 #1</span>
+      <span class="ml-auto text-slate-400 text-xs">帮助 · 消息 · 用户</span>
+    </header>
+    <div class="flex" style="min-height: calc(100vh - 48px)">
+      <aside class="w-[208px] bg-white border-r py-3 shrink-0 text-[13px]">
+        <p class="px-4 pb-1 text-xs text-slate-400">工作区</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md">工作台</p>
+        <p class="px-4 pt-3 pb-1 text-xs text-slate-400">测试管理</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md">测试用例</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md">用例评审</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md">测试计划</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md">缺陷管理</p>
+        <p class="px-4 pt-3 pb-1 text-xs text-slate-400">接口测试</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md bg-[#574BFF]/10 text-[#574BFF] font-medium relative">
+          <span class="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 rounded-r bg-[#574BFF]"></span>
+          接口定义
+        </p>
+        <p class="mx-2 px-3 py-[7px] rounded-md">接口调试</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md">接口报告</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md">文件管理</p>
+        <p class="px-4 pt-3 pb-1 text-xs text-slate-400">任务中心</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md">实时任务</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md">定时任务</p>
+        <p class="px-4 pt-3 pb-1 text-xs text-slate-400">组织</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md">项目管理</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md">成员管理</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md">模板管理</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md">用户组管理</p>
+        <p class="px-4 pt-3 pb-1 text-xs text-slate-400">项目设置</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md">基本信息</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md">成员管理</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md">用户组</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md">环境管理</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md">模板管理</p>
+        <p class="px-4 pt-3 pb-1 text-xs text-slate-400">系统设置</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md">用户管理</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md">用户组管理</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md">系统参数</p>
+      </aside>
+      <main class="flex-1 min-w-0 p-4 space-y-3">
+        <!-- 主视图：定义详情（MOCK 页签高亮） -->
+        <div class="bg-white border rounded-md">
+          <div class="p-3 flex items-center gap-2 flex-wrap border-b">
+            <input class="border rounded px-2 py-1.5 w-52 font-medium" value="查询宠物" />
+            <select class="border rounded px-2 py-1.5 w-24 text-green-600 font-bold"><option>GET</option></select>
+            <input class="border rounded px-2 py-1.5 w-64 font-mono" value="/pets/{id}" />
+            <select class="border rounded px-2 py-1.5"><option>已发布</option><option>调试中</option></select>
+            <span class="ml-auto flex items-center gap-2">
+              <button class="border rounded-md px-3 py-1.5">变更历史</button>
+              <button class="border rounded-md px-3 py-1.5">引用关系</button>
+            </span>
+          </div>
+          <div class="px-3 flex gap-4 border-b text-[13px]">
+            <span class="py-2.5 text-slate-500">API</span>
+            <span class="py-2.5 text-slate-500">CASE（4）</span>
+            <span class="py-2.5 border-b-2 border-[#574BFF] text-[#574BFF] font-medium">MOCK（3）</span>
+          </div>
+
+          <!-- Mock 地址卡：完整 URL + 复制 + 服务状态点 -->
+          <div class="m-3 bg-white border rounded-md p-3 flex items-center gap-3 flex-wrap" data-testid="proto-mock-url-card">
+            <span class="inline-flex items-center gap-1.5 text-green-600 text-[13px] font-medium">
+              <span class="w-2 h-2 rounded-full bg-green-500"></span>Mock 服务运行中
+            </span>
+            <span class="font-mono text-[13px] bg-slate-50 border rounded px-2 py-1.5">http://127.0.0.1:4000/mock/10001/pets/1</span>
+            <button class="border rounded px-2.5 py-1.5 text-xs">复制</button>
+            <span class="text-xs text-slate-400">地址 = {MOCK_PUBLIC_URL}/mock/{项目号}{接口 path} · 保存即热更新（Redis 快照失效重载）</span>
+            <!-- 服务停止态（二态参考）：灰点 + 未启动
+            <span class="inline-flex items-center gap-1.5 text-slate-400 text-[13px]">
+              <span class="w-2 h-2 rounded-full bg-slate-300"></span>Mock 服务未启动
+            </span>
+            -->
+          </div>
+
+          <!-- 规则表格 -->
+          <div class="mx-3 mb-3 border rounded-md overflow-hidden" data-testid="proto-table-mocks">
+            <div class="flex items-center gap-2 px-3 py-2.5 border-b flex-wrap">
+              <button class="bg-[#574BFF] text-white rounded-md px-3 py-1.5" data-testid="proto-btn-new-mock">新建规则</button>
+              <span class="text-xs text-slate-400">命中语义：多规则按「匹配条件最多者」优先（精确 &gt; 宽松）；未命中 404 · code 40401 · 禁用规则透明下线</span>
+            </div>
+            <table class="w-full text-[13px]">
+              <thead class="text-slate-500 bg-slate-50 border-b">
+                <tr>
+                  <th class="text-left font-normal px-3 py-2 w-36">名称</th>
+                  <th class="text-left font-normal px-2 py-2">匹配摘要</th>
+                  <th class="text-left font-normal px-2 py-2">响应摘要</th>
+                  <th class="text-left font-normal px-2 py-2 w-16">启用</th>
+                  <th class="text-left font-normal px-2 py-2 w-40">操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="border-b hover:bg-slate-50">
+                  <td class="px-3 py-2.5">狗查询</td>
+                  <td class="px-2 py-2.5"><span class="font-bold text-green-600 text-xs">GET</span> <span class="font-mono text-xs">/pets/{id}</span> <span class="text-xs text-slate-400">+ Query kind=dog · 2 条件</span></td>
+                  <td class="px-2 py-2.5 font-mono text-xs text-slate-500">200 · {"code":0,"data":{"kind":"dog"}} · 延迟300ms</td>
+                  <td class="px-2 py-2.5">
+                    <span class="inline-flex w-9 h-5 items-center rounded-full bg-[#574BFF] relative"><span class="absolute right-0.5 w-4 h-4 rounded-full bg-white"></span></span>
+                  </td>
+                  <td class="px-2 py-2.5 space-x-2 text-[#574BFF]"><span>调试</span><span>编辑</span><span class="text-[#FF4D4F]">删除</span></td>
+                </tr>
+                <!-- 禁用态示例：开关关闭 -->
+                <tr class="border-b hover:bg-slate-50">
+                  <td class="px-3 py-2.5">猫查询 <span class="text-xs text-slate-400">（禁用=透明下线）</span></td>
+                  <td class="px-2 py-2.5"><span class="font-bold text-green-600 text-xs">GET</span> <span class="font-mono text-xs">/pets/{id}</span> <span class="text-xs text-slate-400">+ Query kind=cat · 2 条件</span></td>
+                  <td class="px-2 py-2.5 font-mono text-xs text-slate-500">200 · {"code":0,"data":{"kind":"cat"}}</td>
+                  <td class="px-2 py-2.5">
+                    <span class="inline-flex w-9 h-5 items-center rounded-full bg-slate-300 relative"><span class="absolute left-0.5 w-4 h-4 rounded-full bg-white"></span></span>
+                  </td>
+                  <td class="px-2 py-2.5 space-x-2 text-[#574BFF]"><span>调试</span><span>编辑</span><span class="text-[#FF4D4F]">删除</span></td>
+                </tr>
+                <tr class="hover:bg-slate-50">
+                  <td class="px-3 py-2.5">调试头兜底</td>
+                  <td class="px-2 py-2.5"><span class="font-bold text-green-600 text-xs">GET</span> <span class="font-mono text-xs">/pets/{id}</span> <span class="text-xs text-slate-400">+ Header X-Debug: 1 · 2 条件</span></td>
+                  <td class="px-2 py-2.5 text-xs"><span class="rounded bg-[#574BFF]/10 text-[#574BFF] px-1.5 py-0.5">跟随 API</span> <span class="text-slate-400">· 定义默认响应</span></td>
+                  <td class="px-2 py-2.5">
+                    <span class="inline-flex w-9 h-5 items-center rounded-full bg-[#574BFF] relative"><span class="absolute right-0.5 w-4 h-4 rounded-full bg-white"></span></span>
+                  </td>
+                  <td class="px-2 py-2.5 space-x-2 text-[#574BFF]"><span>调试</span><span>编辑</span><span class="text-[#FF4D4F]">删除</span></td>
+                </tr>
+              </tbody>
+            </table>
+            <!-- 空态示例（切态参考）
+            <div class="flex flex-col items-center justify-center text-slate-400 gap-2 py-12">
+              <span>🧩</span><p>暂无 Mock 规则</p>
+              <p class="text-xs">「新建规则」创建；开启「跟随 API」可直接复用定义默认响应</p>
+            </div>
+            -->
+          </div>
+        </div>
+
+        <!-- ============ 弹窗 ① 规则编辑（常规态 + 跟随 API 置灰态） ============ -->
+        <div class="bg-white border rounded-md text-[13px]" data-testid="proto-panel-mock-edit">
+          <div class="flex items-center gap-2 px-3 py-2.5 border-b">
+            <span class="font-medium">规则编辑</span>
+            <span class="text-xs text-slate-400">弹窗 · 常规态（跟随 API 关闭）</span>
+            <span class="ml-auto text-slate-400">✕</span>
+          </div>
+          <div class="p-3 grid grid-cols-2 gap-3">
+            <!-- 匹配区 -->
+            <div class="border rounded-md">
+              <p class="px-3 py-2 bg-slate-50 border-b font-medium">匹配条件</p>
+              <div class="p-2.5 space-y-2">
+                <div class="flex gap-2 items-center">
+                  <span class="w-20 text-right text-slate-500">Method</span>
+                  <select class="border rounded px-2 py-1 flex-1"><option>GET</option><option>POST</option><option>PUT</option><option>DELETE</option></select>
+                </div>
+                <div class="flex gap-2 items-center">
+                  <span class="w-20 text-right text-slate-500">Path 模板</span>
+                  <input class="border rounded px-2 py-1 flex-1 font-mono text-xs" value="/pets/{id}" />
+                </div>
+                <p class="text-xs text-slate-400">{param} 为 REST 路径参数捕获；与接口定义 path 一致</p>
+                <p class="text-slate-500 font-medium pt-1">请求头 KV</p>
+                <div class="flex gap-2 items-center"><input class="border rounded px-2 py-1 w-32" value="X-Api-Version" /><span class="text-slate-400">=</span><input class="border rounded px-2 py-1 flex-1" value="1" /><span class="text-slate-300">✕</span></div>
+                <button class="text-[#574BFF]">＋ 添加</button>
+                <p class="text-slate-500 font-medium pt-1">Query KV</p>
+                <div class="flex gap-2 items-center"><input class="border rounded px-2 py-1 w-32" value="kind" /><span class="text-slate-400">=</span><input class="border rounded px-2 py-1 flex-1" value="dog" /><span class="text-slate-300">✕</span></div>
+                <button class="text-[#574BFF]">＋ 添加</button>
+                <p class="text-slate-500 font-medium pt-1">请求体包含</p>
+                <textarea class="border rounded w-full h-14 p-2 font-mono text-xs" rows="2" placeholder="留空 = 不校验请求体"></textarea>
+              </div>
+            </div>
+            <!-- 响应区（常规态：可编辑） -->
+            <div class="border rounded-md">
+              <p class="px-3 py-2 bg-slate-50 border-b font-medium">响应</p>
+              <div class="p-2.5 space-y-2">
+                <div class="flex gap-2 items-center">
+                  <span class="w-16 text-right text-slate-500">状态码</span>
+                  <input class="border rounded px-2 py-1 w-20" value="200" />
+                </div>
+                <p class="text-slate-500 font-medium pt-1">响应头 KV</p>
+                <div class="flex gap-2 items-center"><input class="border rounded px-2 py-1 w-40" value="Content-Type" /><span class="text-slate-400">:</span><input class="border rounded px-2 py-1 flex-1 font-mono text-xs" value="application/json" /><span class="text-slate-300">✕</span></div>
+                <button class="text-[#574BFF]">＋ 添加</button>
+                <div class="flex gap-2 items-center pt-1">
+                  <span class="text-slate-500">响应体</span>
+                  <button class="ml-auto border rounded px-2 py-0.5 text-xs">格式化 JSON ▾</button>
+                </div>
+                <textarea class="border rounded w-full h-24 p-2 font-mono text-xs leading-5" rows="4">{
+  "code": 0,
+  "data": { "id": 1, "name": "阿黄", "kind": "dog" }
+}</textarea>
+                <div class="flex gap-2 items-center">
+                  <span class="text-slate-500">延迟</span>
+                  <input class="border rounded px-2 py-1 w-20" value="300" />
+                  <span class="text-slate-500">ms</span>
+                  <span class="text-xs text-slate-400">≤10000 · 响应前 sleep</span>
+                </div>
+                <div class="flex items-center gap-2 pt-1">
+                  <span class="text-slate-500">跟随 API</span>
+                  <span class="inline-flex w-9 h-5 items-center rounded-full bg-slate-300 relative"><span class="absolute left-0.5 w-4 h-4 rounded-full bg-white"></span></span>
+                  <span class="text-xs text-slate-400">关闭 · 使用下方自定义响应</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="px-3 pb-3 flex justify-end gap-2">
+            <button class="border rounded-md px-4 py-1.5">取 消</button>
+            <button class="bg-[#574BFF] text-white rounded-md px-4 py-1.5">保 存</button>
+          </div>
+        </div>
+
+        <!-- 规则编辑 · 跟随 API 开启态：响应体区整体置灰禁用 -->
+        <div class="bg-white border rounded-md text-[13px]" data-testid="proto-panel-mock-edit-follow">
+          <div class="flex items-center gap-2 px-3 py-2.5 border-b">
+            <span class="font-medium">规则编辑 · 跟随 API 开启态</span>
+            <span class="text-xs text-slate-400">响应区整体置灰禁用 · 将返回接口定义的默认响应</span>
+            <span class="ml-auto text-slate-400">✕</span>
+          </div>
+          <div class="p-3">
+            <div class="border rounded-md">
+              <p class="px-3 py-2 bg-slate-50 border-b font-medium">响应（跟随 API）</p>
+              <div class="p-2.5 space-y-2 bg-slate-50 opacity-60 pointer-events-none">
+                <div class="flex gap-2 items-center">
+                  <span class="w-16 text-right text-slate-500">状态码</span>
+                  <input class="border rounded px-2 py-1 w-20 bg-white" value="200" disabled />
+                </div>
+                <p class="text-slate-500 font-medium pt-1">响应头 KV</p>
+                <div class="flex gap-2 items-center"><input class="border rounded px-2 py-1 w-40 bg-white" value="Content-Type" disabled /><span class="text-slate-400">:</span><input class="border rounded px-2 py-1 flex-1 font-mono text-xs bg-white" value="application/json" disabled /></div>
+                <div class="flex gap-2 items-center pt-1">
+                  <span class="text-slate-500">响应体</span>
+                  <button class="ml-auto border rounded px-2 py-0.5 text-xs" disabled>格式化 JSON ▾</button>
+                </div>
+                <textarea class="border rounded w-full h-20 p-2 font-mono text-xs leading-5 bg-white" rows="3" disabled>{
+  "code": 0,
+  "data": { "id": 1, "name": "阿黄", "kind": "dog" }
+}</textarea>
+                <div class="flex gap-2 items-center">
+                  <span class="text-slate-500">延迟</span>
+                  <input class="border rounded px-2 py-1 w-20 bg-white" value="300" disabled />
+                  <span class="text-slate-500">ms</span>
+                </div>
+              </div>
+              <div class="px-2.5 py-2.5 flex items-center gap-2 border-t">
+                <span class="text-slate-500">跟随 API</span>
+                <span class="inline-flex w-9 h-5 items-center rounded-full bg-[#574BFF] relative"><span class="absolute right-0.5 w-4 h-4 rounded-full bg-white"></span></span>
+                <span class="text-xs text-slate-500">🔒 已开启：将返回接口定义的默认响应（API 页签「默认响应」为响应源），自定义响应不可编辑</span>
+              </div>
+            </div>
+            <div class="flex justify-end gap-2 pt-3">
+              <button class="border rounded-md px-4 py-1.5">取 消</button>
+              <button class="bg-[#574BFF] text-white rounded-md px-4 py-1.5">保 存</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============ 弹窗 ② Mock 调试（命中 / 404 并列示例） ============ -->
+        <div class="bg-white border rounded-md text-[13px]" data-testid="proto-panel-mock-debug">
+          <div class="flex items-center gap-2 px-3 py-2.5 border-b">
+            <span class="font-medium">Mock 调试</span>
+            <span class="text-xs text-slate-400">弹窗 · web 服务端代发（避免浏览器跨域）· 可改 Query / 头</span>
+            <span class="ml-auto text-slate-400">✕</span>
+          </div>
+          <div class="p-3 space-y-2.5">
+            <!-- 示例请求 -->
+            <div class="flex gap-2 items-center flex-wrap">
+              <select class="border rounded px-2 py-1.5 w-20 text-green-600 font-bold"><option>GET</option></select>
+              <div class="flex-1 min-w-[280px] border rounded px-2 py-1.5 font-mono text-xs bg-white">http://127.0.0.1:4000/mock/10001/pets/1</div>
+              <span class="text-slate-400 text-xs">Query:</span>
+              <input class="border rounded px-2 py-1.5 w-32 font-mono text-xs" value="kind=dog" />
+              <span class="text-slate-400 text-xs">头:</span>
+              <input class="border rounded px-2 py-1.5 w-40 font-mono text-xs" placeholder="X-Debug: 1（可选）" />
+              <button class="bg-[#574BFF] text-white rounded-md px-4 py-1.5">发 送</button>
+            </div>
+            <!-- 两个并列结果示例：命中 / 404 -->
+            <div class="grid grid-cols-2 gap-3">
+              <!-- 命中态 -->
+              <div class="border rounded-md overflow-hidden" data-testid="proto-mock-debug-hit">
+                <div class="px-3 py-2 bg-green-50 border-b text-green-700 flex items-center gap-2 font-medium">
+                  <span>✓ 命中规则：狗查询</span>
+                  <span class="ml-auto text-xs font-normal">HTTP 200 · 312ms（延迟 300ms 生效）</span>
+                </div>
+                <pre class="p-3 font-mono text-xs leading-5 text-slate-600 overflow-x-auto">Content-Type: application/json
+
+{
+  "code": 0,
+  "data": { "id": 1, "name": "阿黄", "kind": "dog" }
+}</pre>
+              </div>
+              <!-- 404 态（未命中） -->
+              <div class="border rounded-md overflow-hidden" data-testid="proto-mock-debug-miss">
+                <div class="px-3 py-2 bg-slate-50 border-b text-slate-500 flex items-center gap-2 font-medium">
+                  <span>✗ 无匹配 Mock 规则</span>
+                  <span class="ml-auto text-xs font-normal">HTTP 404（Query kind=cat 时）</span>
+                </div>
+                <pre class="p-3 font-mono text-xs leading-5 text-slate-400">{
+  "code": 40401,
+  "message": "无匹配 Mock 规则"
+}</pre>
+                <p class="px-3 pb-2.5 text-xs text-slate-400">禁用规则不参与匹配；多候选按匹配条件数最多者优先</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </body>
+</html>

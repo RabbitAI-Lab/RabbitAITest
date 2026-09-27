@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="utf-8" />
+    <title>API-002 接口定义 · 列表</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-slate-50 text-slate-800 text-sm">
+    <header class="h-12 bg-white border-b flex items-center px-4 gap-3">
+      <span class="font-semibold">RabbitAITest</span
+      ><span class="border rounded px-2 py-0.5">演示项目 #1</span>
+      <span class="ml-auto text-slate-400 text-xs">帮助 · 消息 · 用户</span>
+    </header>
+    <div class="flex" style="min-height: calc(100vh - 48px)">
+      <aside class="w-[208px] bg-white border-r py-3 shrink-0">
+        <p class="px-4 pb-1 text-xs text-slate-400">工作区</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md">工作台</p>
+        <p class="px-4 pt-3 pb-1 text-xs text-slate-400">测试管理</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md">测试用例</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md">用例评审</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md">测试计划</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md">缺陷管理</p>
+        <p class="px-4 pt-3 pb-1 text-xs text-slate-400">接口测试</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md bg-[#574BFF]/10 text-[#574BFF] font-medium relative">
+          <span class="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 rounded-r bg-[#574BFF]"></span>
+          接口定义
+        </p>
+        <p class="mx-2 px-3 py-[7px] rounded-md">接口调试</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md">接口报告</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md">文件管理</p>
+        <p class="px-4 pt-3 pb-1 text-xs text-slate-400">任务中心</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md text-slate-400">实时任务 / 定时任务</p>
+        <p class="px-4 pt-3 pb-1 text-xs text-slate-400">项目设置</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md text-slate-400">… / 环境管理</p>
+      </aside>
+      <main class="flex-1 p-4 flex gap-3">
+        <!-- 左：api 场景模块树 -->
+        <div class="w-60 shrink-0 bg-white border rounded-md flex flex-col" data-testid="proto-module-tree">
+          <div class="flex items-center justify-between px-3 py-2 border-b">
+            <span class="font-medium">模块</span>
+            <span class="flex gap-2 text-slate-400">＋ ⟳</span>
+          </div>
+          <div class="p-2 space-y-0.5 text-[13px]">
+            <div class="px-2 py-1.5 rounded hover:bg-slate-50 cursor-pointer flex items-center gap-1">
+              <span class="text-slate-400">▾</span><span> 🐾 宠物店</span>
+            </div>
+            <div class="pl-6 pr-2 py-1.5 rounded bg-[#574BFF]/10 text-[#574BFF] flex items-center justify-between">
+              <span>宠物模块 <span class="text-xs text-slate-400">12</span></span>
+            </div>
+            <div class="pl-6 pr-2 py-1.5 rounded hover:bg-slate-50 flex justify-between">
+              <span>订单模块 <span class="text-xs text-slate-400">5</span></span>
+            </div>
+            <div class="px-2 py-1.5 rounded hover:bg-slate-50 flex justify-between text-slate-500">
+              <span>未规划接口 <span class="text-xs text-slate-400">2</span></span>
+              <span class="text-xs text-slate-300">（默认，不可删）</span>
+            </div>
+          </div>
+          <div class="mt-auto px-3 py-2 border-t text-xs text-slate-400">
+            右键：重命名 / 删除 / 排序 · 拖拽移动子树
+          </div>
+        </div>
+        <!-- 右：定义列表 -->
+        <div class="flex-1 bg-white border rounded-md flex flex-col">
+          <div class="flex items-center gap-2 px-3 py-2.5 border-b flex-wrap">
+            <button class="bg-[#574BFF] text-white rounded-md px-3 py-1.5" data-testid="proto-btn-new">新建接口</button>
+            <button class="border rounded-md px-3 py-1.5">导入</button>
+            <button class="border rounded-md px-3 py-1.5">导出</button>
+            <button class="border rounded-md px-3 py-1.5">cURL 导入</button>
+            <span class="ml-auto flex items-center gap-2">
+              <select class="border rounded px-2 py-1.5"><option>全部方法</option><option>GET</option><option>POST</option></select>
+              <select class="border rounded px-2 py-1.5"><option>全部状态</option><option>调试中</option><option>已发布</option></select>
+              <input class="border rounded px-2 py-1.5 w-44" placeholder="搜索名称/路径" />
+            </span>
+          </div>
+          <table class="w-full text-[13px]">
+            <thead class="text-slate-500 bg-slate-50 border-b">
+              <tr>
+                <th class="text-left font-normal px-3 py-2">名称</th>
+                <th class="text-left font-normal px-3 py-2 w-20">方法</th>
+                <th class="text-left font-normal px-3 py-2">路径</th>
+                <th class="text-left font-normal px-3 py-2 w-20">状态</th>
+                <th class="text-left font-normal px-3 py-2 w-16">用例</th>
+                <th class="text-left font-normal px-3 py-2 w-32">更新时间</th>
+                <th class="text-left font-normal px-3 py-2 w-40">操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="border-b hover:bg-slate-50 cursor-pointer">
+                <td class="px-3 py-2.5">查询宠物 <span class="text-slate-400 text-xs">#100023</span></td>
+                <td class="px-3 py-2.5"><span class="text-green-600 font-bold text-xs">GET</span></td>
+                <td class="px-3 py-2.5 font-mono text-xs">/pets/{id}</td>
+                <td class="px-3 py-2.5"><span class="text-[#1677FF]">● 调试中</span></td>
+                <td class="px-3 py-2.5">3</td>
+                <td class="px-3 py-2.5 text-slate-400">2026-09-27 10:20</td>
+                <td class="px-3 py-2.5 space-x-2 text-[#574BFF]"><span>编辑</span><span>执行</span><span class="text-[#FF4D4F]">删除</span></td>
+              </tr>
+              <tr class="border-b hover:bg-slate-50">
+                <td class="px-3 py-2.5">新建宠物 <span class="text-slate-400 text-xs">#100024</span></td>
+                <td class="px-3 py-2.5"><span class="text-amber-600 font-bold text-xs">POST</span></td>
+                <td class="px-3 py-2.5 font-mono text-xs">/pets</td>
+                <td class="px-3 py-2.5"><span class="text-green-600">● 已发布</span></td>
+                <td class="px-3 py-2.5">5</td>
+                <td class="px-3 py-2.5 text-slate-400">2026-09-26 18:02</td>
+                <td class="px-3 py-2.5 space-x-2 text-[#574BFF]"><span>编辑</span><span>执行</span><span class="text-[#FF4D4F]">删除</span></td>
+              </tr>
+              <tr class="hover:bg-slate-50">
+                <td class="px-3 py-2.5">删除订单 <span class="text-slate-400 text-xs">#100031</span></td>
+                <td class="px-3 py-2.5"><span class="text-red-600 font-bold text-xs">DELETE</span></td>
+                <td class="px-3 py-2.5 font-mono text-xs">/orders/{id}</td>
+                <td class="px-3 py-2.5"><span class="text-[#1677FF]">● 调试中</span></td>
+                <td class="px-3 py-2.5">0</td>
+                <td class="px-3 py-2.5 text-slate-400">2026-09-25 09:44</td>
+                <td class="px-3 py-2.5 space-x-2 text-[#574BFF]"><span>编辑</span><span>执行</span><span class="text-[#FF4D4F]">删除</span></td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="mt-auto flex items-center justify-between px-3 py-2 border-t text-xs text-slate-500">
+            <span>共 19 条 · 每页 20 条</span>
+            <span class="flex gap-1">
+              <button class="border rounded px-2 py-0.5">‹</button>
+              <button class="border rounded px-2 py-0.5 bg-[#574BFF] text-white">1</button>
+              <button class="border rounded px-2 py-0.5">›</button>
+            </span>
+          </div>
+          <!-- 空态示例（切态参考）
+          <div class="flex-1 flex flex-col items-center justify-center text-slate-400 gap-2 py-16">
+            <span>🔍</span><p>暂无接口定义</p>
+            <p class="text-xs">「新建接口」手工创建，或使用「导入」批量导入 OpenAPI / Postman</p>
+          </div>
+          -->
+        </div>
+      </main>
+    </div>
+  </body>
+</html>
