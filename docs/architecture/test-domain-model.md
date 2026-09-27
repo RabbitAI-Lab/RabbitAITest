@@ -64,6 +64,7 @@
 | Bug                | template FK、fields JSONB、platform(local/jira/zentao/tapd)、platform_key、sync_state |              |
 | BugCaseRef         | bug FK、ref_type、ref_id                                                              | 多态         |
 | PlatformSyncConfig | platform、project_key、mode(incr/full)、cron                                          | 项目应用设置 |
+| PlatformIntegration | org FK、platform、address、auth_type、credential(AES-GCM 密文)、test_status/tested_at | S6 建表（INTG-001：组织级服务集成；凭据 env RABBIT_INTEGRATION_SECRET 派生密钥加密，永不回显） |
 
 ### 2.6 api_test 域
 

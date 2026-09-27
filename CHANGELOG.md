@@ -2,7 +2,24 @@
 
 本项目的所有显著变更记录于此。格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本遵循语义化版本。
 
-## [Unreleased]
+## [v0.5.0] - 2026-09-27 — Sprint 6 集成与插件（M7 里程碑）
+
+### 新增（全量交付：三层测试 + CI 全绿）
+
+- **插件框架（PLUG-001）**：plugin-runner 宿主（HTTP loopback 命令面 + worker_threads 每插件一线程 + 崩溃退避重启 1/4/16s + 内置 platform-echo）；tarball 上传流水线（清单/SPI 版本校验 + 成员白名单防路径穿越 + MinIO 存储 + 版本递增 409）；启停/组织范围/删除依赖校验；管理页 `/system/plugins`
+- **协议插件 SPI（PLUG-002）**：SamplerPlugin SPI 冻结（configSchema/buildSampler/SamplerResult 标准化）；engine 进程内注册表（30s 轮询 internal 清单 + dynamic import 缓存去重）；请求协议字段 additive（protocol/protocolConfig）；tcp-conn 示例插件；执行分支 CONFIG_ERROR 40510
+- **Jira 对接（INTG-001）**：组织服务集成（凭据 AES-256-GCM 加密 + HKDF 平台派生 + 掩码不回显）；测试连接经 runner 平台插件；项目关联（projectKey/缺陷类型映射/状态映射覆盖/增量定时）；推送创建/更新 + 拉取状态回写 + syncState 状态机 + ChangeLog 留痕；同步历史（AppSetting 截 20）
+- **禅道/TAPD 对接（INTG-002）**：同 SPI 双适配器（禅道 token 会话 + 失效重登一次；TAPD Basic）；PLATFORM_META 平台元数据单一来源；复用 INTG-001 全部编排
+- **Jenkins CI（INTG-003）**：个人 APIKEY（ak/sk 生成、sha256 常量时间比对、5 条上限、一次性展示、吊销）；第三认证通道（Basic/Bearer）+ Redis 固定窗口限流 10 QPS；开放 API（open/exec api-case/scenario/轮询/报告摘要 白名单字段）；审计 open.exec
+- **Swagger 定时同步（API-011）**：任务 CRUD（上限 10 · cron 词法校验复用 S3）；URL 拉取出站守卫（DNS 解析后 IP 黑名单，OUTBOUND_ALLOW_PRIVATE=1 测试放开）；内容嗅探 json/yaml + openapi:3 标识校验；复用 S2 导入管线判重报告；手动/定时同路径
+- **审计日志（SYS-008）**：withAudit 声明式包装 + BullMQ 异步批量落库（降级直写）+ 三级查询（system/org/project 高级筛选）+ 保留时长清理（每日 03:00 分批 1000）+ audit.purge 汇总留痕
+- **基础设施**：PlatformIntegration 表 + ApiKey prefix 索引（迁移 s6）；权限点 7 枚（SYSTEM_PLUGIN/ORG_INTEGRATION/SYSTEM_AUDIT/ORG_AUDIT/PROJECT_AUDIT 读写）；错误码 70xxx 段 17 枚 + 10xxx 3 枚 + 40xxx 7 枚；mock 三平台子集 + 状态注入控制面；esbuild 插件打包链（pnpm build:plugins）
+- **勘误**：PLUG-001 勘误 1（gRPC→HTTP loopback）/勘误 2（runner dev 内嵌启动，生产独立部署口径保留）；INTG-003 勘误 1（错误码 10005-10007 与既有占用冲突 → 10010-10012）
+
+### 测试与收口（本段随 v0.5.0 一并交付）
+
+- JMeter 5 份（四类×四断言三轮稳定全绿）；Playwright 15 条 + MAINFLOW-s6（三类断言）；全量 e2e 131/131（S6+S7 共存口径）；OpenAPI 快照 225 paths；变基 S7 main 后合并修复（guard 三元链/LeftNav 拆分/run-api-tests 融合）；CI e2e job 补 build:plugins
+- 调试挖出的深层缺陷：instrumentation.ts 自 S3 起未导入 node 版（schedule/audit 消费者死代码）；插件并发上传竞态（name+kind 唯一索引）；SPI since ISO 契约；bugs 列表平台徽标漏交付；插件页信封消费崩溃等
 
 ## [v0.5.1] - 2026-09-27 — Sprint 4 计划完整与脑图（M5 里程碑）
 

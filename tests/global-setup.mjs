@@ -96,15 +96,21 @@ export default async function globalSetup() {
     // S7 AI：种子内置一台指向 e2e mock(:4001) 的模型（AI-002~005 spec 直接可用；环回豁免经 webServer env 注入；
     // baseUrl 含 /ai 前缀——mock 路由 /ai/chat/completions）
     RABBIT_SEED_AI_MOCK_BASE: "http://127.0.0.1:4001/ai",
+    // S6：集成凭据加密密钥（值=测试常量非真实凭据）+ Swagger 同步目标为本地 mock → 放开私网出站
+    RABBIT_INTEGRATION_SECRET: "e2e-integration-secret-32chars-ok!!",
+    OUTBOUND_ALLOW_PRIVATE: "1",
+    // S6：mock 平台测试凭据（非真实凭据——mock 校验非空制）
+    E2E_PLATFORM_USER: process.env.E2E_PLATFORM_USER ?? "platform-e2e-user",
+    E2E_PLATFORM_PASS: process.env.E2E_PLATFORM_PASS ?? "platform-e2e-pass",
   };
-  for (const k of ["DATABASE_URL", "REDIS_URL", "WEB_URL", "SESSION_SECRET", "INTERNAL_TOKEN"]) {
+  for (const k of ["DATABASE_URL", "REDIS_URL", "WEB_URL", "SESSION_SECRET", "INTERNAL_TOKEN", "RABBIT_INTEGRATION_SECRET", "OUTBOUND_ALLOW_PRIVATE", "MOCK_PORT", "E2E_PLATFORM_USER", "E2E_PLATFORM_PASS"]) {
     if (env[k]) process.env[k] = env[k];
   }
   // webServer（独立进程）经 env 文件获取上述变量
   const { writeFileSync } = await import("node:fs");
   writeFileSync(
     path.join(root, "tests", ".e2e.env"),
-    `DATABASE_URL=${env.DATABASE_URL}\nREDIS_URL=${env.REDIS_URL}\nWEB_URL=${env.WEB_URL}\nSESSION_SECRET=${env.SESSION_SECRET}\nINTERNAL_TOKEN=${env.INTERNAL_TOKEN}\nPORT=3100\nSESSION_COOKIE_SECURE=false\n`,
+    `DATABASE_URL=${env.DATABASE_URL}\nREDIS_URL=${env.REDIS_URL}\nWEB_URL=${env.WEB_URL}\nSESSION_SECRET=${env.SESSION_SECRET}\nINTERNAL_TOKEN=${env.INTERNAL_TOKEN}\nPORT=3100\nSESSION_COOKIE_SECURE=false\nRABBIT_INTEGRATION_SECRET=${env.RABBIT_INTEGRATION_SECRET}\nOUTBOUND_ALLOW_PRIVATE=${env.OUTBOUND_ALLOW_PRIVATE}\nMOCK_PORT=${env.MOCK_PORT}\n`,
   );
   log("migrate deploy + seed …");
   const migrate = spawnSync("pnpm", ["--filter", "@rabbit/db", "migrate-deploy"], {

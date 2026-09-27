@@ -45,6 +45,13 @@
 | AI-003  | [api-case-generation](./AI-003-api-case-generation/index.html)（单条模式 + OpenAPI 批量模式） | 待确认 | — |
 | AI-004  | [ai-assistant](./AI-004-ai-assistant/index.html)（顶栏入口面板 + 空态/错误态） | 待确认 | — |
 | AI-005  | [prompt-customization](./AI-005-prompt-customization/index.html)（scene Tab 列表/编辑抽屉 + 占位符校验两态） | 待确认 | — |
+| PLUG-001 | [plugin-framework](./PLUG-001-plugin-framework/index.html)（插件列表/上传 Modal 清单预览 + 异常态展开 + 校验反馈/空态） | 待确认 | — |
+| INTG-001 | [jira-integration](./INTG-001-jira-integration/index.html)（服务集成三卡片/配置抽屉 + 项目关联/状态映射/同步历史 + 缺陷列表平台徽标） | 待确认 | — |
+| INTG-002 | 复用 INTG-001 原型（三平台卡片+抽屉差异：禅道账号密码/TAPD api_user；走查时按 §3 差异点核） | 待确认 | — |
+| INTG-003 | [jenkins-ci](./INTG-003-jenkins-ci/index.html)（APIKEY 列表/创建成功 Modal 一次性 sk + 接入文档 curl/Jenkinsfile） | 待确认 | — |
+| API-011  | [swagger-sync-openapi](./API-011-swagger-sync-openapi/index.html)（任务列表/编辑 Modal + 同步历史行级失败明细） | 待确认 | — |
+| SYS-008  | [audit-log](./SYS-008-audit-log/index.html)（筛选+日志表格 + 三级入口权限说明 + 保留时长参数位） | 待确认 | — |
+| PLUG-002 | 以接口契约评审替代（纯引擎类，规格 §4 SPI；AGENTS 门禁 2 豁免条款） | 契约评审通过（随规格 Approved） | — |
 
 **勘误 1（2026-09-26，原型透明度）**：Sprint 1 十一组原型（2026-09-26 产出）当前页高亮统一 `bg-[#574BFF]/10`（Tailwind v3 CDN 不编译 /8 透明度刻度，与 CASE-001 基线一致）。
 

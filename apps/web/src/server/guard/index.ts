@@ -44,6 +44,9 @@ export function toResponse(err: unknown): NextResponse {
                   ErrCode.AI_CONVERSATION_NOT_FOUND,
                   ErrCode.AI_PROMPT_NOT_FOUND,
                   ErrCode.AI_NO_MODEL_AVAILABLE,
+                  ErrCode.PLUGIN_NOT_FOUND,
+                  ErrCode.INTEGRATION_NOT_FOUND,
+                  ErrCode.SWAGGER_SYNC_TASK_NOT_FOUND,
                 ] as number[]
               ).includes(err.code)
             ? 404
@@ -83,31 +86,38 @@ export function toResponse(err: unknown): NextResponse {
                       ErrCode.AI_OPENAPI_INVALID,
                       ErrCode.AI_PROMPT_DUP,
                       ErrCode.AI_PROMPT_PLACEHOLDER_INVALID,
+                      ErrCode.PLUGIN_PACKAGE_INVALID,
+                      ErrCode.PLUGIN_SPI_INCOMPATIBLE,
+                      ErrCode.APIKEY_LIMIT_EXCEEDED,
+                      ErrCode.APIKEY_INVALID,
+                      ErrCode.PROTOCOL_NOT_SUPPORTED,
+                      ErrCode.SWAGGER_SYNC_URL_BLOCKED,
+                      ErrCode.SWAGGER_FETCH_FAILED,
+                      ErrCode.SWAGGER_PARSE_FAILED,
+                      ErrCode.SWAGGER_TASKS_LIMIT_EXCEEDED,
+                      ErrCode.AUDIT_QUERY_INVALID,
+                      ErrCode.INTEGRATION_SECRET_MISSING,
+                      ErrCode.INTEGRATION_NOT_FOUND,
+                      ErrCode.INTEGRATION_CONNECT_FAILED,
+                      ErrCode.PLATFORM_SYNC_CONFIG_INVALID,
+                      ErrCode.SYNC_TASK_FAILED,
+                      ErrCode.PLATFORM_UNAUTHORIZED,
                     ] as number[]
                   ).includes(err.code)
                 ? 422
+                : err.code === ErrCode.PLUGIN_VERSION_CONFLICT || err.code === ErrCode.PLUGIN_DELETE_FORBIDDEN
+                  ? 409
                 : err.code === ErrCode.AI_PROVIDER_ERROR
                   ? 502 // 供应商上游失败（网关语义；透出上游状态不泄 key）
-                  : 400;
+                  : err.code === ErrCode.OPEN_RATE_LIMITED
+                    ? 429
+                    : 400;
     return NextResponse.json(fail(err.code, err.message ?? ErrMsg[err.code] ?? "业务错误"), {
       status,
     });
   }
   console.error("[unhandled]", err);
   return NextResponse.json(fail(50000, "服务内部错误"), { status: 500 });
-}
-
-/** S4：请求体 zod 解析统一出口（ZodError → DomainError 20422，避免裸抛落 500）。 */
-export function zodParse<T>(schema: { safeParse: (d: unknown) => { success: true; data: T } | { success: false; error: { issues: { path: (string | number)[]; message: string }[] } } }, data: unknown): T {
-  const parsed = schema.safeParse(data);
-  if (!parsed.success) {
-    const first = parsed.error.issues[0];
-    throw new DomainError(
-      ErrCode.VALIDATION_FAILED,
-      first ? `${first.path.join(".")}: ${first.message}` : "参数校验失败",
-    );
-  }
-  return parsed.data;
 }
 
 export interface AuthedCtx {
@@ -321,4 +331,17 @@ export function withInternalToken(
 /** 统一成功响应。 */
 export function okResponse<T>(data: T, status = 200): NextResponse {
   return NextResponse.json(ok(data), { status });
+}
+
+/** S4：请求体 zod 解析统一出口（ZodError → DomainError 20422，避免裸抛落 500）。 */
+export function zodParse<T>(schema: { safeParse: (d: unknown) => { success: true; data: T } | { success: false; error: { issues: { path: (string | number)[]; message: string }[] } } }, data: unknown): T {
+  const parsed = schema.safeParse(data);
+  if (!parsed.success) {
+    const first = parsed.error.issues[0];
+    throw new DomainError(
+      ErrCode.VALIDATION_FAILED,
+      first ? `${first.path.join(".")}: ${first.message}` : "参数校验失败",
+    );
+  }
+  return parsed.data;
 }

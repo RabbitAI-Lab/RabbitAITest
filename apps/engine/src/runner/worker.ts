@@ -9,6 +9,7 @@ import { EventWriter } from "../events.js";
 import { postCallback } from "../callback.js";
 import { runScenarioItem, type ScenarioItemOutcome } from "../kernel/scenario.js";
 import { runPlanItem } from "../kernel/plan.js";
+import { startProtocolSync } from "../kernel/samplers/registry.js";
 import { runStep } from "./step.js";
 
 const NODE_ID = `node-${process.pid}`;
@@ -317,5 +318,7 @@ export function startWorker(): void {
   };
   process.on("SIGINT", () => void shutdown());
   process.on("SIGTERM", () => void shutdown());
+  // S6 PLUG-002：协议插件注册表周期同步（30s 轮询 web internal 清单；版本变更才拉包）
+  startProtocolSync();
   console.log(`[engine] worker v${VERSION} started nodeId=${NODE_ID}`);
 }

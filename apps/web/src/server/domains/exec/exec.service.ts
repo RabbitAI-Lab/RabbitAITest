@@ -29,8 +29,18 @@ import { readFileObject } from "@/server/storage";
 
 /** ───────────── 任务创建 ───────────── */
 
-export interface DebugTaskInput {
-  request: RequestSpec;
+/** S6 PLUG-002：定义协议（ApiDefinition.protocol，默认 HTTP）≠ http(s) 时注入 request.protocol/protocolConfig */
+function withProtocol(definitionProtocol: string, spec: RequestSpec): RequestSpec {
+  const p = (definitionProtocol ?? "HTTP").toLowerCase();
+  if (p === "http" || p === "https") return spec;
+  return {
+    ...spec,
+    protocol: p,
+    protocolConfig: (spec as { protocolConfig?: Record<string, unknown> }).protocolConfig ?? {},
+  };
+}
+
+export interface DebugTaskInput {  request: RequestSpec;
   asserts: AssertSpec[];
   pre: Processor[];
   post: Processor[];
@@ -116,10 +126,10 @@ export interface ApiCaseTaskInput {
 export async function buildApiCaseCommands(
   projectId: string,
   caseIds: string[],
-): Promise<Omit<ExecItemCommand, "itemId">[]> {
+): Promise<(Omit<ExecItemCommand, "itemId"> & { apiProtocol: string })[]> {
   const cases = await prisma.apiCase.findMany({
     where: { id: { in: caseIds }, projectId, deletedAt: null },
-    include: { api: { select: { moduleId: true } } },
+    include: { api: { select: { id: true, moduleId: true, method: true, path: true, num: true, protocol: true } } },
   });
   const found = new Set(cases.map((c) => c.id));
   const missing = caseIds.filter((id) => !found.has(id));
@@ -134,6 +144,7 @@ export async function buildApiCaseCommands(
         caseId: c.id,
         name: c.name,
         moduleId: c.api.moduleId,
+        apiProtocol: c.api.protocol,
         request: bundle.spec,
         asserts: bundle.asserts ?? [],
         pre: bundle.pre ?? [],
@@ -178,7 +189,18 @@ export async function createApiCaseTask(projectId: string, userId: string, input
         data: { taskId: task.id, refType: "api_case", refId: c.caseId, status: "PENDING" },
         select: { id: true },
       });
-      items.push({ itemId: item.id, ...c });
+      items.push({
+        itemId: item.id,
+        caseId: c.caseId,
+        name: c.name,
+        moduleId: c.moduleId,
+        // S6 PLUG-002：定义协议 ≠ HTTP 时透传协议插件标识与配置（engine 注册表采样）
+        request: withProtocol(c.apiProtocol ?? "HTTP", c.request),
+        asserts: c.asserts,
+        pre: c.pre,
+        post: c.post,
+        extracts: c.extracts,
+      });
     }
     return task;
   });

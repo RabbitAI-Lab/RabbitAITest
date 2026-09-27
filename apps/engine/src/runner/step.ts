@@ -14,6 +14,7 @@ import { runExtractors } from "../kernel/extract.js";
 import { ProcessorError, runProcessors } from "../kernel/processors.js";
 import { hostsMap, mergeGlobals, renderRequest, resolveUrl } from "../kernel/render.js";
 import { httpSample } from "../samplers/http.js";
+import { getSamplerPlugin } from "../kernel/samplers/registry.js";
 import { execStopKey } from "@rabbit/shared";
 
 export interface StepSpec {
@@ -123,11 +124,36 @@ export async function runStep(
       });
     }, 300);
     let result;
+    // PLUG-002：非 http(s) 协议走插件采样器（协议标识=request.protocol 小写；engine 进程内）
+    const rawProtocol = String((step.request as { protocol?: unknown }).protocol ?? "http").toLowerCase();
+    const protocolPlugin =
+      rawProtocol !== "http" && rawProtocol !== "https" ? getSamplerPlugin(rawProtocol) : null;
+    if (rawProtocol !== "http" && rawProtocol !== "https" && !protocolPlugin) {
+      throw new ProcessorError("CONFIG_ERROR", `协议插件不可用：${rawProtocol}（未启用或加载失败）`);
+    }
     try {
-      result = await httpSample(rendered, url, (m) => void log("info", m), {
-        hosts: hostsMap(env),
-        signal: abort.signal,
-      });
+      if (protocolPlugin) {
+        // SamplerResult → HTTP 采样形态标准化（headers kv 数组 / durationMs 字段名对齐）
+        const sampler = protocolPlugin.buildSampler((step.request as { protocolConfig?: unknown }).protocolConfig);
+        const sr = await sampler.run();
+        result = {
+          status: sr.ok ? 200 : sr.code === 1 ? 504 : 502,
+          bodyText: sr.bodyText.slice(0, 4096),
+          durationMs: sr.responseTimeMs,
+          requestUrl: `${rawProtocol}://${JSON.stringify((step.request as { protocolConfig?: unknown }).protocolConfig ?? {})}`,
+          truncated: false,
+          headers: Object.entries(sr.headers ?? {}).map(([key, value]) => ({
+            key,
+            value,
+            enabled: true,
+          })),
+        };
+      } else {
+        result = await httpSample(rendered, url, (m) => void log("info", m), {
+          hosts: hostsMap(env),
+          signal: abort.signal,
+        });
+      }
     } catch (e) {
       if (abort.signal.aborted && (await isStopped(redis, writer.taskIdValue))) {
         return { status: "STOPPED", message: "任务被停止（在途请求已中断）" };

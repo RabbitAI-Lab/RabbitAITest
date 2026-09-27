@@ -656,6 +656,10 @@ export interface BugRow {
   createdAt: string;
   updatedAt: string;
   templateId: string | null;
+  /** S6 INTG：三方同步字段（列表平台徽标列） */
+  platform?: string;
+  platformKey?: string | null;
+  syncState?: string;
 }
 export interface BugDetail extends BugRow {
   description: string;

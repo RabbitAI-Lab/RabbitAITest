@@ -168,6 +168,21 @@ export async function ensureScenarioModule(tx: Tx, projectId: string): Promise<s
   return m.id;
 }
 
+/** api 域默认模块（S6 API-011 Swagger 同步目标；懒创建口径一致） */
+export async function ensureApiModule(tx: Tx, projectId: string): Promise<string> {
+  let m = await tx.moduleNode.findFirst({
+    where: { projectId, scene: "api", isDefault: true },
+    select: { id: true },
+  });
+  if (!m) {
+    m = await tx.moduleNode.create({
+      data: { projectId, scene: "api", name: "未规划接口", isDefault: true },
+      select: { id: true },
+    });
+  }
+  return m.id;
+}
+
 /** 注册/建项目时的完整预置初始化（org 组 + project 组 + 模板 + bug/file/scenario 模块 + 创建者入管理员组）。 */
 export async function initOrgAndProjectPresets(
   tx: Tx,

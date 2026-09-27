@@ -16,6 +16,9 @@ import {
   ClipboardCheck,
   Workflow,
   Sparkles,
+  Puzzle,
+  RefreshCw,
+  KeyRound,
 } from "lucide-react";
 import { usePermissions, useProjectInfo } from "@/hooks/usePermissions";
 
@@ -209,6 +212,26 @@ export function LeftNav() {
           perm: "PROJECT_AI:READ",
           testid: "nav-settings-ai-prompts",
         },
+        {
+          href: "/settings/integrations",
+          label: "服务集成",
+          icon: <Network size={15} strokeWidth={1.8} />,
+          perm: "ORG_INTEGRATION:READ",
+          testid: "nav-settings-integrations",
+        },
+        {
+          href: "/settings/swagger-sync",
+          label: "Swagger 同步",
+          icon: <RefreshCw size={15} strokeWidth={1.8} />,
+          perm: "PROJECT_API:READ",
+          testid: "nav-settings-swagger-sync",
+        },
+        {
+          href: "/personal/api-keys",
+          label: "APIKEY",
+          icon: <KeyRound size={15} strokeWidth={1.8} />,
+          testid: "nav-personal-api-keys",
+        },
       ],
     },
     {
@@ -248,6 +271,20 @@ export function LeftNav() {
           icon: <Sparkles size={15} strokeWidth={1.8} />,
           perm: "SYSTEM_AI:READ",
           testid: "nav-system-ai-models",
+        },
+        {
+          href: "/system/plugins",
+          label: "插件管理",
+          icon: <Puzzle size={15} strokeWidth={1.8} />,
+          perm: "SYSTEM_PLUGIN:READ",
+          testid: "nav-system-plugins",
+        },
+        {
+          href: "/system/audit-logs",
+          label: "系统日志",
+          icon: <ScrollText size={15} strokeWidth={1.8} />,
+          perm: "SYSTEM_AUDIT:READ",
+          testid: "nav-system-audit-logs",
         },
       ],
     },
