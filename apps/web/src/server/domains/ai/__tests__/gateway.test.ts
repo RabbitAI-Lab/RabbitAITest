@@ -37,7 +37,7 @@ describe("assertAiBaseUrl（SSRF 守卫矩阵）", () => {
   });
 
   it("公网域名放行（DNS mock 解析公网 IP）", async () => {
-    lookupMock.mockResolvedValue([{ address: "203.107.6.88", family: 4 }]);
+    lookupMock.mockResolvedValue([{ address: "203.107.6.88", family: 4 }] as never);
     await expect(assertAiBaseUrl("https://open.bigmodel.cn/api/paas/v4")).resolves.toBeUndefined();
   });
   it("公网 IP 字面量直检放行", async () => {
@@ -60,21 +60,21 @@ describe("assertAiBaseUrl（SSRF 守卫矩阵）", () => {
     await expect(assertAiBaseUrl(url)).rejects.toMatchObject({ code: ErrCode.AI_BASEURL_FORBIDDEN });
   });
   it("localhost 域名解析到环回 → 拒绝", async () => {
-    lookupMock.mockResolvedValue([{ address: "127.0.0.1", family: 4 }]);
+    lookupMock.mockResolvedValue([{ address: "127.0.0.1", family: 4 }] as never);
     await expect(assertAiBaseUrl("http://localhost:8080")).rejects.toMatchObject({ code: ErrCode.AI_BASEURL_FORBIDDEN });
   });
   it("非 http(s) 协议拒绝", async () => {
     await expect(assertAiBaseUrl("file:///etc/passwd")).rejects.toBeInstanceOf(DomainError);
   });
   it("域名解析到私网 IP 拒绝（DNS rebinding 第一道防线）", async () => {
-    lookupMock.mockResolvedValue([{ address: "10.1.2.3", family: 4 }]);
+    lookupMock.mockResolvedValue([{ address: "10.1.2.3", family: 4 }] as never);
     await expect(assertAiBaseUrl("https://evil-rebind.example.com/v1")).rejects.toMatchObject({ code: ErrCode.AI_BASEURL_FORBIDDEN });
   });
   it("多 A 记录任一私网即拒绝", async () => {
     lookupMock.mockResolvedValue([
       { address: "8.8.8.8", family: 4 },
       { address: "192.168.0.9", family: 4 },
-    ]);
+    ] as never);
     await expect(assertAiBaseUrl("https://mixed.example.com/v1")).rejects.toMatchObject({ code: ErrCode.AI_BASEURL_FORBIDDEN });
   });
   it("无法解析的域名拒绝（lookup 抛错）", async () => {
