@@ -8,7 +8,12 @@
  */
 import { ErrCode, DomainError } from "@rabbit/shared";
 
-const RAW_BASE = process.env.PLUGIN_RUNNER_URL ?? "http://127.0.0.1:4010";
+// S-future PLUG-003：未显式配 URL 时跟随 PLUGIN_RUNNER_PORT（多栈并存端口隔离；内嵌启动与客户端默认同源）
+const RAW_BASE =
+  process.env.PLUGIN_RUNNER_URL ??
+  (process.env.PLUGIN_RUNNER_PORT
+    ? `http://127.0.0.1:${process.env.PLUGIN_RUNNER_PORT}`
+    : "http://127.0.0.1:4010");
 const DEFAULT_TIMEOUT_MS = 30_000;
 
 const IPV4_PATTERN = /^(\d+)\.(\d+)\.(\d+)\.(\d+)$/;
@@ -86,9 +91,16 @@ async function rpc<T>(body: Record<string, unknown>, timeoutMs = DEFAULT_TIMEOUT
     signal: AbortSignal.timeout(timeoutMs),
   }).catch(() => null);
   if (!res) {
-    throw new DomainError(ErrCode.PLUGIN_RUNNER_UNAVAILABLE, "plugin-runner 不可达（127.0.0.1 命令面）");
+    throw new DomainError(
+      ErrCode.PLUGIN_RUNNER_UNAVAILABLE,
+      "plugin-runner 不可达（127.0.0.1 命令面）",
+    );
   }
-  const json = (await res.json().catch(() => null)) as { code: number; message: string; data: T | null } | null;
+  const json = (await res.json().catch(() => null)) as {
+    code: number;
+    message: string;
+    data: T | null;
+  } | null;
   if (!json) {
     throw new DomainError(ErrCode.PLUGIN_RUNNER_UNAVAILABLE, "plugin-runner 响应非法");
   }

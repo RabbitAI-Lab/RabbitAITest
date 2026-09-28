@@ -60,7 +60,7 @@ pending → dispatched → running → success | failed | stopped
 
 - ResourcePool(type=node) 注册：engine 启动向 api 注册（pool token），心跳 10s，离线 3 拍标记不可调度
 - 调度：任务 → 目标池 → 池内最少负载节点（并发槽占用率）；节点最大并发可配（`max_concurrency`）
-- 标准版仅 1 默认池且不可删（License 门控新增池，对齐基线；K8S 型池=P4 EXEC-004）
+- 标准版仅 1 默认池且不可删（License 门控新增池，对齐基线）；**K8S 型池已兑现（S-future EXEC-004，2026-09-28）**：默认池 type 可 NODE↔K8S 切换 + `config` Json 四项配置（apiServer/namespace/token/image，token 只写不读掩码回显）+ `?test=true` 连通性试连（safe-fetch 池守卫：https 强制、环回/链路本地/非路由拒、私网放行；测试栈 `POOL_K8S_ALLOW_LOOPBACK=1` 豁免）；**调度面零变化**——两型同构单 exec 队列，K8S 型仅改变部署拓扑（task-runner Deployment 清单模板见 EXEC-004 附录 A），worker 注册/心跳/槽位契约不变；多池仍属 ENTP-006 License 门控
 - 定时执行：BullMQ repeatable job 触发 ExecTask 创建（计划/场景/Swagger 同步共用机制）
 
 ## 6. Mock 服务

@@ -9,7 +9,12 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { promisify } from "node:util";
-import { DomainError, ErrCode, pluginManifestSchema, RABBIT_PLUGIN_SPI_VERSION } from "@rabbit/shared";
+import {
+  DomainError,
+  ErrCode,
+  pluginManifestSchema,
+  RABBIT_PLUGIN_SPI_VERSION,
+} from "@rabbit/shared";
 import type { PluginManifest } from "@rabbit/shared";
 import { prisma } from "@rabbit/db";
 import { putObject, deleteObject } from "@/server/storage";
@@ -37,19 +42,31 @@ function compareVersion(a: string, b: string): number {
 }
 
 /** 上传（multipart tarball）：校验清单/版本递增/成员白名单 → 存储+解包 → 登记（enabled=false） */
-export async function uploadPlugin(buffer: Buffer, orgScope: "ALL" | string[]): Promise<{ id: string; manifest: PluginManifest }> {
+export async function uploadPlugin(
+  buffer: Buffer,
+  orgScope: "ALL" | string[],
+): Promise<{ id: string; manifest: PluginManifest }> {
   if (buffer.byteLength === 0 || buffer.byteLength > MAX_TARBALL_BYTES) {
-    throw new DomainError(ErrCode.PLUGIN_PACKAGE_INVALID, `插件包大小须在 (0, 32MB]，当前 ${buffer.byteLength}`);
+    throw new DomainError(
+      ErrCode.PLUGIN_PACKAGE_INVALID,
+      `插件包大小须在 (0, 32MB]，当前 ${buffer.byteLength}`,
+    );
   }
   const tmp = path.join(tmpdir(), `rabbit-plugin-${randomUUID()}.tgz`);
   await writeFile(tmp, buffer);
   try {
     // 成员白名单（tar -tzf 列表；拒绝路径穿越/夹带非常规成员）
     const { stdout: listOut } = await tarSafe(["-tzf", tmp]);
-    const members = listOut.split("\n").map((s) => s.trim()).filter(Boolean);
+    const members = listOut
+      .split("\n")
+      .map((s) => s.trim())
+      .filter(Boolean);
     for (const m of members) {
       if (!ALLOWED_MEMBERS.has(m)) {
-        throw new DomainError(ErrCode.PLUGIN_PACKAGE_INVALID, `插件包含不允许的成员：${m}（仅 package.json/index.js）`);
+        throw new DomainError(
+          ErrCode.PLUGIN_PACKAGE_INVALID,
+          `插件包含不允许的成员：${m}（仅 package.json/index.js）`,
+        );
       }
     }
     // 清单解析
@@ -58,7 +75,10 @@ export async function uploadPlugin(buffer: Buffer, orgScope: "ALL" | string[]): 
     try {
       manifest = pluginManifestSchema.parse(JSON.parse(pkgOut).rabbitPlugin);
     } catch {
-      throw new DomainError(ErrCode.PLUGIN_PACKAGE_INVALID, "package.json → rabbitPlugin 清单非法或缺失");
+      throw new DomainError(
+        ErrCode.PLUGIN_PACKAGE_INVALID,
+        "package.json → rabbitPlugin 清单非法或缺失",
+      );
     }
     if (manifest.spiVersion !== RABBIT_PLUGIN_SPI_VERSION) {
       throw new DomainError(
@@ -92,7 +112,12 @@ export async function uploadPlugin(buffer: Buffer, orgScope: "ALL" | string[]): 
       plugin = existing
         ? await prisma.plugin.update({
             where: { id: existing.id },
-            data: { version: manifest.version, storageKey, orgScope: orgScope as never, enabled: false },
+            data: {
+              version: manifest.version,
+              storageKey,
+              orgScope: orgScope as never,
+              enabled: false,
+            },
           })
         : await prisma.plugin.create({
             data: {
@@ -122,11 +147,29 @@ export async function uploadPlugin(buffer: Buffer, orgScope: "ALL" | string[]): 
   }
 }
 
+/** S-future PLUG-003 §2.4：定义/用例保存时协议可用性校验（http/https 内置放行；
+ * 其余协议须存在已启用的同名协议插件，否则 40511——PLUG-002 预留码首次兑现）。
+ * 调试执行不落库，由引擎走既有 40510（PROTOCOL_NOT_SUPPORTED），不在本函数重复校验。 */
+export async function assertProtocolAvailable(protocol: string | undefined): Promise<void> {
+  if (!protocol || protocol.toLowerCase() === "http" || protocol.toLowerCase() === "https") return;
+  const hit = await prisma.plugin.findFirst({
+    where: { kind: "protocol", name: protocol, enabled: true },
+    select: { id: true },
+  });
+  if (!hit)
+    throw new DomainError(
+      ErrCode.PROTOCOL_PLUGIN_LOAD_FAILED,
+      `协议插件 ${protocol} 未启用或不存在（请先在系统设置-插件中启用）`,
+    );
+}
+
 export async function listPlugins(filter: { kind?: string; keyword?: string }) {
   const rows = await prisma.plugin.findMany({
     where: {
       ...(filter.kind ? { kind: filter.kind } : {}),
-      ...(filter.keyword ? { name: { contains: filter.keyword, mode: "insensitive" as const } } : {}),
+      ...(filter.keyword
+        ? { name: { contains: filter.keyword, mode: "insensitive" as const } }
+        : {}),
     },
     orderBy: { updatedAt: "desc" },
   });
@@ -171,16 +214,19 @@ export async function updatePlugin(
       throw new DomainError(ErrCode.PLUGIN_RUNNER_UNAVAILABLE, "plugin-runner 不可达，无法启用");
     }
     // 幂等：runner 已含同名插件（重复启用场景）则跳过 load
-    const already = (await runnerList()).some((r) => r.name === p.name && r.workerStatus === "RUNNING");
-    if (!already) await runnerLoad({
-      pluginId: p.id,
-      name: p.name,
-      kind: p.kind,
-      version: p.version,
-      spiVersion: RABBIT_PLUGIN_SPI_VERSION,
-      dir: path.join(PLUGIN_DIR, p.name, p.version),
-      entry: "index.js",
-    });
+    const already = (await runnerList()).some(
+      (r) => r.name === p.name && r.workerStatus === "RUNNING",
+    );
+    if (!already)
+      await runnerLoad({
+        pluginId: p.id,
+        name: p.name,
+        kind: p.kind,
+        version: p.version,
+        spiVersion: RABBIT_PLUGIN_SPI_VERSION,
+        dir: path.join(PLUGIN_DIR, p.name, p.version),
+        entry: "index.js",
+      });
   } else if (input.enabled === false) {
     await runnerUnload(p.id).catch(() => undefined);
   }
@@ -193,9 +239,14 @@ export async function deletePlugin(id: string): Promise<void> {
     throw new DomainError(ErrCode.PLUGIN_DELETE_FORBIDDEN, "插件启用中，请先停用");
   }
   if (p.kind === "platform") {
-    const refs = await prisma.platformSyncConfig.count({ where: { platform: p.name.replace(/-platform$/, "") } });
+    const refs = await prisma.platformSyncConfig.count({
+      where: { platform: p.name.replace(/-platform$/, "") },
+    });
     if (refs > 0) {
-      throw new DomainError(ErrCode.PLUGIN_DELETE_FORBIDDEN, `存在 ${refs} 个项目同步关联引用该平台插件`);
+      throw new DomainError(
+        ErrCode.PLUGIN_DELETE_FORBIDDEN,
+        `存在 ${refs} 个项目同步关联引用该平台插件`,
+      );
     }
   }
   rmSync(path.join(PLUGIN_DIR, p.name, p.version), { recursive: true, force: true });

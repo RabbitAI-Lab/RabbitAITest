@@ -6,6 +6,7 @@ import { apiCaseListQuerySchema, apiCaseUpsertSchema } from "@rabbit/shared";
 import { nextNum, prisma } from "@rabbit/db";
 import type { Prisma } from "@prisma/client";
 import { createApiCaseTask, createDebugTask } from "@/server/domains/exec/exec.service";
+import { assertProtocolAvailable } from "@/server/domains/api/plugin.service";
 
 type UpsertInput = z.infer<typeof apiCaseUpsertSchema>;
 type ListQuery = z.infer<typeof apiCaseListQuerySchema>;
@@ -103,8 +104,14 @@ export async function listCases(projectId: string, apiId: string, query: ListQue
   };
 }
 
-export async function createCase(projectId: string, userId: string, apiId: string, input: UpsertInput) {
+export async function createCase(
+  projectId: string,
+  userId: string,
+  apiId: string,
+  input: UpsertInput,
+) {
   const api = await getApi(projectId, apiId);
+  await assertProtocolAvailable(input.request.spec.protocol); // PLUG-003 §2.4（40511）
   const created = await prisma.$transaction(async (tx) => {
     const num = await nextNum(tx, "api_cases", projectId);
     return tx.apiCase.create({
@@ -126,10 +133,16 @@ export async function createCase(projectId: string, userId: string, apiId: strin
   return serialize(created);
 }
 
-export async function updateCase(projectId: string, id: string, userId: string, input: UpsertInput & { version: number }) {
+export async function updateCase(
+  projectId: string,
+  id: string,
+  userId: string,
+  input: UpsertInput & { version: number },
+) {
   const c = await getCase(projectId, id);
   if (input.version !== c.version)
     throw new DomainError(ErrCode.VERSION_CONFLICT, "内容已被他人修改，请刷新后重试");
+  await assertProtocolAvailable(input.request.spec.protocol); // PLUG-003 §2.4（40511）
   const updated = await prisma.apiCase.update({
     where: { id: c.id },
     data: {
@@ -168,7 +181,12 @@ export async function syncCase(projectId: string, id: string) {
 /** 分区级 diff 摘要（参数/认证/请求体/前后置/断言/提取——API-003 §1.2 简化口径）。 */
 export function diffBundles(a: ApiRequestBundle, b: ApiRequestBundle) {
   const sections: { section: string; different: boolean; detail: string[] }[] = [];
-  const cmp = (name: string, x: unknown, y: unknown, fmt: (v: unknown) => string = (v) => JSON.stringify(v)) => {
+  const cmp = (
+    name: string,
+    x: unknown,
+    y: unknown,
+    fmt: (v: unknown) => string = (v) => JSON.stringify(v),
+  ) => {
     const ax = JSON.stringify(x);
     const ay = JSON.stringify(y);
     if (ax !== ay) sections.push({ section: name, different: true, detail: [fmt(x), fmt(y)] });

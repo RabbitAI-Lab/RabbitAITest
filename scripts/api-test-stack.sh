@@ -22,6 +22,12 @@ export RABBIT_SEED_AI_MOCK_BASE="http://127.0.0.1:${JM_MOCK_PORT}/ai"
 export OUTBOUND_ALLOW_PRIVATE=1
 # S5 FILE-001：存储库 token AES-GCM 加密密钥（32B；测试栈专用值，非生产凭据）
 export RABBIT_INTEGRATION_SECRET="jmeter-integration-secret-32chars!"
+# S-future PLUG-003：内嵌 plugin-runner 端口隔离 :4030（开发栈/其他 worktree 曾占 4010——
+# 本机主仓 dev 栈常驻 4010 时，本栈 runnerLoad 会打到外来进程的旧加载器/异己 PLUGIN_DIR，多 worktree 端口互抢教训）。
+# 只设 PORT 不设 URL（URL 显式配置=禁用内嵌启动，instrumentation-node §startPluginRunner）
+export PLUGIN_RUNNER_PORT="${PLUGIN_RUNNER_PORT:-4030}"
+# S-future EXEC-004：K8S apiServer 试连测试豁免环回（本机无集群；生产默认拒环回）
+export POOL_K8S_ALLOW_LOOPBACK=1
 
 # redis(:6381) 已可达则直接复用（docker daemon 冷启动可绕行——本地 redis-server 同语义；4.1 环境复用）
 nc -z 127.0.0.1 6381 2>/dev/null || {
