@@ -70,6 +70,9 @@
       "name": "项目·dashboard"
     },
     {
+      "name": "项目·env-groups"
+    },
+    {
       "name": "项目·environments"
     },
     {
@@ -79,7 +82,13 @@
       "name": "项目·false-alarm-rules"
     },
     {
+      "name": "项目·file-repos"
+    },
+    {
       "name": "项目·files"
+    },
+    {
+      "name": "项目·global-params"
     },
     {
       "name": "项目·groups"
@@ -94,6 +103,9 @@
       "name": "项目·members"
     },
     {
+      "name": "项目·message-config"
+    },
+    {
       "name": "项目·mocks"
     },
     {
@@ -106,6 +118,9 @@
       "name": "项目·plans"
     },
     {
+      "name": "项目·public-scripts"
+    },
+    {
       "name": "项目·reopen"
     },
     {
@@ -116,6 +131,9 @@
     },
     {
       "name": "项目·reviews"
+    },
+    {
+      "name": "项目·robots"
     },
     {
       "name": "项目·scenario-schedules"
@@ -1270,6 +1288,54 @@
         }
       }
     },
+    "/api/v1/personal/ai-model": {
+      "get": {
+        "summary": "GET /api/v1/personal/ai-model",
+        "tags": [
+          "个人中心"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "PUT /api/v1/personal/ai-model",
+        "tags": [
+          "个人中心"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/personal/api-keys/{id}/revoke": {
       "put": {
         "summary": "PUT /api/v1/personal/api-keys/{id}/revoke",
@@ -1343,9 +1409,228 @@
         }
       }
     },
+    "/api/v1/personal/local-runner/check": {
+      "post": {
+        "summary": "POST /api/v1/personal/local-runner/check",
+        "tags": [
+          "个人中心"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/personal/local-runner": {
+      "get": {
+        "summary": "GET /api/v1/personal/local-runner",
+        "tags": [
+          "个人中心"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "PUT /api/v1/personal/local-runner",
+        "tags": [
+          "个人中心"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/personal/me": {
       "get": {
         "summary": "GET /api/v1/personal/me",
+        "tags": [
+          "个人中心"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "POST /api/v1/personal/me",
+        "tags": [
+          "个人中心"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "PATCH /api/v1/personal/me",
+        "tags": [
+          "个人中心"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/personal/notifications/{notificationId}/read": {
+      "post": {
+        "summary": "POST /api/v1/personal/notifications/{notificationId}/read",
+        "tags": [
+          "个人中心"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/personal/notifications/read-all": {
+      "post": {
+        "summary": "POST /api/v1/personal/notifications/read-all",
+        "tags": [
+          "个人中心"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/personal/notifications": {
+      "get": {
+        "summary": "GET /api/v1/personal/notifications",
+        "tags": [
+          "个人中心"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/personal/notifications/unread-count": {
+      "get": {
+        "summary": "GET /api/v1/personal/notifications/unread-count",
         "tags": [
           "个人中心"
         ],
@@ -2732,6 +3017,56 @@
         }
       }
     },
+    "/api/v1/projects/{projectId}/bugs/batch-purge": {
+      "post": {
+        "summary": "POST /api/v1/projects/{projectId}/bugs/batch-purge",
+        "tags": [
+          "项目·bugs"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{projectId}/bugs/batch-restore": {
+      "post": {
+        "summary": "POST /api/v1/projects/{projectId}/bugs/batch-restore",
+        "tags": [
+          "项目·bugs"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/projects/{projectId}/bugs/export": {
       "post": {
         "summary": "POST /api/v1/projects/{projectId}/bugs/export",
@@ -3766,6 +4101,102 @@
         }
       }
     },
+    "/api/v1/projects/{projectId}/env-groups/{groupId}": {
+      "delete": {
+        "summary": "DELETE /api/v1/projects/{projectId}/env-groups/{groupId}",
+        "tags": [
+          "项目·env-groups"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "PATCH /api/v1/projects/{projectId}/env-groups/{groupId}",
+        "tags": [
+          "项目·env-groups"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{projectId}/env-groups": {
+      "get": {
+        "summary": "GET /api/v1/projects/{projectId}/env-groups",
+        "tags": [
+          "项目·env-groups"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "POST /api/v1/projects/{projectId}/env-groups",
+        "tags": [
+          "项目·env-groups"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/projects/{projectId}/environments/{envId}/copy": {
       "post": {
         "summary": "POST /api/v1/projects/{projectId}/environments/{envId}/copy",
@@ -4179,9 +4610,180 @@
         }
       }
     },
+    "/api/v1/projects/{projectId}/file-repos/{repoId}/pull": {
+      "post": {
+        "summary": "POST /api/v1/projects/{projectId}/file-repos/{repoId}/pull",
+        "tags": [
+          "项目·file-repos"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{projectId}/file-repos/{repoId}": {
+      "delete": {
+        "summary": "DELETE /api/v1/projects/{projectId}/file-repos/{repoId}",
+        "tags": [
+          "项目·file-repos"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "PATCH /api/v1/projects/{projectId}/file-repos/{repoId}",
+        "tags": [
+          "项目·file-repos"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{projectId}/file-repos/{repoId}/test": {
+      "post": {
+        "summary": "POST /api/v1/projects/{projectId}/file-repos/{repoId}/test",
+        "tags": [
+          "项目·file-repos"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{projectId}/file-repos": {
+      "get": {
+        "summary": "GET /api/v1/projects/{projectId}/file-repos",
+        "tags": [
+          "项目·file-repos"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "POST /api/v1/projects/{projectId}/file-repos",
+        "tags": [
+          "项目·file-repos"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/projects/{projectId}/files/{fileId}/download": {
       "get": {
         "summary": "GET /api/v1/projects/{projectId}/files/{fileId}/download",
+        "tags": [
+          "项目·files"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{projectId}/files/{fileId}/restore": {
+      "post": {
+        "summary": "POST /api/v1/projects/{projectId}/files/{fileId}/restore",
         "tags": [
           "项目·files"
         ],
@@ -4252,6 +4854,31 @@
         }
       }
     },
+    "/api/v1/projects/{projectId}/files/{fileId}/sync": {
+      "post": {
+        "summary": "POST /api/v1/projects/{projectId}/files/{fileId}/sync",
+        "tags": [
+          "项目·files"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/projects/{projectId}/files": {
       "get": {
         "summary": "GET /api/v1/projects/{projectId}/files",
@@ -4280,6 +4907,54 @@
         "summary": "POST /api/v1/projects/{projectId}/files",
         "tags": [
           "项目·files"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{projectId}/global-params": {
+      "get": {
+        "summary": "GET /api/v1/projects/{projectId}/global-params",
+        "tags": [
+          "项目·global-params"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "PUT /api/v1/projects/{projectId}/global-params",
+        "tags": [
+          "项目·global-params"
         ],
         "security": [
           {
@@ -4659,6 +5334,54 @@
           "项目·members"
         ],
         "x-permission": "PROJECT_MEMBER:READ",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{projectId}/message-config": {
+      "get": {
+        "summary": "GET /api/v1/projects/{projectId}/message-config",
+        "tags": [
+          "项目·message-config"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "PUT /api/v1/projects/{projectId}/message-config",
+        "tags": [
+          "项目·message-config"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -5875,6 +6598,175 @@
         }
       }
     },
+    "/api/v1/projects/{projectId}/public-scripts/{scriptId}/debug": {
+      "post": {
+        "summary": "POST /api/v1/projects/{projectId}/public-scripts/{scriptId}/debug",
+        "tags": [
+          "项目·public-scripts"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{projectId}/public-scripts/{scriptId}/references": {
+      "get": {
+        "summary": "GET /api/v1/projects/{projectId}/public-scripts/{scriptId}/references",
+        "tags": [
+          "项目·public-scripts"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{projectId}/public-scripts/{scriptId}": {
+      "get": {
+        "summary": "GET /api/v1/projects/{projectId}/public-scripts/{scriptId}",
+        "tags": [
+          "项目·public-scripts"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "DELETE /api/v1/projects/{projectId}/public-scripts/{scriptId}",
+        "tags": [
+          "项目·public-scripts"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "PATCH /api/v1/projects/{projectId}/public-scripts/{scriptId}",
+        "tags": [
+          "项目·public-scripts"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{projectId}/public-scripts": {
+      "get": {
+        "summary": "GET /api/v1/projects/{projectId}/public-scripts",
+        "tags": [
+          "项目·public-scripts"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "POST /api/v1/projects/{projectId}/public-scripts",
+        "tags": [
+          "项目·public-scripts"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/projects/{projectId}/reopen": {
       "post": {
         "summary": "POST /api/v1/projects/{projectId}/reopen",
@@ -6460,6 +7352,127 @@
           "项目·reviews"
         ],
         "x-permission": "PROJECT_CASE_REVIEW:READ",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{projectId}/robots/{robotId}": {
+      "delete": {
+        "summary": "DELETE /api/v1/projects/{projectId}/robots/{robotId}",
+        "tags": [
+          "项目·robots"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "PATCH /api/v1/projects/{projectId}/robots/{robotId}",
+        "tags": [
+          "项目·robots"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{projectId}/robots/{robotId}/test": {
+      "post": {
+        "summary": "POST /api/v1/projects/{projectId}/robots/{robotId}/test",
+        "tags": [
+          "项目·robots"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{projectId}/robots": {
+      "get": {
+        "summary": "GET /api/v1/projects/{projectId}/robots",
+        "tags": [
+          "项目·robots"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "POST /api/v1/projects/{projectId}/robots",
+        "tags": [
+          "项目·robots"
+        ],
         "security": [
           {
             "cookieAuth": []

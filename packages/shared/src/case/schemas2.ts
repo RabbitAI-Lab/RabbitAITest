@@ -85,6 +85,8 @@ export const dependencyUpsertSchema = z.object({
 export const commentUpsertSchema = z.object({
   content: z.string().min(1).max(4000),
   parentId: z.string().uuid().optional(),
+  /** S5 BUG-002/CASE-003：@提及（项目成员 userId；服务端去重并剔除评论者本人） */
+  mentions: z.array(z.string().uuid()).max(20).optional(),
 });
 
 // ── 用例评审（CASE-005）──

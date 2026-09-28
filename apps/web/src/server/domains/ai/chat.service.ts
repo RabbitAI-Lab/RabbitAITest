@@ -10,7 +10,7 @@ import {
   aiChatSchema,
 } from "@rabbit/shared";
 import { prisma } from "@rabbit/db";
-import { resolveRuntime } from "./model.service";
+import { resolveRuntimeForUser } from "./model.service";
 import { streamChat, type ChatMessage } from "./chat-client";
 
 type ChatInput = z.infer<typeof aiChatSchema>;
@@ -80,7 +80,7 @@ export async function listMessages(userId: string, conversationId: string) {
 
 /** SSE 对话：落用户消息 → 最近 20 条上下文 → 流式转发 → 完成落助手消息。错误/中断半截不落库。 */
 export async function chat(userId: string, input: ChatInput): Promise<Response> {
-  const runtime = await resolveRuntime(input.modelId ?? null);
+  const runtime = await resolveRuntimeForUser(userId, input.modelId ?? null);
   let conversation = input.conversationId ? await ownedConversation(userId, input.conversationId) : null;
   if (!conversation) {
     conversation = await prisma.aiConversation.create({

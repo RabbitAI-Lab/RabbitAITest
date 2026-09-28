@@ -17,7 +17,7 @@ import {
 } from "@rabbit/shared";
 import { prisma } from "@rabbit/db";
 import { callChat } from "./chat-client";
-import { resolveRuntime } from "./model.service";
+import { resolveRuntimeForUser } from "./model.service";
 import { resolveTemplate } from "./prompt.service";
 import { parseOpenApi3 } from "../api/import.service";
 
@@ -37,7 +37,7 @@ async function recordGen(projectId: string, userId: string, modelId: string, sce
 
 /** AI-002 功能用例生成 */
 export async function generateCases(projectId: string, userId: string, input: AiGenerateCasesInput) {
-  const runtime = await resolveRuntime(input.modelId);
+  const runtime = await resolveRuntimeForUser(userId, input.modelId);
   const tpl = await resolveTemplate(projectId, "case_gen", input.templateId);
   const template = tpl?.template ?? BUILTIN_CASE_GEN_TEMPLATE;
   const designMethod = input.designMethod ?? tpl?.designMethod ?? "";
@@ -76,7 +76,7 @@ export async function generateApiCase(
 ) {
   const api = await prisma.apiDefinition.findFirst({ where: { id: input.apiId, projectId, deletedAt: null } });
   if (!api) throw new DomainError(ErrCode.API_NOT_FOUND, "接口定义不存在或已删除");
-  const runtime = await resolveRuntime(input.modelId);
+  const runtime = await resolveRuntimeForUser(userId, input.modelId);
   const tpl = await resolveTemplate(projectId, "api_gen", input.templateId);
   const template = tpl?.template ?? BUILTIN_API_GEN_TEMPLATE;
   const designMethod = input.designMethod ?? tpl?.designMethod ?? "";
@@ -124,7 +124,7 @@ export async function generateApiCaseBatch(
   if (apis.length > AI_GEN_BATCH_MAX_APIS) {
     throw new DomainError(ErrCode.AI_OPENAPI_INVALID, `单批接口数超上限 ${AI_GEN_BATCH_MAX_APIS}（当前 ${apis.length}，请分批）`);
   }
-  const runtime = await resolveRuntime(input.modelId);
+  const runtime = await resolveRuntimeForUser(userId, input.modelId);
   const tpl = await resolveTemplate(projectId, "api_gen");
   const template = tpl?.template ?? BUILTIN_API_GEN_TEMPLATE;
   const designMethod = input.designMethod ?? tpl?.designMethod ?? "";

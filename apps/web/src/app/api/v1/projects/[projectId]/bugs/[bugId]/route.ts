@@ -29,6 +29,6 @@ export const DELETE = withProjectScope(async (ctx, req, seg) => {
     const { bugId } = await (seg as { params: Promise<{ bugId: string }> }).params;
     const purge = new URL(req.url).searchParams.get('purge') === 'true';
     if (purge) return okResponse(await svc.purgeBug(ctx.projectId, bugId));
-    return okResponse(await svc.softDeleteBug(ctx.projectId, bugId));
+    return okResponse(await svc.softDeleteBug(ctx.projectId, bugId, ctx.userId));
   } catch (err) { return toResponse(err); }
 });

@@ -18,6 +18,10 @@ JM_MOCK_PORT="${JM_MOCK_PORT:-4020}"
 export AI_ALLOW_PRIVATE_BASEURL=1
 # S7：种子内置一台指向 jmeter 栈 mock 的模型（baseUrl 须含 /ai 前缀——mock 路由 /ai/chat/completions）
 export RABBIT_SEED_AI_MOCK_BASE="http://127.0.0.1:${JM_MOCK_PORT}/ai"
+# S5 MSG-001/FILE-001：机器人 webhook 与 Git 平台 mock 均在环回——出站守卫豁免（同 e2e 栈口径；协议/形态类 422 用例不受影响）
+export OUTBOUND_ALLOW_PRIVATE=1
+# S5 FILE-001：存储库 token AES-GCM 加密密钥（32B；测试栈专用值，非生产凭据）
+export RABBIT_INTEGRATION_SECRET="jmeter-integration-secret-32chars!"
 
 # redis(:6381) 已可达则直接复用（docker daemon 冷启动可绕行——本地 redis-server 同语义；4.1 环境复用）
 nc -z 127.0.0.1 6381 2>/dev/null || {
@@ -78,4 +82,4 @@ if [ -n "${RUN_SCRIPT:-}" ]; then
   exit $?
 fi
 
-MOCK_URL="http://127.0.0.1:${JM_MOCK_PORT}/hello" MOCK_BASE="http://127.0.0.1:${JM_MOCK_PORT}/ai" MOCKPORT="$JM_MOCK_PORT" bash scripts/run-api-tests.sh http://localhost:3101
+MOCK_URL="http://127.0.0.1:${JM_MOCK_PORT}/hello" MOCK_BASE="http://127.0.0.1:${JM_MOCK_PORT}/ai" MOCKPORT="$JM_MOCK_PORT" MOCK_PORT="$JM_MOCK_PORT" bash scripts/run-api-tests.sh http://localhost:3101

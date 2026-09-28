@@ -259,6 +259,8 @@ export const fileListQuerySchema = z.object({
   keyword: z.string().max(128).optional(),
   page: z.coerce.number().int().min(1).default(1),
   pageSize: z.coerce.number().int().min(1).max(100).default(20),
+  /** S5 FILE-001：回收站视图（true=仅已删，默认仅未删） */
+  recycled: queryBool(false),
 });
 
 // ── 任务中心（SYS-006）与报告（RPT-002）──
@@ -377,6 +379,8 @@ export const scenarioStepsSaveSchema = z.object({
 export const scenarioExecuteSchema = z.object({
   scenarioIds: z.array(z.string().uuid()).min(1).max(50),
   envId: z.string().uuid().optional(),
+  /** S5 PROJ-006：按环境组执行（与 envId 互斥；按组内顺序逐环境各建一个任务） */
+  envGroupId: z.string().uuid().optional(),
   poolId: z.string().uuid().optional(),
   stopOnFail: z.boolean().default(false),
   mode: z.enum(["serial", "parallel"]).default("serial"),

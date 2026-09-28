@@ -137,3 +137,4 @@ ExecTask(编排) → BullMQ → engine 执行 → ExecStepResult 事件流回写
 - 不依赖未来新表的列全部建齐；依赖未来新表的 FK 以注释预留（与 RabbitProjects 同款纪律）
 - 新增列需求必须在规格文档中说明「为何 P0 无法建齐」，并经架构评审
 - **例外登记（S7，2026-09-27）**：ai 域 5 表未在 INFRA-003 建齐——基线期（S0）ai 域无任何规格输入（供应商协议形状、apiKey 加密列、提示词占位符结构均依赖 AI-001~005 规格定型），属「依赖未来规格的表结构」而非「可预见的暂不启用列」，不违反本节原则；本次随 Sprint 7 一次建齐全部列（含 AiGenRecord.prompt_snapshot、AiMessage.content.refs 等启用即满列），后续迭代仅开关/种子/索引
+- **例外登记（S5，2026-09-28）**：`file_items` 增 `branch`(VarChar 128)/`repo_path`(VarChar 512) 两可空列——分支/路径属**仓库文件行级溯源属性**，其形态（单文件路径 vs 目录、分支命名约束、与 storageKey 的关系）依赖 FILE-001 规格定型，基线期（S0）无该规格输入，属「依赖未来规格的表结构」而非「可预见的暂不启用列」，与 S7 ai 域例外同类不违反本节原则；除此之外 S5 全部实体（robots/notifications/env_groups/global_params/public_scripts/file_repos）均已在 INFRA-003 建齐零 DDL，事件配置复用 app_settings 键值不建表

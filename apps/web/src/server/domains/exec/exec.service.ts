@@ -22,6 +22,7 @@ import type { z } from "zod";
 import { prisma } from "@rabbit/db";
 import { execQueue, redis } from "@/server/redis";
 import { buildEnvSnapshot } from "@/server/domains/project/environment.service";
+import { resolveScriptRefs } from "@/server/domains/project/public-script.service";
 import { parseCsv, type CsvSource } from "@rabbit/shared/execution";
 import { matchFalseAlarm, type FalseAlarmRuleLike, type FailedStepInput } from "@rabbit/shared/execution";
 import { buildScenarioTree } from "@rabbit/shared/execution";
@@ -135,7 +136,7 @@ export async function buildApiCaseCommands(
   const missing = caseIds.filter((id) => !found.has(id));
   if (missing.length > 0)
     throw new DomainError(ErrCode.API_CASE_NOT_FOUND, `部分用例不存在：${missing.length} 条`);
-  return caseIds
+  const resolved = caseIds
     .map((id) => cases.find((c) => c.id === id))
     .filter((c): c is (typeof cases)[number] => Boolean(c))
     .map((c) => {
@@ -152,6 +153,14 @@ export async function buildApiCaseCommands(
         extracts: bundle.extracts ?? [],
       };
     });
+  // S5 PROJ-005：scriptRef 构建期展开（engine 无感知）
+  return Promise.all(
+    resolved.map(async (cmd) => ({
+      ...cmd,
+      pre: await resolveScriptRefs(projectId, cmd.pre),
+      post: await resolveScriptRefs(projectId, cmd.post),
+    })),
+  );
 }
 
 /** api_case 批量任务：预建 ExecItem（id 即 engine 侧 itemId）→ 入队（API-003 §2）。 */
@@ -381,6 +390,13 @@ async function resolveScenarioSteps(
     } else if (n.children.length > 0) {
       node = { ...node, children: await resolveScenarioSteps(projectId, n.children, params, depth) };
     }
+    // S5 PROJ-005：步骤级处理器 scriptRef 构建期展开（ref 解析后的 bundle 与 custom 步骤 config 两形态）
+    const cfg = node.config as Record<string, unknown>;
+    const bundle = cfg.bundle as { pre?: unknown[]; post?: unknown[] } | undefined;
+    if (Array.isArray(bundle?.pre)) bundle.pre = await resolveScriptRefs(projectId, bundle.pre as Processor[]);
+    if (Array.isArray(bundle?.post)) bundle.post = await resolveScriptRefs(projectId, bundle.post as Processor[]);
+    if (Array.isArray(cfg.pre)) cfg.pre = await resolveScriptRefs(projectId, cfg.pre as Processor[]);
+    if (Array.isArray(cfg.post)) cfg.post = await resolveScriptRefs(projectId, cfg.post as Processor[]);
     out.push(node);
   }
   return out;
@@ -465,8 +481,8 @@ export async function buildScenarioCommands(
         thinkTimeMs: cfg.settings?.thinkTimeMs ?? 0,
         onFailure: cfg.settings?.onFailure ?? "abort",
       },
-      pre: (cfg.prePost?.pre ?? []) as Processor[],
-      post: (cfg.prePost?.post ?? []) as Processor[],
+      pre: await resolveScriptRefs(projectId, (cfg.prePost?.pre ?? []) as Processor[]),
+      post: await resolveScriptRefs(projectId, (cfg.prePost?.post ?? []) as Processor[]),
       asserts: (cfg.asserts ?? []) as AssertSpec[],
       steps: resolvedSteps,
     });
@@ -706,6 +722,30 @@ export async function handleCallback(taskId: string, cb: ExecCallback) {
     });
     const { applyPlanTaskResult } = await import("@/server/domains/plan/plan-exec.service");
     await applyPlanTaskResult(taskId, task.projectId, items);
+  }
+  // S5 MSG-001：执行完成通知（SCENARIO_EXEC_COMPLETED / PLAN_EXEC_COMPLETED；定时任务读 notify 标志）
+  if (task.type === "scenario" || task.type === "plan") {
+    try {
+      const finalStatus =
+        cb.outcome === "success" ? "SUCCESS" : cb.outcome === "stopped" ? "STOPPED" : "FAILED";
+      const payload = (task.payload ?? {}) as { notify?: boolean; scheduleId?: string };
+      const isScheduleRun = Boolean(payload.scheduleId);
+      if (!isScheduleRun || payload.notify !== false) {
+        const { dispatch } = await import("@/server/domains/message/notify.service");
+        const after = await prisma.execItem.findMany({ where: { taskId }, select: { status: true } });
+        const passed = after.filter((i) => i.status === "SUCCESS").length;
+        const typeName = task.type === "plan" ? "计划执行" : "场景执行";
+        await dispatch({
+          projectId: task.projectId,
+          event: task.type === "plan" ? "PLAN_EXEC_COMPLETED" : "SCENARIO_EXEC_COMPLETED",
+          title: `[执行] ${typeName}完成（${finalStatus === "SUCCESS" ? "成功" : finalStatus === "STOPPED" ? "已停止" : "失败"}）`,
+          content: `时间：${new Date().toLocaleString("zh-CN")}\n结果：${passed}/${after.length} 通过${isScheduleRun ? "\n来源：定时任务" : ""}`,
+          actorId: task.createdBy,
+        });
+      }
+    } catch {
+      // 通知失败不影响回调主链路（MSG-001 §2）
+    }
   }
   return { idempotent: false, frames: frames.length };
 }

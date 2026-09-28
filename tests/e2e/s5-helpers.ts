@@ -1,0 +1,41 @@
+/**
+ * S5 e2e helpers（MSG-001/FILE-001）：e2e 栈 mock（环回 :4001）交互封装。
+ * 口径同 s6-helpers.PLATFORM_MOCK_BASE：webhook/Git 平台指向测试栈 mock 为被测行为，
+ * 栈注入 OUTBOUND_ALLOW_PRIVATE=1（e2e 约定）；生产面出站守卫由单测与 422 用例覆盖。
+ */
+export const S5_MOCK_BASE = process.env.E2E_MOCK_URL_BASE ?? "http://127.0.0.1:4001";
+
+/** 三平台机器人 webhook（mock 接收端点） */
+export function robotWebhookUrl(channel: "dingtalk" | "wecom" | "feishu"): string {
+  return `${S5_MOCK_BASE}/mock-robot/${channel}`;
+}
+
+/** mock Git 仓库地址（任意 owner/repo @ main，固定小文件集） */
+export function mockGitRepoUrl(platform: "gitea" | "github" | "gitlab" | "gitee"): string {
+  return `${S5_MOCK_BASE}/qa/testdata-${platform}`;
+}
+
+export interface RobotCall {
+  channel: string;
+  text: string;
+  at: string;
+}
+
+export async function robotCalls(): Promise<RobotCall[]> {
+  const res = await fetch(`${S5_MOCK_BASE}/mock-robot/_test/calls`);
+  const body = (await res.json()) as { items: RobotCall[] };
+  return body.items ?? [];
+}
+
+export async function clearRobotCalls(): Promise<void> {
+  await fetch(`${S5_MOCK_BASE}/mock-robot/_test/clear`, { method: "POST" });
+}
+
+/** 以指定会话读取未读通知（跨用户视角断言用；baseUrl 为 e2e 栈 web 常量基址）。 */
+export async function fetchUnreadTitles(baseUrl: string, rasCookie: string): Promise<string[]> {
+  const res = await fetch(`${baseUrl}/api/v1/personal/notifications?unread=true`, {
+    headers: { cookie: `ras=${rasCookie}` },
+  });
+  const body = (await res.json()) as { data: { items: { title: string }[] } };
+  return (body.data?.items ?? []).map((n) => n.title);
+}

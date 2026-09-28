@@ -70,3 +70,23 @@ export const paramGroupSchema = z.discriminatedUnion("group", [
 export const USER_LIMIT = 30; // 社区版用户上限默认值（SYS-004 §1.2，代码硬校验）
 export type UserCreateInput = z.infer<typeof userCreateSchema>;
 export type GroupUpsertInput = z.infer<typeof groupUpsertSchema>;
+
+// ── 个人中心（S5 SYS-007；personal 段无权限点，登录即本人）──
+
+export const personalMeUpdateSchema = z.object({
+  name: z.string().min(1).max(128),
+  phone: z.string().max(32).default(""),
+});
+export const changePasswordSchema = z.object({
+  oldPassword: z.string().min(1).max(256),
+  newPassword: z.string().min(8).max(256),
+});
+export const localRunnerUpsertSchema = z.object({
+  /** 仅环回地址（127.0.0.1/localhost/::1），null/空=清除 */
+  address: z.string().max(512).nullable().optional(),
+  preferLocal: z.boolean().default(false),
+});
+export const personalAiModelSchema = z.object({
+  /** null=清除（回系统默认） */
+  modelId: z.string().uuid().nullable(),
+});

@@ -1,6 +1,7 @@
 "use client";
 
 import { Button, Checkbox, Input, InputNumber, Radio, Select, Switch, Tabs } from "antd";
+import { ScriptRefPanel, ScriptModeToggle } from "./ScriptRefPanel";
 import { ArrowDown, ArrowUp, X } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
@@ -246,28 +247,49 @@ function ProcessorList({
           <div className="p-2.5 space-y-1.5">
             {p.kind === "script" && (
               <>
-                <Input.TextArea
-                  rows={compact ? 3 : 4}
-                  className="font-mono text-xs leading-5"
-                  placeholder={'// 脚本（quickjs：log / setVar / getVar / envGet / randomInt / now）'}
-                  value={p.script}
-                  onChange={(e) => patch(i, { kind: "script", script: e.target.value })}
-                />
-                <div className="flex justify-end">
-                  <Select
-                    className="w-56"
-                    size="small"
-                    value={undefined}
-                    placeholder="片段 ▾"
-                    options={SCRIPT_SNIPPETS}
-                    onChange={(tpl) =>
-                      patch(i, {
-                        kind: "script",
-                        script: p.script ? `${p.script}\n${tpl ?? ""}` : (tpl ?? ""),
-                      })
+                <div className="flex items-center justify-between">
+                  <ScriptModeToggle
+                    refMode={Boolean(p.scriptRef)}
+                    onChange={(refMode) =>
+                      patch(i, refMode ? { kind: "script", script: "", scriptRef: { scriptId: "", params: {} } } : { kind: "script", script: "" })
                     }
+                    testid={`processor-mode-${i + 1}`}
                   />
                 </div>
+                {p.scriptRef ? (
+                  <ScriptRefPanel
+                    value={p.scriptRef.scriptId ? p.scriptRef : undefined}
+                    onChange={(v) =>
+                      patch(i, v ? { kind: "script", script: "", scriptRef: v } : { kind: "script", script: "" })
+                    }
+                    testid={`processor-ref-${i + 1}`}
+                  />
+                ) : (
+                  <>
+                    <Input.TextArea
+                      rows={compact ? 3 : 4}
+                      className="font-mono text-xs leading-5"
+                      placeholder={'// 脚本（quickjs：log / setVar / getVar / envGet / randomInt / now）'}
+                      value={p.script}
+                      onChange={(e) => patch(i, { kind: "script", script: e.target.value })}
+                    />
+                    <div className="flex justify-end">
+                      <Select
+                        className="w-56"
+                        size="small"
+                        value={undefined}
+                        placeholder="片段 ▾"
+                        options={SCRIPT_SNIPPETS}
+                        onChange={(tpl) =>
+                          patch(i, {
+                            kind: "script",
+                            script: p.script ? `${p.script}\n${tpl ?? ""}` : (tpl ?? ""),
+                          })
+                        }
+                      />
+                    </div>
+                  </>
+                )}
               </>
             )}
             {p.kind === "sql" && (

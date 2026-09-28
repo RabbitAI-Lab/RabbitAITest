@@ -47,11 +47,16 @@ export function toResponse(err: unknown): NextResponse {
                   ErrCode.PLUGIN_NOT_FOUND,
                   ErrCode.INTEGRATION_NOT_FOUND,
                   ErrCode.SWAGGER_SYNC_TASK_NOT_FOUND,
+                  ErrCode.ROBOT_NOT_FOUND,
+                  ErrCode.SCRIPT_NOT_FOUND,
+                  ErrCode.ENV_GROUP_NOT_FOUND,
+                  ErrCode.FILE_REPO_NOT_FOUND,
+                  ErrCode.NOTIFICATION_NOT_FOUND,
                 ] as number[]
               ).includes(err.code)
             ? 404
-            : err.code === ErrCode.VERSION_CONFLICT
-              ? 409
+                : err.code === ErrCode.VERSION_CONFLICT || err.code === ErrCode.SCRIPT_IN_USE
+                  ? 409
               : err.code === ErrCode.VALIDATION_FAILED ||
                   (
                     [
@@ -102,6 +107,22 @@ export function toResponse(err: unknown): NextResponse {
                       ErrCode.PLATFORM_SYNC_CONFIG_INVALID,
                       ErrCode.SYNC_TASK_FAILED,
                       ErrCode.PLATFORM_UNAUTHORIZED,
+                      // S5（MSG-001/PROJ-005/PROJ-006/FILE-001/SYS-007）
+                      ErrCode.ROBOT_WEBHOOK_INVALID,
+                      ErrCode.ROBOT_WEBHOOK_BLOCKED,
+                      ErrCode.ROBOT_LIMIT_EXCEEDED,
+                      ErrCode.MESSAGE_CONFIG_INVALID,
+                      ErrCode.ROBOT_SEND_FAILED,
+                      ErrCode.SCRIPT_DEBUG_FAILED,
+                      ErrCode.SCRIPT_INVALID_REF,
+                      ErrCode.SCRIPT_LIMIT_EXCEEDED,
+                      ErrCode.ENV_GROUP_EMPTY,
+                      ErrCode.FILE_REPO_CONNECT_FAILED,
+                      ErrCode.FILE_REPO_PULL_FAILED,
+                      ErrCode.FILE_REPO_URL_BLOCKED,
+                      ErrCode.PERSONAL_PASSWORD_MISMATCH,
+                      ErrCode.PERSONAL_LOCAL_RUNNER_INVALID,
+                      ErrCode.PERSONAL_AI_MODEL_INVALID,
                     ] as number[]
                   ).includes(err.code)
                 ? 422

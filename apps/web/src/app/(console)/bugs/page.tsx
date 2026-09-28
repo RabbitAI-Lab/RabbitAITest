@@ -6,7 +6,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { HTMLAttributes } from "react";
-import { bugApi, memberApi, workflowApi, type BugRow } from "@rabbit/api-client";
+import { bugApi, bugRecycleApi, memberApi, workflowApi, type BugRow } from "@rabbit/api-client";
 import { PageHeader } from "@/components/PageHeader";
 import { ModuleTreePanel } from "@/components/ModuleTreePanel";
 import { MemberSelect } from "@/components/crosscut";
@@ -113,6 +113,26 @@ export default function BugListPage() {
       message.success("已彻底删除");
     },
     onError: (e) => message.error(e instanceof Error ? e.message : "删除失败"),
+  });
+
+  // S5 BUG-002：回收站批量恢复 / 批量彻底删除
+  const batchRestore = useMutation({
+    mutationFn: (ids: string[]) => bugRecycleApi.batchRestore(projectId!, ids),
+    onSuccess: (r) => {
+      invalidate();
+      setSelectedIds([]);
+      message.success(`已恢复 ${r.affected} 条缺陷`);
+    },
+    onError: (e) => message.error(e instanceof Error ? e.message : "批量恢复失败"),
+  });
+  const batchPurge = useMutation({
+    mutationFn: (ids: string[]) => bugRecycleApi.batchPurge(projectId!, ids),
+    onSuccess: (r) => {
+      invalidate();
+      setSelectedIds([]);
+      message.success(`已彻底删除 ${r.affected} 条缺陷`);
+    },
+    onError: (e) => message.error(e instanceof Error ? e.message : "批量删除失败"),
   });
   const follow = useMutation({
     mutationFn: (id: string) => bugApi.follow(projectId!, id, true),
@@ -233,6 +253,28 @@ export default function BugListPage() {
               }}
               data-testid="select-bug-severity"
             />
+            {recycled && selectedIds.length > 0 && (
+              <div className="ml-auto flex gap-2">
+                <Button
+                  data-testid="btn-batch-restore-bugs"
+                  loading={batchRestore.isPending}
+                  onClick={() => batchRestore.mutate(selectedIds)}
+                >
+                  批量恢复（{selectedIds.length}）
+                </Button>
+                <Popconfirm
+                  title={`彻底删除选中的 ${selectedIds.length} 条缺陷？`}
+                  description="不可恢复，关联用例/评论/变更历史/关注一并清除"
+                  okText="彻底删除"
+                  okButtonProps={{ danger: true }}
+                  onConfirm={() => batchPurge.mutate(selectedIds)}
+                >
+                  <Button danger data-testid="btn-batch-purge-bugs" loading={batchPurge.isPending}>
+                    批量彻底删除（{selectedIds.length}）
+                  </Button>
+                </Popconfirm>
+              </div>
+            )}
             {!recycled && (
               <MemberSelect
                 projectId={projectId!}
@@ -295,14 +337,10 @@ export default function BugListPage() {
             loading={listQ.isLoading}
             dataSource={listQ.data?.items ?? []}
             data-testid="bug-table"
-            rowSelection={
-              recycled
-                ? undefined
-                : {
-                    selectedRowKeys: selectedIds,
-                    onChange: (keys) => setSelectedIds(keys as string[]),
-                  }
-            }
+            rowSelection={{
+              selectedRowKeys: selectedIds,
+              onChange: (keys) => setSelectedIds(keys as string[]),
+            }}
             pagination={{
               current: page,
               pageSize: 20,

@@ -19,6 +19,9 @@ import {
   Puzzle,
   RefreshCw,
   KeyRound,
+  FileCode2,
+  Bell,
+  UserCircle2,
 } from "lucide-react";
 import { usePermissions, useProjectInfo } from "@/hooks/usePermissions";
 
@@ -206,6 +209,20 @@ export function LeftNav() {
           testid: "nav-settings-envs",
         },
         {
+          href: "/settings/public-scripts",
+          label: "公共脚本",
+          icon: <FileCode2 size={15} strokeWidth={1.8} />,
+          perm: "PROJECT_SCRIPT:READ",
+          testid: "nav-settings-public-scripts",
+        },
+        {
+          href: "/settings/messages",
+          label: "消息管理",
+          icon: <Bell size={15} strokeWidth={1.8} />,
+          perm: "PROJECT_MESSAGE:READ",
+          testid: "nav-settings-messages",
+        },
+        {
           href: "/settings/ai-prompts",
           label: "AI 提示词",
           icon: <Sparkles size={15} strokeWidth={1.8} />,
@@ -227,10 +244,10 @@ export function LeftNav() {
           testid: "nav-settings-swagger-sync",
         },
         {
-          href: "/personal/api-keys",
-          label: "APIKEY",
-          icon: <KeyRound size={15} strokeWidth={1.8} />,
-          testid: "nav-personal-api-keys",
+          href: "/personal",
+          label: "个人中心",
+          icon: <UserCircle2 size={15} strokeWidth={1.8} />,
+          testid: "nav-personal-center",
         },
       ],
     },

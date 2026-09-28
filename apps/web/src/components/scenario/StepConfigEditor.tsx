@@ -12,6 +12,7 @@ import type { AssertSpec, Processor, ScenarioStepNode, StepBundle } from "@rabbi
 import { apiApi, apiCaseApi, scenarioApi } from "@rabbit/api-client";
 import { useProjectStore } from "@/stores/project";
 import RequestEditor, { emptyBundle } from "@/components/api/RequestEditor";
+import { ScriptRefPanel } from "@/components/api/ScriptRefPanel";
 import FunctionHintPopover from "@/components/scenario/FunctionHintPopover";
 
 export const ASSERT_KIND_OPTIONS = [
@@ -67,8 +68,23 @@ export function ProcessorRowsEditor({ rows, onChange, testid }: { rows: Processo
           />
           {r.kind === "wait" ? (
             <InputNumber size="small" className="!w-32" min={0} max={30000} addonAfter="ms" value={r.ms ?? 0} onChange={(v) => patch(i, { ms: Number(v ?? 0) })} />
+          ) : (r as { scriptRef?: unknown }).scriptRef ? (
+            <div className="flex-1">
+              <ScriptRefPanel
+                value={(r as { scriptRef: { scriptId: string; params: Record<string, string> } }).scriptRef}
+                onChange={(v) => patch(i, v ? { script: "", scriptRef: v } : { script: "" })}
+              />
+              <button type="button" className="text-[11px] text-[#574BFF]" onClick={() => patch(i, { script: "" })}>
+                切换为内联脚本
+              </button>
+            </div>
           ) : (
-            <Input size="small" className="flex-1 font-mono" placeholder='脚本（quickjs：log / setVar / getVar / envGet）' value={(r as { script?: string }).script ?? ""} onChange={(e) => patch(i, { script: e.target.value })} />
+            <div className="flex-1 flex gap-1">
+              <Input size="small" className="flex-1 font-mono" placeholder='脚本（quickjs：log / setVar / getVar / envGet）' value={(r as { script?: string }).script ?? ""} onChange={(e) => patch(i, { script: e.target.value })} />
+              <button type="button" className="text-[11px] text-[#574BFF] shrink-0" onClick={() => patch(i, { script: "", scriptRef: { scriptId: "", params: {} } })}>
+                引用公共脚本
+              </button>
+            </div>
           )}
           <Button type="text" size="small" className="!px-1 !text-[#FF4D4F]" onClick={() => onChange(rows.filter((_, idx) => idx !== i))}>
             <X size={12} strokeWidth={1.8} />

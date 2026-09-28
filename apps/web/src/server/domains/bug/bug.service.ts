@@ -196,7 +196,7 @@ export async function createBug(
   const wf = await bugWorkflow(orgId, projectId);
   const start = wf.states.find((s) => s.isStart) ?? wf.states[0];
   const status = start?.serial ?? "待处理";
-  return prisma.$transaction(async (tx) => {
+  const created = await prisma.$transaction(async (tx) => {
     let moduleId = input.moduleId ?? null;
     if (moduleId) {
       const m = await tx.moduleNode.findFirst({
@@ -241,8 +241,9 @@ export async function createBug(
     });
     return created;
   });
+  await bugEventNotify(projectId, userId, "BUG_CREATED", { id: created.id, title: input.title });
+  return created;
 }
-
 export async function updateBug(
   projectId: string,
   bugId: string,
@@ -289,6 +290,7 @@ export async function updateBug(
   await prisma.changeLog.create({
     data: { entityType: "bug", entityId: bugId, seq, action: "update", userId, diff: toJson(diff) },
   });
+  await bugEventNotify(projectId, userId, "BUG_UPDATED", { id: bugId, title: input.title ?? existing.title });
   return updated;
 }
 
@@ -302,7 +304,7 @@ export async function transitionBug(
 ) {
   const bug = await prisma.bug.findFirst({
     where: { id: bugId, projectId, deletedAt: null },
-    select: { id: true, status: true, templateId: true },
+    select: { id: true, status: true, templateId: true, title: true },
   });
   if (!bug) throw new DomainError(ErrCode.BUG_NOT_FOUND, "缺陷不存在或已删除");
   const wf = await bugWorkflow(orgId, projectId);
@@ -337,6 +339,7 @@ export async function transitionBug(
       },
     });
   }
+  await bugEventNotify(projectId, userId, "BUG_TRANSITION", bug, { from: bug.status, to: input.toState });
   return { id: bugId, status: input.toState };
 }
 
@@ -350,12 +353,14 @@ export async function allowedTransitions(
   return wf.transitions.filter((t) => t.from === currentStatus).map((t) => t.to);
 }
 
-export async function softDeleteBug(projectId: string, bugId: string) {
-  const r = await prisma.bug.updateMany({
+export async function softDeleteBug(projectId: string, bugId: string, userId?: string) {
+  const target = await prisma.bug.findFirst({
     where: { id: bugId, projectId, deletedAt: null },
-    data: { deletedAt: new Date() },
+    select: { id: true, title: true },
   });
-  if (r.count === 0) throw new DomainError(ErrCode.BUG_NOT_FOUND, "缺陷不存在或已在回收站");
+  if (!target) throw new DomainError(ErrCode.BUG_NOT_FOUND, "缺陷不存在或已在回收站");
+  await prisma.bug.update({ where: { id: bugId }, data: { deletedAt: new Date() } });
+  if (userId) await bugEventNotify(projectId, userId, "BUG_DELETED", target);
   return { ok: true };
 }
 
@@ -534,4 +539,92 @@ export async function exportBugs(projectId: string): Promise<{ buffer: Buffer; f
     filename: `${project?.name ?? '项目'}-缺陷-${stamp}.xlsx`,
     contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   };
+}
+
+// ── S5 BUG-002：通知联动（MSG-001 事件源）+ 批量回收站 ──
+
+/** 缺陷事件通知（固定默认模板；更新/流转附关注者——MSG-001 §2 接收人扩展口径）。 */
+export async function bugEventNotify(
+  projectId: string,
+  actorId: string,
+  event: "BUG_CREATED" | "BUG_UPDATED" | "BUG_DELETED" | "BUG_TRANSITION",
+  bug: { id: string; title: string },
+  detail?: { from?: string; to?: string },
+): Promise<void> {
+  try {
+    const { dispatch } = await import("../message/notify.service");
+    const wantFollowers = event === "BUG_UPDATED" || event === "BUG_TRANSITION";
+    const [user, follows] = await Promise.all([
+      prisma.user.findUnique({ where: { id: actorId }, select: { name: true } }),
+      wantFollowers
+        ? prisma.follow.findMany({
+            where: { entityType: "bug", entityId: bug.id },
+            select: { userId: true },
+          })
+        : Promise.resolve([] as { userId: string }[]),
+    ]);
+    const action =
+      event === "BUG_CREATED" ? "新建" : event === "BUG_UPDATED" ? "更新" : event === "BUG_DELETED" ? "删除" : "流转";
+    const extra = event === "BUG_TRANSITION" && detail ? `：${detail.from} → ${detail.to}` : "";
+    await dispatch({
+      projectId,
+      event,
+      title: `[缺陷] ${bug.title} ${action}${extra}`.slice(0, 256),
+      content: `操作人：${user?.name ?? actorId.slice(0, 8)}\n时间：${new Date().toLocaleString("zh-CN")}${extra}`,
+      actorId,
+      receivers: { followerIds: follows.map((f) => f.userId) },
+    });
+  } catch {
+    // 通知链路异常不阻断业务写路径（MSG-001 §2）
+  }
+}
+
+/** 批量恢复（ids 1-100，全部须在回收站，否则 422 附非法清单）。 */
+export async function batchRestoreBugs(projectId: string, ids: string[]) {
+  const unique = [...new Set(ids)];
+  const recycled = await prisma.bug.findMany({
+    where: { id: { in: unique }, projectId, deletedAt: { not: null } },
+    select: { id: true },
+  });
+  const recycledSet = new Set(recycled.map((b) => b.id));
+  const invalid = unique.filter((id) => !recycledSet.has(id));
+  if (invalid.length > 0) {
+    throw new DomainError(
+      ErrCode.VALIDATION_FAILED,
+      `以下缺陷不在回收站或不存在：${invalid.slice(0, 5).join(", ")}${invalid.length > 5 ? " 等" : ""}`,
+    );
+  }
+  const r = await prisma.bug.updateMany({
+    where: { id: { in: unique }, projectId },
+    data: { deletedAt: null },
+  });
+  return { affected: r.count };
+}
+
+/** 批量彻底删除（复用单条级联集：关联/评论/变更/关注/附件）。 */
+export async function batchPurgeBugs(projectId: string, ids: string[]) {
+  const unique = [...new Set(ids)];
+  const recycled = await prisma.bug.findMany({
+    where: { id: { in: unique }, projectId, deletedAt: { not: null } },
+    select: { id: true },
+  });
+  const recycledSet = new Set(recycled.map((b) => b.id));
+  const invalid = unique.filter((id) => !recycledSet.has(id));
+  if (invalid.length > 0) {
+    throw new DomainError(
+      ErrCode.VALIDATION_FAILED,
+      `以下缺陷不在回收站或不存在：${invalid.slice(0, 5).join(", ")}${invalid.length > 5 ? " 等" : ""}`,
+    );
+  }
+  await prisma.$transaction(async (tx) => {
+    await tx.bugCaseRef.deleteMany({ where: { bugId: { in: unique } } });
+    for (const bugId of unique) {
+      await tx.comment.deleteMany({ where: { entityType: "bug", entityId: bugId } });
+      await tx.changeLog.deleteMany({ where: { entityType: "bug", entityId: bugId } });
+      await tx.follow.deleteMany({ where: { entityType: "bug", entityId: bugId } });
+      await tx.attachment.deleteMany({ where: { entityType: "bug", entityId: bugId } });
+    }
+    await tx.bug.deleteMany({ where: { id: { in: unique }, projectId } });
+  });
+  return { affected: unique.length };
 }

@@ -112,6 +112,13 @@ export const processorSchema = z.discriminatedUnion("kind", [
   z.object({
     kind: z.literal("script"),
     script: z.string().max(64 * 1024),
+    /** S5 PROJ-005：引用公共脚本（存储/编辑态；构建期展开为内联 script + 参数注入，engine 收到的恒为展开后形态） */
+    scriptRef: z
+      .object({
+        scriptId: z.string().uuid(),
+        params: z.record(z.string().min(1).max(64), z.string().max(2048)).default({}),
+      })
+      .optional(),
   }),
   z.object({
     kind: z.literal("sql"),

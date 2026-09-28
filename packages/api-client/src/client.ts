@@ -48,6 +48,8 @@ export const post = <T>(path: string, data?: unknown) =>
   request<T>(path, { method: "POST", body: data === undefined ? undefined : JSON.stringify(data) });
 export const put = <T>(path: string, data: unknown) =>
   request<T>(path, { method: "PUT", body: JSON.stringify(data) });
+export const patch = <T>(path: string, data: unknown) =>
+  request<T>(path, { method: "PATCH", body: JSON.stringify(data) });
 export const del = <T>(path: string) => request<T>(path, { method: "DELETE" });
 
 /** 二进制下载（模板下载/导出，非 JSON 信封响应）。POST 缺省；返回 blob 与文件名。 */

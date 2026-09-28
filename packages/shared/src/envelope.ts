@@ -42,11 +42,31 @@ export const ErrCode = {
   APIKEY_INVALID: 10010, // S6 INTG-003：APIKEY 无效/已吊销
   APIKEY_LIMIT_EXCEEDED: 10011, // APIKEY 超上限（5 条/人）
   OPEN_RATE_LIMITED: 10012, // 开放 API 限流（10 QPS/key）
+  PERSONAL_PASSWORD_MISMATCH: 10020, // S5 SYS-007：修改密码旧密码错误
+  PERSONAL_LOCAL_RUNNER_INVALID: 10021, // S5 SYS-007：本地 runner 地址非环回
+  PERSONAL_AI_MODEL_INVALID: 10022, // S5 SYS-007：个人默认模型不存在或未启用
   // 20xxx 项目与配置
   PROJECT_NOT_FOUND: 20404,
   TEMPLATE_NOT_FOUND: 20414,
   VALIDATION_FAILED: 20422,
   VERSION_CONFLICT: 20409,
+  // 20xxx 消息机器人（S5 MSG-001）
+  ROBOT_NOT_FOUND: 20440,
+  ROBOT_WEBHOOK_INVALID: 20441,
+  ROBOT_WEBHOOK_BLOCKED: 20442, // webhook 命中 SSRF 守卫
+  ROBOT_LIMIT_EXCEEDED: 20443, // 机器人上限 10/项目
+  MESSAGE_CONFIG_INVALID: 20444,
+  NOTIFICATION_NOT_FOUND: 20445,
+  ROBOT_SEND_FAILED: 20446, // 测试发送投递失败
+  // 20xxx 公共脚本（S5 PROJ-005）
+  SCRIPT_NOT_FOUND: 20450,
+  SCRIPT_IN_USE: 20451, // 被引用禁止删除（409）
+  SCRIPT_DEBUG_FAILED: 20452, // 调试运行时错误/超时
+  SCRIPT_INVALID_REF: 20453, // 引用的脚本不存在或非启用态
+  SCRIPT_LIMIT_EXCEEDED: 20454, // 脚本上限 100/项目
+  // 20xxx 环境组（S5 PROJ-006）
+  ENV_GROUP_NOT_FOUND: 20460,
+  ENV_GROUP_EMPTY: 20461, // 组内无可用环境
   // 30xxx 用例与评审（含计划/缺陷——测试管理域族）
   CASE_NOT_FOUND: 30404,
   MODULE_NOT_FOUND: 30414,
@@ -85,6 +105,11 @@ export const ErrCode = {
   SWAGGER_FETCH_FAILED: 40522,
   SWAGGER_PARSE_FAILED: 40523,
   SWAGGER_TASKS_LIMIT_EXCEEDED: 40524, // 同步任务上限 10
+  // 40xxx Git 存储库（S5 FILE-001，file 族顺延）
+  FILE_REPO_NOT_FOUND: 40460,
+  FILE_REPO_CONNECT_FAILED: 40461,
+  FILE_REPO_PULL_FAILED: 40462,
+  FILE_REPO_URL_BLOCKED: 40463, // 仓库地址命中 SSRF 守卫
   // 50xxx 执行引擎
   ENGINE_CALLBACK_INVALID: 50001,
   TASK_NOT_RUNNING: 50003,
@@ -225,4 +250,25 @@ export const ErrMsg: Record<number, string> = {
   [ErrCode.PLATFORM_UNAUTHORIZED]: "平台凭据失效（401/403），请重新配置",
   [ErrCode.INTEGRATION_SECRET_MISSING]: "集成加密密钥未配置（RABBIT_INTEGRATION_SECRET）",
   [ErrCode.AUDIT_QUERY_INVALID]: "审计查询参数非法",
+  [ErrCode.PERSONAL_PASSWORD_MISMATCH]: "当前密码错误",
+  [ErrCode.PERSONAL_LOCAL_RUNNER_INVALID]: "本地 runner 地址仅允许环回（127.0.0.1/localhost/::1）",
+  [ErrCode.PERSONAL_AI_MODEL_INVALID]: "个人默认模型不存在或未启用",
+  [ErrCode.ROBOT_NOT_FOUND]: "机器人不存在",
+  [ErrCode.ROBOT_WEBHOOK_INVALID]: "Webhook 地址非法（机器人渠道必填 http(s) URL）",
+  [ErrCode.ROBOT_WEBHOOK_BLOCKED]: "Webhook 指向内网/环回/元数据地址，已被安全策略拒绝",
+  [ErrCode.ROBOT_LIMIT_EXCEEDED]: "机器人数量超出上限（10/项目）",
+  [ErrCode.MESSAGE_CONFIG_INVALID]: "消息事件配置非法",
+  [ErrCode.NOTIFICATION_NOT_FOUND]: "通知不存在",
+  [ErrCode.ROBOT_SEND_FAILED]: "机器人消息投递失败",
+  [ErrCode.SCRIPT_NOT_FOUND]: "公共脚本不存在或已删除",
+  [ErrCode.SCRIPT_IN_USE]: "公共脚本正被引用，禁止删除（可强制删除）",
+  [ErrCode.SCRIPT_DEBUG_FAILED]: "脚本调试失败（运行时错误或超时）",
+  [ErrCode.SCRIPT_INVALID_REF]: "引用的公共脚本不存在或未发布",
+  [ErrCode.SCRIPT_LIMIT_EXCEEDED]: "公共脚本数量超出上限（100/项目）",
+  [ErrCode.ENV_GROUP_NOT_FOUND]: "环境组不存在",
+  [ErrCode.ENV_GROUP_EMPTY]: "环境组内没有可用环境",
+  [ErrCode.FILE_REPO_NOT_FOUND]: "文件存储库不存在",
+  [ErrCode.FILE_REPO_CONNECT_FAILED]: "存储库连接失败",
+  [ErrCode.FILE_REPO_PULL_FAILED]: "存储库文件拉取失败",
+  [ErrCode.FILE_REPO_URL_BLOCKED]: "仓库地址不允许（内网/元数据地址被守卫拦截）",
 };

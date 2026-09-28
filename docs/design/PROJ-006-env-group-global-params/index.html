@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="utf-8" />
+    <title>PROJ-006 环境组与全局参数（三 Tab · 调序 · KV 表 · 按组执行）</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-slate-50 text-slate-800 text-sm">
+    <header class="h-12 bg-white border-b flex items-center px-4 gap-3">
+      <span class="font-semibold">RabbitAITest</span><span class="border rounded px-2 py-0.5">演示项目 #1 · 项目设置</span>
+      <span class="ml-auto text-slate-400 text-xs">帮助 · 🔔 · admin</span>
+    </header>
+    <main class="p-4 space-y-4 max-w-[1200px]">
+      <!-- 画板一：环境组 Tab -->
+      <section class="bg-white border rounded-md">
+        <div class="px-3 py-2 border-b bg-slate-50 font-medium">画板一 · 项目设置 → 环境管理（Tab② 环境组：有序环境集 · 上限 20 组/项目 · 组内环境 ≤10）</div>
+        <div class="px-3 pt-3 flex items-center gap-3">
+          <div class="flex border rounded overflow-hidden text-xs">
+            <button class="px-3 py-1.5 bg-white">环境</button>
+            <button class="px-3 py-1.5 bg-[#574BFF] text-white">环境组</button>
+            <button class="px-3 py-1.5 bg-white">全局参数</button>
+          </div>
+          <button class="ml-auto bg-[#574BFF] text-white rounded-md px-3 py-1.5 text-xs">＋ 新建环境组</button>
+        </div>
+        <table class="w-full text-[13px] mt-2">
+          <thead class="text-slate-500 text-xs bg-slate-50"><tr class="text-left"><th class="px-3 py-2">组名</th><th>包含环境（有序）</th><th>环境数</th><th>操作</th></tr></thead>
+          <tbody class="divide-y">
+            <tr>
+              <td class="px-3 py-2">回归三件套</td>
+              <td class="px-3 py-2"><span class="text-[10px] border rounded px-1.5 py-0.5 bg-blue-50 text-blue-600 border-blue-200">1. sit</span> <span class="text-slate-300">→</span> <span class="text-[10px] border rounded px-1.5 py-0.5 bg-green-50 text-green-600 border-green-200">2. uat</span> <span class="text-slate-300">→</span> <span class="text-[10px] border rounded px-1.5 py-0.5 bg-purple-50 text-purple-600 border-purple-200">3. pre</span></td>
+              <td class="px-3 py-2">3</td>
+              <td class="px-3 py-2 space-x-2 text-[#574BFF] text-xs"><a>编辑</a><a class="text-red-500">删除</a></td>
+            </tr>
+            <tr class="opacity-60">
+              <td class="px-3 py-2">仅冒烟</td>
+              <td class="px-3 py-2"><span class="text-[10px] border rounded px-1.5 py-0.5 bg-slate-100 text-slate-400">1. sit（已删除，执行时跳过）</span></td>
+              <td class="px-3 py-2 text-slate-400">0 可用</td>
+              <td class="px-3 py-2 space-x-2 text-[#574BFF] text-xs"><a>编辑</a><a class="text-red-500">删除</a></td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="px-3 py-2 text-xs text-slate-400 border-t">组为轻量编排对象：物理删除（无回收站）；组内环境被删不阻断建组，执行展开时自动过滤，全失效则 422</p>
+      </section>
+
+      <!-- 新建/编辑环境组弹窗 -->
+      <section class="bg-white border rounded-md w-[480px]">
+        <div class="px-3 py-2 border-b bg-slate-50 font-medium text-[13px]">新建环境组（勾选 + 调序）</div>
+        <div class="p-4 text-[13px] space-y-3">
+          <div><p class="text-slate-500 text-xs mb-1">组名</p><input class="border rounded px-2 py-1.5 w-full" value="回归三件套" /></div>
+          <div class="flex gap-3">
+            <div class="flex-1 border rounded text-xs">
+              <p class="px-2 py-1 bg-slate-50 text-slate-500 border-b">可选环境（未删除）</p>
+              <label class="flex items-center gap-2 px-2 py-1.5"><input type="checkbox" checked disabled /> sit（10.0.0.1）</label>
+              <label class="flex items-center gap-2 px-2 py-1.5"><input type="checkbox" checked disabled /> uat（10.0.0.2）</label>
+              <label class="flex items-center gap-2 px-2 py-1.5"><input type="checkbox" checked disabled /> pre（10.0.0.3）</label>
+              <label class="flex items-center gap-2 px-2 py-1.5"><input type="checkbox" /> prod-readonly</label>
+            </div>
+            <div class="flex-1 border rounded text-xs">
+              <p class="px-2 py-1 bg-slate-50 text-slate-500 border-b">已选（执行顺序）</p>
+              <div class="px-2 py-1.5 flex items-center gap-1"><span class="text-slate-400">↕</span> sit <button class="ml-auto text-slate-400">↑</button><button class="text-slate-400">↓</button></div>
+              <div class="px-2 py-1.5 flex items-center gap-1"><span class="text-slate-400">↕</span> uat <button class="ml-auto text-slate-400">↑</button><button class="text-slate-400">↓</button></div>
+              <div class="px-2 py-1.5 flex items-center gap-1"><span class="text-slate-400">↕</span> pre <button class="ml-auto text-slate-400">↑</button><button class="text-slate-400">↓</button></div>
+            </div>
+          </div>
+          <div class="flex gap-2"><button class="bg-[#574BFF] text-white rounded px-4 py-1.5">确定</button><button class="border rounded px-4 py-1.5">取消</button></div>
+        </div>
+      </section>
+
+      <!-- 画板二：全局参数 Tab -->
+      <section class="bg-white border rounded-md">
+        <div class="px-3 py-2 border-b bg-slate-50 font-medium">画板二 · Tab③ 全局参数（项目级单例 KV · 作用域链=临时 > 环境变量 > 全局参数）</div>
+        <div class="p-3">
+          <p class="text-xs text-slate-400 mb-2">作为环境变量之下的兜底变量域：未选环境执行时仅注入全局参数；同名时环境变量覆盖全局参数</p>
+          <table class="w-full text-[13px] border rounded">
+            <thead class="bg-slate-50 text-slate-500 text-xs"><tr class="text-left"><th class="px-2 py-1.5">Key</th><th>Value</th><th>描述</th><th class="w-16"></th></tr></thead>
+            <tbody class="divide-y">
+              <tr><td class="px-2 py-1.5 font-mono">app.host</td><td class="px-2 py-1.5 font-mono text-xs">https://sit-app.example.com</td><td class="px-2 py-1.5 text-xs text-slate-400">应用入口</td><td class="px-2 py-1.5 text-red-400 text-xs">删</td></tr>
+              <tr><td class="px-2 py-1.5 font-mono">retry.times</td><td class="px-2 py-1.5 font-mono text-xs">3</td><td class="px-2 py-1.5 text-xs text-slate-400">重试次数</td><td class="px-2 py-1.5 text-red-400 text-xs">删</td></tr>
+              <tr><td class="px-2 py-1.5"><input class="border-0 outline-none font-mono w-full" placeholder="新 key" /></td><td class="px-2 py-1.5"><input class="border-0 outline-none font-mono text-xs w-full" placeholder="值" /></td><td class="px-2 py-1.5"><input class="border-0 outline-none text-xs text-slate-400 w-full" placeholder="描述" /></td><td class="px-2 py-1.5 text-red-400 text-xs">删</td></tr>
+            </tbody>
+          </table>
+          <div class="flex items-center mt-2"><button class="text-xs text-[#574BFF]">＋ 添加参数</button><span class="text-xs text-slate-400 ml-2">（2/100）</span><button class="ml-auto bg-[#574BFF] text-white rounded px-4 py-1.5 text-xs">保存（全量提交）</button></div>
+        </div>
+      </section>
+
+      <!-- 画板三：执行侧选组 -->
+      <section class="bg-white border rounded-md">
+        <div class="px-3 py-2 border-b bg-slate-50 font-medium">画板三 · 场景批量执行 / 计划执行弹窗（环境下拉新增「环境组」分组，选组=按序逐环境各建一个任务）</div>
+        <div class="p-3 w-[460px] text-[13px] space-y-3">
+          <p class="font-medium">批量执行（已选 2 个场景）</p>
+          <div>
+            <p class="text-slate-500 text-xs mb-1">环境选择</p>
+            <select class="border rounded px-2 py-1.5 w-full text-xs">
+              <optgroup label="环境组"><option>回归三件套（sit → uat → pre）</option></optgroup>
+              <optgroup label="单环境"><option>sit</option><option>uat</option></optgroup>
+            </select>
+          </div>
+          <div class="border rounded p-2 text-xs text-slate-500 bg-slate-50">将生成 3 个执行任务：<p class="font-mono text-[11px]">登录下单主链@sit · 登录下单主链@uat · 登录下单主链@pre</p><p>（按组内顺序串行创建，报告独立）</p></div>
+          <div class="flex gap-2"><button class="bg-[#574BFF] text-white rounded px-4 py-1.5">执行</button><button class="border rounded px-4 py-1.5">取消</button></div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

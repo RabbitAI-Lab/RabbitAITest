@@ -98,6 +98,8 @@ export const planExecuteSchema = z.object({
   mode: z.enum(["serial", "parallel"]).optional(),
   stopOnFail: z.boolean().optional(),
   envId: z.string().uuid().nullable().optional(),
+  /** S5 PROJ-006：按环境组执行（与 envId 互斥；按组内顺序逐计划任务） */
+  envGroupId: z.string().uuid().optional(),
   poolId: z.string().uuid().nullable().optional(),
 });
 

@@ -191,10 +191,16 @@ export interface FileRow {
   mime?: string;
   isJar: boolean;
   jarEnabled: boolean;
+  /** S5 FILE-001：仓库文件溯源（repoId/repoPlatform/branch/repoPath；仓库已删=repoPlatform null） */
+  repoId?: string | null;
+  repoPlatform?: string | null;
+  branch?: string | null;
+  repoPath?: string | null;
+  deletedAt?: string | null;
   createdAt: string;
 }
 export const fileApi = {
-  list: (projectId: string, q: { moduleId?: string; includeChildren?: boolean; keyword?: string; page?: number; pageSize?: number } = {}) =>
+  list: (projectId: string, q: { moduleId?: string; includeChildren?: boolean; keyword?: string; page?: number; pageSize?: number; recycled?: boolean } = {}) =>
     get<PageOf<FileRow>>(`/api/v1/projects/${projectId}/files${qs(q)}`),
   upload: (projectId: string, file: File) => {
     const form = new FormData();
