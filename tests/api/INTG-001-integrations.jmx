@@ -112,10 +112,12 @@
             <stringProp name="JSONPostProcessor.defaultValues">NONE</stringProp>
           </JSONPostProcessor>
           <hashTree/>
-          <JSR223Assertion guiclass="TestBeanGUI" testclass="JSR223Assertion" testname="容忍 201/409（幂等上传）">
-            <stringProp name="scriptLanguage">groovy</stringProp>
-            <stringProp name="script">def c = prev.getResponseCode(); if (!(c == &quot;201&quot; || c == &quot;409&quot;)) { AssertionResult.setFailure(true); AssertionResult.setFailureMessage(&quot;expect 201/409 got &quot; + c) }</stringProp>
-          </JSR223Assertion>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="容忍 201/409（幂等上传；assume_success 翻转 409 自动置败）">
+            <collectionProp name="Asserion.test_strings"><stringProp name="49586">(201|409)</stringProp></collectionProp>
+            <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+            <boolProp name="Assertion.assume_success">true</boolProp>
+            <intProp name="Assertion.test_type">1</intProp>
+          </ResponseAssertion>
           <hashTree/>
           <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="code=0 或 70005">
             <stringProp name="JSON_PATH">$.code</stringProp>
