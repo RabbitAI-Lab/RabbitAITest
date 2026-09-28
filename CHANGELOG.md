@@ -26,6 +26,31 @@
 - JMeter 新增 7 计划全绿（LOAD-002 豁免登记；四类×四断言，含 multipart 上传/409 版本递增/props 桥 Basic/收尾状态恢复防栈内泄漏）
 - Playwright 新增 5 spec 8 用例全绿（三类断言；含 ws 真执行对 mock echo 回显、引擎 30s 轮询重试容错、K8S 休眠往返、占位三态；TOOL 两规格无 UI 面豁免登记）
 - OpenAPI 快照 277→284 paths（--check 过）；typecheck 13/13；format 全绿
+## [v0.7.2] - 2026-09-28 — AI 智能助手 UI v2（Ant Design X 重构）
+
+### 变更
+
+- **AI 智能助手面板重构（AI-004 §9，用户验收反馈驱动）**：表现层全面换用 **@ant-design/x 1.6.1**（选 1.x 线 peer antd ^5.20.3；2.x 需 antd 6 属架构级升级不采用）——`Conversations` 会话栏（active 高亮 + hover ⋯ 菜单重命名/删除，替代双击重命名）、`Bubble.List` 气泡流（助手渐变头像/用户主题色渐变气泡/流式光标/错误态红边气泡）、`Sender` 圆角输入容器（动作条内联模型下拉 + 圆形发送钮，loading 态自动切换停止钮）、`Welcome + Prompts` 空态（三条能力建议卡点击即填入，竖排）；面板 560→720px
+- 后端 SSE 契约（delta/done/error 帧）、`streamAiChat`、会话服务**零改动**（jmx/单测不受影响）；全部 data-testid 保留，AI-004-01 会话定位器随 Conversations DOM 调整为文本定位（规格 §9 登记）
+- **SYS-007 本地执行页回填竞态修复（勘误 2）**：初始查询迟到时渲染期回填覆盖用户已输入地址（慢网可现：输入被抹→检测钮永久禁用）；新增依赖改变 chunk 时序后在 CI 确定性暴露——dirty 守卫（用户编辑后迟到回填不覆盖）
+- 规格 §3/§9 与 v2 高保真原型（docs/design/AI-004-ai-assistant/v2-antd-x/，先于编码产出）同步更新；视觉走查两轮（建议卡横排溢出→竖排修复、placeholder 折行修复）
+
+### 测试
+
+- **补齐 chat SSE 帧序列单测**（`chat-sse.test.ts`：delta*→done 顺序/done 载荷（messageId/conversationId/title 截 20）/半截 delta+error 帧兜底且助手不落库）——此前帧 wire 格式仅 e2e 断言，而 event-stream body 读取是 Playwright 弱支撑（AI 域并跑实测 flake：body 缓冲被驱逐即 protocol error）；e2e AI-004-01 改为容错读（读到则断言）并补请求负载断言
+- AI 域全量 e2e 回归（AI-001~005，并行 4 workers）绿；SYS-007 全 spec 绿；typecheck/oxlint 绿；jmx 无涉及（纯表现层+测试加固）
+
+## [v0.7.1] - 2026-09-28 — Mimosa 门禁误报根治（静态分析友好重构）
+
+### 变更（行为等价，rules/security.md §8.6 制度化）
+
+- **safeFetch 薄包装移除 → outboundDispatcher 工厂**（台账 #4 根治）：`safe-fetch.ts` 不再导出「直接以自身参数调 fetch」的包装（该形态被判 SSRF 入口，守卫语义无法被静态分析建模）；三调用方（AI 上游 chat-client / 通知 webhook robot-sender / Swagger 同步）改为模块级一次性构造 dispatcher 实例直连 `fetch(url, { dispatcher })`——连接期 IP 校验语义不变（同一 agentFor），env 豁免开关移至模块初始化消化（fetch 调用表达式零 env 读取）
+- **同名碰撞消链**（台账 #5 根治）：mock 单测局部 `post()` → `postCompletions`（曾与 Playwright `request.post` 误并 35 条跨文件污点）；e2e `s2-helpers.ts` 局部 `walk` → `flattenModules`（曾与 api/import.service 路径遍历 sink 误并 1 条）
+- **制度沉淀**：rules/security.md 新增 §8.6「根治优先」——三类已验证形态（dispatcher 工厂/env 出调用表达式/测试 helper 命名避撞）+ 验证口径（audit crossFile 归零 + 测试绿 + commit 实过门禁）；台账 #3/#4/#5 状态升级「已根治」
+
+### 测试
+
+- web 单测 118 全绿（safe-fetch 守卫矩阵不涉及）、mock 单测 12 全绿、typecheck/oxlint 绿；`mimosa audit --deep` crossFile **39→0**；S5 演示视频归档 commit 与本分支 commit 均实过 git-gate 无拦截
 
 ## [v0.7.0] - 2026-09-28 — Sprint 8 稳定化（M9 标准版 GA 里程碑）
 

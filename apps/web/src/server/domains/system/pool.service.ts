@@ -3,7 +3,8 @@
  * 连通性测试（safe-fetch 池守卫口径：https 强制、环回/非路由拒、私网放行）；调度面零变化（两型同构单 exec 队列）。 */
 import { DomainError, ErrCode, config, poolK8sConfigSchema } from "@rabbit/shared";
 import type { PoolK8sConfig, PoolK8sConfigView, PoolUpdateInput } from "@rabbit/shared";
-import { safeFetch } from "@/server/safe-fetch";
+import type { Agent } from "undici";
+import { outboundDispatcher } from "@/server/safe-fetch";
 import { recordAudit } from "@/server/domains/system/audit.service";
 import { prisma } from "@rabbit/db";
 import type { Prisma } from "@rabbit/db";
@@ -159,8 +160,12 @@ export async function updatePool(id: string, input: PoolUpdateInput) {
   return getPool(pool.id);
 }
 
-/** 连通性测试（EXEC-004 §2：test=true 只试连不落库；探测 apiServer /version）。
- * 守卫口径=私网放行、环回/链路本地/非路由拒（管理员配置面）；测试栈 POOL_K8S_ALLOW_LOOPBACK=1 叠加豁免环回。 */
+/** K8S apiServer 探测 dispatcher（模块级实例，v0.7.1 口径：调用方持 dispatcher 直连 fetch——
+ * 守卫口径=私网放行、环回/链路本地/非路由拒（管理员配置面）；测试栈 POOL_K8S_ALLOW_LOOPBACK=1 换环回豁免实例） */
+const poolK8sDispatcher = outboundDispatcher({ allowPrivateKeepLoopback: true });
+const poolK8sLoopbackDispatcher = outboundDispatcher({ allowPrivateKeepLoopback: true, allowLoopback: true });
+
+/** 连通性测试（EXEC-004 §2：test=true 只试连不落库；探测 apiServer /version）。 */
 export async function testPoolK8sConnection(id: string, input: PoolUpdateInput) {
   const pool = await prisma.resourcePool.findUnique({ where: { id } });
   if (!pool) throw new DomainError(ErrCode.POOL_NOT_FOUND, "资源池不存在");
@@ -169,14 +174,11 @@ export async function testPoolK8sConnection(id: string, input: PoolUpdateInput) 
   const allowLoopback = process.env.POOL_K8S_ALLOW_LOOPBACK === "1";
   let res: Response;
   try {
-    res = await safeFetch(
-      url,
-      {
-        headers: { Authorization: `Bearer ${k8s.token}` },
-        signal: AbortSignal.timeout(K8S_TEST_TIMEOUT_MS),
-      },
-      { allowPrivateKeepLoopback: true, allowLoopback },
-    );
+    res = await fetch(url, {
+      headers: { Authorization: `Bearer ${k8s.token}` },
+      signal: AbortSignal.timeout(K8S_TEST_TIMEOUT_MS),
+      dispatcher: allowLoopback ? poolK8sLoopbackDispatcher : poolK8sDispatcher,
+    } as RequestInit & { dispatcher: Agent });
   } catch (err) {
     recordAudit({
       userId: null,

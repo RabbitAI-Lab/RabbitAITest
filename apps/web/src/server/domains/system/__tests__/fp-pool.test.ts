@@ -1,7 +1,6 @@
-/** S-future EXEC-004 单测：k8s zod 矩阵 / 池更新与 token 合并 / 试连（mock safeFetch）/ 守卫口径 / DTO 占位字段。 */
+/** S-future EXEC-004 单测：k8s zod 矩阵 / 池更新与 token 合并 / 试连（stub fetch·dispatcher 直连口径）/ 守卫口径 / DTO 占位字段。 */
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { DomainError, ErrCode, poolK8sConfigSchema, poolUpdateSchema } from "@rabbit/shared";
-import { ipIsForbidden } from "@/server/safe-fetch";
 
 vi.mock("@rabbit/db", () => {
   const state: Record<string, unknown> = {};
@@ -21,9 +20,10 @@ vi.mock("@rabbit/db", () => {
   };
   return { prisma, nextNum: vi.fn(async () => 1) };
 });
+// v0.7.1 后 safe-fetch 无薄包装——试连经模块级 dispatcher 直连 fetch；此处 mock 全局 fetch（保留真实守卫判定函数供矩阵用例）
 vi.mock("@/server/safe-fetch", async () => {
   const impl = await vi.importActual<typeof import("@/server/safe-fetch")>("@/server/safe-fetch");
-  return { ...impl, safeFetch: vi.fn() };
+  return { ...impl, outboundDispatcher: () => ({ mock: true }) };
 });
 vi.mock("@/server/domains/system/audit.service", () => ({
   recordAudit: vi.fn(),
@@ -31,7 +31,7 @@ vi.mock("@/server/domains/system/audit.service", () => ({
 }));
 
 import { prisma } from "@rabbit/db";
-import { safeFetch } from "@/server/safe-fetch";
+import { ipIsForbidden } from "@/server/safe-fetch";
 import { updatePool, testPoolK8sConnection, getPool } from "../pool.service";
 
 const basePool = {
@@ -59,7 +59,7 @@ const validK8s = {
 
 beforeEach(() => {
   setPool({ ...basePool });
-  vi.mocked(safeFetch).mockReset();
+  vi.unstubAllGlobals();
 });
 
 describe("EXEC-004-T1 k8s 配置 zod 矩阵", () => {
@@ -136,28 +136,36 @@ describe("EXEC-004-T2/T4 池更新语义", () => {
   });
 });
 
-describe("EXEC-004-T2 试连（test=true 不落库）", () => {
+describe("EXEC-004-T2 试连（test=true 不落库；dispatcher 直连口径 → stub 全局 fetch）", () => {
   it("成功返回 k8sVersion 且不写库", async () => {
-    vi.mocked(safeFetch).mockResolvedValue({
-      ok: true,
-      json: async () => ({ gitVersion: "v1.29.4" }),
-    } as unknown as Response);
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => ({ ok: true, json: async () => ({ gitVersion: "v1.29.4" }) }) as unknown as Response),
+    );
     const before = (prisma as unknown as { __get: (k: string) => unknown }).__get("pool");
     const r = await testPoolK8sConnection("pool-1", { type: "K8S", k8s: validK8s });
     expect(r.k8sVersion).toBe("v1.29.4");
     expect((prisma as unknown as { __get: (k: string) => unknown }).__get("pool")).toBe(before);
+    vi.unstubAllGlobals();
   });
   it("HTTP 错误 → 50423（502 语义）", async () => {
-    vi.mocked(safeFetch).mockResolvedValue({ ok: false, status: 401 } as unknown as Response);
+    vi.stubGlobal("fetch", vi.fn(async () => ({ ok: false, status: 401 }) as unknown as Response));
     await expect(testPoolK8sConnection("pool-1", { k8s: validK8s })).rejects.toMatchObject({
       code: ErrCode.POOL_K8S_UNREACHABLE,
     });
+    vi.unstubAllGlobals();
   });
   it("网络失败（SSRF 拦截/超时）→ 50423", async () => {
-    vi.mocked(safeFetch).mockRejectedValue(new Error("SSRF guard: blocked 127.0.0.1"));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => {
+        throw new Error("SSRF guard: blocked 127.0.0.1");
+      }),
+    );
     await expect(testPoolK8sConnection("pool-1", { k8s: validK8s })).rejects.toMatchObject({
       code: ErrCode.POOL_K8S_UNREACHABLE,
     });
+    vi.unstubAllGlobals();
   });
 });
 
