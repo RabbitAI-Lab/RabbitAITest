@@ -42,6 +42,8 @@ export const ErrCode = {
   APIKEY_INVALID: 10010, // S6 INTG-003：APIKEY 无效/已吊销
   APIKEY_LIMIT_EXCEEDED: 10011, // APIKEY 超上限（5 条/人）
   OPEN_RATE_LIMITED: 10012, // 开放 API 限流（10 QPS/key）
+  CSRF_REJECTED: 10013, // S8 QA-002：跨站请求（Origin 校验失败）
+  LOGIN_RATE_LIMITED: 10014, // S8 QA-002：登录暴力破解限流（IP 维度）
   PERSONAL_PASSWORD_MISMATCH: 10020, // S5 SYS-007：修改密码旧密码错误
   PERSONAL_LOCAL_RUNNER_INVALID: 10021, // S5 SYS-007：本地 runner 地址非环回
   PERSONAL_AI_MODEL_INVALID: 10022, // S5 SYS-007：个人默认模型不存在或未启用
@@ -153,6 +155,7 @@ export const ErrCode = {
   PLATFORM_UNAUTHORIZED: 70014,
   INTEGRATION_SECRET_MISSING: 70015,
   AUDIT_QUERY_INVALID: 70030, // S6 SYS-008
+  PACK_NOT_ALLOWED: 70060, // S8 INFRA-004：任务非失败态不允许生成排障包
 } as const;
 
 export const ErrMsg: Record<number, string> = {
@@ -219,7 +222,8 @@ export const ErrMsg: Record<number, string> = {
   [ErrCode.AI_MODEL_NOT_FOUND]: "AI 模型不存在或已删除",
   [ErrCode.AI_CONVERSATION_NOT_FOUND]: "会话不存在或无权访问",
   [ErrCode.AI_PROMPT_NOT_FOUND]: "提示词模板不存在或已删除",
-  [ErrCode.AI_NO_MODEL_AVAILABLE]: "尚未配置任何启用的 AI 模型，请联系管理员在系统管理-模型设置中配置",
+  [ErrCode.AI_NO_MODEL_AVAILABLE]:
+    "尚未配置任何启用的 AI 模型，请联系管理员在系统管理-模型设置中配置",
   [ErrCode.AI_BASEURL_FORBIDDEN]: "BaseUrl 指向内网/环回/云元数据地址，已被安全策略拒绝",
   [ErrCode.AI_PROVIDER_ERROR]: "AI 供应商调用失败",
   [ErrCode.AI_RESPONSE_UNPARSEABLE]: "AI 生成结果无法解析，请重试或调整提示词",
@@ -250,6 +254,9 @@ export const ErrMsg: Record<number, string> = {
   [ErrCode.PLATFORM_UNAUTHORIZED]: "平台凭据失效（401/403），请重新配置",
   [ErrCode.INTEGRATION_SECRET_MISSING]: "集成加密密钥未配置（RABBIT_INTEGRATION_SECRET）",
   [ErrCode.AUDIT_QUERY_INVALID]: "审计查询参数非法",
+  [ErrCode.PACK_NOT_ALLOWED]: "任务非失败状态，无需排障包",
+  [ErrCode.CSRF_REJECTED]: "跨站请求被拒绝",
+  [ErrCode.LOGIN_RATE_LIMITED]: "登录失败次数过多，请稍后再试",
   [ErrCode.PERSONAL_PASSWORD_MISMATCH]: "当前密码错误",
   [ErrCode.PERSONAL_LOCAL_RUNNER_INVALID]: "本地 runner 地址仅允许环回（127.0.0.1/localhost/::1）",
   [ErrCode.PERSONAL_AI_MODEL_INVALID]: "个人默认模型不存在或未启用",

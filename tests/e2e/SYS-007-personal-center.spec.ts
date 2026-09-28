@@ -83,9 +83,19 @@ test.describe("SYS-007 个人中心", () => {
     expect(pref.modelId).toBeTruthy();
     // 清除 → 回系统默认
     await page.getByTestId("personal-ai-model-clear").click();
-    await expect(page.getByText("已保存").last()).toBeVisible({ timeout: 10_000 }); // 等 PUT 落库再断言（异步 mutate 竞态）
-    const cleared = ((await (await page.request.get("/api/v1/personal/ai-model")).json()) as { data: { modelId: string | null } }).data;
-    expect(cleared.modelId).toBeNull();
+    // S8 加固：轮询断言替代 toast 等待——「已保存」双 toast 文本相同，last() 可能匹配到保存动作的
+    // 残留 toast，清除 PUT 未落库即断言的竞态窗口仍偶发（S5 勘误收口不彻底）
+    await expect
+      .poll(
+        async () => {
+          const d = ((await (await page.request.get("/api/v1/personal/ai-model")).json()) as {
+            data: { modelId: string | null };
+          }).data;
+          return d.modelId;
+        },
+        { timeout: 10_000 },
+      )
+      .toBeNull();
     await expectNoConsoleErrors();
   });
 });

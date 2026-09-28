@@ -72,8 +72,11 @@ test("MAINFLOW-s4 计划完整链路", async ({
   void taskId;
   // 引擎回写断言见 PLAN-003-01（同链路）；本主链路断言执行受理与报告视图
 
-  // 报告 Tab：阈值横幅 + 点分组（主链路点）+ CSV
-  await page.getByTestId("plan-report-tab").click();
+  // 报告 Tab：阈值横幅 + 点分组（主链路点）+ CSV（S8 加固：Tab 切换动画稳定窗口放宽——
+  // element not stable 在全量并发下偶发超时，等待可见后再点击并放宽至 20s）
+  const reportTab = page.getByTestId("plan-report-tab");
+  await expect(reportTab).toBeVisible({ timeout: 20_000 });
+  await reportTab.click({ timeout: 20_000 });
   await expect(page.getByTestId("plan-report-v2")).toBeVisible({ timeout: 15_000 });
   await expect(page.getByTestId("plan-report-v2")).toContainText(`主链路点-${uniq}`, { timeout: 15_000 });
   const listRes = await request.get(`/api/v1/projects/${projectId}/plans?page=1&pageSize=50`);

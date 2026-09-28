@@ -110,7 +110,7 @@ export default async function globalSetup() {
   const { writeFileSync } = await import("node:fs");
   writeFileSync(
     path.join(root, "tests", ".e2e.env"),
-    `DATABASE_URL=${env.DATABASE_URL}\nREDIS_URL=${env.REDIS_URL}\nWEB_URL=${env.WEB_URL}\nSESSION_SECRET=${env.SESSION_SECRET}\nINTERNAL_TOKEN=${env.INTERNAL_TOKEN}\nPORT=3100\nSESSION_COOKIE_SECURE=false\nRABBIT_INTEGRATION_SECRET=${env.RABBIT_INTEGRATION_SECRET}\nOUTBOUND_ALLOW_PRIVATE=${env.OUTBOUND_ALLOW_PRIVATE}\nMOCK_PORT=${env.MOCK_PORT}\n`,
+    `DATABASE_URL=${env.DATABASE_URL}\nREDIS_URL=${env.REDIS_URL}\nWEB_URL=${env.WEB_URL}\nSESSION_SECRET=${env.SESSION_SECRET}\nINTERNAL_TOKEN=${env.INTERNAL_TOKEN}\nPORT=3100\nSESSION_COOKIE_SECURE=false\nRABBIT_INTEGRATION_SECRET=${env.RABBIT_INTEGRATION_SECRET}\nOUTBOUND_ALLOW_PRIVATE=${env.OUTBOUND_ALLOW_PRIVATE}\nMOCK_PORT=${env.MOCK_PORT}\nLOG_LEVEL=warn\n`,
   );
   log("migrate deploy + seed …");
   const migrate = spawnSync("pnpm", ["--filter", "@rabbit/db", "migrate-deploy"], {

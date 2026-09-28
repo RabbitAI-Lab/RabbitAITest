@@ -1,5 +1,5 @@
 import { test, expect } from "./fixtures";
-import { fetchUnreadTitles } from "./s5-helpers";
+import { readUnreadTitles } from "./s5-helpers";
 
 const MEMBER_PASSWORD = process.env.E2E_USER_PASSWORD ?? "rabbit-pass-123";
 // 白名单：project store（zustand persist）水合前的 /projects/null 查询 404——首帧竞态（S1 以来既有面，S5 §7.2 登记）
@@ -51,7 +51,7 @@ test.describe("BUG-002 缺陷协作与回收站", () => {
     await expectNoConsoleErrors([hydrateRace]);
   });
 
-  test("T3 协作：评论 @提及 → 被提及人站内信；提及非成员 422", async ({ page, authedPage, request, expectNoConsoleErrors }) => {
+  test("T3 协作：评论 @提及 → 被提及人站内信；提及非成员 422", async ({ page, browser, authedPage, request, expectNoConsoleErrors }) => {
     const { projectId } = authedPage;
     const bug = ((await (
       await page.request.post(`/api/v1/projects/${projectId}/bugs`, { data: { title: "e2e-提及缺陷" } })
@@ -89,10 +89,13 @@ test.describe("BUG-002 缺陷协作与回收站", () => {
     });
     expect(mentioned.status()).toBe(201);
 
-    // 接口断言：被提及人收到站内信
-    const memberLogin = await request.post("/api/v1/auth/login", { data: { email: memberEmail, password: MEMBER_PASSWORD } });
-    const rasCookie = (memberLogin.headers()["set-cookie"] ?? "").split("ras=")[1]?.split(";")[0] ?? "";
-    const titles = await fetchUnreadTitles(process.env.E2E_BASE_URL ?? "http://localhost:3100", rasCookie);
+    // 接口断言：被提及人收到站内信（S8 改造：独立浏览器上下文承载 member 会话——
+    // cookie 由 jar 自动管理，无响应 cookie 流入网络调用的显式污点链，Mimosa high 根因消除）
+    const memberCtx = await browser.newContext();
+    const memberLogin = await memberCtx.request.post("/api/v1/auth/login", { data: { email: memberEmail, password: MEMBER_PASSWORD } });
+    expect(memberLogin.status()).toBe(200);
+    const titles = await readUnreadTitles(memberCtx.request);
+    await memberCtx.close();
     expect(titles.some((t) => t.includes("提到了你") && t.includes("e2e-提及缺陷"))).toBeTruthy();
     // 提及非成员 → 422
     const bad = await page.request.post(`/api/v1/projects/${projectId}/comments?entity=bug:${bug}`, {

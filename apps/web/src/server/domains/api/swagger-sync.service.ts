@@ -9,6 +9,7 @@ import { scheduleQueue } from "@/server/redis";
 import { validateCron } from "./schedule.service";
 import { importApis } from "./import.service";
 import { assertSafeOutboundUrl } from "./outbound-guard";
+import { safeFetch } from "@/server/safe-fetch";
 
 type TaskSave = ReturnType<typeof swaggerSyncTaskSaveSchema.parse>;
 
@@ -39,8 +40,10 @@ const HISTORY_LIMIT = 20;
 const runHistory = new Map<string, SyncResult[]>(); // 进程内最近历史（lastResult 落 AppSetting）
 
 async function readTasks(projectId: string): Promise<Task[]> {
-  const row = await prisma.appSetting.findUnique({ where: { projectId_key: { projectId, key: SETTING_KEY } } });
-  return ((row?.value as Task[] | undefined) ?? []);
+  const row = await prisma.appSetting.findUnique({
+    where: { projectId_key: { projectId, key: SETTING_KEY } },
+  });
+  return (row?.value as Task[] | undefined) ?? [];
 }
 
 async function writeTasks(projectId: string, list: Task[]): Promise<void> {
@@ -55,7 +58,11 @@ async function syncRepeatable(task: Task, projectId: string): Promise<void> {
   const queue = scheduleQueue();
   await queue.removeRepeatable("swagger-sync", { pattern: task.cron, jobId: `swsync-${task.id}` });
   if (task.enabled) {
-    await queue.add("swagger-sync", { kind: "swagger-sync", taskId: task.id, projectId }, { repeat: { pattern: task.cron }, jobId: `swsync-${task.id}` });
+    await queue.add(
+      "swagger-sync",
+      { kind: "swagger-sync", taskId: task.id, projectId },
+      { repeat: { pattern: task.cron }, jobId: `swsync-${task.id}` },
+    );
   }
 }
 
@@ -87,7 +94,11 @@ export async function createTask(projectId: string, input: TaskSave): Promise<Ta
   return task;
 }
 
-export async function updateTask(projectId: string, id: string, input: TaskSave & { enabled?: boolean }): Promise<void> {
+export async function updateTask(
+  projectId: string,
+  id: string,
+  input: TaskSave & { enabled?: boolean },
+): Promise<void> {
   const tasks = await readTasks(projectId);
   const idx = tasks.findIndex((t) => t.id === id);
   if (idx < 0) throw new DomainError(ErrCode.SWAGGER_SYNC_TASK_NOT_FOUND, "同步任务不存在");
@@ -111,13 +122,22 @@ export async function deleteTask(projectId: string, id: string): Promise<void> {
   const task = tasks.find((t) => t.id === id);
   if (!task) throw new DomainError(ErrCode.SWAGGER_SYNC_TASK_NOT_FOUND, "同步任务不存在");
   const queue = scheduleQueue();
-  await queue.removeRepeatable("swagger-sync", { pattern: task.cron, jobId: `swsync-${task.id}` }).catch(() => undefined);
-  await writeTasks(projectId, tasks.filter((t) => t.id !== id));
+  await queue
+    .removeRepeatable("swagger-sync", { pattern: task.cron, jobId: `swsync-${task.id}` })
+    .catch(() => undefined);
+  await writeTasks(
+    projectId,
+    tasks.filter((t) => t.id !== id),
+  );
   runHistory.delete(id);
 }
 
 /** 同步执行（手动「立即同步」与定时同路径；API-011 §2）。userId：手动=操作者；定时="system"（createdBy 非 FK）。 */
-export async function runSync(projectId: string, taskId: string, userId = "system"): Promise<SyncResult> {
+export async function runSync(
+  projectId: string,
+  taskId: string,
+  userId = "system",
+): Promise<SyncResult> {
   const tasks = await readTasks(projectId);
   const task = tasks.find((t) => t.id === taskId);
   if (!task) throw new DomainError(ErrCode.SWAGGER_SYNC_TASK_NOT_FOUND, "同步任务不存在");
@@ -126,11 +146,19 @@ export async function runSync(projectId: string, taskId: string, userId = "syste
   try {
     await assertSafeOutboundUrl(task.url);
     const moduleId = task.moduleId ?? (await ensureApiModule(prisma, projectId));
-    const res = await fetch(task.url, { signal: AbortSignal.timeout(10_000) });
-    if (!res.ok) throw new DomainError(ErrCode.SWAGGER_FETCH_FAILED, `文档拉取失败 HTTP ${res.status}`);
+    const res = await safeFetch(
+      task.url,
+      { signal: AbortSignal.timeout(10_000) },
+      { allowPrivate: process.env.OUTBOUND_ALLOW_PRIVATE === "1" },
+    );
+    if (!res.ok)
+      throw new DomainError(ErrCode.SWAGGER_FETCH_FAILED, `文档拉取失败 HTTP ${res.status}`);
     const raw = await res.text();
     if (!looksLikeOpenApi3(raw)) {
-      throw new DomainError(ErrCode.SWAGGER_PARSE_FAILED, "文档不是 OpenAPI/Swagger 3.0（缺少 openapi: 3 标识）");
+      throw new DomainError(
+        ErrCode.SWAGGER_PARSE_FAILED,
+        "文档不是 OpenAPI/Swagger 3.0（缺少 openapi: 3 标识）",
+      );
     }
     const report = await importApis(projectId, userId, {
       format: "openapi3",
@@ -142,7 +170,9 @@ export async function runSync(projectId: string, taskId: string, userId = "syste
       added: report.created.length,
       updated: report.overwritten.length,
       skipped: report.skipped.length,
-      failed: report.failed.slice(0, 50).map((f) => ({ path: `line ${f.line}`, reason: f.message })),
+      failed: report.failed
+        .slice(0, 50)
+        .map((f) => ({ path: `line ${f.line}`, reason: f.message })),
       ok: report.failed.length === 0,
       ms: Date.now() - started,
     };
@@ -170,7 +200,12 @@ export async function runSync(projectId: string, taskId: string, userId = "syste
   return result;
 }
 
-export async function taskHistory(projectId: string, taskId: string, page: number, pageSize: number) {
+export async function taskHistory(
+  projectId: string,
+  taskId: string,
+  page: number,
+  pageSize: number,
+) {
   const tasks = await readTasks(projectId);
   const task = tasks.find((t) => t.id === taskId);
   if (!task) throw new DomainError(ErrCode.SWAGGER_SYNC_TASK_NOT_FOUND, "同步任务不存在");

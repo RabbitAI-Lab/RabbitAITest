@@ -23,6 +23,8 @@ const SYSTEM_PLUGIN = ["SYSTEM_PLUGIN:READ", "SYSTEM_PLUGIN:UPDATE"] as const;
 const ORG_INTEGRATION = ["ORG_INTEGRATION:READ", "ORG_INTEGRATION:UPDATE"] as const;
 /** 三级审计日志读（SYS-008 随规格入库） */
 const SYSTEM_AUDIT = ["SYSTEM_AUDIT:READ"] as const;
+/** 系统指标面（S8 INFRA-004：/system/metrics Prometheus 文本） */
+const SYSTEM_METRICS = ["SYSTEM_METRICS:READ"] as const;
 const ORG_AUDIT = ["ORG_AUDIT:READ"] as const;
 const PROJECT_AUDIT = ["PROJECT_AUDIT:READ"] as const;
 const ORG_PROJECT = [
@@ -112,7 +114,12 @@ const PROJECT_REPORT = [
 /** 任务中心与任务操作（API-003/SYS-006 随规格入库） */
 const PROJECT_EXEC_TASK = ["PROJECT_EXEC_TASK:READ", "PROJECT_EXEC_TASK:UPDATE"] as const;
 /** AI 能力（S7 AI-001~005 随规格入库：模型管理=系统级；生成/提示词模板=项目级；助手对话个人级不设点） */
-const SYSTEM_AI = ["SYSTEM_AI:READ", "SYSTEM_AI:CREATE", "SYSTEM_AI:UPDATE", "SYSTEM_AI:DELETE"] as const;
+const SYSTEM_AI = [
+  "SYSTEM_AI:READ",
+  "SYSTEM_AI:CREATE",
+  "SYSTEM_AI:UPDATE",
+  "SYSTEM_AI:DELETE",
+] as const;
 const PROJECT_AI = [
   "PROJECT_AI:READ",
   "PROJECT_AI:CREATE",
@@ -128,6 +135,7 @@ export const PERMISSION_POINTS = [
   ...SYSTEM_PLUGIN,
   ...ORG_INTEGRATION,
   ...SYSTEM_AUDIT,
+  ...SYSTEM_METRICS,
   ...ORG_AUDIT,
   ...PROJECT_AUDIT,
   ...ORG_PROJECT,

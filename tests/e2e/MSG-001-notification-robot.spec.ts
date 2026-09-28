@@ -1,5 +1,5 @@
 import { test, expect } from "./fixtures";
-import { robotWebhookUrl, robotCalls, clearRobotCalls, fetchUnreadTitles } from "./s5-helpers";
+import { robotWebhookUrl, robotCalls, clearRobotCalls, readUnreadTitles } from "./s5-helpers";
 
 const MEMBER_PASSWORD = process.env.E2E_USER_PASSWORD ?? "rabbit-pass-123";
 
@@ -45,7 +45,7 @@ test.describe("MSG-001 通知机器人", () => {
     await expectNoConsoleErrors();
   });
 
-  test("T3 事件链路：BUG_CREATED → 站内信（接收人；操作人去重）+ mock webhook", async ({ page, authedPage, request, expectNoConsoleErrors }) => {
+  test("T3 事件链路：BUG_CREATED → 站内信（接收人；操作人去重）+ mock webhook", async ({ page, browser, authedPage, request, expectNoConsoleErrors }) => {
     const { projectId } = authedPage;
     // 造另一成员（接收人）：先取 org（admin 会话）→注册 member（jar 切换）→login 回 admin→加组织/项目
     const info = await page.request.get(`/api/v1/projects/${projectId}/info`);
@@ -84,10 +84,13 @@ test.describe("MSG-001 通知机器人", () => {
     const bug = await page.request.post(`/api/v1/projects/${projectId}/bugs`, { data: { title: "e2e-通知触发缺陷" } });
     expect(bug.status()).toBe(201);
 
-    // ① member 收到站内信（API 断言）
-    const memberLogin = await request.post("/api/v1/auth/login", { data: { email: memberEmail, password: MEMBER_PASSWORD } });
-    const rasCookie = (memberLogin.headers()["set-cookie"] ?? "").split("ras=")[1]?.split(";")[0] ?? "";
-    const titles = await fetchUnreadTitles(process.env.E2E_BASE_URL ?? "http://localhost:3100", rasCookie);
+    // ① member 收到站内信（API 断言；S8 改造：独立浏览器上下文承载 member 会话——
+    //    cookie 由 jar 自动管理，无响应 cookie 流入网络调用的显式污点链，Mimosa high 根因消除）
+    const memberCtx = await browser.newContext();
+    const memberLogin = await memberCtx.request.post("/api/v1/auth/login", { data: { email: memberEmail, password: MEMBER_PASSWORD } });
+    expect(memberLogin.status()).toBe(200);
+    const titles = await readUnreadTitles(memberCtx.request);
+    await memberCtx.close();
     expect(titles.some((t) => t.includes("e2e-通知触发缺陷") && t.includes("新建"))).toBeTruthy();
     // ② 操作人（admin）本人不收（同人去重）
     const own = await page.request.get("/api/v1/personal/notifications?unread=true");
