@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { ok } from "@rabbit/shared";
+import { ok, passwordPolicy } from "@rabbit/shared";
 import { toResponse } from "@/server/guard";
 import { registerUser, audit } from "@/server/domains/system/auth.service";
 import { getSession } from "@/lib/session";
@@ -9,7 +9,7 @@ export const runtime = "nodejs";
 
 const bodySchema = z.object({
   email: z.string().email().max(256),
-  password: z.string().min(8).max(128),
+  password: passwordPolicy, // QA-002：≥8 位且含字母与数字
 });
 
 export async function POST(req: Request) {

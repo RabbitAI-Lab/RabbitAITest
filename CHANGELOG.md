@@ -2,6 +2,28 @@
 
 本项目的所有显著变更记录于此。格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本遵循语义化版本。
 
+## [v0.7.0] - 2026-09-28 — Sprint 8 稳定化（M9 标准版 GA 里程碑）
+
+### 新增（全量交付：三层测试 + CI 全绿）
+
+- **性能基线（QA-001）**：`scripts/perf-seed.mjs`（幂等万级种子：专用项目+10 模块+10k/1k 用例分批直插）；`scripts/perf-baseline.mjs` 三场景基准（万级列表+keyword/level 筛选 P95、报告详情 P95、100 并发 api_debug 任务全成功断言+吞吐统计；JSON+markdown 报告，超阈非零退出）；mock `/perf/echo` 回显端点（基准采样目标，排除外网抖动）；独立 `perf.yml` CI（PR=quick 1k/20、main+手动=full 10k/100）；`pnpm perf:seed/perf:baseline` 入口。本地 full 实测：列表 P95 11ms（阈值 1000）、报告 6ms（阈值 2000）、100/100 并发 772ms 全成功
+- **安全加固（QA-002）**：`safe-fetch`（undici Agent connect.lookup 连接期 IP 黑名单校验——校验与建连同一次解析，消 DNS rebinding TOCTOU；S7 登记残余收口）三处出站统一（AI chat/Swagger 同步/通知 webhook）；CSRF Origin 校验（非幂等+会话 cookie；Origin/Referer 不同源 403 10013；缺失放行——SameSite=Lax 第一层+非浏览器客户端兼容，规格登记决策）；安全响应头五枚（nosniff/DENY/Referrer-Policy/Permissions-Policy/HSTS）；登录暴力破解限流（IP 维度 5 次/10 分钟 429 10014，成功清零，XFF 首跳取 IP，审计留痕）；密码策略统一（≥8 位且含字母与数字，注册/创建/改密四处）；`pnpm audit --prod --audit-level high` 进 quality job（依赖升级收口：nodemailer 6→9、pnpm overrides postcss≥8.5.18/deepmerge-ts≥8——6 high 清零）
+- **可观测（INFRA-004）**：`@rabbit/shared/logger` 统一 pino logger（redact 脱敏矩阵含嵌套/数组、module 子 logger、ALS 请求上下文 reqId/userId/orgId/projectId 自动附带、TTY 单行美化自实现流；子路径导出防客户端 bundle 拉入 node:stream）；reqId 链路（middleware 生成/透传+x-request-id 注入+X-Request-Id 响应头）；访问日志（guard 五包装器统一：method/path/status/ms；open API 面同口径）；`GET /system/metrics` Prometheus 文本最小指标集（队列 depth/active/dead、引擎槽 used/cap、任务时长 P50/P95、HTTP 计数——权限 SYSTEM_METRICS:READ）；ready 增强（存储写探针+默认池 3 拍心跳，NO_ENGINE=1 跳过不阻塞）；全栈 console.* 清零（web/engine 服务路径；CLI 脚本例外）
+- **失败任务排障包（INFRA-004）**：`POST /reports/{taskId}/troubleshoot-pack`（任务定义快照+items 摘要+事件流末 50 帧+日志检索说明 → 单 JSON 直下；非 FAILED 422 70060 防直发；报告页「排障包」按钮仅失败任务渲染，三态原型走查）
+- **备份恢复（INFRA-004）**：`scripts/backup.mjs`（SQL 逻辑导出：全表行+附件/文件目录+manifest → tar.gz；勘误：embedded-postgres 发行包无 pg_dump 二进制，物理 dump 口径登记部署文档）；`scripts/restore.mjs`（manifest 校验+PG 大版本比对+TRUNCATE+外键拓扑序回放+jsonb 列类型处理+附件回放）；roundtrip 本地验证（seed→backup→restore→数据全量对齐）
+
+### 修复与加固
+
+- 登录路由未限流（暴力破解面）；出站 fetch 三处各自为政（解析期守卫可被 rebinding 绕过）；middleware 无安全头；jmeter 栈 JM_MOCK_PORT 未导出（RUN_SCRIPT 场景 mock 端口拼错）
+- 规格勘误登记：排障包 tar.gz→单 JSON（免新依赖+中文文件名风险）；排障包 LOG_FILE 日志片段裁撤（env 路径读取=路径穿越面，Mimosa 拦截成立；进程日志口径=stdout 按 execTaskId 检索）；排障包 URL 段对齐 reports/[taskId]（与报告详情同口径）
+
+### 测试与收口
+
+- 单测新增 43（shared 27：logger redact/ALS/logFor+密码策略矩阵；web 16：safe-fetch IP 矩阵+连接期 rebinding/CSRF 判定矩阵/限流窗口语义/HTTP 计数器），shared 114+web 118 全绿
+- JMeter 新增 3 计划（QA-001 mock echo 四类、QA-002 安全头/CSRF/限流/弱密码四类、INFRA-004 metrics/ready/排障包四类——HeaderAssertion 换 ResponseAssertion 响应头字段，5.6.3 无该类），全量 55 计划全绿
+- Playwright 新增 2 spec 4 用例（登录限流三态 XFF 隔离+route 注入、排障包按钮三态+直发 422），全量全新口径全绿
+- OpenAPI 快照 277→279 paths（--check 通过）；依赖审计 prod high=0
+
 ## [v0.6.0] - 2026-09-28 — Sprint 5 协作通知（M6 里程碑）
 
 ### 新增（全量交付：三层测试 + CI 全绿）
@@ -126,7 +148,6 @@
 - 场景树聚合含 engine 根前缀产生的无帧包装层（报告树多一层「步骤 0」）——纯包装层剥离（迭代组聚合形态保留）
 - 批量执行弹窗对无 SYSTEM_POOL:READ 的项目管理员拉系统池列表（页面恒 403 噪声）——按权限拉取回落默认池
 - instrumentation.ts 被双 runtime 编译（edge bundle 解析 pg/fs 失败）——S3 逻辑迁 instrumentation-node.ts（nodejs-only，Next 15.3+ 约定）；客户端组件误引 @rabbit/shared/execution 聚合入口（node:crypto 进浏览器 bundle）——csv/function-catalog 细粒度子路径导出
-
 
 ## [v0.3.0] - 2026-09-27 — Sprint 2 接口测试核心（M3 里程碑）
 

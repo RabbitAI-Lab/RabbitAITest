@@ -1,6 +1,11 @@
 /** OpenAI 兼容 ChatClient（AI-001 §2）：DeepSeek/OpenAI/智谱三供应商协议同构，统一 chat/completions。
  * 非流式返回全文；流式返回 AsyncGenerator<string>（SSE data: 行解析，[DONE] 终止）。 */
 import { DomainError, ErrCode } from "@rabbit/shared";
+import { logFor } from "@rabbit/shared/logger";
+import { safeFetch } from "@/server/safe-fetch";
+
+/** QA-002 连接期守卫选项：与解析期守卫同开关（AI_ALLOW_PRIVATE_BASEURL 豁免环回 mock 供应商）。 */
+const SAFE_OPTS = { allowLoopback: process.env.AI_ALLOW_PRIVATE_BASEURL === "1" };
 
 export interface ChatMessage {
   role: "system" | "user" | "assistant";
@@ -22,8 +27,11 @@ function endpoint(m: AiModelRuntime): string {
 
 function providerError(status: number, bodyText: string): DomainError {
   const excerpt = bodyText.slice(0, 200).replace(/sk-[A-Za-z0-9_-]+/g, "sk-****");
-  console.error(`[ai-gateway] upstream ${status}: ${excerpt || "（无响应体）"}`); // 排障日志（无 key）
-  return new DomainError(ErrCode.AI_PROVIDER_ERROR, `供应商返回 ${status}：${excerpt || "（无响应体）"}`);
+  logFor("ai").error({ status, excerpt }, "ai gateway upstream error"); // 排障日志（无 key，脱敏后）
+  return new DomainError(
+    ErrCode.AI_PROVIDER_ERROR,
+    `供应商返回 ${status}：${excerpt || "（无响应体）"}`,
+  );
 }
 
 export async function callChat(
@@ -33,17 +41,21 @@ export async function callChat(
 ): Promise<string> {
   let res: Response;
   try {
-    res = await fetch(endpoint(m), {
-      method: "POST",
-      headers: { "content-type": "application/json", authorization: `Bearer ${m.apiKey}` },
-      body: JSON.stringify({
-        model: m.model,
-        messages,
-        stream: false,
-        ...(opts.maxTokens ? { max_tokens: opts.maxTokens } : {}),
-      }),
-      signal: opts.signal ?? AbortSignal.timeout(TIMEOUT_MS),
-    });
+    res = await safeFetch(
+      endpoint(m),
+      {
+        method: "POST",
+        headers: { "content-type": "application/json", authorization: `Bearer ${m.apiKey}` },
+        body: JSON.stringify({
+          model: m.model,
+          messages,
+          stream: false,
+          ...(opts.maxTokens ? { max_tokens: opts.maxTokens } : {}),
+        }),
+        signal: opts.signal ?? AbortSignal.timeout(TIMEOUT_MS),
+      },
+      SAFE_OPTS,
+    );
   } catch (e) {
     if (e instanceof DomainError) throw e;
     throw new DomainError(ErrCode.AI_PROVIDER_ERROR, `供应商连接失败：${(e as Error).message}`);
@@ -66,12 +78,16 @@ export async function* streamChat(
 ): AsyncGenerator<string> {
   let res: Response;
   try {
-    res = await fetch(endpoint(m), {
-      method: "POST",
-      headers: { "content-type": "application/json", authorization: `Bearer ${m.apiKey}` },
-      body: JSON.stringify({ model: m.model, messages, stream: true }),
-      signal: opts.signal,
-    });
+    res = await safeFetch(
+      endpoint(m),
+      {
+        method: "POST",
+        headers: { "content-type": "application/json", authorization: `Bearer ${m.apiKey}` },
+        body: JSON.stringify({ model: m.model, messages, stream: true }),
+        signal: opts.signal,
+      },
+      SAFE_OPTS,
+    );
   } catch (e) {
     if (e instanceof DomainError) throw e;
     throw new DomainError(ErrCode.AI_PROVIDER_ERROR, `供应商连接失败：${(e as Error).message}`);

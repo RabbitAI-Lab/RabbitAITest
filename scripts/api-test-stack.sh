@@ -14,7 +14,7 @@ export SESSION_COOKIE_SECURE=false
 export RABBIT_USER_LIMIT=1000
 # S7 AI-001：测试栈 mock 供应商在环回——守卫仅豁免环回，私网/元数据仍拦截。
 # mock 端口独立 :4020（避开开发栈/s6 worktree :4000、e2e :4001、其他栈曾用 :4010——多 worktree 并存端口互抢教训；JM_MOCK_PORT 可覆盖）
-JM_MOCK_PORT="${JM_MOCK_PORT:-4020}"
+export JM_MOCK_PORT="${JM_MOCK_PORT:-4020}"
 export AI_ALLOW_PRIVATE_BASEURL=1
 # S7：种子内置一台指向 jmeter 栈 mock 的模型（baseUrl 须含 /ai 前缀——mock 路由 /ai/chat/completions）
 export RABBIT_SEED_AI_MOCK_BASE="http://127.0.0.1:${JM_MOCK_PORT}/ai"

@@ -2,6 +2,7 @@
 import { DomainError, ErrCode } from "@rabbit/shared";
 import type { RobotChannel } from "@rabbit/shared";
 import { assertSafeOutboundUrl } from "@/server/domains/api/outbound-guard";
+import { safeFetch } from "@/server/safe-fetch";
 
 /** 出站守卫包装：拦截语义映射为机器人错误码（20442）。 */
 export async function assertRobotWebhookSafe(url: string): Promise<void> {
@@ -50,13 +51,17 @@ export async function sendRobotWebhook(
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 3000);
   try {
-    const res = await fetch(webhook, {
-      method: "POST",
-      cache: "no-store",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(buildRobotPayload(channel, title, content)),
-      signal: controller.signal,
-    });
+    const res = await safeFetch(
+      webhook,
+      {
+        method: "POST",
+        cache: "no-store",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(buildRobotPayload(channel, title, content)),
+        signal: controller.signal,
+      },
+      { allowPrivate: process.env.OUTBOUND_ALLOW_PRIVATE === "1" },
+    );
     if (!res.ok) {
       return { delivered: false, detail: `上游响应 ${res.status}` };
     }

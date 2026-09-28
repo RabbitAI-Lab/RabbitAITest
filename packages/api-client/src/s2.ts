@@ -33,37 +33,78 @@ export interface ApiRow {
 export const apiApi = {
   list: (
     projectId: string,
-    q: { moduleId?: string; includeChildren?: boolean; method?: string; name?: string; status?: string; page?: number; pageSize?: number },
+    q: {
+      moduleId?: string;
+      includeChildren?: boolean;
+      method?: string;
+      name?: string;
+      status?: string;
+      page?: number;
+      pageSize?: number;
+    },
   ) => get<PageOf<ApiRow>>(`/api/v1/projects/${projectId}/apis${qs(q)}`),
-  detail: (projectId: string, id: string) => get<ApiRow>(`/api/v1/projects/${projectId}/apis/${id}`),
-  create: (projectId: string, body: { moduleId: string; name: string; status?: string; request: ApiRequestBundle; response?: ApiRow["response"] }) =>
-    post<ApiRow>(`/api/v1/projects/${projectId}/apis`, body),
+  detail: (projectId: string, id: string) =>
+    get<ApiRow>(`/api/v1/projects/${projectId}/apis/${id}`),
+  create: (
+    projectId: string,
+    body: {
+      moduleId: string;
+      name: string;
+      status?: string;
+      request: ApiRequestBundle;
+      response?: ApiRow["response"];
+    },
+  ) => post<ApiRow>(`/api/v1/projects/${projectId}/apis`, body),
   update: (
     projectId: string,
     id: string,
-    body: Partial<{ moduleId: string; name: string; status: "DEBUG" | "RELEASED"; request: ApiRequestBundle; response: ApiRow["response"] }> & { version: number },
+    body: Partial<{
+      moduleId: string;
+      name: string;
+      status: "DEBUG" | "RELEASED";
+      request: ApiRequestBundle;
+      response: ApiRow["response"];
+    }> & { version: number },
   ) => put<ApiRow>(`/api/v1/projects/${projectId}/apis/${id}`, body),
-  remove: (projectId: string, id: string) => del<{ id: string }>(`/api/v1/projects/${projectId}/apis/${id}`),
-  debug: (projectId: string, id: string, body: { request: ApiRequestBundle; envId?: string; clientTaskId?: string }) =>
-    post<{ taskId: string }>(`/api/v1/projects/${projectId}/apis/${id}/debug`, body),
+  remove: (projectId: string, id: string) =>
+    del<{ id: string }>(`/api/v1/projects/${projectId}/apis/${id}`),
+  debug: (
+    projectId: string,
+    id: string,
+    body: { request: ApiRequestBundle; envId?: string; clientTaskId?: string },
+  ) => post<{ taskId: string }>(`/api/v1/projects/${projectId}/apis/${id}/debug`, body),
   changes: (projectId: string, id: string) =>
-    get<{ items: { seq: number; action: string; user: string; diff: unknown; createdAt: string }[] }>(
-      `/api/v1/projects/${projectId}/apis/${id}/changes`,
-    ),
+    get<{
+      items: { seq: number; action: string; user: string; diff: unknown; createdAt: string }[];
+    }>(`/api/v1/projects/${projectId}/apis/${id}/changes`),
   references: (projectId: string, id: string) =>
     get<{
-      cases: { id: string; num: number; name: string; level: string; status: string; planCount: number }[];
+      cases: {
+        id: string;
+        num: number;
+        name: string;
+        level: string;
+        status: string;
+        planCount: number;
+      }[];
       plans: { id: string; name: string; refCount: number }[];
       functionalCases: { id: string; num: number; name: string }[];
     }>(`/api/v1/projects/${projectId}/apis/${id}/references`),
   importApis: (
     projectId: string,
-    body: { format: "openapi3" | "postman" | "rabbit"; source: { url?: string; content?: string }; overwrite: boolean; moduleId: string },
+    body: {
+      format: "openapi3" | "postman" | "rabbit";
+      source: { url?: string; content?: string };
+      overwrite: boolean;
+      moduleId: string;
+    },
   ) =>
-    post<{ created: string[]; overwritten: string[]; skipped: string[]; failed: { line: number; message: string }[] }>(
-      `/api/v1/projects/${projectId}/apis/import`,
-      body,
-    ),
+    post<{
+      created: string[];
+      overwritten: string[];
+      skipped: string[];
+      failed: { line: number; message: string }[];
+    }>(`/api/v1/projects/${projectId}/apis/import`, body),
   exportApis: (projectId: string, q: { moduleId?: string; ids?: string }) =>
     downloadRaw(`/api/v1/projects/${projectId}/apis/export${qs(q)}`),
   parseCurl: (projectId: string, curl: string) =>
@@ -92,27 +133,65 @@ export interface ApiCaseRow {
   outOfSync: boolean;
 }
 export const apiCaseApi = {
-  list: (projectId: string, apiId: string, q: { level?: string; status?: string; name?: string; page?: number; pageSize?: number } = {}) =>
-    get<PageOf<ApiCaseRow> & { apiVersion: number }>(`/api/v1/projects/${projectId}/apis/${apiId}/cases${qs(q)}`),
-  create: (projectId: string, apiId: string, body: { name: string; level?: string; status?: string; tags?: string[]; request: ApiRequestBundle }) =>
-    post<ApiCaseRow>(`/api/v1/projects/${projectId}/apis/${apiId}/cases`, body),
-  update: (projectId: string, apiId: string, caseId: string, body: { name: string; level: string; status: string; tags: string[]; request: ApiRequestBundle; version: number }) =>
-    put<ApiCaseRow>(`/api/v1/projects/${projectId}/apis/${apiId}/cases/${caseId}`, body),
+  list: (
+    projectId: string,
+    apiId: string,
+    q: { level?: string; status?: string; name?: string; page?: number; pageSize?: number } = {},
+  ) =>
+    get<PageOf<ApiCaseRow> & { apiVersion: number }>(
+      `/api/v1/projects/${projectId}/apis/${apiId}/cases${qs(q)}`,
+    ),
+  create: (
+    projectId: string,
+    apiId: string,
+    body: {
+      name: string;
+      level?: string;
+      status?: string;
+      tags?: string[];
+      request: ApiRequestBundle;
+    },
+  ) => post<ApiCaseRow>(`/api/v1/projects/${projectId}/apis/${apiId}/cases`, body),
+  update: (
+    projectId: string,
+    apiId: string,
+    caseId: string,
+    body: {
+      name: string;
+      level: string;
+      status: string;
+      tags: string[];
+      request: ApiRequestBundle;
+      version: number;
+    },
+  ) => put<ApiCaseRow>(`/api/v1/projects/${projectId}/apis/${apiId}/cases/${caseId}`, body),
   remove: (projectId: string, apiId: string, caseId: string) =>
     del<{ id: string }>(`/api/v1/projects/${projectId}/apis/${apiId}/cases/${caseId}`),
   batchDelete: (projectId: string, apiId: string, ids: string[]) =>
-    post<{ deleted: number }>(`/api/v1/projects/${projectId}/apis/${apiId}/cases/batch-delete`, { ids }),
+    post<{ deleted: number }>(`/api/v1/projects/${projectId}/apis/${apiId}/cases/batch-delete`, {
+      ids,
+    }),
   sync: (projectId: string, apiId: string, caseId: string) =>
     post<ApiCaseRow & { diffApplied: { section: string; different: boolean; detail: string[] }[] }>(
       `/api/v1/projects/${projectId}/apis/${apiId}/cases/${caseId}/sync`,
       {},
     ),
   history: (projectId: string, apiId: string, caseId: string) =>
-    get<{ items: { itemId: string; taskId: string; taskStatus: string; itemStatus: string; durationMs: number | null; createdAt: string }[] }>(
-      `/api/v1/projects/${projectId}/apis/${apiId}/cases/${caseId}/history`,
-    ),
-  execute: (projectId: string, apiId: string, body: { caseIds: string[]; envId?: string; stopOnFail?: boolean }) =>
-    post<{ taskId: string }>(`/api/v1/projects/${projectId}/apis/${apiId}/cases/execute`, body),
+    get<{
+      items: {
+        itemId: string;
+        taskId: string;
+        taskStatus: string;
+        itemStatus: string;
+        durationMs: number | null;
+        createdAt: string;
+      }[];
+    }>(`/api/v1/projects/${projectId}/apis/${apiId}/cases/${caseId}/history`),
+  execute: (
+    projectId: string,
+    apiId: string,
+    body: { caseIds: string[]; envId?: string; stopOnFail?: boolean },
+  ) => post<{ taskId: string }>(`/api/v1/projects/${projectId}/apis/${apiId}/cases/execute`, body),
 };
 
 // ── API-005 Mock ──
@@ -123,11 +202,21 @@ export interface MockRow {
   name: string;
   enabled: boolean;
   followApi: boolean;
-  matchers: { headers: { key: string; value: string }[]; query: { key: string; value: string }[]; bodyContains?: string };
-  response: { status: number; headers: { key: string; value: string }[]; body: string; delayMs: number };
+  matchers: {
+    headers: { key: string; value: string }[];
+    query: { key: string; value: string }[];
+    bodyContains?: string;
+  };
+  response: {
+    status: number;
+    headers: { key: string; value: string }[];
+    body: string;
+    delayMs: number;
+  };
 }
 export const mockApi = {
-  list: (projectId: string, apiId: string) => get<PageOf<MockRow>>(`/api/v1/projects/${projectId}/apis/${apiId}/mocks`),
+  list: (projectId: string, apiId: string) =>
+    get<PageOf<MockRow>>(`/api/v1/projects/${projectId}/apis/${apiId}/mocks`),
   create: (projectId: string, apiId: string, body: Omit<MockRow, "id" | "apiId">) =>
     post<MockRow>(`/api/v1/projects/${projectId}/apis/${apiId}/mocks`, body),
   update: (projectId: string, apiId: string, mockId: string, body: Omit<MockRow, "id" | "apiId">) =>
@@ -136,7 +225,11 @@ export const mockApi = {
     del<{ id: string }>(`/api/v1/projects/${projectId}/apis/${apiId}/mocks/${mockId}`),
   url: (projectId: string, apiId: string) =>
     get<{ url: string; apiPath: string }>(`/api/v1/projects/${projectId}/apis/${apiId}/mock-url`),
-  debugMock: (projectId: string, mockId: string, body: { query?: Record<string, string>; headers?: Record<string, string>; body?: string }) =>
+  debugMock: (
+    projectId: string,
+    mockId: string,
+    body: { query?: Record<string, string>; headers?: Record<string, string>; body?: string },
+  ) =>
     post<{
       matched: boolean;
       ruleName: string;
@@ -153,7 +246,15 @@ export interface EnvironmentRow {
   name: string;
   config: {
     vars: { key: string; value: string; enabled: boolean }[];
-    http: { id: string; name: string; protocol: "http" | "https"; hostname: string; port: number; pathPrefix: string; conditions: { moduleId?: string; pathPrefix?: string } }[];
+    http: {
+      id: string;
+      name: string;
+      protocol: "http" | "https";
+      hostname: string;
+      port: number;
+      pathPrefix: string;
+      conditions: { moduleId?: string; pathPrefix?: string };
+    }[];
     hosts: { host: string; address: string }[];
     database: { id: string; name: string; driver: "postgresql"; url: string }[];
     pre: Processor[];
@@ -165,19 +266,36 @@ export interface EnvironmentRow {
   updatedAt: string;
 }
 export const envApi = {
-  list: (projectId: string) => get<PageOf<EnvironmentRow>>(`/api/v1/projects/${projectId}/environments`),
-  detail: (projectId: string, id: string) => get<EnvironmentRow>(`/api/v1/projects/${projectId}/environments/${id}`),
+  list: (projectId: string) =>
+    get<PageOf<EnvironmentRow>>(`/api/v1/projects/${projectId}/environments`),
+  detail: (projectId: string, id: string) =>
+    get<EnvironmentRow>(`/api/v1/projects/${projectId}/environments/${id}`),
   create: (projectId: string, body: { name: string; config: EnvironmentRow["config"] }) =>
     post<EnvironmentRow>(`/api/v1/projects/${projectId}/environments`, body),
-  update: (projectId: string, id: string, body: Partial<{ name: string; config: EnvironmentRow["config"] }>) =>
-    put<EnvironmentRow>(`/api/v1/projects/${projectId}/environments/${id}`, body),
-  remove: (projectId: string, id: string) => del<{ id: string }>(`/api/v1/projects/${projectId}/environments/${id}`),
-  copy: (projectId: string, id: string) => post<EnvironmentRow>(`/api/v1/projects/${projectId}/environments/${id}/copy`, {}),
-  exportEnv: (projectId: string, id: string) => downloadRaw(`/api/v1/projects/${projectId}/environments/${id}/export`),
-  importEnvs: (projectId: string, body: { overwrite: boolean; payload: { name: string; config: EnvironmentRow["config"] }[] }) =>
-    post<{ imported: number; overwritten: number; skipped: number }>(`/api/v1/projects/${projectId}/environments/import`, body),
+  update: (
+    projectId: string,
+    id: string,
+    body: Partial<{ name: string; config: EnvironmentRow["config"] }>,
+  ) => put<EnvironmentRow>(`/api/v1/projects/${projectId}/environments/${id}`, body),
+  remove: (projectId: string, id: string) =>
+    del<{ id: string }>(`/api/v1/projects/${projectId}/environments/${id}`),
+  copy: (projectId: string, id: string) =>
+    post<EnvironmentRow>(`/api/v1/projects/${projectId}/environments/${id}/copy`, {}),
+  exportEnv: (projectId: string, id: string) =>
+    downloadRaw(`/api/v1/projects/${projectId}/environments/${id}/export`),
+  importEnvs: (
+    projectId: string,
+    body: { overwrite: boolean; payload: { name: string; config: EnvironmentRow["config"] }[] },
+  ) =>
+    post<{ imported: number; overwritten: number; skipped: number }>(
+      `/api/v1/projects/${projectId}/environments/import`,
+      body,
+    ),
   testDatasource: (projectId: string, url: string) =>
-    post<{ ok: boolean; message: string }>(`/api/v1/projects/${projectId}/environments/test-datasource`, { url }),
+    post<{ ok: boolean; message: string }>(
+      `/api/v1/projects/${projectId}/environments/test-datasource`,
+      { url },
+    ),
 };
 
 // ── PROJ-004 文件 ──
@@ -200,8 +318,17 @@ export interface FileRow {
   createdAt: string;
 }
 export const fileApi = {
-  list: (projectId: string, q: { moduleId?: string; includeChildren?: boolean; keyword?: string; page?: number; pageSize?: number; recycled?: boolean } = {}) =>
-    get<PageOf<FileRow>>(`/api/v1/projects/${projectId}/files${qs(q)}`),
+  list: (
+    projectId: string,
+    q: {
+      moduleId?: string;
+      includeChildren?: boolean;
+      keyword?: string;
+      page?: number;
+      pageSize?: number;
+      recycled?: boolean;
+    } = {},
+  ) => get<PageOf<FileRow>>(`/api/v1/projects/${projectId}/files${qs(q)}`),
   upload: (projectId: string, file: File) => {
     const form = new FormData();
     form.append("file", file);
@@ -212,10 +339,15 @@ export const fileApi = {
       { method: "POST", body: form },
     );
   },
-  update: (projectId: string, id: string, body: { name?: string; moduleId?: string; jarEnabled?: boolean }) =>
-    put<FileRow>(`/api/v1/projects/${projectId}/files/${id}`, body),
-  remove: (projectId: string, id: string) => del<{ id: string }>(`/api/v1/projects/${projectId}/files/${id}`),
-  downloadUrl: (projectId: string, id: string) => `/api/v1/projects/${projectId}/files/${id}/download`,
+  update: (
+    projectId: string,
+    id: string,
+    body: { name?: string; moduleId?: string; jarEnabled?: boolean },
+  ) => put<FileRow>(`/api/v1/projects/${projectId}/files/${id}`, body),
+  remove: (projectId: string, id: string) =>
+    del<{ id: string }>(`/api/v1/projects/${projectId}/files/${id}`),
+  downloadUrl: (projectId: string, id: string) =>
+    `/api/v1/projects/${projectId}/files/${id}/download`,
 };
 
 // ── EXEC-002 / SYS-006 任务 ──
@@ -234,8 +366,18 @@ export interface ExecTaskRow {
   rerunOf: string | null;
 }
 export const taskApi = {
-  listProject: (projectId: string, q: { type?: string; status?: string; creator?: string; from?: string; to?: string; page?: number; pageSize?: number } = {}) =>
-    get<PageOf<ExecTaskRow>>(`/api/v1/projects/${projectId}/exec-tasks${qs(q)}`),
+  listProject: (
+    projectId: string,
+    q: {
+      type?: string;
+      status?: string;
+      creator?: string;
+      from?: string;
+      to?: string;
+      page?: number;
+      pageSize?: number;
+    } = {},
+  ) => get<PageOf<ExecTaskRow>>(`/api/v1/projects/${projectId}/exec-tasks${qs(q)}`),
   listAll: (q: { type?: string; status?: string; page?: number; pageSize?: number } = {}) =>
     get<PageOf<ExecTaskRow>>(`/api/v1/exec-tasks${qs(q)}`),
   stop: (projectId: string, taskId: string) =>
@@ -267,12 +409,20 @@ export interface PoolRow {
   status: string;
   canDelete: boolean;
   lastBeatAt: string | null;
-  nodes: { nodeId: string; version: string; slots: number; busy: number; lastBeatAt: string; state: "ONLINE" | "OFFLINE" | "UNMATCHED" }[];
+  nodes: {
+    nodeId: string;
+    version: string;
+    slots: number;
+    busy: number;
+    lastBeatAt: string;
+    state: "ONLINE" | "OFFLINE" | "UNMATCHED";
+  }[];
 }
 export const poolApi = {
   list: () => get<PageOf<PoolRow>>(`/api/v1/system/pools`),
   detail: (id: string) => get<PoolRow>(`/api/v1/system/pools/${id}`),
-  update: (id: string, body: { maxConcurrency: number }) => put<PoolRow>(`/api/v1/system/pools/${id}`, body),
+  update: (id: string, body: { maxConcurrency: number }) =>
+    put<PoolRow>(`/api/v1/system/pools/${id}`, body),
 };
 
 // ── RPT-002 报告与分享 ──
@@ -310,22 +460,49 @@ export interface ReportDetailV2 {
   durationMs?: number;
   createdAt: string;
   /** scenario 报告（S3）额外含 fakeError 单列 */
-  summary?: { total?: number; passed?: number; failed?: number; fakeError?: number; durationMs?: number };
+  summary?: {
+    total?: number;
+    passed?: number;
+    failed?: number;
+    fakeError?: number;
+    durationMs?: number;
+  };
   items: ReportItemView[];
-  request?: { method: string; url: string; headers: { key: string; value: string }[]; body: string };
-  response?: { status: number; durationMs: number; headers: { key: string; value: string }[]; bodyText: string; truncated: boolean };
-  asserts: { kind: string; path: string; op: string; expected: string; actual: string; passed: boolean }[];
+  request?: {
+    method: string;
+    url: string;
+    headers: { key: string; value: string }[];
+    body: string;
+  };
+  response?: {
+    status: number;
+    durationMs: number;
+    headers: { key: string; value: string }[];
+    bodyText: string;
+    truncated: boolean;
+  };
+  asserts: {
+    kind: string;
+    path: string;
+    op: string;
+    expected: string;
+    actual: string;
+    passed: boolean;
+  }[];
   logs: { ts: number; level: string; message: string }[];
   shared?: boolean;
   expireAt?: string;
 }
 export const reportV2Api = {
-  list: (projectId: string, q: { reportType?: string; keyword?: string; page?: number; pageSize?: number } = {}) =>
-    get<PageOf<ReportRow>>(`/api/v1/projects/${projectId}/reports${qs(q)}`),
+  list: (
+    projectId: string,
+    q: { reportType?: string; keyword?: string; page?: number; pageSize?: number } = {},
+  ) => get<PageOf<ReportRow>>(`/api/v1/projects/${projectId}/reports${qs(q)}`),
   /** 详情（RPT-002 事件聚合视图；api_debug 兼容单请求视图字段） */
   detail: (projectId: string, taskId: string) =>
     get<ReportDetailV2>(`/api/v1/projects/${projectId}/reports/${taskId}`),
-  remove: (projectId: string, taskId: string) => del<{ taskId: string }>(`/api/v1/projects/${projectId}/reports/${taskId}`),
+  remove: (projectId: string, taskId: string) =>
+    del<{ taskId: string }>(`/api/v1/projects/${projectId}/reports/${taskId}`),
   itemFrames: (projectId: string, taskId: string, itemId: string) =>
     get<unknown[]>(`/api/v1/projects/${projectId}/reports/${taskId}/items/${itemId}/frames`),
   shares: (projectId: string, taskId: string) =>
@@ -333,10 +510,16 @@ export const reportV2Api = {
       `/api/v1/projects/${projectId}/reports/${taskId}/shares`,
     ),
   createShare: (projectId: string, taskId: string, expireHours: 1 | 24 | 168 | 720) =>
-    post<{ token: string; expireAt: string }>(`/api/v1/projects/${projectId}/reports/${taskId}/shares`, { expireHours }),
+    post<{ token: string; expireAt: string }>(
+      `/api/v1/projects/${projectId}/reports/${taskId}/shares`,
+      { expireHours },
+    ),
   revokeShare: (projectId: string, taskId: string, token: string) =>
     del<{ token: string }>(`/api/v1/projects/${projectId}/reports/${taskId}/shares/${token}`),
   shareDetail: (token: string) => get<ReportDetailV2>(`/api/v1/share/report/${token}`),
+  /** S8 INFRA-004：失败任务排障包直下（manifest+事件流末 50 帧；非 FAILED 422 70060） */
+  troubleshootPack: (projectId: string, taskId: string) =>
+    downloadRaw(`/api/v1/projects/${projectId}/reports/${taskId}/troubleshoot-pack`, {}),
 };
 
 // ── CASE-006 用例关联接口 ──
@@ -358,7 +541,9 @@ export const caseApiRefApi = {
   add: (projectId: string, caseId: string, refIds: string[]) =>
     post<{ added: number }>(`/api/v1/projects/${projectId}/cases/${caseId}/api-refs`, { refIds }),
   remove: (projectId: string, caseId: string, refId: string) =>
-    del<{ refId: string }>(`/api/v1/projects/${projectId}/cases/${caseId}/api-refs${qs({ refId })}`),
+    del<{ refId: string }>(
+      `/api/v1/projects/${projectId}/cases/${caseId}/api-refs${qs({ refId })}`,
+    ),
 };
 
 // ── 环境选择（执行处下拉） ──

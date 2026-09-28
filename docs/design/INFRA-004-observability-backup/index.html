@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="utf-8" />
+    <title>INFRA-004 可观测与备份（排障包下载 · 报告页增量）</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-slate-50 text-slate-800 text-sm">
+    <header class="h-12 bg-white border-b flex items-center px-4 gap-3">
+      <span class="font-semibold">RabbitAITest</span
+      ><span class="border rounded px-2 py-0.5">演示项目 #1</span>
+      <span class="ml-auto flex items-center gap-3 text-slate-400 text-xs">帮助 · 消息 · 用户</span>
+    </header>
+    <main class="p-4 space-y-4 max-w-[1100px]">
+      <!-- 画板一：失败任务报告页 · 排障包按钮可见可点 -->
+      <section class="bg-white border rounded-md">
+        <div class="px-3 py-2 border-b bg-slate-50 font-medium">
+          画板一 · 失败任务报告详情（工具栏「排障包」可见 · 生成中 → 下载完成）
+        </div>
+        <div class="p-4 space-y-3 text-[13px]">
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="font-medium">报告：场景「登录流冒烟」执行 #r-2026…</span>
+            <span class="text-white bg-red-500 rounded px-1.5 py-0.5 text-[11px]">FAILED</span>
+            <span class="ml-auto flex items-center gap-2">
+              <button class="border rounded px-2 py-1 hover:bg-slate-100">导出</button>
+              <button class="border rounded px-2 py-1 hover:bg-slate-100">分享</button>
+              <!-- 排障包：仅 failed/dead 任务渲染 -->
+              <button
+                id="pack-btn"
+                class="border border-[#574BFF] text-[#574BFF] rounded px-2 py-1 hover:bg-[#574BFF]/10 flex items-center gap-1"
+              >
+                <span>🧰 排障包</span>
+              </button>
+            </span>
+          </div>
+          <div class="border rounded p-3 bg-slate-50 text-xs text-slate-500 space-y-1">
+            <p>
+              <b>交互流</b>：点击「排障包」→ 按钮转「生成中…」（loading 禁用态，约 1-3s）→
+              toast「排障包已生成，开始下载」→ 浏览器下载
+              <code class="bg-white border rounded px-1">troubleshoot-{taskId}.tar.gz</code>
+            </p>
+            <p>
+              <b>包内容</b>（tar.gz
+              解开三件）：<code>manifest.json</code>（任务定义/items/汇总/环境元信息）·
+              <code>events.jsonl</code>（事件流末 50 帧）· <code>logs.txt</code>（按 execTaskId
+              过滤的日志片段，未配置 LOG_FILE 时为说明行）
+            </p>
+          </div>
+          <div class="flex gap-2 items-center text-xs">
+            <span class="text-slate-400">按钮状态演示：</span>
+            <button class="border border-[#574BFF] text-[#574BFF] rounded px-2 py-1 bg-[#574BFF]/5">
+              🧰 排障包
+            </button>
+            <button class="border rounded px-2 py-1 text-slate-400 cursor-not-allowed" disabled>
+              ⟳ 生成中…
+            </button>
+            <span class="text-green-600">✓ 已下载 troubleshoot-9f2c….tar.gz</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- 画板二：成功任务 · 按钮不渲染 -->
+      <section class="bg-white border rounded-md">
+        <div class="px-3 py-2 border-b bg-slate-50 font-medium">
+          画板二 · 成功任务报告详情（对照：无「排障包」按钮——不留灰态）
+        </div>
+        <div class="p-4 text-[13px]">
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="font-medium">报告：场景「登录流冒烟」执行 #r-2027…</span>
+            <span class="text-white bg-green-500 rounded px-1.5 py-0.5 text-[11px]">SUCCESS</span>
+            <span class="ml-auto flex items-center gap-2">
+              <button class="border rounded px-2 py-1 hover:bg-slate-100">导出</button>
+              <button class="border rounded px-2 py-1 hover:bg-slate-100">分享</button>
+              <!-- 此处无排障包按钮 -->
+            </span>
+          </div>
+          <p class="mt-2 text-xs text-slate-400">
+            终态 SUCCESS/其他 → 按钮不渲染；后端同口径 422 70060（防直发）。
+          </p>
+        </div>
+      </section>
+
+      <!-- 画板三：可观测端点与备份（无 UI，命令面板示意） -->
+      <section class="bg-white border rounded-md">
+        <div class="px-3 py-2 border-b bg-slate-50 font-medium">
+          画板三 · 无 UI 面（metrics / ready / 备份恢复）命令示意
+        </div>
+        <div class="p-4 font-mono text-xs space-y-2 bg-slate-900 text-slate-100 rounded-b">
+          <p>
+            <span class="text-green-400">$</span> curl -s localhost:3000/api/v1/system/metrics |
+            head -6
+          </p>
+          <p class="text-slate-300">
+            # HELP rabbit_queue_depth BullMQ waiting jobs per pool<br /># TYPE rabbit_queue_depth
+            gauge<br />rabbit_queue_depth{pool="default"} 3<br />rabbit_engine_slots{state="used"}
+            2<br />rabbit_engine_slots{state="cap"} 8<br />rabbit_task_duration_ms{quantile="0.95"}
+            1840
+          </p>
+          <p><span class="text-green-400">$</span> node scripts/backup.mjs --out backups/</p>
+          <p class="text-slate-300">
+            # → backups/rabbit-20260928-101500.tar.gz（pg_dump -Fc + attachments + manifest.json）
+          </p>
+          <p>
+            <span class="text-green-400">$</span> node scripts/restore.mjs
+            backups/rabbit-20260928-101500.tar.gz
+          </p>
+          <p class="text-slate-300">
+            # manifest 校验 → pg_restore --clean --if-exists → 附件回放 → 提醒核对 seed 口径
+          </p>
+        </div>
+      </section>
+    </main>
+    <script>
+      const btn = document.getElementById("pack-btn");
+      btn?.addEventListener("click", () => {
+        btn.disabled = true;
+        btn.textContent = "⟳ 生成中…";
+        btn.className = "border rounded px-2 py-1 text-slate-400 cursor-not-allowed";
+        setTimeout(() => {
+          btn.textContent = "✓ 已下载 troubleshoot-9f2c….tar.gz";
+          btn.className = "border rounded px-2 py-1 text-green-600";
+        }, 1200);
+      });
+    </script>
+  </body>
+</html>

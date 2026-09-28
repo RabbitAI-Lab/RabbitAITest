@@ -4,11 +4,18 @@ import { PERMISSION_POINTS, isValidPermissionPoint } from "../permissions";
 
 // ── 用户管理（SYS-004）──
 
+/** QA-002 密码策略：≥8 位且同时含字母与数字（注册/创建用户/改密/重置统一口径）。 */
+export const passwordPolicy = z
+  .string()
+  .min(8, "密码至少 8 位")
+  .max(128)
+  .refine((v) => /[a-zA-Z]/.test(v) && /[0-9]/.test(v), "密码须同时包含字母与数字");
+
 export const userCreateSchema = z.object({
   email: z.string().email().max(256),
   name: z.string().min(1).max(128),
   phone: z.string().max(32).optional(),
-  password: z.string().min(8).max(64).optional(), // 缺省则服务端生成并一次性返回
+  password: passwordPolicy.optional(), // 缺省则服务端生成并一次性返回（QA-002：字母+数字）
 });
 export const userUpdateSchema = z.object({
   name: z.string().min(1).max(128).optional(),
@@ -79,7 +86,7 @@ export const personalMeUpdateSchema = z.object({
 });
 export const changePasswordSchema = z.object({
   oldPassword: z.string().min(1).max(256),
-  newPassword: z.string().min(8).max(256),
+  newPassword: passwordPolicy,
 });
 export const localRunnerUpsertSchema = z.object({
   /** 仅环回地址（127.0.0.1/localhost/::1），null/空=清除 */

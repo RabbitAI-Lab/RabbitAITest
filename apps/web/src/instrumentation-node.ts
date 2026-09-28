@@ -11,6 +11,7 @@
 export async function register(): Promise<void> {
   if (process.env.NEXT_RUNTIME !== "nodejs") return;
   if (process.env.DISABLE_SCHEDULER === "1") return; // e2e/CI 侧按需关闭
+  const { logFor } = await import("@rabbit/shared/logger"); // try 外引入：catch 分支同样可用
   try {
     const { Worker } = await import("bullmq");
     const Redis = (await import("ioredis")).default;
@@ -18,9 +19,8 @@ export async function register(): Promise<void> {
     const { fireSchedule } = await import("@/server/domains/api/schedule.service");
     const { runSync } = await import("@/server/domains/api/swagger-sync.service");
     const { pullBugs } = await import("@/server/domains/api/platform-sync.service");
-    const { directWrite, purgeExpiredAuditLogs } = await import(
-      "@/server/domains/system/audit.service"
-    );
+    const { directWrite, purgeExpiredAuditLogs } =
+      await import("@/server/domains/system/audit.service");
     const { prisma } = await import("@rabbit/db");
     const connection = new Redis(config.redisUrl, { maxRetriesPerRequest: null });
 
@@ -35,12 +35,18 @@ export async function register(): Promise<void> {
         };
         if (job.name === "fire" && data.scheduleId) {
           const r = await fireSchedule(data.scheduleId, data.projectId ?? undefined);
-          console.log(`[scheduler] fire ${data.scheduleId} → ${r.taskId ?? r.skipped ?? "noop"}`);
+          logFor("scheduler").info(
+            { scheduleId: data.scheduleId, result: r.taskId ?? r.skipped ?? "noop" },
+            "schedule fire",
+          );
           return;
         }
         if (job.name === "swagger-sync" && data.taskId && data.projectId) {
           const r = await runSync(data.projectId, data.taskId, "system");
-          console.log(`[scheduler] swagger-sync ${data.taskId} → ${r.ok ? "ok" : r.error}`);
+          logFor("scheduler").info(
+            { taskId: data.taskId, ok: r.ok, error: r.error },
+            "swagger-sync done",
+          );
           return;
         }
         if (job.name === "platform-sync" && data.projectId) {
@@ -51,10 +57,13 @@ export async function register(): Promise<void> {
           if (!project) return;
           try {
             const r = await pullBugs(data.projectId, project.orgId, "cron");
-            console.log(`[scheduler] platform-sync ${data.projectId} → pulled ${r.pulled} updated ${r.updated}`);
+            logFor("scheduler").info(
+              { projectId: data.projectId, pulled: r.pulled, updated: r.updated },
+              "platform-sync done",
+            );
           } catch (e) {
             // 平台故障不抛（历史已留痕；下轮再试——INTG-001 §2 失败语义）
-            console.warn(`[scheduler] platform-sync ${data.projectId} failed: ${e instanceof Error ? e.message : e}`);
+            logFor("scheduler").warn({ projectId: data.projectId, err: e }, "platform-sync failed");
           }
           return;
         }
@@ -66,17 +75,20 @@ export async function register(): Promise<void> {
         }
         if (job.name === "audit-purge") {
           const row = await prisma.systemParam.findUnique({ where: { key: "audit" } });
-          const days = ((row?.value as { auditRetentionDays?: number } | undefined)?.auditRetentionDays) ?? 90;
+          const days =
+            (row?.value as { auditRetentionDays?: number } | undefined)?.auditRetentionDays ?? 90;
           const { purged } = await purgeExpiredAuditLogs(days);
-          if (purged > 0) console.log(`[audit] purged ${purged} rows (retention=${days}d)`);
+          if (purged > 0) logFor("scheduler").info({ purged, days }, "audit purged");
         }
       },
       { connection, concurrency: 2 },
     );
     worker.on("failed", (job, err) => {
-      console.warn(`[scheduler] job ${job?.id} failed: ${err.message}`);
+      logFor("scheduler").warn({ jobId: job?.id, err }, "job failed");
     });
-    console.log("[scheduler] started (queue=schedule: fire/swagger-sync/platform-sync/audit-purge)");
+    logFor("scheduler").info(
+      "started (queue=schedule: fire/swagger-sync/platform-sync/audit-purge)",
+    );
 
     // 审计落库 consumer（SYS-008）
     const auditWorker = new Worker(
@@ -87,29 +99,37 @@ export async function register(): Promise<void> {
       },
       { connection, concurrency: 1 },
     );
-    auditWorker.on("failed", (_job, err) => console.warn(`[audit] consumer failed: ${err.message}`));
+    auditWorker.on("failed", (_job, err) =>
+      logFor("scheduler").warn({ err }, "audit consumer failed"),
+    );
 
     // 审计保留清理 repeatable（每日 03:00；jobId 幂等去重）
     const { scheduleQueue } = await import("@/server/redis");
     await scheduleQueue()
-      .add("audit-purge", { kind: "audit-purge" }, { repeat: { pattern: "0 3 * * *" }, jobId: "audit-purge-daily" })
+      .add(
+        "audit-purge",
+        { kind: "audit-purge" },
+        { repeat: { pattern: "0 3 * * *" }, jobId: "audit-purge-daily" },
+      )
       .catch(() => undefined);
 
     // plugin-runner 内嵌启动
     await startPluginRunner();
   } catch (e) {
-    console.warn(`[scheduler] start failed: ${e instanceof Error ? e.message : e}`);
+    logFor("scheduler").warn({ err: e }, "start failed");
   }
 }
 
 async function startPluginRunner(): Promise<void> {
   if (process.env.PLUGIN_RUNNER_URL) return; // 显式配置=外部独立进程，不内嵌
   try {
+    const { logFor } = await import("@rabbit/shared/logger");
     const { runnerHealth } = await import("@/server/plugin-runner.client");
     if (await runnerHealth()) return; // 已有实例（dev 双进程场景）
     const runner = await import("@rabbit/plugin-runner");
     runner.startRunner();
   } catch (e) {
-    console.warn(`[plugin-runner] embedded start failed: ${e instanceof Error ? e.message : e}`);
+    const { logFor } = await import("@rabbit/shared/logger");
+    logFor("plugin-runner").warn({ err: e }, "embedded start failed");
   }
 }
