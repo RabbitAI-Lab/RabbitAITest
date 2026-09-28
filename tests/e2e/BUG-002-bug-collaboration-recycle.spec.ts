@@ -23,7 +23,7 @@ test.describe("BUG-002 缺陷协作与回收站", () => {
     // 白名单：project store（zustand persist）水合前的 /projects/null 查询 404——首帧竞态（S1 以来既有面，S5 §7.2 登记）
     const hydrateRace = { pageUrlPattern: "/bugs", textPattern: "projects/null|Failed to load resource", reason: "store 水合前 projectId=null 的首帧查询（S1 既有面）" };
     await page.goto("/bugs");
-    await page.getByTestId("tab-bug-recycle").click();
+    await page.getByTestId("tab-recycle").click();
     await expect(page.getByText("e2e-回收站A").first()).toBeVisible({ timeout: 10_000 });
     await expect(page.getByText("e2e-回收站B").first()).toBeVisible();
     await page.getByRole("row", { name: /e2e-回收站A/ }).getByRole("checkbox").check();

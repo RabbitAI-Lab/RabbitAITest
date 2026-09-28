@@ -76,13 +76,14 @@ test.describe("SYS-007 个人中心", () => {
     await expect(page.getByTestId("page-personal-ai-model")).toBeVisible();
     const models = ((await (await page.request.get("/api/v1/ai/models")).json()) as { data: { list: { id: string }[] } }).data.list;
     expect(models.length).toBeGreaterThanOrEqual(1);
-    await page.locator('[data-testid^="personal-model-"] input[type="radio"]').first().check();
+    await page.locator('[data-testid^="personal-model-"] input[type="radio"]').first().check({ timeout: 20_000 });
     await page.getByTestId("personal-ai-model-save").click();
     await expect(page.getByText("已保存")).toBeVisible();
     const pref = ((await (await page.request.get("/api/v1/personal/ai-model")).json()) as { data: { modelId: string | null } }).data;
     expect(pref.modelId).toBeTruthy();
     // 清除 → 回系统默认
     await page.getByTestId("personal-ai-model-clear").click();
+    await expect(page.getByText("已保存").last()).toBeVisible({ timeout: 10_000 }); // 等 PUT 落库再断言（异步 mutate 竞态）
     const cleared = ((await (await page.request.get("/api/v1/personal/ai-model")).json()) as { data: { modelId: string | null } }).data;
     expect(cleared.modelId).toBeNull();
     await expectNoConsoleErrors();

@@ -162,7 +162,7 @@ export default function BugListPage() {
                 全部
               </span>
               <span
-                data-testid="tab-bug-recycle"
+                data-testid="tab-recycle"
                 className={`px-3 py-1 rounded cursor-pointer transition-colors ${recycled ? "bg-[#574BFF]/8 text-[#574BFF] font-medium" : "text-[#646A73]"}`}
                 onClick={() => {
                   setRecycled(true);
