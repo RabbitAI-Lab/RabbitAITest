@@ -99,7 +99,7 @@
 | 9. SSO（OIDC mock 全链）      | ✅   | e2e ENTP-002-01：配置→登录页入口→mock 自动授权→回调登录（@idp.test 账号）；坏 state 90012（-02）；CAS/OAuth2 单测+LDAP fake 矩阵                                                              |
 | 10. 扫码登录                  | ✅   | e2e ENTP-003-01：钉钉 mock 全链→@sso.scan 合成账号→幂等复登                                                                                                                                   |
 | 11. 社区版零回归              | ✅   | Vitest 324（新增 48）/ JMeter 63 计划 ALL PASSED（新增 8）/ Playwright 178（新增 10+改造 1）；重点 EXEC-002/SYS-004/SYS-005/MSG-001 全绿                                                      |
-| 12. CI+OpenAPI                | ✅   | OpenAPI 279→293 paths `--check` 过；PR #4 两轮七作业全绿（首绿 run 36453187787；合并 main（PR#5/#6）后 run 36459084458 复绿：e2e 7m17s/JMeter 19m59s；CI 首红三处复盘见 §7.2 #8/#9 与提交史） |
+| 12. CI+OpenAPI                | ✅   | OpenAPI 279→293 paths `--check` 过；PR #4 三轮七作业全绿（首绿 36453187787；合 main（PR#5/#6）复绿 36459084458；再合 main（PR#7 P4，22 冲突含池域三处融合与 CHANGELOG 让位 v0.9.0）终绿 36468534141：e2e 9m20s/JMeter 13m51s；CI 首红三处复盘见 §7.2 #8/#9 与提交史） |
 
 > 本地全新口径说明：本机 Docker daemon 挂起（docker ps 无响应，既有容器仍在跑），e2e 全新口径需 docker 起 redis 被阻塞——本地以复用口径跑全量（唯一失败 AI-004 流式读体为已登记的 SSE 抖动，单跑即绿），全新口径由远端 CI（GitHub Actions 全新 services）执行作为权威验收（AGENTS 门禁 9.1）。JMeter 走 api-test-stack 自管 PG :5438（每轮全新迁移+种子），等效全新口径。
 
