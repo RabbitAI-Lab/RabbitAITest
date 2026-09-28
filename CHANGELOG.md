@@ -2,6 +2,20 @@
 
 本项目的所有显著变更记录于此。格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本遵循语义化版本。
 
+## [v0.7.2] - 2026-09-28 — AI 智能助手 UI v2（Ant Design X 重构）
+
+### 变更
+
+- **AI 智能助手面板重构（AI-004 §9，用户验收反馈驱动）**：表现层全面换用 **@ant-design/x 1.6.1**（选 1.x 线 peer antd ^5.20.3；2.x 需 antd 6 属架构级升级不采用）——`Conversations` 会话栏（active 高亮 + hover ⋯ 菜单重命名/删除，替代双击重命名）、`Bubble.List` 气泡流（助手渐变头像/用户主题色渐变气泡/流式光标/错误态红边气泡）、`Sender` 圆角输入容器（动作条内联模型下拉 + 圆形发送钮，loading 态自动切换停止钮）、`Welcome + Prompts` 空态（三条能力建议卡点击即填入，竖排）；面板 560→720px
+- 后端 SSE 契约（delta/done/error 帧）、`streamAiChat`、会话服务**零改动**（jmx/单测不受影响）；全部 data-testid 保留，AI-004-01 会话定位器随 Conversations DOM 调整为文本定位（规格 §9 登记）
+- **SYS-007 本地执行页回填竞态修复（勘误 2）**：初始查询迟到时渲染期回填覆盖用户已输入地址（慢网可现：输入被抹→检测钮永久禁用）；新增依赖改变 chunk 时序后在 CI 确定性暴露——dirty 守卫（用户编辑后迟到回填不覆盖）
+- 规格 §3/§9 与 v2 高保真原型（docs/design/AI-004-ai-assistant/v2-antd-x/，先于编码产出）同步更新；视觉走查两轮（建议卡横排溢出→竖排修复、placeholder 折行修复）
+
+### 测试
+
+- **补齐 chat SSE 帧序列单测**（`chat-sse.test.ts`：delta*→done 顺序/done 载荷（messageId/conversationId/title 截 20）/半截 delta+error 帧兜底且助手不落库）——此前帧 wire 格式仅 e2e 断言，而 event-stream body 读取是 Playwright 弱支撑（AI 域并跑实测 flake：body 缓冲被驱逐即 protocol error）；e2e AI-004-01 改为容错读（读到则断言）并补请求负载断言
+- AI 域全量 e2e 回归（AI-001~005，并行 4 workers）绿；SYS-007 全 spec 绿；typecheck/oxlint 绿；jmx 无涉及（纯表现层+测试加固）
+
 ## [v0.7.1] - 2026-09-28 — Mimosa 门禁误报根治（静态分析友好重构）
 
 ### 变更（行为等价，rules/security.md §8.6 制度化）
