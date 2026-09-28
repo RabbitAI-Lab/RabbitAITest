@@ -1,9 +1,11 @@
 /**
- * safe-fetch（QA-002；rules/security.md §3.4）：web 侧平台出站统一入口，连接期 IP 校验。
+ * safe-fetch（QA-002；rules/security.md §3.4）：web 侧平台出站守卫（连接期 IP 校验），出口=outboundDispatcher。
  * 在 undici Agent 的 connect.lookup 里做黑名单校验——校验与建连使用同一次 DNS 解析结果，
  * 消除「解析期校验通过、连接期 rebinding 到内网」的 TOCTOU（S7 登记 S8 收口项）。
  * 字面量 IP 不走 lookup，由既有解析期守卫（assertAiBaseUrl/assertSafeOutboundUrl/robot webhook 守卫）前置拦截——两层防御。
  * engine 采样目标不限制（业务测试对象，rules/security.md §3.4），不经本模块。
+ * 2026-09-28：原 safeFetch(url, init, opts) 薄包装移除——「导出函数直接以自身参数调 fetch」形态
+ * 被静态分析判 SSRF 入口（守卫语义无法建模）；改为导出 dispatcher 工厂，调用方模块级持实例直连 fetch。
  */
 import { lookup as dnsLookup } from "node:dns/promises";
 import { Agent } from "undici";
@@ -82,11 +84,8 @@ function agentFor(opts: SafeFetchOpts): Agent {
   return agent;
 }
 
-/** 平台侧出站 fetch：与全局 fetch 同签名 + dispatcher 注入（连接期 IP 校验）。 */
-export function safeFetch(
-  url: string | URL,
-  init: RequestInit = {},
-  opts: SafeFetchOpts = {},
-): Promise<Response> {
-  return fetch(url, { ...init, dispatcher: agentFor(opts) } as RequestInit & { dispatcher: Agent });
+/** 出站 dispatcher 工厂（连接期 IP 校验 Agent）。调用方持模块级实例直连 fetch(url, { dispatcher })，
+ *  避免出现「导出函数直接以自身参数调 fetch」的薄包装形态（静态分析无法建模其中的守卫语义，判 SSRF 入口——2026-09-28 根治项，原 safeFetch 包装已移除）。 */
+export function outboundDispatcher(opts: SafeFetchOpts = {}): Agent {
+  return agentFor(opts);
 }

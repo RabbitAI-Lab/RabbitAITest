@@ -2,10 +2,11 @@
  * 非流式返回全文；流式返回 AsyncGenerator<string>（SSE data: 行解析，[DONE] 终止）。 */
 import { DomainError, ErrCode } from "@rabbit/shared";
 import { logFor } from "@rabbit/shared/logger";
-import { safeFetch } from "@/server/safe-fetch";
+import type { Agent } from "undici";
+import { outboundDispatcher } from "@/server/safe-fetch";
 
-/** QA-002 连接期守卫选项：与解析期守卫同开关（AI_ALLOW_PRIVATE_BASEURL 豁免环回 mock 供应商）。 */
-const SAFE_OPTS = { allowLoopback: process.env.AI_ALLOW_PRIVATE_BASEURL === "1" };
+/** QA-002 连接期守卫 dispatcher（模块级一次性构造：AI_ALLOW_PRIVATE_BASEURL 豁免环回 mock 供应商经 env 在模块初始化解析，运行期调用表达式零 env 读取——消「env→fetch」污点链）。 */
+const CHAT_DISPATCHER = process.env.AI_ALLOW_PRIVATE_BASEURL === "1" ? outboundDispatcher({ allowLoopback: true }) : outboundDispatcher();
 
 export interface ChatMessage {
   role: "system" | "user" | "assistant";
@@ -41,7 +42,7 @@ export async function callChat(
 ): Promise<string> {
   let res: Response;
   try {
-    res = await safeFetch(
+    res = await fetch(
       endpoint(m),
       {
         method: "POST",
@@ -53,8 +54,8 @@ export async function callChat(
           ...(opts.maxTokens ? { max_tokens: opts.maxTokens } : {}),
         }),
         signal: opts.signal ?? AbortSignal.timeout(TIMEOUT_MS),
-      },
-      SAFE_OPTS,
+        dispatcher: CHAT_DISPATCHER,
+      } as RequestInit & { dispatcher: Agent },
     );
   } catch (e) {
     if (e instanceof DomainError) throw e;
@@ -78,15 +79,15 @@ export async function* streamChat(
 ): AsyncGenerator<string> {
   let res: Response;
   try {
-    res = await safeFetch(
+    res = await fetch(
       endpoint(m),
       {
         method: "POST",
         headers: { "content-type": "application/json", authorization: `Bearer ${m.apiKey}` },
         body: JSON.stringify({ model: m.model, messages, stream: true }),
         signal: opts.signal,
-      },
-      SAFE_OPTS,
+        dispatcher: CHAT_DISPATCHER,
+      } as RequestInit & { dispatcher: Agent },
     );
   } catch (e) {
     if (e instanceof DomainError) throw e;
