@@ -111,7 +111,7 @@ shared 契约/权限/错误码（先行，一次性）
 | 3 | JMeter 新增 6 计划（gen-jmx-s5.mjs），全量 52 计划全绿 | ✅ |
 | 4 | Playwright 新增 6 spec 17 用例，全量 150/150 全绿 | ✅ |
 | 5 | OpenAPI 快照 251→277 paths，--check 通过         | ✅ |
-| 6 | push 远程 + CI 六作业全绿                       | 待 push 后回填 |
+| 6 | push 远程 + CI 六作业全绿                       | ✅ PR #2 run 36363977447 六作业全绿（PR CI 首红两处已修：tab-recycle testid 沿用/异步竞态等待）；已合 main |
 
 ### 7.1 走查与确认状态
 
@@ -129,6 +129,8 @@ shared 契约/权限/错误码（先行，一次性）
 - gen-jmx-s5 生成器三连缺陷（本地三轮定位）：①TestPlan UDV elementProp 误写驼峰 `user_definedVariables`——JMeter 仅认下划线，整块 UDV 被忽略致 `${EMAIL}` 原样发出（T0 全线 422）；②UDV 值自引用 `${TS}` 污染整区 UDV 求值；③断言用假 uuid 13 位（`000000000dead`）且 zod `.uuid()` 校验 RFC 版本位（第三段须 1-5、第四段 8/9/a/b）——统一改合法版本位 12 位
 - jmeter 栈 api-test-stack.sh 未透传 MOCK_PORT（API-011 同步 URL 属性缺省回落 4000，此前靠开发栈 mock 残留兜底假绿）——补 `MOCK_PORT=$JM_MOCK_PORT`
 - PROJ-006 E3「组重名」断言误用环境名（环境名与组名不共享唯一域）——改为先建同名组再断言 422
+- CI 首红①（BUG-001 三用例稳定红）：bugs 页回收站 testid 误改 `tab-bug-recycle` 破坏既有用例——本地全量假绿根因=/tmp/rabbit-e2e-root 旧构建副本被 webServer 优先启动掩盖改名（副本已删+勘误：**副本构建与仓库构建不一致时须删副本重验**）；testid 恢复 `tab-recycle` 沿用 BUG-001
+- CI 首红②（SYS-007 T4）：清除个人默认模型后未等异步 mutate 落库即断言（快机偶过慢机必现）——补「已保存」toast 等待
 
 ## 8. 遗留与展望（收尾时回填）
 
