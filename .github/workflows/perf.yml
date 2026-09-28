@@ -46,6 +46,10 @@ jobs:
     env:
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/rabbit_perf
       REDIS_URL: redis://127.0.0.1:6379
+      # mock 端口必须 job 级可见（起栈子 shell 的 export 传不到后续 step——首红根因：
+      # baseline 回落 4000 无监听 → 场景 B/C 任务 NETWORK_ERROR）
+      MOCK_PORT: "4021"
+      PERF_MOCK_URL: http://127.0.0.1:4021
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
