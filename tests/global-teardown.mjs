@@ -1,4 +1,8 @@
 import { execSync } from "node:child_process";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 /** 递归杀进程树（pnpm --filter xx start 的孙进程 tsx/node 不会被 pnpm 的 SIGTERM 带走，
  *  残留 mock 占用 :4000 导致下一轮 EADDRINUSE——2026-09-27 e2e 修复循环教训） */
@@ -30,8 +34,9 @@ export default async function globalTeardown() {
       /* noop */
     }
   }
-  // 兜底：tsx 进程链可能被 reparent（launchd），按仓库路径特征清残留（mock :4000 / engine worker）
-  for (const pat of ["apps/mock", "apps/engine"]) {
+  // 兜底：tsx 进程链可能被 reparent（launchd），按本 worktree 绝对路径清残留（mock / engine worker）。
+  // INFRA-005：模式限定为 `${root}/apps/*`——原裸 "apps/mock" 会误杀并行 worktree 的同路径进程
+  for (const pat of [`${root}/apps/mock`, `${root}/apps/engine`]) {
     try {
       execSync(`pkill -9 -f "${pat}" || true`, { stdio: "ignore" });
     } catch {

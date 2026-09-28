@@ -88,3 +88,14 @@ lint(oxlint) → typecheck(tsc) → unit(vitest, 含覆盖率阈值)
 | 4   | 文档与 changelog | 用户可见变更追加 changelog；覆盖率映射表（清单章节 → 文档编号）同步                                                                                                   |
 | 5   | 里程碑产物       | 到达里程碑（M1-M10）时打 tag 并出 release PR；远端 CI 绿后归档                                                                                                        |
 | 6   | 交接说明         | 在 sprint-overview 追加「遗留项与风险」小节，未完成项指向去向 Sprint/文档编号                                                                                         |
+
+## 9. 并行 worktree 槽位隔离（INFRA-005，2026-09-28）
+
+多 worktree 并行联调/自测时，全部环境资源标识（端口 / Redis 键空间 / Docker 容器 / /tmp 共享路径）**按槽位隔离**，单一事实源为 `scripts/rabbit-env.mjs`（规格：`docs/sprint-8-stabilize/INFRA-005-parallel-slot-isolation.md`）。
+
+1. **槽位推导**（优先级）：`RABBIT_SLOT` 环境变量（0-9） > worktree 目录名 `RabbitAITest-s{N}` → N > 主仓/CI checkout → 0。CI 恒为 slot 0。
+2. **端口表**（base + slot）：dev 栈 web `3000+s` / mock `4000+s` / PG `5440+s`；e2e 栈 `3100+s` / `4100+s` / `5450+s`；JMeter 栈 `3200+s` / `4200+s` / `5460+s`。Redis 实例共享（dev 6379 / e2e+jm 6381），**键空间按逻辑库号 = slot 隔离**（BullMQ 队列、SSE Stream 不串台）。
+3. **硬性禁令**：新增服务/脚本/测试**禁止硬编码端口与共享 /tmp 路径**，一律从 `scripts/rabbit-env.mjs` 取值（Node 侧 `import { rabbitEnv }`；bash 侧 `eval "$(node scripts/rabbit-env.mjs --shell)"`，RABBIT_* 仅作默认值、显式 env 可覆盖）；e2e 用例侧统一走 `tests/e2e/env.ts`。CI 用 `pnpm test`（含 `node --test scripts/`）守住端口表唯一性。
+4. **清场纪律与归属检测**：栈脚本/teardown 只清**本槽位**端口与本 worktree 绝对路径下的进程（`pkill -f "<worktree>/apps/..."`）；占用者的 cwd 属于**其他 worktree** 时必须 fail fast 指名冲突（global-setup 已内置 `lsof -d cwd` 归属检测），禁止裸 `apps/mock` 模式、跨槽 lsof 互杀或静默抢占。
+5. **诊断口径**：联调自测异常先查串台——`node scripts/rabbit-env.mjs`（确认本目录槽位）+ `lsof -nP -iTCP -sTCP:LISTEN | grep -E '30[0-9]{2}|4[012][0-9]{2}|54[0-9]{2}'` + `redis-cli -p 6381 -n <slot> keys 'bull*'`。
+6. **过渡期登记**：本方案合入前创建的旧 worktree（基线不含 INFRA-005）仍用旧固定端口（3000/4000/4001/5433/5434/3101/4020/5438），彼此及与 slot 0 互抢——**尽早 rebase 到含 INFRA-005 的基线**；新表与旧端口的唯二交叠为 slot 1（dev mock 4001 / e2e web 3101），过渡期避开 s1 目录命名。`tests/smoke/*.sh` 历史冒烟脚本按 slot 0（主仓）口径保留，不随槽位参数化。

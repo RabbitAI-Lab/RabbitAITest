@@ -9,6 +9,7 @@ import {
   pollTask,
   submitDebugTask,
 } from "./s2-helpers";
+import { MOCK_BASE } from "./env";
 
 /**
  * API-004 请求参数体系（规格：docs/sprint-2-api-core/API-004-request-params.md）。
@@ -77,7 +78,11 @@ test("API-004-01 变量链路：${base} 渲染 + 前置 setVar + 变量断言 + 
   expect(payload.envId).toBe(envId);
   expect(payload.request.url).toBe("/hello");
   expect(payload.pre[0]).toMatchObject({ kind: "script", script: 'setVar("who", "smoke")' });
-  expect(payload.extracts[0]).toMatchObject({ expression: "$.status", variable: "svcState", scope: "env" });
+  expect(payload.extracts[0]).toMatchObject({
+    expression: "$.status",
+    variable: "svcState",
+    scope: "env",
+  });
 
   // ── 报告：SUCCESS + 双断言通过（含变量断言 who=smoke；单请求视图展示原始 URL）──
   await expect(page).toHaveURL(/\/reports\//, { timeout: 15000 });
@@ -97,7 +102,14 @@ test("API-004-01 变量链路：${base} 渲染 + 前置 setVar + 变量断言 + 
     name: caseName,
     request: bundle("GET", "${base}/hello", {
       extracts: [
-        { source: "body", kind: "jsonpath", expression: "$.status", match: "first", variable: "svcState2", scope: "env" },
+        {
+          source: "body",
+          kind: "jsonpath",
+          expression: "$.status",
+          match: "first",
+          variable: "svcState2",
+          scope: "env",
+        },
       ],
     }),
   });
@@ -106,21 +118,33 @@ test("API-004-01 变量链路：${base} 渲染 + 前置 setVar + 变量断言 + 
   expect(final.status).toBe("SUCCESS");
 
   await navFromHome(page, "接口报告");
-  const reportRow = page.getByTestId("report-list-table").getByRole("row", { name: new RegExp(taskId.slice(0, 8)) });
+  const reportRow = page
+    .getByTestId("report-list-table")
+    .getByRole("row", { name: new RegExp(taskId.slice(0, 8)) });
   await expect(reportRow).toBeVisible();
   await reportRow.getByTestId("report-name-link").click();
-  await expect(page.getByTestId("report-items-table").getByRole("row", { name: new RegExp(caseName) })).toBeVisible();
-  await page.getByTestId("report-items-table").getByRole("row", { name: new RegExp(caseName) }).click();
+  await expect(
+    page.getByTestId("report-items-table").getByRole("row", { name: new RegExp(caseName) }),
+  ).toBeVisible();
+  await page
+    .getByTestId("report-items-table")
+    .getByRole("row", { name: new RegExp(caseName) })
+    .click();
   await expect(page.getByTestId("item-drilldown")).toBeVisible();
   // 渲染后 URL（请求快照）：${base} 已替换为真实 mock 地址
-  await expect(page.getByTestId("drill-request")).toContainText("http://127.0.0.1:4001/hello");
+  await expect(page.getByTestId("drill-request")).toContainText(`${MOCK_BASE}/hello`);
   await expect(page.getByTestId("drill-request")).not.toContainText("${base}");
   await expect(page.getByTestId("extracts-table")).toContainText("svcState2");
-  await expect(page.getByTestId("extracts-table").locator("td").filter({ hasText: "UP" })).toHaveCount(1);
+  await expect(
+    page.getByTestId("extracts-table").locator("td").filter({ hasText: "UP" }),
+  ).toHaveCount(1);
 
   // 环境写回（接口断言）：svcState2=UP 落库
   const envRes = await page.request.get(`/api/v1/projects/${projectId}/environments/${envId}`);
-  const envBody = (await envRes.json()) as { code: number; data: { config: { vars: { key: string; value: string }[] } } };
+  const envBody = (await envRes.json()) as {
+    code: number;
+    data: { config: { vars: { key: string; value: string }[] } };
+  };
   expect(envBody.code).toBe(0);
   expect(envBody.data.config.vars.find((v) => v.key === "svcState2")?.value).toBe("UP");
 
@@ -135,7 +159,7 @@ test("API-004-02 断言失败二态：body_jsonpath 不存在值 → FAILED + �
   void authedPage;
   await navFromHome(page, "接口调试");
   await expect(page.getByTestId("debug-url")).toBeVisible();
-  await page.getByTestId("debug-url").fill("http://127.0.0.1:4001/hello");
+  await page.getByTestId("debug-url").fill(`${MOCK_BASE}/hello`);
 
   // 断言：body_jsonpath $.nope eq xyz（不存在 → 失败）
   await page.getByTestId("btn-add-assert").click();
@@ -168,7 +192,7 @@ test("API-004-03 脚本失败二态：前置 throw → FAILED + SCRIPT_ERROR 留
   const { projectId } = authedPage;
   // 直接 API 起一个前置脚本抛错的任务（UI 侧脚本编辑已由 API-004-01 覆盖）
   const taskId = await submitDebugTask(request, projectId, {
-    url: "http://127.0.0.1:4001/hello",
+    url: `${MOCK_BASE}/hello`,
     pre: [{ kind: "script", script: 'throw new Error("boom-script")' }],
   });
   const final = await pollTask(request, projectId, taskId);
@@ -176,7 +200,9 @@ test("API-004-03 脚本失败二态：前置 throw → FAILED + SCRIPT_ERROR 留
 
   // 用户路径：接口报告列表 → 详情
   await navFromHome(page, "接口报告");
-  const reportRow = page.getByTestId("report-list-table").getByRole("row", { name: new RegExp(taskId.slice(0, 8)) });
+  const reportRow = page
+    .getByTestId("report-list-table")
+    .getByRole("row", { name: new RegExp(taskId.slice(0, 8)) });
   await expect(reportRow).toBeVisible();
   await reportRow.getByTestId("report-name-link").click();
   await expect(page.getByTestId("report-status")).toHaveText("FAILED", { timeout: 15000 });

@@ -10,6 +10,7 @@ import {
   ok,
   pollTask,
 } from "./s2-helpers";
+import { E2E_BASE, MOCK_BASE } from "./env";
 
 /**
  * EXEC-002 资源池（规格：docs/sprint-2-api-core/EXEC-002-resource-pool.md）。
@@ -22,16 +23,17 @@ import {
  */
 
 /** 种子管理员登录（admin@rabbit.test；cookie 注入浏览器上下文，与 SYS-004/005 同款） */
-async function loginSeedAdmin(request: import("@playwright/test").APIRequestContext, context: import("@playwright/test").BrowserContext) {
+async function loginSeedAdmin(
+  request: import("@playwright/test").APIRequestContext,
+  context: import("@playwright/test").BrowserContext,
+) {
   const res = await request.post("/api/v1/auth/login", {
     data: { email: "admin@rabbit.test", password: "rabbit-admin-123" },
   });
   expect(res.status()).toBe(200);
   const ras = (res.headers()["set-cookie"] ?? "").split("ras=")[1]?.split(";")[0];
   expect(ras, "登录响应应下发 ras 会话 cookie").toBeTruthy();
-  await context.addCookies([
-    { name: "ras", value: ras!, url: process.env.E2E_BASE_URL ?? "http://localhost:3100" },
-  ]);
+  await context.addCookies([{ name: "ras", value: ras!, url: E2E_BASE }]);
 }
 
 test("EXEC-002-01 默认池：节点 ONLINE + 并发编辑 4 + 新建池 License 禁用", async ({
@@ -49,7 +51,15 @@ test("EXEC-002-01 默认池：节点 ONLINE + 并发编辑 4 + 新建池 License
   // 默认池卡片存在（接口取池 id）
   const poolsRes = await request.get("/api/v1/system/pools");
   const pools = (
-    await ok<{ items: { id: string; name: string; isDefault: boolean; maxConcurrency: number; nodes: unknown[] }[] }>(poolsRes)
+    await ok<{
+      items: {
+        id: string;
+        name: string;
+        isDefault: boolean;
+        maxConcurrency: number;
+        nodes: unknown[];
+      }[];
+    }>(poolsRes)
   ).items;
   expect(pools.length).toBeGreaterThanOrEqual(1);
   const defPool = pools.find((p) => p.isDefault) ?? pools[0];
@@ -57,7 +67,9 @@ test("EXEC-002-01 默认池：节点 ONLINE + 并发编辑 4 + 新建池 License
   await expect(page.getByTestId(`pool-card-${defPool.id}`)).toContainText("默认 · 不可删");
 
   // 节点表：engine 心跳在线（ONLINE 行存在）
-  await expect(page.getByTestId("pool-nodes").getByText("在线").first()).toBeVisible({ timeout: 15000 });
+  await expect(page.getByTestId("pool-nodes").getByText("在线").first()).toBeVisible({
+    timeout: 15000,
+  });
 
   // 编辑并发 4 → 保存（PUT payload maxConcurrency=4）
   await page.getByTestId(`btn-edit-pool-${defPool.id}`).click();
@@ -65,7 +77,9 @@ test("EXEC-002-01 默认池：节点 ONLINE + 并发编辑 4 + 新建池 License
   await expect(modal.getByTestId("input-pool-concurrency")).toBeVisible();
   await modal.getByTestId("input-pool-concurrency").fill("4");
   const putApi = expectApi("**/api/v1/system/pools/*");
-  const putRaw = page.waitForResponse((r) => r.url().includes("/system/pools/") && r.request().method() === "PUT");
+  const putRaw = page.waitForResponse(
+    (r) => r.url().includes("/system/pools/") && r.request().method() === "PUT",
+  );
   await modal.getByRole("button", { name: /保\s*存/ }).click();
   const put = await putApi;
   expect(put.status).toBe(200);
@@ -86,10 +100,10 @@ test("EXEC-002-01 默认池：节点 ONLINE + 并发编辑 4 + 新建池 License
   expect(put2.status).toBe(200);
   expect((put2.data as { maxConcurrency: number }).maxConcurrency).toBe(2);
   await expect
-    .poll(
-      async () => page.getByTestId("pool-nodes").getByText("0÷2").count(),
-      { timeout: 35_000, message: "并发下调至 2 后节点槽位应变为 0÷2" },
-    )
+    .poll(async () => page.getByTestId("pool-nodes").getByText("0÷2").count(), {
+      timeout: 35_000,
+      message: "并发下调至 2 后节点槽位应变为 0÷2",
+    })
     .toBeGreaterThan(0);
 
   // 恢复 4（不拖慢后续并行用例的批量执行），恢复动作不阻塞本用例收尾
@@ -146,11 +160,11 @@ test("EXEC-002-02 停止二态：慢任务 STOPPED + SUCCESS 任务不可重跑�
   const fastDef = await createApiDef(request, projectId, {
     name: `快定义-${uniq}`,
     path: "/hello",
-    request: bundle("GET", "http://127.0.0.1:4001/hello"),
+    request: bundle("GET", `${MOCK_BASE}/hello`),
   });
   const fastCase = await createApiCase(request, projectId, fastDef.id, {
     name: `快用例-${uniq}`,
-    request: bundle("GET", "http://127.0.0.1:4001/hello"),
+    request: bundle("GET", `${MOCK_BASE}/hello`),
   });
   const fastTaskId = await executeCases(request, projectId, fastDef.id, { caseIds: [fastCase.id] });
   const fastFinal = await pollTask(request, projectId, fastTaskId);
@@ -172,7 +186,10 @@ test("EXEC-002-02 停止二态：慢任务 STOPPED + SUCCESS 任务不可重跑�
 
   const stopApi = expectApi("**/api/v1/projects/*/exec-tasks/*/stop");
   await slowRow.getByTestId(/btn-stop-\d/).click();
-  await page.locator(".ant-popover").getByRole("button", { name: /停\s*止/ }).click();
+  await page
+    .locator(".ant-popover")
+    .getByRole("button", { name: /停\s*止/ })
+    .click();
   const stopped = await stopApi;
   expect(stopped.status).toBe(200);
   expect(stopped.code).toBe(0);

@@ -1,5 +1,6 @@
 import { test, expect } from "./fixtures";
 import { robotWebhookUrl, robotCalls, clearRobotCalls, fetchUnreadTitles } from "./s5-helpers";
+import { E2E_BASE } from "./env";
 
 const MEMBER_PASSWORD = process.env.E2E_USER_PASSWORD ?? "rabbit-pass-123";
 
@@ -10,11 +11,20 @@ const MEMBER_PASSWORD = process.env.E2E_USER_PASSWORD ?? "rabbit-pass-123";
  * 生产面出站守卫由单测/422 用例覆盖——规格 §1.2）。
  */
 test.describe("MSG-001 通知机器人", () => {
-  test("T2 主链路：机器人 CRUD + 测试发送（mock 收包）+ 铃铛通知", async ({ page, authedPage, expectNoConsoleErrors }) => {
+  test("T2 主链路：机器人 CRUD + 测试发送（mock 收包）+ 铃铛通知", async ({
+    page,
+    authedPage,
+    expectNoConsoleErrors,
+  }) => {
     const { projectId } = authedPage;
     // ① 接口断言：创建机器人（webhook→mock）
     const created = await page.request.post(`/api/v1/projects/${projectId}/robots`, {
-      data: { name: "e2e-钉钉机器人", channel: "dingtalk", webhook: robotWebhookUrl("dingtalk"), enabled: true },
+      data: {
+        name: "e2e-钉钉机器人",
+        channel: "dingtalk",
+        webhook: robotWebhookUrl("dingtalk"),
+        enabled: true,
+      },
     });
     expect(created.status()).toBe(201);
     const robot = ((await created.json()) as { code: number; data: { id: string } }).data;
@@ -36,7 +46,9 @@ test.describe("MSG-001 通知机器人", () => {
     });
     expect(inapp.status()).toBe(201);
     const inappId = ((await inapp.json()) as { data: { id: string } }).data.id;
-    const tested = await page.request.post(`/api/v1/projects/${projectId}/robots/${inappId}/test`, { data: {} });
+    const tested = await page.request.post(`/api/v1/projects/${projectId}/robots/${inappId}/test`, {
+      data: {},
+    });
     expect(tested.status()).toBe(200);
     await page.goto("/");
     await page.getByTestId("header-bell").click();
@@ -45,32 +57,68 @@ test.describe("MSG-001 通知机器人", () => {
     await expectNoConsoleErrors();
   });
 
-  test("T3 事件链路：BUG_CREATED → 站内信（接收人；操作人去重）+ mock webhook", async ({ page, authedPage, request, expectNoConsoleErrors }) => {
+  test("T3 事件链路：BUG_CREATED → 站内信（接收人；操作人去重）+ mock webhook", async ({
+    page,
+    authedPage,
+    request,
+    expectNoConsoleErrors,
+  }) => {
     const { projectId } = authedPage;
     // 造另一成员（接收人）：先取 org（admin 会话）→注册 member（jar 切换）→login 回 admin→加组织/项目
     const info = await page.request.get(`/api/v1/projects/${projectId}/info`);
     const orgId = ((await info.json()) as { data: { org: { id: string } } }).data.org.id;
     const memberEmail = `e2e-msg-member-${Date.now()}@rabbit.test`;
-    const reg = await page.request.post("/api/v1/auth/register", { data: { email: memberEmail, password: MEMBER_PASSWORD } });
+    const reg = await page.request.post("/api/v1/auth/register", {
+      data: { email: memberEmail, password: MEMBER_PASSWORD },
+    });
     const member = ((await reg.json()) as { data: { userId: string } }).data;
-    await page.request.post("/api/v1/auth/login", { data: { email: authedPage.email, password: MEMBER_PASSWORD } });
-    expect((await page.request.post(`/api/v1/orgs/${orgId}/members-add`, { data: { userIds: [member.userId] } })).status()).toBe(201);
-    expect((await page.request.post(`/api/v1/projects/${projectId}/members`, { data: { userIds: [member.userId] } })).status()).toBe(201);
+    await page.request.post("/api/v1/auth/login", {
+      data: { email: authedPage.email, password: MEMBER_PASSWORD },
+    });
+    expect(
+      (
+        await page.request.post(`/api/v1/orgs/${orgId}/members-add`, {
+          data: { userIds: [member.userId] },
+        })
+      ).status(),
+    ).toBe(201);
+    expect(
+      (
+        await page.request.post(`/api/v1/projects/${projectId}/members`, {
+          data: { userIds: [member.userId] },
+        })
+      ).status(),
+    ).toBe(201);
 
     // 清 mock 收包场 + 建机器人与事件配置
     await clearRobotCalls();
-    const robot = ((await (
-      await page.request.post(`/api/v1/projects/${projectId}/robots`, {
-        data: { name: "e2e-event-robot", channel: "wecom", webhook: robotWebhookUrl("wecom"), enabled: true },
-      })
-    ).json()) as { data: { id: string } }).data;
-    const inapp = ((await (
-      await page.request.post(`/api/v1/projects/${projectId}/robots`, {
-        data: { name: "e2e-event-inapp", channel: "inapp", enabled: true },
-      })
-    ).json()) as { data: { id: string } }).data;
+    const robot = (
+      (await (
+        await page.request.post(`/api/v1/projects/${projectId}/robots`, {
+          data: {
+            name: "e2e-event-robot",
+            channel: "wecom",
+            webhook: robotWebhookUrl("wecom"),
+            enabled: true,
+          },
+        })
+      ).json()) as { data: { id: string } }
+    ).data;
+    const inapp = (
+      (await (
+        await page.request.post(`/api/v1/projects/${projectId}/robots`, {
+          data: { name: "e2e-event-inapp", channel: "inapp", enabled: true },
+        })
+      ).json()) as { data: { id: string } }
+    ).data;
     const cfg = await page.request.put(`/api/v1/projects/${projectId}/message-config`, {
-      data: { BUG_CREATED: { enabled: true, robotIds: [robot.id, inapp.id], receiverUserIds: [member.userId] } },
+      data: {
+        BUG_CREATED: {
+          enabled: true,
+          robotIds: [robot.id, inapp.id],
+          receiverUserIds: [member.userId],
+        },
+      },
     });
     expect(cfg.status()).toBe(200);
 
@@ -81,13 +129,18 @@ test.describe("MSG-001 通知机器人", () => {
     await expectNoConsoleErrors();
 
     // 触发事件：admin 建缺陷
-    const bug = await page.request.post(`/api/v1/projects/${projectId}/bugs`, { data: { title: "e2e-通知触发缺陷" } });
+    const bug = await page.request.post(`/api/v1/projects/${projectId}/bugs`, {
+      data: { title: "e2e-通知触发缺陷" },
+    });
     expect(bug.status()).toBe(201);
 
     // ① member 收到站内信（API 断言）
-    const memberLogin = await request.post("/api/v1/auth/login", { data: { email: memberEmail, password: MEMBER_PASSWORD } });
-    const rasCookie = (memberLogin.headers()["set-cookie"] ?? "").split("ras=")[1]?.split(";")[0] ?? "";
-    const titles = await fetchUnreadTitles(process.env.E2E_BASE_URL ?? "http://localhost:3100", rasCookie);
+    const memberLogin = await request.post("/api/v1/auth/login", {
+      data: { email: memberEmail, password: MEMBER_PASSWORD },
+    });
+    const rasCookie =
+      (memberLogin.headers()["set-cookie"] ?? "").split("ras=")[1]?.split(";")[0] ?? "";
+    const titles = await fetchUnreadTitles(E2E_BASE, rasCookie);
     expect(titles.some((t) => t.includes("e2e-通知触发缺陷") && t.includes("新建"))).toBeTruthy();
     // ② 操作人（admin）本人不收（同人去重）
     const own = await page.request.get("/api/v1/personal/notifications?unread=true");
@@ -101,16 +154,25 @@ test.describe("MSG-001 通知机器人", () => {
   test("T4 二态：总闸关不投递；无权限成员 403", async ({ page, authedPage, request }) => {
     const { projectId } = authedPage;
     await clearRobotCalls();
-    const robot = ((await (
-      await page.request.post(`/api/v1/projects/${projectId}/robots`, {
-        data: { name: "e2e-disabled-robot", channel: "dingtalk", webhook: robotWebhookUrl("dingtalk"), enabled: true },
-      })
-    ).json()) as { data: { id: string } }).data;
+    const robot = (
+      (await (
+        await page.request.post(`/api/v1/projects/${projectId}/robots`, {
+          data: {
+            name: "e2e-disabled-robot",
+            channel: "dingtalk",
+            webhook: robotWebhookUrl("dingtalk"),
+            enabled: true,
+          },
+        })
+      ).json()) as { data: { id: string } }
+    ).data;
     // 总闸关（事件未启用）→ 建缺陷不投递
     await page.request.put(`/api/v1/projects/${projectId}/message-config`, {
       data: { BUG_UPDATED: { enabled: false, robotIds: [robot.id], receiverUserIds: [] } },
     });
-    const upd = await page.request.post(`/api/v1/projects/${projectId}/bugs`, { data: { title: "e2e-停用态缺陷" } });
+    const upd = await page.request.post(`/api/v1/projects/${projectId}/bugs`, {
+      data: { title: "e2e-停用态缺陷" },
+    });
     expect(upd.status()).toBe(201);
     const calls = await robotCalls();
     expect(calls.length).toBe(0);
@@ -118,12 +180,20 @@ test.describe("MSG-001 通知机器人", () => {
     const info = await page.request.get(`/api/v1/projects/${projectId}/info`);
     const orgId = ((await info.json()) as { data: { org: { id: string } } }).data.org.id;
     const memberEmail = `e2e-msg-403-${Date.now()}@rabbit.test`;
-    const reg = await page.request.post("/api/v1/auth/register", { data: { email: memberEmail, password: MEMBER_PASSWORD } });
+    const reg = await page.request.post("/api/v1/auth/register", {
+      data: { email: memberEmail, password: MEMBER_PASSWORD },
+    });
     const memberId = ((await reg.json()) as { data: { userId: string } }).data.userId;
-    await page.request.post("/api/v1/auth/login", { data: { email: authedPage.email, password: MEMBER_PASSWORD } });
+    await page.request.post("/api/v1/auth/login", {
+      data: { email: authedPage.email, password: MEMBER_PASSWORD },
+    });
     await page.request.post(`/api/v1/orgs/${orgId}/members-add`, { data: { userIds: [memberId] } });
-    await page.request.post(`/api/v1/projects/${projectId}/members`, { data: { userIds: [memberId] } });
-    await page.request.post("/api/v1/auth/login", { data: { email: memberEmail, password: MEMBER_PASSWORD } });
+    await page.request.post(`/api/v1/projects/${projectId}/members`, {
+      data: { userIds: [memberId] },
+    });
+    await page.request.post("/api/v1/auth/login", {
+      data: { email: memberEmail, password: MEMBER_PASSWORD },
+    });
     const forbidden = await page.request.post(`/api/v1/projects/${projectId}/robots`, {
       data: { name: "x", channel: "inapp", enabled: true },
     });

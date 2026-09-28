@@ -1,6 +1,7 @@
 import { test, expect, navFromHome } from "./fixtures";
 import { bundle, createApiDef, createMockRule, getMockUrl, pollTask } from "./s2-helpers";
 import { createScenario, customStep, executeScenario, saveSteps } from "./s3-helpers";
+import { MOCK_BASE } from "./env";
 
 /**
  * API-010 误报规则（规格：docs/sprint-3-scenario-automation/API-010-false-alarm-rules.md）。
@@ -30,7 +31,11 @@ test("API-010-01 误报规则 CRUD 与启停（UI 表格 + 抽屉匹配器）", 
   await page.getByTestId("btn-save-fa-rule").click();
   const res = await created;
   expect(res.status()).toBe(201);
-  const payload = res.request().postDataJSON() as { name: string; matcher: { status?: number; bodyContains?: string }; enabled: boolean };
+  const payload = res.request().postDataJSON() as {
+    name: string;
+    matcher: { status?: number; bodyContains?: string };
+    enabled: boolean;
+  };
   expect(payload.name).toBe(ruleName);
   expect(payload.matcher.status).toBe(502);
   expect(payload.matcher.bodyContains).toBe("known-issue");
@@ -47,7 +52,9 @@ test("API-010-01 误报规则 CRUD 与启停（UI 表格 + 抽屉匹配器）", 
   await page.getByTestId(`fa-rule-toggle-${id8}`).click();
   await toggled;
   const afterToggle = await request.get(`/api/v1/projects/${pid}/false-alarm-rules`);
-  const listData = (await afterToggle.json()) as { data: { list: { id: string; enabled: boolean }[] } };
+  const listData = (await afterToggle.json()) as {
+    data: { list: { id: string; enabled: boolean }[] };
+  };
   expect(listData.data.list.find((x) => x.id === createdData.data.id)?.enabled).toBe(false);
 
   // 删除（Popconfirm）
@@ -66,11 +73,16 @@ test("API-010-02 误报改判链路：失败场景命中耗时规则→item=FAKE
 }) => {
   const pid = authedPage.projectId;
   const uniq = `SA${Date.now() % 1e7}`;
-  const mockUrl = "http://127.0.0.1:4001/hello";
+  const mockUrl = `${MOCK_BASE}/hello`;
 
   // 规则（体包含 hello：内置端点响应必命中）+ 失败场景（断言故意 eq 500）
   const rule = await request.post(`/api/v1/projects/${pid}/false-alarm-rules`, {
-    data: { name: `响应体规则-${uniq}`, matcher: { bodyContains: "hello" }, enabled: true, description: "" },
+    data: {
+      name: `响应体规则-${uniq}`,
+      matcher: { bodyContains: "hello" },
+      enabled: true,
+      description: "",
+    },
   });
   const ruleId = ((await rule.json()) as { data: { id: string } }).data.id;
   const sc = await createScenario(request, pid, { name: `误报场景-${uniq}` });
@@ -82,7 +94,12 @@ test("API-010-02 误报改判链路：失败场景命中耗时规则→item=FAKE
   const task1 = await executeScenario(request, pid, sc.id);
   await pollTask(request, pid, task1);
   const rep1 = await request.get(`/api/v1/projects/${pid}/reports/${task1}`);
-  const d1 = (await rep1.json()) as { data: { items: { itemId: string; status: string; fakeAlarmHits?: { ruleName: string }[] }[]; summary: { failed: number; fakeError: number } } };
+  const d1 = (await rep1.json()) as {
+    data: {
+      items: { itemId: string; status: string; fakeAlarmHits?: { ruleName: string }[] }[];
+      summary: { failed: number; fakeError: number };
+    };
+  };
   expect(d1.data.items[0]!.status).toBe("FAKE_ERROR");
   expect(d1.data.items[0]!.fakeAlarmHits![0]!.ruleName).toContain("响应体规则");
   expect(d1.data.summary.fakeError).toBe(1);
@@ -97,12 +114,19 @@ test("API-010-02 误报改判链路：失败场景命中耗时规则→item=FAKE
 
   // 停用规则 → 重跑不再标记（FAILED，fakeError=0）
   await request.put(`/api/v1/projects/${pid}/false-alarm-rules/${ruleId}`, {
-    data: { name: `响应体规则-${uniq}`, matcher: { bodyContains: "hello" }, enabled: false, description: "" },
+    data: {
+      name: `响应体规则-${uniq}`,
+      matcher: { bodyContains: "hello" },
+      enabled: false,
+      description: "",
+    },
   });
   const task2 = await executeScenario(request, pid, sc.id);
   await pollTask(request, pid, task2);
   const rep2 = await request.get(`/api/v1/projects/${pid}/reports/${task2}`);
-  const d2 = (await rep2.json()) as { data: { items: { status: string }[]; summary: { fakeError: number } } };
+  const d2 = (await rep2.json()) as {
+    data: { items: { status: string }[]; summary: { fakeError: number } };
+  };
   expect(d2.data.items[0]!.status).toBe("FAILED");
   expect(d2.data.summary.fakeError).toBe(0);
 

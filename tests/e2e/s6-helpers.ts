@@ -1,10 +1,17 @@
-import { expect, type APIRequestContext, type BrowserContext, type Playwright } from "@playwright/test";
+import {
+  expect,
+  type APIRequestContext,
+  type BrowserContext,
+  type Playwright,
+} from "@playwright/test";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 
 /** S6 e2e 公共：管理员独立 API context（不覆盖浏览器 cookie——避免项目上下文丢失）+ 插件上传。 */
 
-export const E2E_BASE = process.env.E2E_BASE_URL ?? "http://localhost:3100";
+import { E2E_BASE as BASE, MOCK_BASE } from "./env";
+
+export const E2E_BASE = BASE;
 
 /** 浏览器会话注入管理员（仅系统页面 UI 用例） */
 export async function loginSeedAdmin(
@@ -48,17 +55,17 @@ export function readPluginB64(tgzName: string): string {
 }
 
 /** 上传插件 tarball（JSON base64 形态；201 或 409（已存在幂等））。返回插件 id。 */
-export async function uploadPlugin(
-  request: APIRequestContext,
-  tgzName: string,
-): Promise<string> {
+export async function uploadPlugin(request: APIRequestContext, tgzName: string): Promise<string> {
   const b64 = readPluginB64(tgzName);
   const res = await request.post("/api/v1/system/plugins", {
     data: { filename: tgzName, contentBase64: b64, orgScope: "ALL" },
   });
   expect([201, 409], `上传 ${tgzName} 应 201/409（幂等）`).toContain(res.status());
   if (res.status() === 201) {
-    const body = (await res.json()) as { code: number; data: { id: string; manifest: { name: string } } };
+    const body = (await res.json()) as {
+      code: number;
+      data: { id: string; manifest: { name: string } };
+    };
     expect(body.code).toBe(0);
     expect(body.data.manifest.name).toBe(tgzName.replace(/-\d+\.\d+\.\d+\.tgz$/, ""));
     return body.data.id;
@@ -83,5 +90,5 @@ export async function enablePlugin(request: APIRequestContext, id: string): Prom
   expect(body.data.ok).toBe(true);
 }
 
-/** e2e mock 三平台基址（:4001 与 MOCK_BASE 同进程——platform-mocks 与规则 mock 同端口） */
-export const PLATFORM_MOCK_BASE = process.env.E2E_MOCK_URL_BASE ?? "http://127.0.0.1:4001";
+/** e2e mock 三平台基址（随 worktree 槽位，与 MOCK_BASE 同进程——platform-mocks 与规则 mock 同端口） */
+export const PLATFORM_MOCK_BASE = MOCK_BASE;

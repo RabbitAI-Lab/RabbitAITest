@@ -1,4 +1,5 @@
 import { test, expect, navFromHome } from "./fixtures";
+import { MOCK_BASE } from "./env";
 
 /**
  * MAINFLOW-s4 主链路（sprint-overview §4 验收 1/2/8/9 压缩）：
@@ -6,9 +7,16 @@ import { test, expect, navFromHome } from "./fixtures";
  * 三类断言：UI/Console/接口。
  */
 
-const mockUrl = "http://127.0.0.1:4001/hello";
+const mockUrl = `${MOCK_BASE}/hello`;
 const spec = () => ({
-  spec: { method: "GET" as const, url: mockUrl, headers: [], query: [], body: { kind: "none" as const }, auth: { kind: "none" as const } },
+  spec: {
+    method: "GET" as const,
+    url: mockUrl,
+    headers: [],
+    query: [],
+    body: { kind: "none" as const },
+    auth: { kind: "none" as const },
+  },
   asserts: [],
   pre: [],
   post: [],
@@ -28,13 +36,19 @@ test("MAINFLOW-s4 计划完整链路", async ({
 
   // 造接口用例
   const modRes = await request.get(`/api/v1/projects/${projectId}/modules?scene=api`);
-  const modId = (((await modRes.json()) as { data: { items: { id: string }[] } }).data.items[0]!).id;
+  const modId = ((await modRes.json()) as { data: { items: { id: string }[] } }).data.items[0]!.id;
   const apiRes = await request.post(`/api/v1/projects/${projectId}/apis`, {
     data: { moduleId: modId, name: `主链路接口-${uniq}`, request: spec() },
   });
   const apiId = ((await apiRes.json()) as { data: { id: string } }).data.id;
   const caseRes = await request.post(`/api/v1/projects/${projectId}/apis/${apiId}/cases`, {
-    data: { name: `主链路用例-${uniq}`, level: "P1", status: "UNDERWAY", tags: [], request: spec() },
+    data: {
+      name: `主链路用例-${uniq}`,
+      level: "P1",
+      status: "UNDERWAY",
+      tags: [],
+      request: spec(),
+    },
   });
   const acaseId = ((await caseRes.json()) as { data: { id: string } }).data.id;
 
@@ -51,7 +65,10 @@ test("MAINFLOW-s4 计划完整链路", async ({
   await page.getByTestId("plan-points-tab").click();
   await page.getByTestId("btn-add-point").click();
   await page.getByRole("dialog").getByPlaceholder("测试点名称").fill(`主链路点-${uniq}`);
-  await page.getByRole("dialog").getByRole("button", { name: /确 定|确定/ }).click();
+  await page
+    .getByRole("dialog")
+    .getByRole("button", { name: /确 定|确定/ })
+    .click();
   await expect(page.getByTestId("plan-points-panel")).toContainText(`主链路点-${uniq}`);
   await page.getByTestId("btn-link-to-point").click();
   await page.getByRole("tab", { name: "接口用例" }).click();
@@ -75,21 +92,29 @@ test("MAINFLOW-s4 计划完整链路", async ({
   // 报告 Tab：阈值横幅 + 点分组（主链路点）+ CSV
   await page.getByTestId("plan-report-tab").click();
   await expect(page.getByTestId("plan-report-v2")).toBeVisible({ timeout: 15_000 });
-  await expect(page.getByTestId("plan-report-v2")).toContainText(`主链路点-${uniq}`, { timeout: 15_000 });
+  await expect(page.getByTestId("plan-report-v2")).toContainText(`主链路点-${uniq}`, {
+    timeout: 15_000,
+  });
   const listRes = await request.get(`/api/v1/projects/${projectId}/plans?page=1&pageSize=50`);
-  const plans = ((await listRes.json()) as { data: { items: { name: string; id: string }[] } }).data.items;
+  const plans = ((await listRes.json()) as { data: { items: { name: string; id: string }[] } }).data
+    .items;
   const mainflowPlanId = plans.find((x) => x.name === planName)?.id;
   expect(mainflowPlanId).toBeTruthy();
-  const csvRes = await request.get(`/api/v1/projects/${projectId}/plans/${mainflowPlanId}/report/export`);
+  const csvRes = await request.get(
+    `/api/v1/projects/${projectId}/plans/${mainflowPlanId}/report/export`,
+  );
   expect(csvRes.status()).toBe(200);
 
   // 工作台关注收口
   await navFromHome(page, "测试计划");
   const row = page.locator("tr", { hasText: planName }).first();
-  await row.getByTestId(/plan-follow-/).click().catch(async () => {
-    // 兜底：任何星形
-    await row.locator("[data-testid*='plan-follow']").first().click();
-  });
+  await row
+    .getByTestId(/plan-follow-/)
+    .click()
+    .catch(async () => {
+      // 兜底：任何星形
+      await row.locator("[data-testid*='plan-follow']").first().click();
+    });
   await navFromHome(page, "工作台");
   await page.getByRole("tab", { name: "我关注的" }).click();
   await page.getByTestId("dash-followed-kind-plan").click();

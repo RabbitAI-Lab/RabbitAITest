@@ -1,9 +1,11 @@
 /**
- * S5 e2e helpers（MSG-001/FILE-001）：e2e 栈 mock（环回 :4001）交互封装。
+ * S5 e2e helpers（MSG-001/FILE-001）：e2e 栈 mock（随 worktree 槽位，INFRA-005）交互封装。
  * 口径同 s6-helpers.PLATFORM_MOCK_BASE：webhook/Git 平台指向测试栈 mock 为被测行为，
  * 栈注入 OUTBOUND_ALLOW_PRIVATE=1（e2e 约定）；生产面出站守卫由单测与 422 用例覆盖。
  */
-export const S5_MOCK_BASE = process.env.E2E_MOCK_URL_BASE ?? "http://127.0.0.1:4001";
+import { MOCK_BASE } from "./env";
+
+export const S5_MOCK_BASE = MOCK_BASE;
 
 /** 三平台机器人 webhook（mock 接收端点） */
 export function robotWebhookUrl(channel: "dingtalk" | "wecom" | "feishu"): string {

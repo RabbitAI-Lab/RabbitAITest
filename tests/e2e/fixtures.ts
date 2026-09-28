@@ -1,6 +1,7 @@
 import { test as base, expect } from "@playwright/test";
 import { mkdirSync } from "node:fs";
 import path from "node:path";
+import { E2E_BASE } from "./env";
 
 /**
  * rules/testing.md §3.1 三类断言公共夹具：
@@ -52,9 +53,7 @@ export const test = base.extend<{
     const cookieHeader = res.headers()["set-cookie"] ?? "";
     const ras = cookieHeader.split("ras=")[1]?.split(";")[0];
     if (ras) {
-      await context.addCookies([
-        { name: "ras", value: ras, url: process.env.E2E_BASE_URL ?? "http://localhost:3100" },
-      ]);
+      await context.addCookies([{ name: "ras", value: ras, url: E2E_BASE }]);
     }
     await use({ email, password, projectId: body.data.projectId });
   },
@@ -67,7 +66,9 @@ export const test = base.extend<{
     // 页面上下文 4xx/5xx 一并留痕（含资源 URL——console.error 不带 URL，排障盲区）
     page.on("response", (res) => {
       if (res.status() >= 400 && ["xhr", "fetch"].includes(res.request().resourceType())) {
-        errors.push(`[http ${res.status()}] ${res.request().method()} ${res.url()} @ ${page.url()}`);
+        errors.push(
+          `[http ${res.status()}] ${res.request().method()} ${res.url()} @ ${page.url()}`,
+        );
       }
     });
     await use(async (whitelist: ConsoleNoise[] = []) => {

@@ -5,12 +5,12 @@ import { expect, type APIRequestContext, type Page } from "@playwright/test";
  * 载荷口径与 tests/smoke/s2-smoke*.sh 对齐（packages/shared zod 契约）。
  */
 
-/** e2e mock 基址（:4001 独占端口，global-setup MOCK_PORT=4001 + web MOCK_PUBLIC_URL 对齐） */
-export const MOCK_BASE = process.env.E2E_MOCK_URL_BASE ?? "http://127.0.0.1:4001";
+/** e2e mock 基址与端口：随 worktree 槽位（INFRA-005，单一来源 ./env；
+ *  global-setup MOCK_PORT=4100+slot 与 web MOCK_PUBLIC_URL 对齐）。
+ *  写死 :4000/:4001 会在多 worktree 并行或无 dev mock 常驻时连接拒绝（2026-09-27 终验教训） */
+import { MOCK_BASE, MOCK_PORT } from "./env";
 
-/** 默认 HTTP 域名端口随 MOCK_BASE 推导（本地 :4001 / CI 经 E2E_MOCK_URL_BASE :4000）——
- *  写死 4000 会在本地无 dev mock 常驻时连接拒绝（2026-09-27 终验教训） */
-const MOCK_PORT = Number(new URL(MOCK_BASE).port) || 80;
+export { MOCK_BASE, MOCK_PORT };
 
 export type Kv = { key: string; value: string; enabled: boolean };
 
@@ -81,7 +81,10 @@ export const emptyEnvConfig = () => ({
 });
 
 /** 业务信封解包：code=0 才返回 data */
-export async function ok<T>(res: { status(): number; json(): Promise<unknown> }, expectStatus = 200): Promise<T> {
+export async function ok<T>(
+  res: { status(): number; json(): Promise<unknown> },
+  expectStatus = 200,
+): Promise<T> {
   expect(res.status()).toBe(expectStatus);
   const body = (await res.json()) as { code: number; data: T; message?: string };
   expect(body.code, `业务码非 0：${body.message ?? ""}`).toBe(0);
@@ -127,7 +130,10 @@ export async function createEnv(
 }
 
 /** 接口默认模块（scene=api） */
-export async function defaultApiModuleId(request: APIRequestContext, projectId: string): Promise<string> {
+export async function defaultApiModuleId(
+  request: APIRequestContext,
+  projectId: string,
+): Promise<string> {
   const res = await request.get(`/api/v1/projects/${projectId}/modules?scene=api`);
   const data = await ok<{ items: { id: string; isDefault?: boolean; children: unknown[] }[] }>(res);
   const flat: { id: string; isDefault?: boolean }[] = [];
@@ -233,7 +239,14 @@ export async function executeCases(
 export async function submitDebugTask(
   request: APIRequestContext,
   projectId: string,
-  body: { url: string; method?: string; asserts?: BundleLike["asserts"]; pre?: BundleLike["pre"]; extracts?: BundleLike["extracts"]; envId?: string },
+  body: {
+    url: string;
+    method?: string;
+    asserts?: BundleLike["asserts"];
+    pre?: BundleLike["pre"];
+    extracts?: BundleLike["extracts"];
+    envId?: string;
+  },
 ): Promise<string> {
   const b = bundle(body.method ?? "GET", body.url, {
     asserts: body.asserts,
@@ -265,7 +278,10 @@ export async function pollTask(
   const deadline = Date.now() + timeoutMs;
   for (;;) {
     const res = await request.get(`/api/v1/projects/${projectId}/reports/${taskId}`);
-    const detail = await ok<{ status: string; summary?: { total?: number; passed?: number; failed?: number } }>(res);
+    const detail = await ok<{
+      status: string;
+      summary?: { total?: number; passed?: number; failed?: number };
+    }>(res);
     if (!["PENDING", "RUNNING"].includes(detail.status)) return detail;
     if (Date.now() > deadline) throw new Error(`任务 ${taskId} 轮询超时，当前 ${detail.status}`);
     await new Promise((r) => setTimeout(r, 500));
@@ -317,7 +333,11 @@ export async function createMockRule(
 }
 
 /** antd Select 选择（兼容 virtual 与否：可见下拉层的可见选项精确文本点击；动画期未展开自动重试） */
-export async function pickOption(page: Page, trigger: ReturnType<Page["locator"]>, optionText: string | RegExp): Promise<void> {
+export async function pickOption(
+  page: Page,
+  trigger: ReturnType<Page["locator"]>,
+  optionText: string | RegExp,
+): Promise<void> {
   let lastErr: unknown = null;
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
@@ -339,5 +359,7 @@ export async function pickOption(page: Page, trigger: ReturnType<Page["locator"]
       await page.keyboard.press("Escape").catch(() => {});
     }
   }
-  throw new Error(`pickOption 未能选择「${String(optionText)}」：${lastErr instanceof Error ? lastErr.message : ""}`);
+  throw new Error(
+    `pickOption 未能选择「${String(optionText)}」：${lastErr instanceof Error ? lastErr.message : ""}`,
+  );
 }

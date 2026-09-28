@@ -108,18 +108,19 @@ Playwright 全局配置（`playwright.config.ts`，禁止用例级关闭）：
 
 逐条修复 × 每轮重建环境的循环**预计或实际超过 30 分钟**，必须切换为环境复用模式，禁止每轮重复 initdb/迁移/起栈：
 
-1. **持久化 e2e 栈**：`node scripts/pg-e2e.mjs &`（常驻 :5434/rabbit_e2e，幂等：已有 PGDATA 直接 start）+ 本机 Redis :6381；跑用例带：
+1. **持久化 e2e 栈**（INFRA-005 槽位化：端口随 worktree 槽位，主仓 slot0=5450/6381）：`node scripts/pg-e2e.mjs &`（常驻 5450+slot /rabbit_e2e，幂等：已有 PGDATA 直接 start）+ 本机 Redis :6381（键空间按逻辑库号=slot 隔离）；跑用例带：
    ```bash
-   E2E_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5434/rabbit_e2e \
-   E2E_REDIS_URL=redis://127.0.0.1:6381 \
+   eval "$(node scripts/rabbit-env.mjs --shell)"
+   E2E_DATABASE_URL=$RABBIT_E2E_DATABASE_URL \
+   E2E_REDIS_URL=$RABBIT_E2E_REDIS_URL \
    pnpm exec playwright test -c tests/playwright.config.ts <files> --reporter=list
    ```
    global-setup 检测到 `E2E_*` 即跳过全新建库（单轮 2-4 分钟 → 30-60 秒；批量模式再省：连修 3-4 条跑一次）。
-2. **代价与边界**：持久库有脏数据累积——用例必须数据隔离（§3.2 第 2 条，本就是规范）；**收尾必须跑一次全新口径**（不带 E2E_* 的 `pnpm test:e2e`）与 CI 一致；跑全新口径前杀 5434 残留（`pkill -f pg-e2e.mjs` + `lsof -ti :5434 | xargs kill -9`，否则 initdb 端口冲突）。
+2. **代价与边界**：持久库有脏数据累积——用例必须数据隔离（§3.2 第 2 条，本就是规范）；**收尾必须跑一次全新口径**（不带 E2E_* 的 `pnpm test:e2e`）与 CI 一致；跑全新口径前杀本槽位 PG 残留（`pkill -f pg-e2e.mjs` + `lsof -ti :$RABBIT_E2E_PG_PORT | xargs kill -9`，否则 initdb 端口冲突）。
 3. **通用化**：任何修复-验证循环超 30 分钟先审查固定开销（重建/全量跑/重启），能增量就增量、能复用就复用；互不依赖的问题并行修。实测教训：S1 e2e 修复循环全量重建模式 ~70 分钟，切持久库+批量后 ~15 分钟。
 4. **复用库的隐性全局态（2026-09-27 S2 收尾两起事故）**：
    - **用户计数是全局累积资源**：公开注册通道不查用户上限、仅管理端 createUser 查——持久库跨轮累积到 268 > 测试上限 200 后，SYS-004-01 建用户必 400（USER_TOO_MANY）。e2e 环境上限经 `RABBIT_USER_LIMIT`（global-setup 与 playwright.config 三处同源，现 1000）放宽，产品默认 30 不变；排查口径：先数库 `select count(*) from "User"` 再怀疑产品。
-   - **禁止依赖宿主机常驻服务端口**：用例目标一律走 `MOCK_BASE`/`E2E_MOCK_URL` 口径（本地 e2e mock :4001、CI :4000），写死 `:4000` 的用例曾靠宿主机残留 dev mock「侥幸通过」，残留进程一清即连挂 4 条（API-001-01/02/04、API-004-01）。默认环境域名的端口从 MOCK_BASE 推导（s2-helpers `MOCK_PORT`），不许硬编码。
+   - **禁止依赖宿主机常驻服务端口**：用例目标一律走 `MOCK_BASE`（`tests/e2e/env.ts`，随槽位 4100+slot；CI 同槽推导）口径，写死 `:4000`/`:4001` 的用例曾靠宿主机残留 dev mock「侥幸通过」，残留进程一清即连挂 4 条（API-001-01/02/04、API-004-01）。默认环境域名的端口从 MOCK_BASE 推导（env.ts `MOCK_PORT`），不许硬编码。
 
 ### 3.5 断言与 fixture 质量（源自 RabbitProjects 实践教训）
 

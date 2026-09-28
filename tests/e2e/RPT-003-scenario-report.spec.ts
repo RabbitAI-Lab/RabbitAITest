@@ -1,6 +1,14 @@
 import { test, expect } from "./fixtures";
 import { bundle, createApiDef, createMockRule, getMockUrl, pollTask } from "./s2-helpers";
-import { createScenario, customStep, executeScenario, loopForeachStep, saveSteps, scriptStep } from "./s3-helpers";
+import {
+  createScenario,
+  customStep,
+  executeScenario,
+  loopForeachStep,
+  saveSteps,
+  scriptStep,
+} from "./s3-helpers";
+import { MOCK_BASE } from "./env";
 
 /**
  * RPT-003 场景报告与分享（规格：docs/sprint-3-scenario-automation/RPT-003-scenario-report-share.md）。
@@ -15,7 +23,7 @@ test("RPT-003-01 报告视图：五卡+步骤树节点状态+请求钻取+执行
 }) => {
   const pid = authedPage.projectId;
   const uniq = `R3${Date.now() % 1e7}`;
-  const mockUrl = "http://127.0.0.1:4001/hello";
+  const mockUrl = `${MOCK_BASE}/hello`;
 
   const sc = await createScenario(request, pid, {
     name: `视图场景-${uniq}`,
@@ -66,7 +74,7 @@ test("RPT-003-02 分享链路复用：生成 token→免登页只读五卡（误
 }) => {
   const pid = authedPage.projectId;
   const uniq = `R3${Date.now() % 1e7}`;
-  const mockUrl = "http://127.0.0.1:4001/hello";
+  const mockUrl = `${MOCK_BASE}/hello`;
 
   const sc = await createScenario(request, pid, { name: `分享场景-${uniq}` });
   await saveSteps(request, pid, sc.id, [customStep("步骤", mockUrl)]);
@@ -74,7 +82,9 @@ test("RPT-003-02 分享链路复用：生成 token→免登页只读五卡（误
   await pollTask(request, pid, taskId);
 
   // 生成分享链接（接口）
-  const share = await request.post(`/api/v1/projects/${pid}/reports/${taskId}/shares`, { data: { expireHours: 1 } });
+  const share = await request.post(`/api/v1/projects/${pid}/reports/${taskId}/shares`, {
+    data: { expireHours: 1 },
+  });
   expect(share.status()).toBe(201);
   const token = ((await share.json()) as { data: { token: string } }).data.token;
 

@@ -3,7 +3,11 @@
 set -uo pipefail
 cd "$(dirname "$0")/.."
 
-BASE=http://localhost:3101
+# 槽位默认值（INFRA-005：jm 栈 web/mock/redis 随 worktree 槽位；显式 env 可覆盖）
+eval "$(node scripts/rabbit-env.mjs --shell)"
+BASE="${BASE:-$RABBIT_JM_WEB_URL}"
+MOCK_ADDR="${MOCK_ADDR:-http://127.0.0.1:${RABBIT_JM_MOCK_PORT}}"
+REDIS_URL_LOCAL="${REDIS_URL_LOCAL:-$RABBIT_JM_REDIS_URL}"
 EMAIL="local-$(date +%s)@rabbit.test"
 
 echo "[1/5] 注册用户"
@@ -15,7 +19,7 @@ echo "  project=$PROJECT_ID"
 
 echo "[2/5] 创建调试任务（无 worker 消费，保持 PENDING）"
 cat > /tmp/local-task.json <<EOF
-{"type":"api_debug","request":{"method":"GET","url":"http://127.0.0.1:4000/hello","headers":[],"body":{"kind":"none","content":""}},"asserts":[{"kind":"status_code","path":"","op":"eq","expected":"200"}]}
+{"type":"api_debug","request":{"method":"GET","url":"${MOCK_ADDR}/hello","headers":[],"body":{"kind":"none","content":""}},"asserts":[{"kind":"status_code","path":"","op":"eq","expected":"200"}]}
 EOF
 curl -s -b /tmp/local-cj.txt -o /tmp/local-task-resp.json -X POST \
   "$BASE/api/v1/projects/$PROJECT_ID/exec-tasks" \
@@ -24,8 +28,8 @@ TASK_ID="$(node -e "console.log(JSON.parse(require('fs').readFileSync('/tmp/loca
 echo "  task=$TASK_ID"
 
 echo "[3/5] engine --local 执行并回环上报"
-REDIS_URL=redis://127.0.0.1:6381 INTERNAL_TOKEN=jmeter-internal-token \
-  pnpm --filter engine local -- --url http://127.0.0.1:4000/hello --expect-status 200 \
+REDIS_URL="$REDIS_URL_LOCAL" INTERNAL_TOKEN=jmeter-internal-token \
+  pnpm --filter engine local -- --url "${MOCK_ADDR}/hello" --expect-status 200 \
   --task-id "$TASK_ID" --server "$BASE" || true
 
 echo "[4/5] 查询报告"

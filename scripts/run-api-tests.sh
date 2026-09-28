@@ -1,13 +1,16 @@
 #!/usr/bin/env bash
 # rules/testing.md §2：JMeter 接口自动化执行器（CI/本地对已启动的全栈服务执行）
-# 用法：bash scripts/run-api-tests.sh [BASE_URL]   例：http://localhost:3101
+# 用法：bash scripts/run-api-tests.sh [BASE_URL]   例：http://localhost:3200（jm 栈，随 worktree 槽位）
+# 默认值按槽位推导（INFRA-005：RABBIT_SLOT > 目录名 RabbitAITest-s{N} > 0）；显式 env/参数仍可覆盖
 set -uo pipefail
 
-BASE_URL="${1:-${BASE_URL:-http://localhost:3101}}"
+eval "$(node scripts/rabbit-env.mjs --shell)"
+
+BASE_URL="${1:-${BASE_URL:-$RABBIT_JM_WEB_URL}}"
 HOST="$(printf '%s' "$BASE_URL" | sed -E 's|https?://||' | cut -d: -f1)"
 PORT="$(printf '%s' "$BASE_URL" | sed -nE 's|.*:([0-9]+)$|\1|p')"
 PORT="${PORT:-80}"
-MOCK_URL="${MOCK_URL:-http://127.0.0.1:4000/hello}"
+MOCK_URL="${MOCK_URL:-http://127.0.0.1:${RABBIT_JM_MOCK_PORT}/hello}"
 OUT_DIR="test-results/api"
 mkdir -p "$OUT_DIR"
 
@@ -17,16 +20,16 @@ if ! command -v jmeter >/dev/null 2>&1; then
 fi
 
 FAIL=0
-MOCK_BASE="${MOCK_BASE:-http://127.0.0.1:4000/ai}" # S7 AI：jmx 内 ${__P(MOCK_BASE)} 的 mock 供应商基地址（含 /ai 前缀——mock 路由 /ai/chat/completions）
+MOCK_BASE="${MOCK_BASE:-http://127.0.0.1:${RABBIT_JM_MOCK_PORT}/ai}" # S7 AI：jmx 内 ${__P(MOCK_BASE)} 的 mock 供应商基地址（含 /ai 前缀——mock 路由 /ai/chat/completions）
 MOCKHOST="${MOCKHOST:-127.0.0.1}"              # API-005 直打 mock 的主机/端口（多栈并存端口漂移时注入）
-MOCKPORT="${MOCKPORT:-4000}"
+MOCKPORT="${MOCKPORT:-$RABBIT_JM_MOCK_PORT}"
 for plan in tests/api/*.jmx; do
   name="$(basename "$plan" .jmx)"
   echo "> $name"
   jtl="$OUT_DIR/$name.jtl"
   rm -f "$jtl" # jtl 追加式：清场避免上一轮失败行混入本轮计数
   jmeter -n -t "$plan" \
-    -JHOST="$HOST" -JPORT="$PORT" -JMOCK_URL="$MOCK_URL" -JMOCK_BASE="$MOCK_BASE" -JMOCKHOST="$MOCKHOST" -JMOCKPORT="${MOCKPORT:-${MOCK_PORT:-4000}}" -JMOCK_PORT="${MOCK_PORT:-4000}" \
+    -JHOST="$HOST" -JPORT="$PORT" -JMOCK_URL="$MOCK_URL" -JMOCK_BASE="$MOCK_BASE" -JMOCKHOST="$MOCKHOST" -JMOCKPORT="${MOCKPORT:-${MOCK_PORT:-$RABBIT_JM_MOCK_PORT}}" -JMOCK_PORT="${MOCK_PORT:-$RABBIT_JM_MOCK_PORT}" \
     -l "$jtl" -j "$OUT_DIR/$name.log" >/dev/null 2>&1
   if [ ! -f "$jtl" ]; then
     echo "  FAIL: no jtl produced"
