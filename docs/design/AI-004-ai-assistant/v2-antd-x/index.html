@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="utf-8" />
+    <title>AI-004 UI v2 · AI 智能助手（Ant Design X 重构）</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-slate-100 text-slate-800 text-sm">
+    <header class="h-12 bg-white border-b flex items-center px-4 gap-3 sticky top-0 z-10">
+      <span class="font-semibold">RabbitAITest</span><span class="border rounded px-2 py-0.5 text-slate-500">演示项目 #1</span>
+      <span class="ml-auto flex items-center gap-4 text-slate-400 text-xs">
+        <span class="flex items-center gap-1 bg-[#574BFF]/10 text-[#574BFF] rounded-full px-2.5 py-1 font-medium" title="AI 助手（点亮=激活态）">
+          <span class="w-4 h-4 rounded-full bg-gradient-to-br from-[#574BFF] to-[#9D8BFF] grid place-items-center text-white text-[10px]">✦</span>
+          AI 助手
+        </span>
+        <span>帮助</span><span>🔔</span><span>用户</span>
+      </span>
+    </header>
+
+    <main class="p-4 space-y-4 max-w-[1240px] mx-auto">
+      <!-- 画板一：助手面板全貌（Conversations + Bubble.List + Sender） -->
+      <section class="bg-white border rounded-lg shadow-sm">
+        <div class="px-3 py-2 border-b bg-slate-50 font-medium flex items-center gap-2">
+          画板一 · 顶栏 ✦ → 右侧滑出面板 720px（X Conversations 会话栏 + X Bubble 消息流 + X Sender 输入区）
+          <span class="ml-auto text-[11px] text-slate-400 font-normal">data-testid 布局锚点见灰字标注</span>
+        </div>
+        <div class="flex h-[480px] text-[13px]">
+          <!-- 左栏：Conversations -->
+          <div class="w-56 border-r p-2.5 flex flex-col gap-2 bg-slate-50/50">
+            <button class="w-full flex items-center justify-center gap-1.5 border border-[#574BFF] text-[#574BFF] rounded-lg px-2 py-2 text-xs font-medium hover:bg-[#574BFF]/5" title="testid: ai-new-conversation">
+              <span class="text-base leading-none">＋</span> 新对话
+            </button>
+            <p class="px-1.5 pt-1 text-slate-400 text-[11px] flex items-center gap-1">
+              <span class="w-3.5 h-3.5 rounded border border-slate-300 grid place-items-center text-[9px]">⌕</span>
+              历史会话（个人级）
+            </p>
+            <div class="space-y-0.5 overflow-y-auto" title="testid: ai-conversation-list（X Conversations）">
+              <div class="group flex items-center rounded-lg bg-[#574BFF]/10 px-2.5 py-2 cursor-pointer">
+                <span class="truncate flex-1 text-[#574BFF] font-medium">密码锁定策略怎么设计用例</span>
+                <span class="opacity-0 group-hover:opacity-100 w-5 h-5 grid place-items-center rounded hover:bg-white text-slate-400">⋯</span>
+              </div>
+              <div class="group flex items-center rounded-lg px-2.5 py-2 cursor-pointer hover:bg-slate-100">
+                <span class="truncate flex-1 text-slate-600">502 排查思路</span>
+                <span class="opacity-0 group-hover:opacity-100 w-5 h-5 grid place-items-center rounded hover:bg-white text-slate-400">⋯</span>
+              </div>
+              <div class="group flex items-center rounded-lg px-2.5 py-2 cursor-pointer hover:bg-slate-100">
+                <span class="truncate flex-1 text-slate-600">jmx 参数化语法</span>
+                <span class="opacity-0 group-hover:opacity-100 w-5 h-5 grid place-items-center rounded hover:bg-white text-slate-400">⋯</span>
+              </div>
+            </div>
+            <!-- ⋯ 展开菜单（hover 态示意） -->
+            <div class="relative -mt-1 ml-auto w-28 bg-white border rounded-lg shadow-lg py-1 text-xs z-10">
+              <div class="px-3 py-1.5 hover:bg-slate-50 cursor-pointer">✎ 重命名</div>
+              <div class="px-3 py-1.5 hover:bg-red-50 text-red-500 cursor-pointer">🗑 删除</div>
+            </div>
+            <p class="mt-auto px-1.5 text-[10px] text-slate-300">软删 30 天清理 · 仅本人可见</p>
+          </div>
+
+          <!-- 右侧：消息流 + Sender -->
+          <div class="flex-1 flex flex-col min-w-0">
+            <!-- 消息流 Bubble.List -->
+            <div class="flex-1 p-5 space-y-4 overflow-y-auto bg-[radial-gradient(circle_at_top,#f6f5ff_0%,white_28%)]" title="testid: ai-chat-messages（X Bubble.List）">
+              <!-- 用户气泡（右对齐主题色） -->
+              <div class="flex justify-end gap-2.5">
+                <div class="max-w-[72%] bg-gradient-to-br from-[#574BFF] to-[#7A5CFF] text-white rounded-2xl rounded-br-md px-4 py-2.5 shadow-sm whitespace-pre-wrap">密码连续输错 5 次锁定的场景，测试用例该怎么设计？</div>
+                <div class="w-8 h-8 rounded-full bg-slate-200 grid place-items-center text-slate-500 text-xs shrink-0">我</div>
+              </div>
+              <!-- 助手气泡（左对齐带头像） -->
+              <div class="flex gap-2.5">
+                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-[#574BFF] to-[#9D8BFF] grid place-items-center text-white shrink-0">✦</div>
+                <div class="max-w-[78%] bg-white border rounded-2xl rounded-bl-md px-4 py-3 shadow-sm space-y-2">
+                  <p>可以从三层设计：</p>
+                  <p class="pl-3">1. <b>边界值</b>：第 4 次（未触发）与第 5 次（触发锁定）各一条；</p>
+                  <p class="pl-3">2. <b>锁定期间行为</b>：正确密码也不放行（负向验证）；</p>
+                  <p class="pl-3">3. <b>时间边界</b>：29 分 59 秒仍锁定、30 分整自动解锁<span class="inline-block w-0.5 h-4 bg-[#574BFF] align-middle animate-pulse ml-1"></span></p>
+                  <p class="text-[11px] text-slate-300 pt-1 border-t">✦ RabbitAITest 智能助手 · glm-4.6</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Sender：圆角容器内 textarea + 动作条 -->
+            <div class="p-4 pt-2 bg-white">
+              <div class="border rounded-2xl focus-within:border-[#574BFF] focus-within:shadow-[0_0_0_2px_rgba(87,75,255,0.1)] transition px-3.5 pt-3 pb-2.5">
+                <textarea rows="2" class="w-full resize-none outline-none text-[13px] placeholder:text-slate-300" placeholder="输入问题，Enter 发送 / Shift+Enter 换行" title="testid: ai-chat-input（X Sender）"></textarea>
+                <div class="flex items-center gap-2 pt-1.5">
+                  <!-- 模型下拉（动作条左侧） -->
+                  <span class="border rounded-md px-2 py-1 text-[11px] text-slate-500 flex items-center gap-1 bg-slate-50" title="testid: ai-chat-model-select">★ glm-4.6（默认） <span class="text-slate-300">▾</span></span>
+                  <span class="text-[10px] text-slate-300">上下文取最近 20 条</span>
+                  <!-- 发送按钮（右侧圆形主题钮） -->
+                  <button class="ml-auto w-8 h-8 rounded-full bg-[#574BFF] text-white grid place-items-center shadow-sm hover:opacity-90" title="testid: ai-chat-send（loading 态切换为 ai-chat-stop 停止钮）">↑</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="grid grid-cols-2 gap-4">
+        <!-- 画板二：空态 Welcome + Prompts -->
+        <section class="bg-white border rounded-lg shadow-sm">
+          <div class="px-3 py-2 border-b bg-slate-50 font-medium">画板二 · 新对话空态（X Welcome + Prompts 能力建议卡）</div>
+          <div class="h-[340px] flex flex-col items-center justify-center px-8 gap-4">
+            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#574BFF] to-[#9D8BFF] grid place-items-center text-white text-2xl shadow-md">✦</div>
+            <div class="text-center">
+              <p class="font-semibold text-base">我是 RabbitAITest 智能助手</p>
+              <p class="text-xs text-slate-400 mt-1">会话为个人级 · 模型可在输入区切换</p>
+            </div>
+            <div class="w-full max-w-sm space-y-2">
+              <div class="border rounded-xl px-3.5 py-2.5 flex items-center gap-3 hover:border-[#574BFF]/40 hover:bg-[#574BFF]/[0.03] cursor-pointer transition">
+                <span class="w-8 h-8 rounded-lg bg-[#574BFF]/10 text-[#574BFF] grid place-items-center">◧</span>
+                <div><p class="font-medium text-[13px]">用例设计思路</p><p class="text-[11px] text-slate-400">「帮我设计登录功能的测试用例」</p></div>
+              </div>
+              <div class="border rounded-xl px-3.5 py-2.5 flex items-center gap-3 hover:border-[#574BFF]/40 hover:bg-[#574BFF]/[0.03] cursor-pointer transition">
+                <span class="w-8 h-8 rounded-lg bg-[#574BFF]/10 text-[#574BFF] grid place-items-center">⚡</span>
+                <div><p class="font-medium text-[13px]">接口故障排查</p><p class="text-[11px] text-slate-400">「批量执行 502 的排查思路」</p></div>
+              </div>
+              <div class="border rounded-xl px-3.5 py-2.5 flex items-center gap-3 hover:border-[#574BFF]/40 hover:bg-[#574BFF]/[0.03] cursor-pointer transition">
+                <span class="w-8 h-8 rounded-lg bg-[#574BFF]/10 text-[#574BFF] grid place-items-center">▤</span>
+                <div><p class="font-medium text-[13px]">测试文档解读</p><p class="text-[11px] text-slate-400">「解读这段 OpenAPI 定义的风险点」</p></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 画板三：流式中停止态 + 错误态 -->
+        <section class="bg-white border rounded-lg shadow-sm">
+          <div class="px-3 py-2 border-b bg-slate-50 font-medium">画板三 · 流式停止态 与 错误态</div>
+          <div class="h-[340px] p-5 space-y-4 overflow-hidden">
+            <div class="flex gap-2.5">
+              <div class="w-8 h-8 rounded-full bg-gradient-to-br from-[#574BFF] to-[#9D8BFF] grid place-items-center text-white shrink-0">✦</div>
+              <div class="max-w-[75%] bg-white border rounded-2xl rounded-bl-md px-4 py-2.5 shadow-sm text-slate-400">
+                可以从三层设计：1. <b>边界值</b>：第 4 次（未触发）与第 5 次<span class="inline-block w-0.5 h-4 bg-red-400 align-middle ml-1"></span>
+                <p class="text-[11px] text-red-400 pt-1">⏹ 已停止生成（本条未保存）</p>
+              </div>
+            </div>
+            <div class="flex gap-2.5">
+              <div class="w-8 h-8 rounded-full bg-gradient-to-br from-slate-300 to-slate-400 grid place-items-center text-white shrink-0">✦</div>
+              <div class="max-w-[75%] border border-red-200 bg-red-50 rounded-2xl rounded-bl-md px-4 py-2.5 text-red-500 text-xs" title="testid: ai-chat-error">
+                ✗ 上游模型不可用（70501）——本条未保存，可重试
+              </div>
+            </div>
+            <div class="pt-2">
+              <div class="border rounded-2xl px-3.5 pt-3 pb-2.5 opacity-95">
+                <textarea rows="1" class="w-full resize-none outline-none text-slate-300" placeholder="输入问题…"></textarea>
+                <div class="flex items-center gap-2 pt-1.5">
+                  <span class="text-[10px] text-slate-300">生成中 · 点击停止可中断</span>
+                  <button class="ml-auto w-8 h-8 rounded-full bg-white border border-red-300 text-red-500 grid place-items-center hover:bg-red-50" title="testid: ai-chat-stop">■</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </body>
+</html>
