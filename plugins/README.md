@@ -1,11 +1,15 @@
 # plugins/ — 插件包源码与分发
 
-| 插件            | kind     | SPI            | 说明                                          |
-| --------------- | -------- | -------------- | --------------------------------------------- |
-| jira-platform   | platform | PlatformPlugin | Jira REST v2（Basic/Bearer；INTG-001）        |
-| zentao-platform | platform | PlatformPlugin | 禅道 REST v1（token 会话；INTG-002）          |
-| tapd-platform   | platform | PlatformPlugin | TAPD v1（Basic Auth；INTG-002）               |
-| tcp-conn        | protocol | SamplerPlugin  | TCP 连通性采样（engine 进程内加载；PLUG-002） |
+| 插件            | kind     | SPI            | 说明                                                               |
+| --------------- | -------- | -------------- | ------------------------------------------------------------------ |
+| jira-platform   | platform | PlatformPlugin | Jira REST v2（Basic/Bearer；INTG-001）                             |
+| zentao-platform | platform | PlatformPlugin | 禅道 REST v1（token 会话；INTG-002）                               |
+| tapd-platform   | platform | PlatformPlugin | TAPD v1（Basic Auth；INTG-002）                                    |
+| tcp-conn        | protocol | SamplerPlugin  | TCP 连通性采样（engine 进程内加载；PLUG-002）                      |
+| websocket       | protocol | SamplerPlugin  | WS 单 run 探活（undici 内联，format=cjs；PLUG-003；name=协议标识） |
+| mqtt            | protocol | SamplerPlugin  | MQTT 3.1.1 最小客户端（node:net 自研编解码，QoS0；PLUG-003）       |
+
+> 协议插件约定：**插件 name 必须等于协议标识**（引擎以 request.protocol 字面量查表）；默认导出工厂之外请同时导出具名 `createPlugin`（CJS bundle 经 import() 的命名空间适配，双侧加载器双层解包）。
 
 ## 构建
 

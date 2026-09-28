@@ -4,8 +4,9 @@ import { Button, Checkbox, Input, InputNumber, Radio, Select, Switch, Tabs } fro
 import { ScriptRefPanel, ScriptModeToggle } from "./ScriptRefPanel";
 import { ArrowDown, ArrowUp, X } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { fileApi } from "@rabbit/api-client";
+import { ProtocolSelect } from "./ProtocolSelect";
 import type {
   AssertSpec,
   AssertKind,
@@ -18,6 +19,7 @@ import type {
   RequestSpec,
 } from "@rabbit/shared";
 import { useProjectStore } from "@/stores/project";
+import { usePermissions } from "@/hooks/usePermissions";
 
 /**
  * API-004 统一请求编辑器（七区）：定义 API 页签 / 用例编辑抽屉 / 调试页三处复用。
@@ -371,6 +373,44 @@ export default function RequestEditor({
   const setPost = (post: Processor[]) => onChange({ ...bundle, post });
   const setExtracts = (extracts: Extractor[]) => onChange({ ...bundle, extracts });
 
+  // S-future PLUG-003：协议状态（选择器组件=ProtocolSelect；编辑器侧仅管 tab 自适应与 protocolConfig 编辑）
+  const protocol = spec.protocol ?? "http";
+  const isHttp = protocol === "http" || protocol === "https";
+  const [protoJson, setProtoJson] = useState<string>(() =>
+    spec.protocolConfig ? JSON.stringify(spec.protocolConfig, null, 2) : "",
+  );
+  // 外部装载（编辑既有定义/用例）时回填编辑区；与当前文本等值则不覆盖（避免光标跳动）
+  useEffect(() => {
+    const next = spec.protocolConfig ? JSON.stringify(spec.protocolConfig, null, 2) : "";
+    if (next === protoJson) return;
+    try {
+      if (
+        !protoJson.trim() ||
+        JSON.stringify(JSON.parse(protoJson)) === JSON.stringify(spec.protocolConfig ?? {})
+      )
+        return;
+    } catch {
+      /* 当前输入非法时以外部队值为准回填 */
+    }
+    setProtoJson(next);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [spec.protocolConfig]);
+  // 协议切换自外部（如调试页顶行）时，激活页签自适应：HTTP 面页签在非 http 协议下不存在
+  useEffect(() => {
+    const httpTabs = ["params", "auth", "body", "settings"];
+    if (!isHttp && httpTabs.includes(activeTab)) setActiveTab("protocol-config");
+    if (isHttp && activeTab === "protocol-config") setActiveTab("params");
+  }, [isHttp, activeTab]);
+  const protoJsonValid = (() => {
+    if (!protoJson.trim()) return true;
+    try {
+      JSON.parse(protoJson);
+      return true;
+    } catch {
+      return false;
+    }
+  })();
+
   // 文件列表（form_data file 行 / binary 选择；仅请求体页签激活时懒加载）
   const filesQ = useQuery({
     queryKey: ["files", currentProjectId, "editor"],
@@ -426,8 +466,9 @@ export default function RequestEditor({
   const auth = spec.auth;
   const body = spec.body;
 
+  // PLUG-003：非 http 协议时参数/认证/请求体/设置页签不适用（HTTP 专属面折叠，画板二口径）
   const tabItems = [
-    {
+    isHttp && {
       key: "params",
       label: <span data-testid="req-tab-params">参数</span>,
       forceRender: true,
@@ -455,7 +496,7 @@ export default function RequestEditor({
         </div>
       ),
     },
-    {
+    isHttp && {
       key: "auth",
       label: <span data-testid="req-tab-auth">认证</span>,
       forceRender: true,
@@ -498,7 +539,7 @@ export default function RequestEditor({
         </div>
       ),
     },
-    {
+    isHttp && {
       key: "body",
       label: <span data-testid="req-tab-body">请求体</span>,
       forceRender: true,
@@ -863,7 +904,8 @@ export default function RequestEditor({
       key: "settings",
       label: <span data-testid="req-tab-settings">设置</span>,
       forceRender: true,
-      children: (
+      // PLUG-003：HTTP 专属（超时/重定向/跳过处理器开关——协议插件超时在 protocolConfig 内声明）
+      children: isHttp ? (
         <div className="divide-y divide-[#F0F1F3] text-[13px]" data-testid="req-panel-settings">
           <div className="flex items-center gap-3 pb-3">
             <span className="w-32 text-[#646A73]">超时 timeoutMs</span>
@@ -905,9 +947,61 @@ export default function RequestEditor({
             />
           </div>
         </div>
+      ) : null,
+    },
+    // PLUG-003 画板二：非 http 协议的协议配置页签（JSON 编辑，行内校验不阻塞输入）
+    !isHttp && {
+      key: "protocol-config",
+      label: <span data-testid="req-tab-protocol">协议配置</span>,
+      forceRender: true,
+      children: (
+        <div className="space-y-2" data-testid="req-panel-protocol">
+          <div className="flex items-center justify-between">
+            <span className="text-[13px] text-[#646A73]">
+              protocolConfig（字段契约以插件 configSchema 为准；保存/执行时校验）
+            </span>
+            <Button
+              size="small"
+              disabled={!protoJsonValid}
+              onClick={() => setProtoJson(JSON.stringify(JSON.parse(protoJson || "{}"), null, 2))}
+            >
+              格式化 JSON
+            </Button>
+          </div>
+          <Input.TextArea
+            rows={8}
+            className="font-mono text-xs"
+            value={protoJson}
+            placeholder={'{\n  "url": "ws://127.0.0.1:4000/ws/echo",\n  "sendText": "hello"\n}'}
+            onChange={(e) => {
+              setProtoJson(e.target.value);
+              if (!e.target.value.trim()) {
+                setSpec({ protocolConfig: undefined });
+                return;
+              }
+              try {
+                setSpec({ protocolConfig: JSON.parse(e.target.value) as Record<string, unknown> });
+              } catch {
+                /* 行内校验态呈现，不阻塞输入（画板二口径） */
+              }
+            }}
+            data-testid="req-protocol-config"
+            status={protoJsonValid ? undefined : "error"}
+          />
+          {!protoJsonValid && (
+            <div className="text-xs text-red-500" data-testid="protocol-config-error">
+              JSON 解析失败（不阻塞输入，保存/执行时校验）
+            </div>
+          )}
+        </div>
       ),
     },
-  ];
+  ].filter(Boolean) as {
+    key: string;
+    label: React.ReactNode;
+    forceRender?: boolean;
+    children: React.ReactNode;
+  }[];
 
   function patchExtract(i: number, part: Partial<Extractor>) {
     setExtracts(bundle.extracts.map((x, idx) => (idx === i ? { ...x, ...part } : x)));
@@ -919,20 +1013,41 @@ export default function RequestEditor({
   return (
     <div className={compact ? "space-y-1.5" : "space-y-2"}>
       <div className="flex gap-2 items-center">
-        <Select
-          className="w-24"
-          value={spec.method}
-          onChange={(method) => setSpec({ method })}
-          options={METHODS.map((m) => ({ value: m, label: m }))}
-          data-testid="req-method"
+        <ProtocolSelect
+          value={protocol}
+          onChange={(p) => {
+            if (p === "http" || p === "https") {
+              setSpec({ protocol: p === "http" ? undefined : p });
+              setActiveTab("params");
+            } else {
+              // url 为 HTTP 面字段但 zod 要求 min(1)——协议插件路径引擎不消费 url，占位保证保存通过
+              setSpec({ protocol: p, url: spec.url || `${p}://config` });
+              setActiveTab("protocol-config");
+            }
+          }}
         />
-        <Input
-          className="flex-1 font-mono text-[13px]"
-          placeholder="${base}/pets/${petId} 或 https://…（支持 ${var}）"
-          value={spec.url}
-          onChange={(e) => setSpec({ url: e.target.value })}
-          data-testid="req-url"
-        />
+        {isHttp ? (
+          <>
+            <Select
+              className="w-24"
+              value={spec.method}
+              onChange={(method) => setSpec({ method })}
+              options={METHODS.map((m) => ({ value: m, label: m }))}
+              data-testid="req-method"
+            />
+            <Input
+              className="flex-1 font-mono text-[13px]"
+              placeholder="${base}/pets/${petId} 或 https://…（支持 ${var}）"
+              value={spec.url}
+              onChange={(e) => setSpec({ url: e.target.value })}
+              data-testid="req-url"
+            />
+          </>
+        ) : (
+          <span className="flex-1 text-xs text-[#A8ABB0]">
+            协议插件采样（参数/认证/请求体等 HTTP 面不适用）· 配置见「协议配置」页签
+          </span>
+        )}
       </div>
       <Tabs size="small" activeKey={activeTab} onChange={setActiveTab} items={tabItems} />
     </div>

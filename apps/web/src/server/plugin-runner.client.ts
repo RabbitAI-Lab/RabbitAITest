@@ -8,7 +8,12 @@
  */
 import { ErrCode, DomainError } from "@rabbit/shared";
 
-const RAW_BASE = process.env.PLUGIN_RUNNER_URL ?? "http://127.0.0.1:4010";
+// S-future PLUG-003：未显式配 URL 时跟随 PLUGIN_RUNNER_PORT（多栈并存端口隔离；内嵌启动与客户端默认同源）
+const RAW_BASE =
+  process.env.PLUGIN_RUNNER_URL ??
+  (process.env.PLUGIN_RUNNER_PORT
+    ? `http://127.0.0.1:${process.env.PLUGIN_RUNNER_PORT}`
+    : "http://127.0.0.1:4010");
 const DEFAULT_TIMEOUT_MS = 30_000;
 
 const IPV4_PATTERN = /^(\d+)\.(\d+)\.(\d+)\.(\d+)$/;

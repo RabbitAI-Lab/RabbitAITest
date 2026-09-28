@@ -4,12 +4,15 @@ import { templateFieldBindingSchema } from "../fields";
 
 // ── 项目与成员（PROJ-001）──
 
-export const KNOWN_MODULES = ["case", "api", "plan", "bug"] as const;
+export const KNOWN_MODULES = ["case", "api", "plan", "bug", "load", "uit"] as const;
 export const moduleFlagsSchema = z.object({
   case: z.boolean().default(true),
   api: z.boolean().default(true),
   plan: z.boolean().default(true),
   bug: z.boolean().default(true),
+  // S-future LOAD-001/UIT-001：企业版方向占位开关（缺省即关——与上四键缺省开相反，存量项目 JSON 零迁移）
+  load: z.boolean().default(false),
+  uit: z.boolean().default(false),
 });
 
 export const projectUpsertSchema = z.object({

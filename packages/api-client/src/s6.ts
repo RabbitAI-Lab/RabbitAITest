@@ -26,7 +26,14 @@ export interface PageEnvelope<T> {
 }
 
 export const pluginApi = {
-  list: () => get<PageEnvelope<PluginRow>>(`/api/v1/system/plugins`),
+  /** kind 筛选（PLUG-003 协议选择器取 kind=protocol 后前端滤 enabled） */
+  list: (kind?: string) =>
+    get<PageEnvelope<PluginRow>>(`/api/v1/system/plugins${kind ? `?kind=${kind}` : ""}`),
+  /** S-future PLUG-003：会话级已启用协议名单（协议选择器数据源——管理端点普通成员不可见） */
+  protocols: () =>
+    get<{ items: Array<{ name: string; version: string; description: string | null }> }>(
+      `/api/v1/plugins/protocols`,
+    ),
   upload: (file: File, orgScope: "ALL" | string[]) => {
     const form = new FormData();
     form.append("file", file);

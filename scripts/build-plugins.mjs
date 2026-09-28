@@ -13,7 +13,7 @@ import { fileURLToPath } from "node:url";
 const run = promisify(execFile);
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
-/** 插件清单表（版本随发布递增） */
+/** 插件清单表（版本随发布递增；format=cjs 用于含 CJS require 的依赖内联——undici 走 require("node:assert")，esm bundle 会出 dynamic-require 垫片抛错） */
 const PLUGINS = [
   {
     name: "jira-platform",
@@ -37,6 +37,17 @@ const PLUGINS = [
     entry: "index.js",
   },
   { name: "tcp-conn", kind: "protocol", version: "1.0.1", spiVersion: "1.0", entry: "index.js" },
+  // S-future PLUG-003：name 必须等于协议标识（引擎 step.ts 以 request.protocol 字面量查插件；
+  // tcp-conn 的 name≠protocol 已登记 PLUG-002 勘误，新插件规避）
+  {
+    name: "websocket",
+    kind: "protocol",
+    version: "1.0.0",
+    spiVersion: "1.0",
+    entry: "index.js",
+    format: "cjs",
+  },
+  { name: "mqtt", kind: "protocol", version: "1.0.0", spiVersion: "1.0", entry: "index.js" },
 ];
 
 const DIST = path.join(ROOT, "plugins", "dist");
@@ -50,7 +61,7 @@ for (const p of PLUGINS) {
     entryPoints: [path.join(ROOT, "plugins", p.name, "index.ts")],
     bundle: true,
     platform: "node",
-    format: "esm",
+    format: p.format ?? "esm",
     target: "node20",
     outfile: path.join(stage, "index.js"),
     // @rabbit/shared 仅 type-only 依赖：bundle 后自包含

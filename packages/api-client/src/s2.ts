@@ -409,6 +409,11 @@ export interface PoolRow {
   status: string;
   canDelete: boolean;
   lastBeatAt: string | null;
+  /** S-future EXEC-004：K8S 配置摘要（token 永不回明文，仅 tokenSet） */
+  k8s: { apiServer: string; namespace: string; image: string; tokenSet: boolean } | null;
+  /** S-future LOAD-001/UIT-001：企业版方向占位字段（恒 false） */
+  loadTest: boolean;
+  uiTest: boolean;
   nodes: {
     nodeId: string;
     version: string;
@@ -418,11 +423,19 @@ export interface PoolRow {
     state: "ONLINE" | "OFFLINE" | "UNMATCHED";
   }[];
 }
+/** S-future EXEC-004：池更新载荷（type 切换 + k8s 配置；token 缺省=不改） */
+export interface PoolUpdateBody {
+  maxConcurrency?: number;
+  type?: "NODE" | "K8S";
+  k8s?: { apiServer?: string; namespace?: string; token?: string; image?: string };
+}
 export const poolApi = {
   list: () => get<PageOf<PoolRow>>(`/api/v1/system/pools`),
   detail: (id: string) => get<PoolRow>(`/api/v1/system/pools/${id}`),
-  update: (id: string, body: { maxConcurrency: number }) =>
-    put<PoolRow>(`/api/v1/system/pools/${id}`, body),
+  update: (id: string, body: PoolUpdateBody) => put<PoolRow>(`/api/v1/system/pools/${id}`, body),
+  /** 连通性试连（?test=true：探测 apiServer /version，不落库） */
+  testK8s: (id: string, body: PoolUpdateBody) =>
+    put<{ k8sVersion: string }>(`/api/v1/system/pools/${id}?test=true`, body),
 };
 
 // ── RPT-002 报告与分享 ──
@@ -493,11 +506,40 @@ export interface ReportDetailV2 {
   shared?: boolean;
   expireAt?: string;
 }
+/** S-future RPT-004：报告统计视图（与 shared reportStatsSchema 同形；passRate 分母 0 为 null）。 */
+export interface ReportStatsView {
+  range: { from: string; to: string; days: number };
+  trend: {
+    date: string;
+    total: number;
+    passed: number;
+    failed: number;
+    fakeError: number;
+    passRate: number | null;
+  }[];
+  byType: {
+    reportType: string;
+    total: number;
+    passed: number;
+    failed: number;
+    passRate: number | null;
+  }[];
+  topFailed: {
+    taskId: string;
+    name: string;
+    reportType: string;
+    failed: number;
+    durationMs: number | null;
+  }[];
+}
 export const reportV2Api = {
   list: (
     projectId: string,
     q: { reportType?: string; keyword?: string; page?: number; pageSize?: number } = {},
   ) => get<PageOf<ReportRow>>(`/api/v1/projects/${projectId}/reports${qs(q)}`),
+  /** S-future RPT-004：跨报告统计（趋势/分布/失败 TOP5） */
+  stats: (projectId: string, days: 7 | 14 | 30 = 14) =>
+    get<ReportStatsView>(`/api/v1/projects/${projectId}/reports/stats?days=${days}`),
   /** 详情（RPT-002 事件聚合视图；api_debug 兼容单请求视图字段） */
   detail: (projectId: string, taskId: string) =>
     get<ReportDetailV2>(`/api/v1/projects/${projectId}/reports/${taskId}`),

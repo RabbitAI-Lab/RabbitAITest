@@ -9,6 +9,7 @@ import { apiApi, debugSubmitApi, execApi, moduleApi, ApiError } from "@rabbit/ap
 import type { AssertSpec, AssertKind, HttpMethod, Kv } from "@rabbit/shared";
 import { MethodTag, StatusDot } from "@rabbit/ui";
 import RequestEditor, { emptyBundle, type RequestBundle } from "@/components/api/RequestEditor";
+import { ProtocolSelect } from "@/components/api/ProtocolSelect";
 import EnvSelect from "@/components/api/EnvSelect";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useProjectStore } from "@/stores/project";
@@ -111,6 +112,16 @@ export default function DebugPage() {
   const setSpecUrl = (url: string) => setBundle((b) => ({ ...b, spec: { ...b.spec, url } }));
   const setSpecMethod = (method: HttpMethod) =>
     setBundle((b) => ({ ...b, spec: { ...b.spec, method } }));
+  /** S-future PLUG-003：协议切换（非 http 时 url 占位——zod min(1) 与引擎不消费 url 的折中，编辑器勘误 1 同款） */
+  const setSpecProtocol = (p: string) =>
+    setBundle((b) => ({
+      ...b,
+      spec: {
+        ...b.spec,
+        protocol: p === "http" ? undefined : p,
+        url: p === "http" || p === "https" ? b.spec.url : b.spec.url || `${p}://config`,
+      },
+    }));
   const patchAssert = (i: number, a: Partial<AssertSpec>) =>
     setBundle((b) => ({
       ...b,
@@ -118,19 +129,25 @@ export default function DebugPage() {
     }));
 
   const url = bundle.spec.url.trim();
+  // S-future PLUG-003：非 http 协议时 method/URL/环境行折叠（画板二口径）
+  const isHttpProtocol =
+    !bundle.spec.protocol || bundle.spec.protocol === "http" || bundle.spec.protocol === "https";
   // ${var} 开头的 URL 由环境变量渲染（API-004：占位符也算「待渲染相对/绝对」路径，交执行侧判定）
   const isAbs = /^https?:\/\//i.test(url) || url.startsWith("\${");
   const isRel = url.startsWith("/") || url.startsWith("\${");
 
   async function execute() {
     if (!currentProjectId) return;
-    if (!isAbs && !isRel) {
-      message.error("URL 必须以 http/https 开头；或以 / 开头的相对路径（需选择环境）");
-      return;
-    }
-    if (isRel && !envId) {
-      message.error("相对路径需选择环境（或使用绝对 URL）");
-      return;
+    // 协议插件采样：URL 为占位符（引擎不消费），跳过 HTTP URL/环境校验（PLUG-003 §2.4——执行正确性由引擎 40510 链路兜底）
+    if (isHttpProtocol) {
+      if (!isAbs && !isRel) {
+        message.error("URL 必须以 http/https 开头；或以 / 开头的相对路径（需选择环境）");
+        return;
+      }
+      if (isRel && !envId) {
+        message.error("相对路径需选择环境（或使用绝对 URL）");
+        return;
+      }
     }
     setExecuting(true);
     try {
@@ -210,26 +227,39 @@ export default function DebugPage() {
       </div>
 
       <div className="flex-1 space-y-4 min-w-0">
-        {/* 顶部一行：method + URL + 环境 + 执行 + 保存为接口 */}
+        {/* 顶部一行：协议 + method + URL + 环境 + 执行 + 保存为接口（S-future PLUG-003：协议选择器进页面行——编辑器自带行被 CSS 隐藏） */}
         <div className="rabbit-card p-4">
           <div className="flex gap-2 items-center flex-wrap">
-            <Select
-              className="w-28"
-              value={bundle.spec.method}
-              onChange={setSpecMethod}
-              options={METHODS.map((m) => ({ value: m, label: m }))}
-              data-testid="debug-method"
+            <ProtocolSelect
+              value={bundle.spec.protocol ?? "http"}
+              onChange={setSpecProtocol}
+              testid="debug-protocol"
             />
-            <Input
-              className="flex-1 min-w-[280px] font-mono"
-              value={bundle.spec.url}
-              onChange={(e) => setSpecUrl(e.target.value)}
-              onPressEnter={execute}
-              data-testid="debug-url"
-              placeholder="https://… 或 ${base}/pets/1（相对路径需选环境）"
-              status={!isAbs && !isRel && url !== "" ? "error" : undefined}
-            />
-            <EnvSelect value={envId} onChange={setEnvId} className="w-40" />
+            {isHttpProtocol ? (
+              <>
+                <Select
+                  className="w-28"
+                  value={bundle.spec.method}
+                  onChange={setSpecMethod}
+                  options={METHODS.map((m) => ({ value: m, label: m }))}
+                  data-testid="debug-method"
+                />
+                <Input
+                  className="flex-1 min-w-[280px] font-mono"
+                  value={bundle.spec.url}
+                  onChange={(e) => setSpecUrl(e.target.value)}
+                  onPressEnter={execute}
+                  data-testid="debug-url"
+                  placeholder="https://… 或 ${base}/pets/1（相对路径需选环境）"
+                  status={!isAbs && !isRel && url !== "" ? "error" : undefined}
+                />
+                <EnvSelect value={envId} onChange={setEnvId} className="w-40" />
+              </>
+            ) : (
+              <span className="text-xs text-[#A8ABB0] flex-1">
+                协议插件采样：配置见下方「协议配置」页签（HTTP 参数/请求体面板不适用）
+              </span>
+            )}
             <Button type="primary" loading={executing} onClick={execute} data-testid="btn-execute">
               执 行
             </Button>

@@ -19,3 +19,4 @@ export * from "./message/schemas";
 export * from "./entp/features";
 export * from "./entp/schemas";
 export * from "./entp/scan-providers";
+export * from "./tool/schemas";

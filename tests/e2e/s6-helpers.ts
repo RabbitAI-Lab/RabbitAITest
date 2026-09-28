@@ -35,12 +35,15 @@ export async function newAdminContext(playwright: Playwright): Promise<APIReques
   return ctx;
 }
 
-/** 允许上传的插件包白名单（构建产物目录固定四个；防路径穿越——basename 严格匹配） */
+/** 允许上传的插件包白名单（构建产物目录固定；防路径穿越——basename 严格匹配） */
 const PLUGIN_TGZ_WHITELIST = new Set([
   "jira-platform-1.0.2.tgz",
   "zentao-platform-1.0.1.tgz",
   "tapd-platform-1.0.1.tgz",
   "tcp-conn-1.0.1.tgz",
+  // S-future PLUG-003：协议插件（e2e 调试页协议选择器链路）
+  "websocket-1.0.0.tgz",
+  "mqtt-1.0.0.tgz",
 ]);
 
 /** 白名单内读插件包 base64（防路径穿越：basename 严格匹配 + 根边界校验） */

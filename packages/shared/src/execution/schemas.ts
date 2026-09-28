@@ -658,3 +658,52 @@ export type TaskStatus = z.infer<typeof taskStatusSchema>;
 /** 引擎契约版本（心跳协商：不一致节点 web 标「版本不匹配」不下发新类型任务展示）
  * v4（S4 PLAN-003）：+plan 命令（计划引擎执行）、step-start 帧 +stepName——全 additive。 */
 export const EXEC_CONTRACT_VERSION = 4;
+
+// ── K8S 型资源池（S-future EXEC-004 §4）──
+
+export const POOL_TYPES = ["NODE", "K8S"] as const;
+export type PoolType = (typeof POOL_TYPES)[number];
+
+/** K8S 四项配置（apiServer 强制 https；namespace=RFC1123 label；token 只写不读；image 可缺省）。 */
+export const poolK8sConfigSchema = z.object({
+  apiServer: z
+    .string()
+    .url()
+    .max(512)
+    .refine((u) => u.startsWith("https://"), { message: "apiServer 必须为 https URL" }),
+  namespace: z
+    .string()
+    .min(1)
+    .max(63)
+    .regex(/^[a-z0-9]([-a-z0-9]*[a-z0-9])?$/, { message: "namespace 须符合 RFC1123 标签规则" }),
+  token: z.string().min(1).max(4096),
+  image: z
+    .string()
+    .regex(/^[a-z0-9./:_-]{1,255}$/, { message: "镜像名非法" })
+    .default("rabbitaitest/task-runner:latest"),
+});
+export type PoolK8sConfig = z.infer<typeof poolK8sConfigSchema>;
+
+/** 池配置落库载体（ResourcePool.config，门禁 3 例外登记 test-domain-model §6）。
+ * token 更新语义：save 时缺省 token=保留旧值（编辑回填场景）。 */
+export const poolK8sConfigSaveSchema = poolK8sConfigSchema.extend({
+  token: z.string().max(4096).optional(), // 缺省=不修改
+});
+
+export const poolUpdateSchema = z.object({
+  name: z.string().min(1).max(128).optional(),
+  maxConcurrency: z.number().int().min(2).max(64).optional(),
+  type: z.enum(POOL_TYPES).optional(),
+  k8s: poolK8sConfigSaveSchema.optional(),
+});
+/** 服务入参口径=输入类型（k8s.image 带 default 可省——z.infer 输出型会强制调用方传 image）。 */
+export type PoolUpdateInput = z.input<typeof poolUpdateSchema>;
+
+/** K8S 配置回显（token 永不回明文，仅 tokenSet 标记）。 */
+export const poolK8sConfigViewSchema = z.object({
+  apiServer: z.string(),
+  namespace: z.string(),
+  image: z.string(),
+  tokenSet: z.boolean(),
+});
+export type PoolK8sConfigView = z.infer<typeof poolK8sConfigViewSchema>;

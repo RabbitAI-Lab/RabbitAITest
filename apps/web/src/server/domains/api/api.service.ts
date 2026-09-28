@@ -6,6 +6,7 @@ import { apiListQuerySchema, apiUpdateSchema, apiUpsertSchema } from "@rabbit/sh
 import { nextNum, prisma } from "@rabbit/db";
 import type { Prisma } from "@prisma/client";
 import { createDebugTask } from "@/server/domains/exec/exec.service";
+import { assertProtocolAvailable } from "@/server/domains/api/plugin.service";
 
 type UpsertInput = z.infer<typeof apiUpsertSchema>;
 type UpdateInput = z.infer<typeof apiUpdateSchema>;
@@ -152,6 +153,7 @@ export async function getApiDetail(projectId: string, id: string) {
 
 export async function createApi(projectId: string, userId: string, input: UpsertInput) {
   await requireModule(projectId, input.moduleId);
+  await assertProtocolAvailable(input.request.spec.protocol); // PLUG-003 §2.4：非内置协议须已启用插件（40511）
   const api = await prisma.$transaction(async (tx) => {
     const num = await nextNum(tx, "api_definitions", projectId);
     const created = await tx.apiDefinition.create({
@@ -190,6 +192,7 @@ export async function updateApi(projectId: string, id: string, userId: string, i
   if (input.version !== api.version)
     throw new DomainError(ErrCode.VERSION_CONFLICT, "内容已被他人修改，请刷新后重试");
   if (input.moduleId) await requireModule(projectId, input.moduleId);
+  if (input.request) await assertProtocolAvailable(input.request.spec.protocol); // PLUG-003 §2.4
   const updated = await prisma.$transaction(async (tx) => {
     const data: Prisma.ApiDefinitionUpdateInput = {
       version: { increment: 1 },

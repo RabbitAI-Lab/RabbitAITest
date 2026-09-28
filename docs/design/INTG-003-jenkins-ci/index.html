@@ -7,41 +7,110 @@
   </head>
   <body class="bg-slate-50 text-slate-800 text-sm">
     <header class="h-12 bg-white border-b flex items-center px-4 gap-3">
-      <span class="font-semibold">RabbitAITest</span><span class="border rounded px-2 py-0.5">张三</span>
-      <nav class="ml-4 flex gap-4 text-slate-500"><span>工作台</span><span>测试用例</span><span>接口测试</span></nav>
+      <span class="font-semibold">RabbitAITest</span
+      ><span class="border rounded px-2 py-0.5">张三</span>
+      <nav class="ml-4 flex gap-4 text-slate-500">
+        <span>工作台</span><span>测试用例</span><span>接口测试</span>
+      </nav>
       <span class="ml-auto text-slate-400 text-xs">帮助 · 消息 · 张三 ▾（下拉含：APIKEY）</span>
     </header>
     <main class="p-4 space-y-4 max-w-[1100px]">
       <!-- 画板一：APIKEY 列表 + 创建成功 Modal -->
       <section class="bg-white border rounded-md">
-        <div class="px-3 py-2 border-b bg-slate-50 font-medium">画板一 · 个人 APIKEY /personal/api-keys（列表 + 创建成功 Modal——sk 仅一次展示）</div>
+        <div class="px-3 py-2 border-b bg-slate-50 font-medium">
+          画板一 · 个人 APIKEY /personal/api-keys（列表 + 创建成功 Modal——sk 仅一次展示）
+        </div>
         <div class="flex">
           <div class="flex-1">
             <div class="p-3 flex items-center gap-2 border-b">
               <button class="bg-[#574BFF] text-white rounded-md px-3 py-1.5">＋ 新建 APIKEY</button>
-              <span class="text-xs text-slate-400">用于第三方 API 调用 / Jenkins 插件 / CI 脚本 · 上限 5 条 · Secret Key 仅创建时展示一次</span>
+              <span class="text-xs text-slate-400"
+                >用于第三方 API 调用 / Jenkins 插件 / CI 脚本 · 上限 5 条 · Secret Key
+                仅创建时展示一次</span
+              >
             </div>
             <table class="w-full text-[13px]">
-              <thead class="text-slate-500 text-xs bg-slate-50"><tr class="text-left"><th class="px-3 py-2">名称</th><th class="px-3 py-2">Access Key</th><th class="px-3 py-2">最近使用</th><th class="px-3 py-2">创建时间</th><th class="px-3 py-2">状态</th><th class="px-3 py-2">操作</th></tr></thead>
+              <thead class="text-slate-500 text-xs bg-slate-50">
+                <tr class="text-left">
+                  <th class="px-3 py-2">名称</th>
+                  <th class="px-3 py-2">Access Key</th>
+                  <th class="px-3 py-2">最近使用</th>
+                  <th class="px-3 py-2">创建时间</th>
+                  <th class="px-3 py-2">状态</th>
+                  <th class="px-3 py-2">操作</th>
+                </tr>
+              </thead>
               <tbody class="divide-y">
-                <tr><td class="px-3 py-2">Jenkins 流水线</td><td class="px-3 py-2 font-mono text-xs">rak9fK2m…<a class="text-[#574BFF] ml-1">复制</a></td><td class="px-3 py-2 text-slate-400 text-xs">09-27 10:02</td><td class="px-3 py-2 text-slate-400 text-xs">09-20 14:11</td><td class="px-3 py-2"><span class="text-[10px] rounded px-1.5 py-0.5 bg-green-50 text-green-600">生效中</span></td><td class="px-3 py-2 text-red-500"><a>吊销</a></td></tr>
-                <tr><td class="px-3 py-2">本地脚本</td><td class="px-3 py-2 font-mono text-xs">rakQw7bn…<a class="text-[#574BFF] ml-1">复制</a></td><td class="px-3 py-2 text-slate-400 text-xs">09-26 19:44</td><td class="px-3 py-2 text-slate-400 text-xs">09-18 09:30</td><td class="px-3 py-2"><span class="text-[10px] rounded px-1.5 py-0.5 bg-green-50 text-green-600">生效中</span></td><td class="px-3 py-2 text-red-500"><a>吊销</a></td></tr>
-                <tr class="opacity-60"><td class="px-3 py-2">旧 CI（弃用）</td><td class="px-3 py-2 font-mono text-xs">rakZx0pl…</td><td class="px-3 py-2 text-slate-400 text-xs">—</td><td class="px-3 py-2 text-slate-400 text-xs">09-01 11:00</td><td class="px-3 py-2"><span class="text-[10px] rounded px-1.5 py-0.5 bg-slate-100 text-slate-500">已吊销</span></td><td class="px-3 py-2 text-slate-300">—</td></tr>
+                <tr>
+                  <td class="px-3 py-2">Jenkins 流水线</td>
+                  <td class="px-3 py-2 font-mono text-xs">
+                    rak9fK2m…<a class="text-[#574BFF] ml-1">复制</a>
+                  </td>
+                  <td class="px-3 py-2 text-slate-400 text-xs">09-27 10:02</td>
+                  <td class="px-3 py-2 text-slate-400 text-xs">09-20 14:11</td>
+                  <td class="px-3 py-2">
+                    <span class="text-[10px] rounded px-1.5 py-0.5 bg-green-50 text-green-600"
+                      >生效中</span
+                    >
+                  </td>
+                  <td class="px-3 py-2 text-red-500"><a>吊销</a></td>
+                </tr>
+                <tr>
+                  <td class="px-3 py-2">本地脚本</td>
+                  <td class="px-3 py-2 font-mono text-xs">
+                    rakQw7bn…<a class="text-[#574BFF] ml-1">复制</a>
+                  </td>
+                  <td class="px-3 py-2 text-slate-400 text-xs">09-26 19:44</td>
+                  <td class="px-3 py-2 text-slate-400 text-xs">09-18 09:30</td>
+                  <td class="px-3 py-2">
+                    <span class="text-[10px] rounded px-1.5 py-0.5 bg-green-50 text-green-600"
+                      >生效中</span
+                    >
+                  </td>
+                  <td class="px-3 py-2 text-red-500"><a>吊销</a></td>
+                </tr>
+                <tr class="opacity-60">
+                  <td class="px-3 py-2">旧 CI（弃用）</td>
+                  <td class="px-3 py-2 font-mono text-xs">rakZx0pl…</td>
+                  <td class="px-3 py-2 text-slate-400 text-xs">—</td>
+                  <td class="px-3 py-2 text-slate-400 text-xs">09-01 11:00</td>
+                  <td class="px-3 py-2">
+                    <span class="text-[10px] rounded px-1.5 py-0.5 bg-slate-100 text-slate-500"
+                      >已吊销</span
+                    >
+                  </td>
+                  <td class="px-3 py-2 text-slate-300">—</td>
+                </tr>
               </tbody>
             </table>
-            <div class="p-3 text-xs text-slate-400">3 / 5 条 · 达上限后「新建」置灰并提示（10006 APIKEY_LIMIT_EXCEEDED）</div>
+            <div class="p-3 text-xs text-slate-400">
+              3 / 5 条 · 达上限后「新建」置灰并提示（10006 APIKEY_LIMIT_EXCEEDED）
+            </div>
           </div>
           <!-- 创建成功 Modal -->
           <div class="w-[380px] border-l p-4 text-[13px] space-y-3">
             <p class="font-medium">创建成功 · Jenkins 流水线</p>
-            <p class="text-amber-600 bg-amber-50 border border-amber-200 rounded p-2 text-xs">⚠ Secret Key 仅此一次展示，关闭后不可再查看。请立即复制保存。</p>
+            <p class="text-amber-600 bg-amber-50 border border-amber-200 rounded p-2 text-xs">
+              ⚠ Secret Key 仅此一次展示，关闭后不可再查看。请立即复制保存。
+            </p>
             <div>
               <p class="text-slate-500 mb-1 text-xs">Access Key</p>
-              <div class="flex items-center gap-2 border rounded px-2 py-1.5 font-mono text-xs bg-slate-50">rak9fK2mT4xVbN8pQ3wL<span class="ml-auto text-[#574BFF] cursor-pointer">复制</span></div>
+              <div
+                class="flex items-center gap-2 border rounded px-2 py-1.5 font-mono text-xs bg-slate-50"
+              >
+                rak9fK2mT4xVbN8pQ3wL<span class="ml-auto text-[#574BFF] cursor-pointer">复制</span>
+              </div>
             </div>
             <div>
               <p class="text-slate-500 mb-1 text-xs">Secret Key</p>
-              <div class="flex items-center gap-2 border rounded px-2 py-1.5 font-mono text-xs bg-slate-50">sk_5fJ8nR2vG6hYc0dK9mB4qA7tZ1xW3eS5<span class="ml-auto text-[#574BFF] cursor-pointer">复制</span></div>
+              <div
+                class="flex items-center gap-2 border rounded px-2 py-1.5 font-mono text-xs bg-slate-50"
+              >
+                sk_5fJ8nR2vG6hYc0dK9mB4qA7tZ1xW3eS5<span
+                  class="ml-auto text-[#574BFF] cursor-pointer"
+                  >复制</span
+                >
+              </div>
             </div>
             <button class="bg-[#574BFF] text-white rounded-md px-3 py-1.5">我已保存，关闭</button>
           </div>
@@ -49,19 +118,31 @@
       </section>
       <!-- 画板二：接入文档区（curl + Jenkinsfile） -->
       <section class="bg-white border rounded-md">
-        <div class="px-3 py-2 border-b bg-slate-50 font-medium">画板二 · 接入文档区（页面底部折叠面板：curl 示例 + Jenkinsfile 片段 + 轮询说明）</div>
+        <div class="px-3 py-2 border-b bg-slate-50 font-medium">
+          画板二 · 接入文档区（页面底部折叠面板：curl 示例 + Jenkinsfile 片段 + 轮询说明）
+        </div>
         <div class="p-3 space-y-3 text-[13px]">
           <details open class="border rounded">
-            <summary class="px-3 py-2 cursor-pointer text-slate-600 text-xs">curl 触发场景执行（POST /api/v1/open/exec/scenario）</summary>
-            <pre class="px-3 pb-3 text-[11px] font-mono bg-slate-900 text-slate-100 rounded-b overflow-x-auto">curl -u "rak9fK2mT4xVbN8pQ3wL:sk_5fJ8…" -X POST \
+            <summary class="px-3 py-2 cursor-pointer text-slate-600 text-xs">
+              curl 触发场景执行（POST /api/v1/open/exec/scenario）
+            </summary>
+            <pre
+              class="px-3 pb-3 text-[11px] font-mono bg-slate-900 text-slate-100 rounded-b overflow-x-auto"
+            >
+curl -u "rak9fK2mT4xVbN8pQ3wL:sk_5fJ8…" -X POST \
   https://rabbit.example.com/api/v1/open/exec/scenario \
   -H "Content-Type: application/json" \
-  -d '{"scenarioId":"<uuid>","envId":"<uuid>","resourcePoolId":null}'
+  -d '{"scenarioId":"&lt;uuid&gt;","envId":"&lt;uuid&gt;","resourcePoolId":null}'
 → { "code": 0, "data": { "taskId": "8f2c…" } }</pre>
           </details>
           <details open class="border rounded">
-            <summary class="px-3 py-2 cursor-pointer text-slate-600 text-xs">Jenkinsfile stage（触发 → 轮询 → 门禁）</summary>
-            <pre class="px-3 pb-3 text-[11px] font-mono bg-slate-900 text-slate-100 rounded-b overflow-x-auto">stage('RabbitAITest 门禁') {
+            <summary class="px-3 py-2 cursor-pointer text-slate-600 text-xs">
+              Jenkinsfile stage（触发 → 轮询 → 门禁）
+            </summary>
+            <pre
+              class="px-3 pb-3 text-[11px] font-mono bg-slate-900 text-slate-100 rounded-b overflow-x-auto"
+            >
+stage('RabbitAITest 门禁') {
   steps {
     sh '''TASK=$(curl -s -u "$RABBIT_AK:$RABBIT_SK" -X POST .../open/exec/scenario \
            -d "{\"scenarioId\":\"$SCENARIO_ID\"}" | jq -r .data.taskId)
@@ -73,7 +154,10 @@
   }
 }</pre>
           </details>
-          <p class="text-xs text-slate-400">认证方式：Basic（ak:sk）或 Bearer ak.sk · 每 key 限 10 次/秒（429 · 10007）· 越权目标返回 403 · 全部调用进审计日志（open.exec）</p>
+          <p class="text-xs text-slate-400">
+            认证方式：Basic（ak:sk）或 Bearer ak.sk · 每 key 限 10 次/秒（429 · 10007）·
+            越权目标返回 403 · 全部调用进审计日志（open.exec）
+          </p>
         </div>
       </section>
     </main>

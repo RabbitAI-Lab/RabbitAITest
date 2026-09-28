@@ -47,6 +47,9 @@ export const ErrCode = {
   PERSONAL_PASSWORD_MISMATCH: 10020, // S5 SYS-007：修改密码旧密码错误
   PERSONAL_LOCAL_RUNNER_INVALID: 10021, // S5 SYS-007：本地 runner 地址非环回
   PERSONAL_AI_MODEL_INVALID: 10022, // S5 SYS-007：个人默认模型不存在或未启用
+  OPEN_SYNC_VALIDATION_FAILED: 10023, // S-future TOOL-001：open api-sync 载荷非法/批内重复
+  OPEN_SYNC_LIMIT_EXCEEDED: 10024, // S-future TOOL-001/002：开放同步/采集批量超上限（100）
+  OPEN_CAPTURE_INVALID: 10025, // S-future TOOL-002：open api-capture 载荷非法
   // 20xxx 项目与配置
   PROJECT_NOT_FOUND: 20404,
   TEMPLATE_NOT_FOUND: 20414,
@@ -126,9 +129,12 @@ export const ErrCode = {
   PLAN_NO_EXECUTABLE: 50012, // S4 PLAN-003 计划内无可引擎执行项
   POOL_NOT_FOUND: 50404,
   SCHEDULE_NOT_FOUND: 50414,
+  POOL_CONFIG_INVALID: 50422, // S-future EXEC-004：池配置非法（type/k8s 四项）
+  POOL_K8S_UNREACHABLE: 50423, // S-future EXEC-004：K8S apiServer 连通性测试失败
   // 60xxx 报告与分享
   REPORT_NOT_FOUND: 60404,
   SHARE_NOT_FOUND: 60414,
+  REPORT_STATS_INVALID: 60422, // S-future RPT-004：统计窗口参数非法（days∉{7,14,30}）
   // 70xxx AI 能力（S7）
   AI_MODEL_NOT_FOUND: 70404,
   AI_CONVERSATION_NOT_FOUND: 70414,
@@ -347,4 +353,11 @@ export const ErrMsg: Record<number, string> = {
   [ErrCode.DEPARTMENT_MEMBER_NOT_IN_ORG]: "所选用户不在本组织",
   [ErrCode.TEMPLATE_EVENT_INVALID]: "消息事件类型不合法",
   [ErrCode.THEME_IMAGE_TOO_LARGE]: "图片不能超过 200KB",
+  // P4 远期（f888165 并入）
+  [ErrCode.OPEN_SYNC_VALIDATION_FAILED]: "同步载荷非法（含批内重复接口或字段越界）",
+  [ErrCode.OPEN_SYNC_LIMIT_EXCEEDED]: "批量数量超出上限（100）",
+  [ErrCode.OPEN_CAPTURE_INVALID]: "采集载荷非法（URL 非法或字段越界）",
+  [ErrCode.POOL_CONFIG_INVALID]: "资源池配置非法（type/k8s 四项校验未通过）",
+  [ErrCode.POOL_K8S_UNREACHABLE]: "K8S apiServer 连接失败（超时或不可达）",
+  [ErrCode.REPORT_STATS_INVALID]: "统计窗口参数非法（days 仅支持 7/14/30）",
 };

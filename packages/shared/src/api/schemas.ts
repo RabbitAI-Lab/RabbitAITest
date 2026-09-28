@@ -293,6 +293,58 @@ export const shareCreateSchema = z.object({
   expireHours: z.union([z.literal(1), z.literal(24), z.literal(168), z.literal(720)]),
 });
 
+// ── 报告高级分析（S-future RPT-004：跨报告统计，超出基线自主设计）──
+
+export const REPORT_STATS_WINDOWS = [7, 14, 30] as const;
+
+export const reportStatsQuerySchema = z.object({
+  days: z.coerce
+    .number()
+    .int()
+    .refine((d) => (REPORT_STATS_WINDOWS as readonly number[]).includes(d), {
+      message: "days 仅支持 7/14/30",
+    })
+    .default(14),
+});
+
+/** 趋势行（无报告日期补零；passRate 分母 0 时为 null）。 */
+export const reportTrendPointSchema = z.object({
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  total: z.number().int(),
+  passed: z.number().int(),
+  failed: z.number().int(),
+  fakeError: z.number().int(),
+  passRate: z.number().nullable(),
+});
+
+export const reportStatsByTypeSchema = z.object({
+  reportType: z.enum(["api_debug", "api_case", "scenario", "plan"]),
+  total: z.number().int(),
+  passed: z.number().int(),
+  failed: z.number().int(),
+  passRate: z.number().nullable(),
+});
+
+export const reportTopFailedSchema = z.object({
+  taskId: z.string(),
+  name: z.string(),
+  reportType: z.enum(["api_debug", "api_case", "scenario", "plan"]),
+  failed: z.number().int(),
+  durationMs: z.number().nullable(),
+});
+
+export const reportStatsSchema = z.object({
+  range: z.object({
+    from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    days: z.number().int(),
+  }),
+  trend: z.array(reportTrendPointSchema),
+  byType: z.array(reportStatsByTypeSchema),
+  topFailed: z.array(reportTopFailedSchema),
+});
+export type ReportStats = z.infer<typeof reportStatsSchema>;
+
 // ── 用例关联接口（CASE-006）──
 
 export const caseApiRefCreateSchema = z.object({

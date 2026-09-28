@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="utf-8" />
+    <title>LOAD-001 性能测试模块占位（企业版方向 · 三态）</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-slate-50 text-slate-800 text-sm">
+    <header class="h-12 bg-white border-b flex items-center px-4 gap-3">
+      <span class="font-semibold">RabbitAITest</span
+      ><span class="border rounded px-2 py-0.5">演示项目 #1</span>
+      <span class="ml-auto flex items-center gap-3 text-slate-400 text-xs">帮助 · 消息 · 用户</span>
+    </header>
+    <main class="p-4 space-y-4 max-w-[1100px]">
+      <!-- 画板一：项目设置-信息 · 模块开关区（新增性能测试行，默认关） -->
+      <section class="bg-white border rounded-md">
+        <div class="px-3 py-2 border-b bg-slate-50 font-medium">
+          画板一 · 项目设置 → 信息 · 模块开关（新增「性能测试 / UI 测试」企业版方向行，默认关闭）
+        </div>
+        <div class="p-4 space-y-3 text-[13px]">
+          <table class="w-full border rounded overflow-hidden text-[13px]">
+            <thead class="bg-slate-50 text-slate-500">
+              <tr>
+                <th class="text-left px-3 py-2 font-normal">模块</th>
+                <th class="text-left px-3 py-2 font-normal">说明</th>
+                <th class="text-left px-3 py-2 font-normal">状态</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="border-t">
+                <td class="px-3 py-2">测试用例</td>
+                <td class="px-3 py-2 text-slate-500">用例管理</td>
+                <td class="px-3 py-2">
+                  <span class="inline-flex items-center gap-1 text-green-600">● 开</span>
+                </td>
+              </tr>
+              <tr class="border-t">
+                <td class="px-3 py-2">接口测试</td>
+                <td class="px-3 py-2 text-slate-500">定义/调试/场景/报告</td>
+                <td class="px-3 py-2">
+                  <span class="inline-flex items-center gap-1 text-green-600">● 开</span>
+                </td>
+              </tr>
+              <tr class="border-t bg-[#574BFF]/[0.04]">
+                <td class="px-3 py-2 font-medium">
+                  性能测试
+                  <span class="ml-1 border border-amber-400 text-amber-600 rounded px-1 text-[11px]"
+                    >企业版方向</span
+                  >
+                </td>
+                <td class="px-3 py-2 text-slate-500">
+                  开启后左侧导航出现「性能测试」占位入口（标准版为规划占位，不含执行能力）
+                </td>
+                <td class="px-3 py-2">
+                  <span class="inline-flex items-center gap-1 text-slate-400">○ 关（默认）</span>
+                </td>
+              </tr>
+              <tr class="border-t bg-[#574BFF]/[0.04]">
+                <td class="px-3 py-2 font-medium">
+                  UI 测试
+                  <span class="ml-1 border border-amber-400 text-amber-600 rounded px-1 text-[11px]"
+                    >企业版方向</span
+                  >
+                </td>
+                <td class="px-3 py-2 text-slate-500">开启后左侧导航出现「UI 测试」占位入口</td>
+                <td class="px-3 py-2">
+                  <span class="inline-flex items-center gap-1 text-green-600">● 开</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="border rounded p-3 bg-slate-50 text-xs text-slate-500 space-y-1">
+            <p>
+              <b>交互流</b>：Switch 切换 → 「保存」按钮亮起 → PUT
+              /api/v1/orgs/{orgId}/projects/{pid}/info（modules 含 load/uit 布尔）→ toast「已保存」→
+              左侧导航即时显隐。
+            </p>
+            <p>
+              <b>默认值语义</b>：load/uit 缺省视为<b>关</b>（与 case/api/plan/bug
+              缺省开相反）；存量项目 JSON 不迁移。
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 画板二：左侧导航 + 占位页（开关开启后） -->
+      <section class="bg-white border rounded-md">
+        <div class="px-3 py-2 border-b bg-slate-50 font-medium">
+          画板二 · 开关开启后 · 左侧导航出现「性能测试」组 + /load 占位页（企业版方向空态）
+        </div>
+        <div class="p-4 flex gap-4">
+          <aside class="w-44 border rounded p-2 space-y-1 text-[13px] shrink-0">
+            <div class="px-2 py-1 text-slate-400 text-xs">工作台</div>
+            <div class="px-2 py-1 rounded">仪表盘</div>
+            <div class="px-2 py-1 text-slate-400 text-xs">测试管理</div>
+            <div class="px-2 py-1 rounded">用例 · 评审 · 计划 · 缺陷</div>
+            <div class="px-2 py-1 text-slate-400 text-xs">接口测试</div>
+            <div class="px-2 py-1 rounded">定义 · 调试 · 场景 · 报告</div>
+            <div class="px-2 py-1 text-slate-400 text-xs">
+              性能测试 <span class="text-[10px] text-amber-500">企业版方向</span>
+            </div>
+            <div class="px-2 py-1 rounded bg-[#574BFF]/10 text-[#574BFF] font-medium">
+              📈 性能测试
+            </div>
+            <div class="px-2 py-1 text-slate-400 text-xs">UI 测试</div>
+            <div class="px-2 py-1 rounded">🖥 UI 测试</div>
+          </aside>
+          <div
+            class="flex-1 border rounded p-6 flex flex-col items-center justify-center text-center space-y-3 min-h-[260px]"
+          >
+            <div
+              class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-2xl"
+            >
+              📈
+            </div>
+            <div class="font-medium text-base">性能测试 · 企业版方向规划中</div>
+            <p class="text-slate-500 text-xs max-w-md leading-relaxed">
+              标准版与 MeterSphere v3
+              社区版同口径：不提供性能测试模块。以下能力为企业版规划占位，License 激活后开放。
+            </p>
+            <div class="flex gap-2 text-xs text-slate-400">
+              <span class="border rounded px-2 py-1 opacity-60">压测场景编排</span>
+              <span class="border rounded px-2 py-1 opacity-60">分布式压力节点</span>
+              <span class="border rounded px-2 py-1 opacity-60">压测报告对比</span>
+            </div>
+            <a class="text-[#574BFF] text-xs underline" href="#"
+              >查看规划：LOAD-001 / LOAD-002 规格文档</a
+            >
+          </div>
+        </div>
+      </section>
+
+      <!-- 画板三：无权限态 -->
+      <section class="bg-white border rounded-md">
+        <div class="px-3 py-2 border-b bg-slate-50 font-medium">
+          画板三 · 无权限态 · 开关开启但用户无 PROJECT_LOAD:READ → 导航组隐藏（双门控）
+        </div>
+        <div class="p-4 flex gap-4">
+          <aside class="w-44 border rounded p-2 space-y-1 text-[13px] shrink-0">
+            <div class="px-2 py-1 text-slate-400 text-xs">工作台</div>
+            <div class="px-2 py-1 rounded">仪表盘</div>
+            <div class="px-2 py-1 text-slate-500 text-xs">（性能测试组不渲染 · 无权限）</div>
+          </aside>
+          <div class="flex-1 border rounded p-4 bg-slate-50 text-xs text-slate-500 space-y-2">
+            <p>
+              <b>判定</b>：导航项 = 模块开关（modules.load === true）<b>且</b>
+              canGlobal("PROJECT_LOAD:READ")，两者缺一即不渲染。
+            </p>
+            <p>
+              <b>直访兜底</b>：直接访问 /load
+              时页面本体仍为静态占位（无数据面，不额外鉴权——与基线占位口径一致，无敏感信息）。
+            </p>
+          </div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

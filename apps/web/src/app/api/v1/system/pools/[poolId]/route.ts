@@ -1,21 +1,17 @@
 import { NextResponse } from "next/server";
-import { z } from "zod";
-import { ok, poolUpdateSchema } from "@rabbit/shared";
+import { ok, ErrCode, poolUpdateSchema, poolEntpUpdateSchema } from "@rabbit/shared";
 import { withSystemPerm, toResponse, zodParse } from "@/server/guard";
 import {
   getPool,
   updatePool,
   updatePoolEntp,
   deletePool,
+  testPoolK8sConnection,
 } from "@/server/domains/system/pool.service";
 import { assertEntpEnabled } from "@/server/domains/entp/license.service";
 import { recordAudit, flushAudit } from "@/server/domains/system/audit.service";
 
 export const runtime = "nodejs";
-
-const updateSchema = z.object({
-  maxConcurrency: z.number().int().min(2).max(64),
-});
 
 export const GET = withSystemPerm("SYSTEM_POOL:READ")(async (_ctx, _req, seg) => {
   try {
@@ -26,19 +22,24 @@ export const GET = withSystemPerm("SYSTEM_POOL:READ")(async (_ctx, _req, seg) =>
   }
 });
 
+/** EXEC-002 并发编辑 + S-future EXEC-004 型切换/K8S 配置；?test=true=连通性试连（不落库，50423=502）。 */
 export const PUT = withSystemPerm("SYSTEM_POOL:UPDATE")(async (_ctx, req, seg) => {
   try {
     const { poolId } = await (seg as { params: Promise<{ poolId: string }> }).params;
-    const parsed = updateSchema.safeParse(await req.json());
+    const parsed = poolUpdateSchema.safeParse(await req.json());
     if (!parsed.success) {
       return NextResponse.json(
         {
-          code: 20422,
+          code: ErrCode.VALIDATION_FAILED,
           message: parsed.error.issues[0]?.message ?? "参数校验失败",
           data: null,
         },
         { status: 422 },
       );
+    }
+    const isTest = new URL(req.url).searchParams.get("test") === "true";
+    if (isTest) {
+      return NextResponse.json(ok(await testPoolK8sConnection(poolId, parsed.data)));
     }
     return NextResponse.json(ok(await updatePool(poolId, parsed.data)));
   } catch (err) {
@@ -51,7 +52,7 @@ export const PATCH = withSystemPerm("ENTP_POOL:UPDATE")(async (ctx, req, seg) =>
   try {
     await assertEntpEnabled("MULTI_POOL");
     const { poolId } = await (seg as { params: Promise<{ poolId: string }> }).params;
-    const input = zodParse(poolUpdateSchema, await req.json());
+    const input = zodParse(poolEntpUpdateSchema, await req.json());
     const updated = await updatePoolEntp(poolId, input);
     recordAudit({
       userId: ctx.userId,

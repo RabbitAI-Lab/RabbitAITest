@@ -72,6 +72,8 @@ test.describe("SYS-007 个人中心", () => {
     await page.getByTestId("local-runner-prefer").click();
     await page.getByTestId("local-runner-save").click();
     await expect(page.getByText("已保存")).toBeVisible();
+    // S-future 加固：并行负载下 React 状态滞后（地址填充→按钮解禁）存在竞态窗，显式等 enabled 再点
+    await expect(page.getByTestId("local-runner-check")).toBeEnabled({ timeout: 10_000 });
     await page.getByTestId("local-runner-check").click();
     await expect(page.getByTestId("local-runner-check-result")).toContainText("连通", {
       timeout: 10_000,

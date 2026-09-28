@@ -2,7 +2,7 @@
 
 本项目的所有显著变更记录于此。格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本遵循语义化版本。
 
-## [v0.8.0] - 2026-09-28 — Sprint 9 企业版核心（M10 里程碑）
+## [v0.9.0] - 2026-09-28 — Sprint 9 企业版核心（M10 里程碑）
 
 ### 新增（全量交付：三层测试 + CI 全绿）
 
@@ -26,6 +26,31 @@
 
 - Vitest 324（新增 48）；JMeter 63 计划（新增 8：ENTP-001~008）；Playwright 178（新增 10：ENTP-s9-enterprise 单文件串行 8 用例 + EXEC-002 改造）；OpenAPI 279→292 paths（`gen-openapi --check` 过）；权限点 91→109；错误码 118→152（90xxx 34 枚）
 - 8 规格 Draft→Approved→Implemented；8 组高保真原型（docs/design/ENTP-*/，人工确认随验收走查）；sprint-overview 交付自查回填
+
+## [v0.8.0] - 2026-09-28 — Sprint future 远期 P4（协议插件 · 外部工具契约 · 报告分析 · K8S 池 · 企业版占位）
+
+### 新增（全量交付：三层测试 + CI 全绿）
+
+- **WebSocket/MQTT 协议插件（PLUG-003）**：`plugins/websocket`（undici WebSocket 内联 CJS bundle，单 run 探活：连接→发送→收首条→close，超时 504/拒绝 502）与 `plugins/mqtt`（自研最小 MQTT 3.1.1 客户端——node:net 手工编解码 CONNECT/CONNACK/SUBSCRIBE/PUBLISH(QoS0)/DISCONNECT + 剩余长度 varint + `+/#` 通配匹配，零新增 npm 依赖）；插件名=协议标识（规避 tcp-conn 勘误坑）+具名 `createPlugin` 导出；双侧加载器（plugin-runner/引擎 registry）双层解包（CJS import() 命名空间适配）；请求编辑器协议选择器（内置/插件分组，非 http 协议 HTTP 面折叠+protocolConfig JSON 编辑区，调试页顶行经共用 `ProtocolSelect` 呈现）；定义/用例保存协议可用性校验 40511（PLUG-002 预留码首次兑现）；新增会话级 `GET /api/v1/plugins/protocols`（协议选项数据源，普通成员可见）；mock `/ws/echo` RFC6455 回显端点（e2e 采样目标）
+- **外部工具契约（TOOL-001/TOOL-002）**：`POST /api/v1/open/api-sync`（IDEA 插件批量 upsert，幂等键 method+path，软删复活，批内重复/超限 422·10023/10024）+ `GET /api/v1/open/api-definitions`（回读分页信封）+ `POST /api/v1/open/api-capture`（浏览器抓包导入：URL query 逐键拆解、敏感头五枚脱敏、skip-if-exists 不 bump version、ftp 等拒绝 10025）；APIKEY Basic(base64)/Bearer 双形态；插件本体=外部仓库交付（JVM/MV3，技术栈红线）
+- **报告高级分析（RPT-004，超出基线自主设计）**：`GET /reports/stats?days=7|14|30`（连续补零趋势/类型分布/失败 TOP5，内存聚合，非法 422·60422）+ 统计页 `/reports/stats`（报告页签导航、自绘 SVG 双序列趋势图零图表库、空态引导）
+- **K8S 型资源池（EXEC-004）**：默认池 type NODE↔K8S 切换 + `ResourcePool.config` JSONB 四项配置（apiServer 强制 https/namespace RFC1123/token 只写不读掩码/image 默认值；门禁 3 例外登记）+ `PUT ?test=true` apiServer /version 试连不落库（safe-fetch 新 `allowPrivateKeepLoopback` 口径：私网/ULA/CGNAT 放行、环回/链路本地/非路由拒；`POOL_K8S_ALLOW_LOOPBACK` 测试栈豁免）+ 池管理页 K8S 表单/试连三态/休眠往返 + task-runner Deployment 清单模板（附录 A）+ 池 DTO `loadTest/uiTest` 占位字段
+- **企业版占位（LOAD-001/UIT-001，清单 §12.10 同口径）**：模块开关 `load`/`uit`（缺省即关，存量零迁移）+ 保留权限点 `PROJECT_LOAD/UIT:READ`（SYSTEM_ADMIN/ORG_ADMIN/PROJECT_ADMIN 映射）+ 占位导航组与 `/load` `/ui-test` 企业版方向空态页；LOAD-002 分布式压测架构稿（拓扑/契约冻结，红线重申不自研压测内核，测试豁免登记）
+- **基础设施**：错误码 10023-10025/50422/50423/60422（guard 中央映射同步）；`moduleFlagsSchema` 扩 load/uit；jm 栈/e2e 栈 plugin-runner 端口隔离（PLUGIN_RUNNER_PORT 4030/4031，客户端默认跟随——多 worktree :4010 互抢第三案收口）；`gen-jmx-p4.mjs` 生成器（multipart 上传采样器/HeaderManager/JSR223 props 桥/多变量提取）
+
+### 修复与加固
+
+- **S6 潜伏缺陷三处（引擎协议链路首次真执行暴露）**：registry `webBaseUrl` 恒回退 :3000（不回退 WEB_URL→注册表恒空）；轮询鉴权头 Bearer vs `x-internal-token` 恒 401；step.ts 协议分派前 resolveUrl 把插件协议占位 url 误判「相对路径未选环境」——修复后引擎装载/执行链路（上传→启用→30s 轮询→CJS 装载→采样→报告）首次全通
+- **S1 潜伏**：`PUT /projects/{id}` zod `.parse` 失败曾 500（rules §4.5 无效参数禁 500）→ safeParse 422
+- plugin-runner bootstrap 与引擎 registry 工厂解析双层解包（CJS bundle 适配）；INTG-003 原型 `<uuid>` 未转义致 oxfmt 解析失败（顺手修复）；`pluginApi.list` 签名加可选 kind（plugins 页 queryFn 包箭头）
+- 规格勘误登记 15 则（description 裁撤/审计动作统一 open.exec/droppedBodies 裁撤/来源以变更历史承载/url 占位/协议选项数据源/CJS 双层解包/k8s 摘要恒回显/PoolUpdateInput=z.input/试连环回豁免/safe-fetch 选项化/reportStats 拆文件等，见各规格 §8）；Mimosa FP 台账 #4（RFC 6455 强制 SHA-1）
+
+### 测试与收口
+
+- 单测 348 全绿（新增 116：引擎插件两套件 19 含内嵌 ws echo/mini broker；web 39 含池守卫矩阵 9/试连三态/open-sync 幂等/统计聚合/SVG 路径；shared 13 权限点与错误码矩阵）
+- JMeter 新增 7 计划全绿（LOAD-002 豁免登记；四类×四断言，含 multipart 上传/409 版本递增/props 桥 Basic/收尾状态恢复防栈内泄漏）
+- Playwright 新增 5 spec 8 用例全绿（三类断言；含 ws 真执行对 mock echo 回显、引擎 30s 轮询重试容错、K8S 休眠往返、占位三态；TOOL 两规格无 UI 面豁免登记）
+- OpenAPI 快照 277→284 paths（--check 过）；typecheck 13/13；format 全绿
 
 ## [v0.7.2] - 2026-09-28 — AI 智能助手 UI v2（Ant Design X 重构）
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Empty, Input, Popconfirm, Select, Table } from "antd";
+import { Button, Empty, Input, Popconfirm, Segmented, Select, Table } from "antd";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -72,6 +72,17 @@ export default function ReportListPage() {
       <PageHeader
         title="接口报告"
         sub="调试与接口用例批量执行的报告统一列表；删除将级联清理任务与帧（任务中心同步消失）"
+        extra={
+          <Segmented
+            value="list"
+            onChange={(v) => v === "stats" && router.push("/reports/stats")}
+            options={[
+              { label: "列表", value: "list" },
+              { label: "统计", value: "stats" },
+            ]}
+            data-testid="report-tab"
+          />
+        }
       />
       <div className="rabbit-card">
         {/* 筛选条：类型 + 关键字（名称/创建人） */}

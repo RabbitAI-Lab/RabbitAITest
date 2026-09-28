@@ -241,13 +241,14 @@ export const poolCreateSchema = z.object({
 });
 export type PoolCreateInput = z.infer<typeof poolCreateSchema>;
 
-export const poolUpdateSchema = z.object({
+/** ETP-006 启停/orgScope 编辑入参（名称/并发复用 P4 版 poolUpdateSchema——execution/schemas，避免重名导出冲突） */
+export const poolEntpUpdateSchema = z.object({
   name: z.string().min(1).max(128).optional(),
   maxConcurrency: z.number().int().min(2).max(64).optional(),
   orgScope: poolOrgScopeSchema.optional(),
   status: z.enum(["ACTIVE", "DISABLED"]).optional(),
 });
-export type PoolUpdateInput = z.infer<typeof poolUpdateSchema>;
+export type PoolEntpUpdateInput = z.infer<typeof poolEntpUpdateSchema>;
 
 // ── 部门（ENTP-008）──
 

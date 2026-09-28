@@ -8,11 +8,31 @@ import { PageHeader } from "@/components/PageHeader";
 import { useApp } from "@/hooks/useApp";
 import { useProjectStore } from "@/stores/project";
 
-const MODULE_OPTIONS: { key: "case" | "plan" | "bug" | "api"; label: string; desc: string }[] = [
+const MODULE_OPTIONS: {
+  key: "case" | "plan" | "bug" | "api" | "load" | "uit";
+  label: string;
+  desc: string;
+  defaultOn?: boolean; // S-future LOAD-001/UIT-001：load/uit 缺省即关（与 case/api/plan/bug 缺省开相反）
+  enterprise?: boolean; // 企业版方向占位标记
+}[] = [
   { key: "case", label: "测试用例", desc: "用例库、评审与回收站" },
   { key: "plan", label: "测试计划", desc: "计划编排与执行" },
   { key: "bug", label: "缺陷管理", desc: "缺陷提交与流转" },
   { key: "api", label: "接口测试", desc: "接口调试与定义" },
+  {
+    key: "load",
+    label: "性能测试",
+    desc: "开启后左导航出现「性能测试」占位入口（企业版方向，无执行能力）",
+    defaultOn: false,
+    enterprise: true,
+  },
+  {
+    key: "uit",
+    label: "UI 测试",
+    desc: "开启后左导航出现「UI 测试」占位入口（企业版方向，无执行能力）",
+    defaultOn: false,
+    enterprise: true,
+  },
 ];
 
 const fmt = (v: string) => v.replace("T", " ").slice(0, 10);
@@ -149,23 +169,34 @@ export default function SettingsInfoPage() {
                 关闭后左导航菜单隐藏、直访将重定向到工作台；数据全部保留，可随时重新开启。
               </p>
               <div className="space-y-3">
-                {MODULE_OPTIONS.map((m) => (
-                  <div key={m.key} className="flex items-center gap-3">
-                    <Switch
-                      checked={modules[m.key] !== false}
-                      onChange={(v) => setModules({ ...modules, [m.key]: v })}
-                      data-testid={`module-switch-${m.key}`}
-                    />
-                    <span className="text-[13px] w-20">{m.label}</span>
-                    {modules[m.key] === false ? (
-                      <span className="text-xs text-[#FF4D4F]">
-                        已关闭：菜单隐藏，数据保留，可随时开启
-                      </span>
-                    ) : (
-                      <span className="text-xs text-[#A8ABB0]">{m.desc}</span>
-                    )}
-                  </div>
-                ))}
+                {MODULE_OPTIONS.map((m) => {
+                  const on =
+                    m.defaultOn === false ? modules[m.key] === true : modules[m.key] !== false;
+                  return (
+                    <div key={m.key} className="flex items-center gap-3">
+                      <Switch
+                        checked={on}
+                        onChange={(v) => setModules({ ...modules, [m.key]: v })}
+                        data-testid={`module-switch-${m.key}`}
+                      />
+                      <span className="text-[13px] w-20">{m.label}</span>
+                      {m.enterprise && (
+                        <span className="border border-amber-400 text-amber-600 rounded px-1.5 py-0.5 text-[11px]">
+                          企业版方向
+                        </span>
+                      )}
+                      {m.enterprise ? (
+                        <span className="text-xs text-[#A8ABB0]">{m.desc}</span>
+                      ) : on ? (
+                        <span className="text-xs text-[#A8ABB0]">{m.desc}</span>
+                      ) : (
+                        <span className="text-xs text-[#FF4D4F]">
+                          已关闭：菜单隐藏，数据保留，可随时开启
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
 

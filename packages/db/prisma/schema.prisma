@@ -158,13 +158,16 @@ model GroupMember {
 model ResourcePool {
   id             String    @id @default(uuid())
   name           String    @db.VarChar(128)
-  type           String    @default("NODE") @db.VarChar(16) // NODE | K8S（ENTP）
+  type           String    @default("NODE") @db.VarChar(16) // NODE | K8S（EXEC-004 兑现；ENTP-006 多池 License 门控）
   isDefault      Boolean   @default(false) @map("is_default")
   maxConcurrency Int       @default(4) @map("max_concurrency")
   /// 心跳与节点信息（P0 单节点：nodeId/version/slots/ts）
   nodes          Json      @default("[]")
   /// 应用组织：ALL | [orgId]（S9 ENTP-006；门禁 3 例外登记 test-domain-model §6）
   orgScope       Json      @default("\"ALL\"") @map("org_scope")
+  /// K8S 型配置（EXEC-004：apiServer/namespace/token/image；token 只写不读）。
+  /// 门禁 3 例外登记 test-domain-model §6：K8S 池配置结构在 EXEC-002 时点未冻结，Json 载体一次补齐
+  config         Json      @default("{}")
   lastBeatAt     DateTime? @map("last_beat_at")
   status         String    @default("ACTIVE") @db.VarChar(32)
   createdAt      DateTime  @default(now()) @map("created_at")

@@ -241,9 +241,12 @@ if (process.env.VITEST === undefined) {
   app.route("/sso", buildSsoMocks());
   app.route("/", buildGitMocks());
   mountSwaggerDoc(app);
-  serve({ fetch: app.fetch, port }, (info) => {
+  const server = serve({ fetch: app.fetch, port }, (info) => {
     console.log(
-      `[mock] listening :${info.port}（/healthz /hello /mock/{projectNum}/{path} + mock-jira/zentao/tapd + mock-robot + git-api + sso-idp）`,
+      `[mock] listening :${info.port}（/healthz /hello /mock/{projectNum}/{path} + mock-jira/zentao/tapd + mock-robot + git-api + sso-idp + ws-echo）`,
     );
   });
+  // S-future PLUG-003：/ws/echo WebSocket 回显（协议插件 e2e 采样目标）
+  const { mountWsEcho } = await import("./ws-echo.js");
+  mountWsEcho(server);
 }

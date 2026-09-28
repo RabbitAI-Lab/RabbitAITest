@@ -1,0 +1,51 @@
+# EXEC-004 附录 A：task-runner K8S 部署清单模板（占位符替换后 kubectl apply）
+# 用法：替换 __API_BASE__/__TOKEN__/__IMAGE__/__NS__ 后 kubectl apply -f 本文件；
+#       副本数按 maxConcurrency/单 pod 并发槽估算（调度面两型同构：worker 仍注册既有 /internal/pools/register 心跳）。
+# 口径：社区版单默认池（多池/Controller 属 ENTP-006）；K8S 型仅改变部署拓扑。
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: __NS__
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rabbit-task-runner
+  namespace: __NS__
+  labels:
+    app: rabbit-task-runner
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rabbit-task-runner
+  template:
+    metadata:
+      labels:
+        app: rabbit-task-runner
+    spec:
+      containers:
+        - name: task-runner
+          image: __IMAGE__
+          env:
+            - name: API_BASE
+              value: "__API_BASE__" # web 基址（注册/心跳/回调）
+            - name: ENGINE_TOKEN
+              value: "__TOKEN__" # internal 通道令牌（与 web INTERNAL_TOKEN 同值；生产建议改 secretKeyRef）
+            - name: EXEC_QUEUE
+              value: "exec"
+            - name: NODE_ENV
+              value: "production"
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "256Mi"
+            limits:
+              cpu: "1"
+              memory: "512Mi"
+          livenessProbe:
+            exec:
+              command: ["node", "-e", "process.exit(0)"]
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          restartPolicy: Always

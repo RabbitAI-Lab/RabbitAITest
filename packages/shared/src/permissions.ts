@@ -152,6 +152,11 @@ const ORG_DEPARTMENT = [
   "ORG_DEPARTMENT:DELETE",
 ] as const;
 
+/** 性能测试/UI 测试占位保留位（S-future LOAD-001/UIT-001：企业版方向，仅 READ；
+ * 消费方=LeftNav 占位导航双门控（模块开关 ∧ 权限点），激活真实模块时随 ENTP 扩展动作集） */
+const PROJECT_LOAD = ["PROJECT_LOAD:READ"] as const;
+const PROJECT_UIT = ["PROJECT_UIT:READ"] as const;
+
 export const PERMISSION_POINTS = [
   ...SYSTEM_USER,
   ...SYSTEM_GROUP,
@@ -189,6 +194,8 @@ export const PERMISSION_POINTS = [
   ...ENTP_SSO,
   ...ENTP_POOL,
   ...ORG_DEPARTMENT,
+  ...PROJECT_LOAD,
+  ...PROJECT_UIT,
 ] as const;
 
 export type PermissionPoint = (typeof PERMISSION_POINTS)[number];
@@ -229,6 +236,8 @@ export const PRESET_GROUP_PERMISSIONS = {
     "PROJECT_SCRIPT:READ",
     "PROJECT_MESSAGE:READ",
     "PROJECT_AI:READ",
+    "PROJECT_LOAD:READ",
+    "PROJECT_UIT:READ",
     ...PROJECT_EXEC_TASK,
   ],
   ORG_MEMBER: ["ORG_PROJECT:READ"],
@@ -250,6 +259,8 @@ export const PRESET_GROUP_PERMISSIONS = {
     ...PROJECT_REPORT,
     ...PROJECT_EXEC_TASK,
     ...PROJECT_AI,
+    ...PROJECT_LOAD,
+    ...PROJECT_UIT,
   ],
   PROJECT_MEMBER: [
     "PROJECT_MEMBER:READ",

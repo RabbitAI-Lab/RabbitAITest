@@ -21,7 +21,7 @@ export default function PluginsPage() {
   const [uploadOpen, setUploadOpen] = useState(false);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
 
-  const { data, isLoading } = useQuery({ queryKey: ["plugins"], queryFn: pluginApi.list });
+  const { data, isLoading } = useQuery({ queryKey: ["plugins"], queryFn: () => pluginApi.list() });
   const invalidate = () => qc.invalidateQueries({ queryKey: ["plugins"] });
   const errText = (e: unknown) => (e instanceof Error ? e.message : "操作失败");
 

@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="utf-8" />
+    <title>PLUG-003 WebSocket/MQTT 协议插件（选择器四态 · 调试页增量）</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-slate-50 text-slate-800 text-sm">
+    <header class="h-12 bg-white border-b flex items-center px-4 gap-3">
+      <span class="font-semibold">RabbitAITest</span
+      ><span class="border rounded px-2 py-0.5">演示项目 #1</span>
+      <span class="ml-auto flex items-center gap-3 text-slate-400 text-xs">帮助 · 消息 · 用户</span>
+    </header>
+    <main class="p-4 space-y-4 max-w-[1100px]">
+      <!-- 画板一：协议选择器 · 默认 HTTP（不改变既有交互） -->
+      <section class="bg-white border rounded-md">
+        <div class="px-3 py-2 border-b bg-slate-50 font-medium">
+          画板一 · 接口调试 · 协议选择器（默认 HTTP · 既有 HTTP 面原样保留）
+        </div>
+        <div class="p-4 space-y-3 text-[13px]">
+          <div class="flex items-center gap-2">
+            <select class="border rounded px-2 py-1.5 bg-white w-32" data-testid="req-protocol">
+              <optgroup label="内置">
+                <option selected>HTTP</option>
+                <option>HTTPS</option>
+              </optgroup>
+              <optgroup label="协议插件">
+                <option>websocket</option>
+                <option>mqtt</option>
+              </optgroup>
+            </select>
+            <select class="border rounded px-2 py-1.5 bg-white w-24">
+              <option>GET</option>
+            </select>
+            <input class="flex-1 border rounded px-2 py-1.5" placeholder="/api/v1/..." />
+            <button class="bg-[#574BFF] text-white rounded px-4 py-1.5">执行</button>
+          </div>
+          <div class="border rounded p-3 bg-slate-50 text-xs text-slate-500 space-y-1">
+            <p>
+              <b>数据来源</b>：插件分组=GET /api/v1/system/plugins?kind=protocol 前端滤
+              enabled=true；无启用插件时下拉仅内置两项；无 SYSTEM_PLUGIN:READ
+              权限不请求插件列表（仅内置）。
+            </p>
+            <p>
+              <b>默认态</b>：选 HTTP/HTTPS 时 URL/参数/请求体/断言等 HTTP
+              面原样展示——既有链路零变化。
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 画板二：选 websocket · HTTP 面折叠 + 协议配置 JSON 编辑区 -->
+      <section class="bg-white border rounded-md">
+        <div class="px-3 py-2 border-b bg-slate-50 font-medium">
+          画板二 · 选 websocket · HTTP 面折叠隐藏 + 协议配置 JSON 编辑（校验错误行内呈现）
+        </div>
+        <div class="p-4 space-y-3 text-[13px]">
+          <div class="flex items-center gap-2">
+            <select class="border rounded px-2 py-1.5 bg-white w-32 font-medium text-[#574BFF]">
+              <optgroup label="内置">
+                <option>HTTP</option>
+                <option>HTTPS</option>
+              </optgroup>
+              <optgroup label="协议插件">
+                <option selected>websocket</option>
+                <option>mqtt</option>
+              </optgroup>
+            </select>
+            <span class="text-slate-400 text-xs"
+              >HTTP 参数/请求体面板已折叠（非 http 协议不适用）</span
+            >
+            <button class="bg-[#574BFF] text-white rounded px-4 py-1.5 ml-auto">执行</button>
+          </div>
+          <div class="border rounded p-3 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="font-medium">协议配置 protocolConfig</span>
+              <button class="border rounded px-2 py-0.5 text-xs hover:bg-slate-100">
+                格式化 JSON
+              </button>
+            </div>
+            <textarea
+              data-testid="req-protocol-config"
+              rows="7"
+              class="w-full border rounded p-2 font-mono text-xs leading-relaxed"
+            >
+{
+  "url": "ws://127.0.0.1:4000/ws/echo",
+  "sendText": "hello rabbit",
+  "expectTimeoutMs": 5000
+}</textarea>
+            <div class="text-xs text-red-500 hidden" data-testid="protocol-config-error">
+              JSON 解析失败：Unexpected token h in JSON at position
+              42（不阻塞输入，保存/执行时校验）
+            </div>
+            <div class="text-xs text-slate-400">
+              字段契约以插件 configSchema 为准（url 必填 · sendText/sendBinaryBase64 二选一 · 超时
+              ≤10000ms）
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 画板三：执行结果态（websocket 对 mock /ws/echo 回显成功） -->
+      <section class="bg-white border rounded-md">
+        <div class="px-3 py-2 border-b bg-slate-50 font-medium">
+          画板三 · 执行结果 · websocket 采样（连接→发送→收首条→关闭；ok 回显）
+        </div>
+        <div class="p-4 space-y-2 text-[13px]">
+          <div class="flex items-center gap-2">
+            <span class="text-white bg-green-500 rounded px-1.5 py-0.5 text-[11px]">200 OK</span>
+            <span class="text-slate-500 text-xs">响应 12ms · websocket://…/ws/echo</span>
+          </div>
+          <pre class="border rounded p-3 bg-slate-50 font-mono text-xs">hello rabbit</pre>
+          <div class="border rounded p-3 bg-slate-50 text-xs text-slate-500 space-y-1">
+            <p>
+              <b>语义</b>：一次执行=完整探活（连接握手→发送
+              sendText→等待<b>首条</b>服务端消息→close(1000)）；ok=连接+收包均成功；bodyText=首条消息（≤4KB
+              截断）。
+            </p>
+            <p>
+              <b>失败态</b>：连接拒绝→502 / 等待超时→504（结果面板红 Tag + 原因行，与 HTTP
+              失败态同款布局）。
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 画板四：保存未启用协议 · 422 toast -->
+      <section class="bg-white border rounded-md">
+        <div class="px-3 py-2 border-b bg-slate-50 font-medium">
+          画板四 · 定义/用例保存 · 协议插件未启用 → 422 · 40511 toast（PLUG-002 预留码首次兑现）
+        </div>
+        <div class="p-4 space-y-3 text-[13px]">
+          <div class="flex items-center gap-2">
+            <span class="border rounded px-2 py-1">名称：库存查询</span>
+            <span class="border rounded px-2 py-1 font-mono text-xs">mqtt</span>
+            <span class="ml-auto text-xs text-slate-400">插件已上传未启用（开关灰）</span>
+          </div>
+          <div class="fixed-origin relative">
+            <div
+              class="absolute right-0 top-0 bg-white border border-red-300 rounded shadow-md px-3 py-2 text-xs text-red-600 flex items-center gap-2"
+            >
+              ⚠ 保存失败：协议插件 mqtt 未启用或不存在（40511）
+              <button class="text-[#574BFF] underline">去系统设置-插件启用</button>
+            </div>
+            <div class="h-8"></div>
+          </div>
+          <div class="border rounded p-3 bg-slate-50 text-xs text-slate-500 space-y-1">
+            <p>
+              <b>校验时机</b>：定义/用例 POST/PUT 保存时校验 plugins 表（kind=protocol AND
+              name=protocol AND enabled）→ 不满足 422·40511；调试执行不落库，由引擎走既有 40510。
+            </p>
+          </div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

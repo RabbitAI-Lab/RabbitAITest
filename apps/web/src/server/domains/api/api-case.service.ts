@@ -6,6 +6,7 @@ import { apiCaseListQuerySchema, apiCaseUpsertSchema } from "@rabbit/shared";
 import { nextNum, prisma } from "@rabbit/db";
 import type { Prisma } from "@prisma/client";
 import { createApiCaseTask, createDebugTask } from "@/server/domains/exec/exec.service";
+import { assertProtocolAvailable } from "@/server/domains/api/plugin.service";
 
 type UpsertInput = z.infer<typeof apiCaseUpsertSchema>;
 type ListQuery = z.infer<typeof apiCaseListQuerySchema>;
@@ -110,6 +111,7 @@ export async function createCase(
   input: UpsertInput,
 ) {
   const api = await getApi(projectId, apiId);
+  await assertProtocolAvailable(input.request.spec.protocol); // PLUG-003 §2.4（40511）
   const created = await prisma.$transaction(async (tx) => {
     const num = await nextNum(tx, "api_cases", projectId);
     return tx.apiCase.create({
@@ -140,6 +142,7 @@ export async function updateCase(
   const c = await getCase(projectId, id);
   if (input.version !== c.version)
     throw new DomainError(ErrCode.VERSION_CONFLICT, "内容已被他人修改，请刷新后重试");
+  await assertProtocolAvailable(input.request.spec.protocol); // PLUG-003 §2.4（40511）
   const updated = await prisma.apiCase.update({
     where: { id: c.id },
     data: {

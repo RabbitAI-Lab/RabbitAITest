@@ -147,6 +147,22 @@ export async function uploadPlugin(
   }
 }
 
+/** S-future PLUG-003 §2.4：定义/用例保存时协议可用性校验（http/https 内置放行；
+ * 其余协议须存在已启用的同名协议插件，否则 40511——PLUG-002 预留码首次兑现）。
+ * 调试执行不落库，由引擎走既有 40510（PROTOCOL_NOT_SUPPORTED），不在本函数重复校验。 */
+export async function assertProtocolAvailable(protocol: string | undefined): Promise<void> {
+  if (!protocol || protocol.toLowerCase() === "http" || protocol.toLowerCase() === "https") return;
+  const hit = await prisma.plugin.findFirst({
+    where: { kind: "protocol", name: protocol, enabled: true },
+    select: { id: true },
+  });
+  if (!hit)
+    throw new DomainError(
+      ErrCode.PROTOCOL_PLUGIN_LOAD_FAILED,
+      `协议插件 ${protocol} 未启用或不存在（请先在系统设置-插件中启用）`,
+    );
+}
+
 export async function listPlugins(filter: { kind?: string; keyword?: string }) {
   const rows = await prisma.plugin.findMany({
     where: {

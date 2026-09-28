@@ -186,6 +186,13 @@ export function toResponse(err: unknown): NextResponse {
                       ErrCode.DEPARTMENT_MEMBER_NOT_IN_ORG,
                       ErrCode.TEMPLATE_EVENT_INVALID,
                       ErrCode.THEME_IMAGE_TOO_LARGE,
+                      // S-future（PLUG-003/TOOL-001/002/EXEC-004/RPT-004）
+                      ErrCode.PROTOCOL_PLUGIN_LOAD_FAILED,
+                      ErrCode.OPEN_SYNC_VALIDATION_FAILED,
+                      ErrCode.OPEN_SYNC_LIMIT_EXCEEDED,
+                      ErrCode.OPEN_CAPTURE_INVALID,
+                      ErrCode.POOL_CONFIG_INVALID,
+                      ErrCode.REPORT_STATS_INVALID,
                     ] as number[]
                   ).includes(err.code)
                 ? 422
@@ -193,8 +200,9 @@ export function toResponse(err: unknown): NextResponse {
                     err.code === ErrCode.PLUGIN_DELETE_FORBIDDEN
                   ? 409
                   : err.code === ErrCode.AI_PROVIDER_ERROR ||
-                      err.code === ErrCode.SSO_PROVIDER_ERROR
-                    ? 502 // 供应商上游失败（网关语义；透出上游状态不泄 key）
+                      err.code === ErrCode.SSO_PROVIDER_ERROR || // 供应商上游失败（透出上游状态不泄 key）
+                      err.code === ErrCode.POOL_K8S_UNREACHABLE // apiServer 探测失败（透出上游状态不泄 token）
+                    ? 502
                     : err.code === ErrCode.OPEN_RATE_LIMITED ||
                         err.code === ErrCode.LOGIN_RATE_LIMITED
                       ? 429
