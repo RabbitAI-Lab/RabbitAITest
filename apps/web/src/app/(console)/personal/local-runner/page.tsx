@@ -11,6 +11,8 @@ export default function LocalRunnerPage() {
   const [address, setAddress] = useState<string | null>(null);
   const [preferLocal, setPreferLocal] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  /** 用户已编辑（S9 勘误：查询首达若晚于用户输入，服务端 null 会清空已填地址——CI 慢机暴露的存量竞态） */
+  const [dirty, setDirty] = useState(false);
   const [checkResult, setCheckResult] = useState<{ reachable: boolean; detail: string } | null>(
     null,
   );
@@ -21,8 +23,10 @@ export default function LocalRunnerPage() {
   });
   if (q.data && !loaded) {
     setLoaded(true);
-    setAddress(q.data.address);
-    setPreferLocal(q.data.preferLocal);
+    if (!dirty) {
+      setAddress(q.data.address);
+      setPreferLocal(q.data.preferLocal);
+    }
   }
 
   const loopbackHint =
@@ -55,7 +59,10 @@ export default function LocalRunnerPage() {
               className="font-mono text-xs"
               placeholder="http://127.0.0.1:7001"
               value={address ?? ""}
-              onChange={(e) => setAddress(e.target.value)}
+              onChange={(e) => {
+                setDirty(true);
+                setAddress(e.target.value);
+              }}
               data-testid="local-runner-address"
             />
           </div>
@@ -86,7 +93,10 @@ export default function LocalRunnerPage() {
           <Switch
             size="small"
             checked={preferLocal}
-            onChange={setPreferLocal}
+            onChange={(v) => {
+              setDirty(true);
+              setPreferLocal(v);
+            }}
             data-testid="local-runner-prefer"
           />
           <span className="text-[13px]">优先本地执行</span>

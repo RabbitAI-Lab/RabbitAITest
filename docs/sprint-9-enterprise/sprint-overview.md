@@ -122,6 +122,8 @@
 5. **ENTP-005 preview POST 被兄弟动态段 `[event]` 405 吞并** → 迁静态子路由 `preview/`
 6. **ENTP-008 createDepartment 环检测误传参**：parentId 误作 departmentId → 所有子部门创建 90042 自环假报 → 改为仅校验父属组织
 7. **EXEC-002 与 ENTP 并行持证竞态**：license-status 读态与按钮态窗口错位 → 读态↔按钮态一致重试环（≤30s）
+8. **ENTP-007-02 断言竞态（CI r3 暴露）**：篡改 License 提交的 `getByText("90003")` 误匹配弹窗脚注提示，在 422 响应到达前通过并跑完 Console 断言（响应事件未及记录）→ 改锚定 `.ant-message` 错误本体（验签失败文案=响应已到的证据）+ 422 预期负路径白名单登记
+9. **SYS-007 local-runner 存量竞态（S5 代码，CI 慢机暴露）**：查询首达无条件 `setAddress(q.data.address)`，晚于用户 fill 时服务端 null 清空已填地址→检测按钮 disabled → dirty 标志守护（用户编辑后不再用服务端值覆写）
 
 ### 7.3 生成器与栈教训（jmx 调试 11 轮复盘）
 

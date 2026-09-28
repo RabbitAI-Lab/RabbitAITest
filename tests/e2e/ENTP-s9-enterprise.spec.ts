@@ -71,7 +71,7 @@ test("ENTP-007-02 到期提醒黄条 + 校验失败文案回显", async ({
   await expect(page.getByTestId("license-expire-banner")).toContainText("5 天");
   await removeLicense(request);
 
-  // 篡改 License：422 90003 文案回显
+  // 篡改 License：422 90003 文案回显（经页面的预期负路径探测——422 响应按白名单登记）
   await page.reload();
   await expect(page.getByTestId("btn-add-license")).toBeVisible();
   const code = issueDevLicense();
@@ -79,9 +79,16 @@ test("ENTP-007-02 到期提醒黄条 + 校验失败文案回显", async ({
   await page.getByTestId("btn-add-license").click();
   await page.getByTestId("input-license-code").fill(tampered);
   await page.getByRole("button", { name: "校验并添加" }).click();
-  await expect(page.getByText("90003")).toBeVisible({ timeout: 10_000 });
+  // 断言错误 message 本体（弹窗脚注提示也含「90003」字样——须锚定 antd message 避免误匹配）
+  await expect(page.locator(".ant-message").getByText(/验签失败/)).toBeVisible({ timeout: 10_000 });
 
-  await expectNoConsoleErrors();
+  await expectNoConsoleErrors([
+    {
+      pageUrlPattern: "system/license",
+      textPattern: "POST http://localhost:3100/api/v1/system/license|Failed to load resource.*422",
+      reason: "篡改 License 提交是经页面的预期负路径探测（422 90003 回显断言即其 UI 证据）",
+    },
+  ]);
 });
 
 // ═══════ ENTP-001 多组织 ═══════
