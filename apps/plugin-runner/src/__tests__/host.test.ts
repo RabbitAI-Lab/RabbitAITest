@@ -1,6 +1,13 @@
 /** PLUG-001 单测：重启退避序列 + worker 全链路（load/call/unload/内置插件）。 */
 import { describe, expect, it } from "vitest";
-import { restartBackoffMs, loadPlugin, callPlugin, unloadPlugin, status, registerBuiltin } from "../host";
+import {
+  restartBackoffMs,
+  loadPlugin,
+  callPlugin,
+  unloadPlugin,
+  status,
+  registerBuiltin,
+} from "../host";
 import { mkdtempSync, writeFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -27,10 +34,7 @@ describe("worker 全链路（真实 worker_threads）", () => {
 
   function makePluginDir(impl: string): string {
     const dir = mkdtempSync(path.join(tmpdir(), "rabbit-plugin-test-"));
-    writeFileSync(
-      path.join(dir, "index.js"),
-      `export default function(){ return { ${impl} }; }\n`,
-    );
+    writeFileSync(path.join(dir, "index.js"), `export default function(){ return { ${impl} }; }\n`);
     return dir;
   }
 
@@ -58,10 +62,9 @@ describe("worker 全链路（真实 worker_threads）", () => {
   }, 15_000);
 
   it("内置插件注册与调用（platform-echo 形态）", async () => {
-    registerBuiltin(
-      { ...handle, pluginId: "builtin-x", builtin: true },
-      async (method) => ({ method }),
-    );
+    registerBuiltin({ ...handle, pluginId: "builtin-x", builtin: true }, async (method) => ({
+      method,
+    }));
     const r = await callPlugin("builtin-x", "testConnection", []);
     expect(r).toEqual({ method: "testConnection" });
     await unloadPlugin("builtin-x");

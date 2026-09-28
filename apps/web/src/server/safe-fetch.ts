@@ -15,6 +15,9 @@ export interface SafeFetchOpts {
   allowLoopback?: boolean;
   /** 豁免环回+私网（swagger/webhook 测试栈；读 OUTBOUND_ALLOW_PRIVATE 的调用方传入） */
   allowPrivate?: boolean;
+  /** 私网段（含 ULA/CGNAT）放行、环回/链路本地/非路由地址仍拒（S-future EXEC-004 K8S apiServer 探测：
+   * 系统管理员配置面、集群内网 apiServer 合法，口径=强制 https+拒环回；测试栈配 POOL_K8S_ALLOW_LOOPBACK 再叠 allowLoopback） */
+  allowPrivateKeepLoopback?: boolean;
 }
 
 function ipIsLoopback(ip: string): boolean {
@@ -24,10 +27,9 @@ function ipIsLoopback(ip: string): boolean {
 /** 连接期 IP 黑名单判定（导出供单测矩阵；QA-002）。 */
 export function ipIsForbidden(ip: string, opts: SafeFetchOpts): boolean {
   if (opts.allowPrivate) return false;
-  if (opts.allowLoopback && ipIsLoopback(ip)) return false;
   const lower = ip.toLowerCase();
   if (lower.startsWith("::ffff:")) return ipIsForbidden(lower.slice(7), opts);
-  if (ipIsLoopback(ip)) return true;
+  if (ipIsLoopback(ip)) return !opts.allowLoopback;
   if (
     lower === "::" ||
     lower.startsWith("fe8") ||
@@ -36,15 +38,18 @@ export function ipIsForbidden(ip: string, opts: SafeFetchOpts): boolean {
     lower.startsWith("feb")
   )
     return true;
-  if (lower.startsWith("fc") || lower.startsWith("fd") || lower.startsWith("ff")) return true;
+  if (lower.startsWith("ff")) return true;
+  const allowPrivateRange = opts.allowPrivateKeepLoopback;
+  if (lower.startsWith("fc") || lower.startsWith("fd")) return !allowPrivateRange; // ULA
   const m = ip.match(/^(\d+)\.(\d+)\.(\d+)\.(\d+)$/);
   if (!m) return false; // 非常规形态交由解析期守卫（isIP 校验在先）
   const [a, b] = [Number(m[1]), Number(m[2])];
-  if (a === 0 || a === 10) return true;
+  if (a === 0) return true; // 非路由
   if (a === 169 && b === 254) return true; // 链路本地 + 云元数据
-  if (a === 172 && b >= 16 && b <= 31) return true;
-  if (a === 192 && b === 168) return true;
-  if (a === 100 && b >= 64 && b <= 127) return true; // CGNAT
+  if (a === 10) return !allowPrivateRange;
+  if (a === 172 && b >= 16 && b <= 31) return !allowPrivateRange;
+  if (a === 192 && b === 168) return !allowPrivateRange;
+  if (a === 100 && b >= 64 && b <= 127) return !allowPrivateRange; // CGNAT
   return false;
 }
 
@@ -75,7 +80,7 @@ export function createGuardLookup(opts: SafeFetchOpts) {
 }
 
 function agentFor(opts: SafeFetchOpts): Agent {
-  const key = `${opts.allowLoopback ? "L" : ""}${opts.allowPrivate ? "P" : ""}`;
+  const key = `${opts.allowLoopback ? "L" : ""}${opts.allowPrivate ? "P" : ""}${opts.allowPrivateKeepLoopback ? "K" : ""}`;
   let agent = agents.get(key);
   if (!agent) {
     agent = new Agent({ connect: { lookup: createGuardLookup(opts) as never } });

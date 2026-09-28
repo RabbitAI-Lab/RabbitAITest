@@ -36,7 +36,11 @@ export interface StepSpec {
   counter?: Map<string, number>;
 }
 
-export type StepOutcome = { status: "SUCCESS" | "FAILED" | "STOPPED"; failureKind?: string; message: string };
+export type StepOutcome = {
+  status: "SUCCESS" | "FAILED" | "STOPPED";
+  failureKind?: string;
+  message: string;
+};
 
 async function isStopped(redis: Redis, taskId: string): Promise<boolean> {
   return (await redis.exists(execStopKey(taskId))) === 1;
@@ -100,7 +104,22 @@ export async function runStep(
   try {
     const withCookies = step.cookieJar ? applyCookies(step.request, step.cookieJar) : step.request;
     const rendered = renderRequest(withCookies, ctx);
-    const url = resolveUrl(rendered, ctx);
+    // PLUG-002/PLUG-003：协议探测上移——插件协议不做 URL 环境解析（url 为保存占位，引擎不消费；
+    // 旧序在 resolveUrl 处以「相对路径未选环境」误拒，S6 未覆盖引擎执行链路故未暴露）
+    const rawProtocol = String(
+      (step.request as { protocol?: unknown }).protocol ?? "http",
+    ).toLowerCase();
+    const protocolPlugin =
+      rawProtocol !== "http" && rawProtocol !== "https" ? getSamplerPlugin(rawProtocol) : null;
+    if (rawProtocol !== "http" && rawProtocol !== "https" && !protocolPlugin) {
+      throw new ProcessorError(
+        "CONFIG_ERROR",
+        `协议插件不可用：${rawProtocol}（未启用或加载失败）`,
+      );
+    }
+    const url = protocolPlugin
+      ? `${rawProtocol}://${JSON.stringify((step.request as { protocolConfig?: unknown }).protocolConfig ?? {})}`
+      : resolveUrl(rendered, ctx);
     await writer.emit({
       type: "step-start",
       method: rendered.method,
@@ -124,17 +143,12 @@ export async function runStep(
       });
     }, 300);
     let result;
-    // PLUG-002：非 http(s) 协议走插件采样器（协议标识=request.protocol 小写；engine 进程内）
-    const rawProtocol = String((step.request as { protocol?: unknown }).protocol ?? "http").toLowerCase();
-    const protocolPlugin =
-      rawProtocol !== "http" && rawProtocol !== "https" ? getSamplerPlugin(rawProtocol) : null;
-    if (rawProtocol !== "http" && rawProtocol !== "https" && !protocolPlugin) {
-      throw new ProcessorError("CONFIG_ERROR", `协议插件不可用：${rawProtocol}（未启用或加载失败）`);
-    }
     try {
       if (protocolPlugin) {
         // SamplerResult → HTTP 采样形态标准化（headers kv 数组 / durationMs 字段名对齐）
-        const sampler = protocolPlugin.buildSampler((step.request as { protocolConfig?: unknown }).protocolConfig);
+        const sampler = protocolPlugin.buildSampler(
+          (step.request as { protocolConfig?: unknown }).protocolConfig,
+        );
         const sr = await sampler.run();
         result = {
           status: sr.ok ? 200 : sr.code === 1 ? 504 : 502,

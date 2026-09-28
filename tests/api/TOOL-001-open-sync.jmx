@@ -1,0 +1,520 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jmeterTestPlan version="1.2" properties="5.0" jmeter="5.6.3">
+  <hashTree>
+    <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="TOOL-001 IDEA 同步 open/api-sync（APIKEY + upsert 幂等）">
+      <boolProp name="TestPlan.serialize_threadgroups">true</boolProp>
+      <elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments">
+        <collectionProp name="Arguments.arguments">
+          <elementProp name="EMAIL" elementType="Argument">
+            <stringProp name="Argument.name">EMAIL</stringProp>
+            <stringProp name="Argument.value">jm-tool001-${__time(yyyyMMddHHmmss)}-${__threadNum}@rabbit.test</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+        </collectionProp>
+      </elementProp>
+    </TestPlan>
+    <hashTree>
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="准备：注册+建 key">
+        <stringProp name="ThreadGroup.num_threads">1</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">1</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController">
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+          <stringProp name="LoopController.loops">1</stringProp>
+        </elementProp>
+      </ThreadGroup>
+      <hashTree>
+        <CookieManager guiclass="CookiePanel" testclass="CookieManager" testname="Cookie">
+          <boolProp name="CookieManager.clearEachIteration">false</boolProp>
+        </CookieManager>
+        <hashTree/>
+        
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="T0 注册并取会话+项目">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                <stringProp name="Argument.value">{&quot;email&quot;:&quot;${EMAIL}&quot;,&quot;password&quot;:&quot;rabbit-pass-123&quot;}</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+          <stringProp name="HTTPSampler.domain">${__P(HOST,localhost)}</stringProp>
+          <stringProp name="HTTPSampler.port">${__P(PORT,3100)}</stringProp>
+          <stringProp name="HTTPSampler.path">/api/v1/auth/register</stringProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="提取 PROJECT_ID">
+            <stringProp name="JSONPostProcessor.referenceNames">PROJECT_ID</stringProp>
+            <stringProp name="JSONPostProcessor.jsonPathExprs">$.data.projectId</stringProp>
+            <stringProp name="JSONPostProcessor.match_numbers">1</stringProp>
+            <stringProp name="JSONPostProcessor.defaultValues">NOT_FOUND</stringProp>
+          </JSONPostProcessor>
+          <hashTree/>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="HTTP 201">
+            <collectionProp name="Asserion.test_strings"><stringProp name="49586">201</stringProp></collectionProp>
+            <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+            <intProp name="Assertion.test_type">8</intProp>
+          </ResponseAssertion>
+          <hashTree/>
+          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="code=0">
+            <stringProp name="JSON_PATH">$.code</stringProp>
+            <stringProp name="EXPECTED_VALUE">0</stringProp>
+            <boolProp name="JSONVALIDATION">true</boolProp>
+          </JSONPathAssertion>
+          <hashTree/>
+          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="contains -">
+            <stringProp name="JSON_PATH">$.data.projectId</stringProp>
+            <stringProp name="EXPECTED_VALUE">-</stringProp>
+            <boolProp name="JSONVALIDATION">false</boolProp>
+          </JSONPathAssertion>
+          <hashTree/>
+          <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion" testname="&lt;3000ms">
+            <stringProp name="DurationAssertion.duration">3000</stringProp>
+          </DurationAssertion>
+          <hashTree/>
+        </hashTree>
+
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="T0.2 创建 APIKEY（提取 AK/SK 桥 props）">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                <stringProp name="Argument.value">{&quot;name&quot;:&quot;JM P4&quot;}</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+          <stringProp name="HTTPSampler.domain">${__P(HOST,localhost)}</stringProp>
+          <stringProp name="HTTPSampler.port">${__P(PORT,3100)}</stringProp>
+          <stringProp name="HTTPSampler.path">/api/v1/personal/api-keys</stringProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="提取 AK">
+            <stringProp name="JSONPostProcessor.referenceNames">AK</stringProp>
+            <stringProp name="JSONPostProcessor.jsonPathExprs">$.data.accessKey</stringProp>
+            <stringProp name="JSONPostProcessor.match_numbers">1</stringProp>
+            <stringProp name="JSONPostProcessor.defaultValues">NOT_FOUND</stringProp>
+          </JSONPostProcessor>
+          <hashTree/>
+          <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="提取 SK">
+            <stringProp name="JSONPostProcessor.referenceNames">SK</stringProp>
+            <stringProp name="JSONPostProcessor.jsonPathExprs">$.data.secretKey</stringProp>
+            <stringProp name="JSONPostProcessor.match_numbers">1</stringProp>
+            <stringProp name="JSONPostProcessor.defaultValues">NOT_FOUND</stringProp>
+          </JSONPostProcessor>
+          <hashTree/>
+          <JSR223PostProcessor guiclass="TestBeanGUI" testclass="JSR223PostProcessor" testname="props 桥 AK/SK/BASIC/PROJECT_ID 桥">
+            <stringProp name="scriptLanguage">groovy</stringProp>
+            <stringProp name="script">props.put(&quot;AK&quot;, vars.get(&quot;AK&quot;)); props.put(&quot;SK&quot;, vars.get(&quot;SK&quot;)); props.put(&quot;P4_PROJECT_ID&quot;, vars.get(&quot;PROJECT_ID&quot;)); props.put(&quot;BASIC&quot;, &quot;Basic &quot; + (vars.get(&quot;AK&quot;) + &quot;:&quot; + vars.get(&quot;SK&quot;)).bytes.encodeBase64().toString())</stringProp>
+          </JSR223PostProcessor>
+          <hashTree/>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="HTTP 201">
+            <collectionProp name="Asserion.test_strings"><stringProp name="49586">201</stringProp></collectionProp>
+            <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+            <intProp name="Assertion.test_type">8</intProp>
+          </ResponseAssertion>
+          <hashTree/>
+          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="code=0">
+            <stringProp name="JSON_PATH">$.code</stringProp>
+            <stringProp name="EXPECTED_VALUE">0</stringProp>
+            <boolProp name="JSONVALIDATION">true</boolProp>
+          </JSONPathAssertion>
+          <hashTree/>
+          <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion" testname="&lt;3000ms">
+            <stringProp name="DurationAssertion.duration">3000</stringProp>
+          </DurationAssertion>
+          <hashTree/>
+        </hashTree>
+      </hashTree>
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="open 面同步（无会话，APIKEY 认证）">
+        <stringProp name="ThreadGroup.num_threads">1</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">1</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController">
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+          <stringProp name="LoopController.loops">1</stringProp>
+        </elementProp>
+      </ThreadGroup>
+      <hashTree>
+        
+        
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="T1-1 Bearer 首次同步 3 条 → created=3">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                <stringProp name="Argument.value">{&quot;projectId&quot;:&quot;${__P(P4_PROJECT_ID)}&quot;,&quot;apis&quot;:[{&quot;name&quot;:&quot;同步接口 1&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/1&quot;},{&quot;name&quot;:&quot;同步接口 2&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/2&quot;},{&quot;name&quot;:&quot;同步接口 3&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/3&quot;}]}</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+          <stringProp name="HTTPSampler.domain">${__P(HOST,localhost)}</stringProp>
+          <stringProp name="HTTPSampler.port">${__P(PORT,3100)}</stringProp>
+          <stringProp name="HTTPSampler.path">/api/v1/open/api-sync</stringProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="Header Authorization">
+            <collectionProp name="HeaderManager.headers">
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">Authorization</stringProp>
+                <stringProp name="Header.value">Bearer ${__P(AK)}.${__P(SK)}</stringProp>
+              </elementProp>
+            </collectionProp>
+          </HeaderManager>
+          <hashTree/>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="HTTP 200">
+            <collectionProp name="Asserion.test_strings"><stringProp name="49586">200</stringProp></collectionProp>
+            <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+            <intProp name="Assertion.test_type">8</intProp>
+          </ResponseAssertion>
+          <hashTree/>
+          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="code=0">
+            <stringProp name="JSON_PATH">$.code</stringProp>
+            <stringProp name="EXPECTED_VALUE">0</stringProp>
+            <boolProp name="JSONVALIDATION">true</boolProp>
+          </JSONPathAssertion>
+          <hashTree/>
+          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="field $.data.created=3">
+            <stringProp name="JSON_PATH">$.data.created</stringProp>
+            <stringProp name="EXPECTED_VALUE">3</stringProp>
+            <boolProp name="JSONVALIDATION">true</boolProp>
+          </JSONPathAssertion>
+          <hashTree/>
+          <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion" testname="&lt;3000ms">
+            <stringProp name="DurationAssertion.duration">3000</stringProp>
+          </DurationAssertion>
+          <hashTree/>
+        </hashTree>
+
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="T1-2 重放同批 → updated=3 created=0（幂等键 method+path）">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                <stringProp name="Argument.value">{&quot;projectId&quot;:&quot;${__P(P4_PROJECT_ID)}&quot;,&quot;apis&quot;:[{&quot;name&quot;:&quot;同步接口 1&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/1&quot;},{&quot;name&quot;:&quot;同步接口 2&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/2&quot;},{&quot;name&quot;:&quot;同步接口 3&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/3&quot;}]}</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+          <stringProp name="HTTPSampler.domain">${__P(HOST,localhost)}</stringProp>
+          <stringProp name="HTTPSampler.port">${__P(PORT,3100)}</stringProp>
+          <stringProp name="HTTPSampler.path">/api/v1/open/api-sync</stringProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="Header Authorization">
+            <collectionProp name="HeaderManager.headers">
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">Authorization</stringProp>
+                <stringProp name="Header.value">Bearer ${__P(AK)}.${__P(SK)}</stringProp>
+              </elementProp>
+            </collectionProp>
+          </HeaderManager>
+          <hashTree/>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="HTTP 200">
+            <collectionProp name="Asserion.test_strings"><stringProp name="49586">200</stringProp></collectionProp>
+            <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+            <intProp name="Assertion.test_type">8</intProp>
+          </ResponseAssertion>
+          <hashTree/>
+          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="code=0">
+            <stringProp name="JSON_PATH">$.code</stringProp>
+            <stringProp name="EXPECTED_VALUE">0</stringProp>
+            <boolProp name="JSONVALIDATION">true</boolProp>
+          </JSONPathAssertion>
+          <hashTree/>
+          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="field $.data.updated=3">
+            <stringProp name="JSON_PATH">$.data.updated</stringProp>
+            <stringProp name="EXPECTED_VALUE">3</stringProp>
+            <boolProp name="JSONVALIDATION">true</boolProp>
+          </JSONPathAssertion>
+          <hashTree/>
+          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="contains 0">
+            <stringProp name="JSON_PATH">$.data.created</stringProp>
+            <stringProp name="EXPECTED_VALUE">0</stringProp>
+            <boolProp name="JSONVALIDATION">false</boolProp>
+          </JSONPathAssertion>
+          <hashTree/>
+          <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion" testname="&lt;3000ms">
+            <stringProp name="DurationAssertion.duration">3000</stringProp>
+          </DurationAssertion>
+          <hashTree/>
+        </hashTree>
+
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="T1-3 Basic 头等价认证（Groovy 侧预编 base64）→ 200">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                <stringProp name="Argument.value">{&quot;projectId&quot;:&quot;${__P(P4_PROJECT_ID)}&quot;,&quot;apis&quot;:[{&quot;name&quot;:&quot;同步接口 1&quot;,&quot;method&quot;:&quot;POST&quot;,&quot;path&quot;:&quot;/jm/p4/sync/1&quot;}]}</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+          <stringProp name="HTTPSampler.domain">${__P(HOST,localhost)}</stringProp>
+          <stringProp name="HTTPSampler.port">${__P(PORT,3100)}</stringProp>
+          <stringProp name="HTTPSampler.path">/api/v1/open/api-sync</stringProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="Header Authorization">
+            <collectionProp name="HeaderManager.headers">
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">Authorization</stringProp>
+                <stringProp name="Header.value">${__P(BASIC)}</stringProp>
+              </elementProp>
+            </collectionProp>
+          </HeaderManager>
+          <hashTree/>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="HTTP 200">
+            <collectionProp name="Asserion.test_strings"><stringProp name="49586">200</stringProp></collectionProp>
+            <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+            <intProp name="Assertion.test_type">8</intProp>
+          </ResponseAssertion>
+          <hashTree/>
+          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="code=0">
+            <stringProp name="JSON_PATH">$.code</stringProp>
+            <stringProp name="EXPECTED_VALUE">0</stringProp>
+            <boolProp name="JSONVALIDATION">true</boolProp>
+          </JSONPathAssertion>
+          <hashTree/>
+          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="field $.data.created=1">
+            <stringProp name="JSON_PATH">$.data.created</stringProp>
+            <stringProp name="EXPECTED_VALUE">1</stringProp>
+            <boolProp name="JSONVALIDATION">true</boolProp>
+          </JSONPathAssertion>
+          <hashTree/>
+          <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion" testname="&lt;3000ms">
+            <stringProp name="DurationAssertion.duration">3000</stringProp>
+          </DurationAssertion>
+          <hashTree/>
+        </hashTree>
+
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="T1-4 回读分页信封（keyword 命中 4 条 + items 断言）">
+          <stringProp name="HTTPSampler.domain">${__P(HOST,localhost)}</stringProp>
+          <stringProp name="HTTPSampler.port">${__P(PORT,3100)}</stringProp>
+          <stringProp name="HTTPSampler.path">/api/v1/open/api-definitions?projectId=${__P(P4_PROJECT_ID)}&amp;page=1&amp;pageSize=10&amp;keyword=%E5%90%8C%E6%AD%A5</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="Header Authorization">
+            <collectionProp name="HeaderManager.headers">
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">Authorization</stringProp>
+                <stringProp name="Header.value">Bearer ${__P(AK)}.${__P(SK)}</stringProp>
+              </elementProp>
+            </collectionProp>
+          </HeaderManager>
+          <hashTree/>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="HTTP 200">
+            <collectionProp name="Asserion.test_strings"><stringProp name="49586">200</stringProp></collectionProp>
+            <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+            <intProp name="Assertion.test_type">8</intProp>
+          </ResponseAssertion>
+          <hashTree/>
+          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="code=0">
+            <stringProp name="JSON_PATH">$.code</stringProp>
+            <stringProp name="EXPECTED_VALUE">0</stringProp>
+            <boolProp name="JSONVALIDATION">true</boolProp>
+          </JSONPathAssertion>
+          <hashTree/>
+          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="field $.data.total=4">
+            <stringProp name="JSON_PATH">$.data.total</stringProp>
+            <stringProp name="EXPECTED_VALUE">4</stringProp>
+            <boolProp name="JSONVALIDATION">true</boolProp>
+          </JSONPathAssertion>
+          <hashTree/>
+          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="contains 同步接口">
+            <stringProp name="JSON_PATH">$.data.items</stringProp>
+            <stringProp name="EXPECTED_VALUE">同步接口</stringProp>
+            <boolProp name="JSONVALIDATION">false</boolProp>
+          </JSONPathAssertion>
+          <hashTree/>
+          <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion" testname="&lt;3000ms">
+            <stringProp name="DurationAssertion.duration">3000</stringProp>
+          </DurationAssertion>
+          <hashTree/>
+        </hashTree>
+
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="T2-1 无 Authorization → 401·10001">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                <stringProp name="Argument.value">{&quot;projectId&quot;:&quot;${__P(P4_PROJECT_ID)}&quot;,&quot;apis&quot;:[{&quot;name&quot;:&quot;同步接口 1&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/1&quot;}]}</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+          <stringProp name="HTTPSampler.domain">${__P(HOST,localhost)}</stringProp>
+          <stringProp name="HTTPSampler.port">${__P(PORT,3100)}</stringProp>
+          <stringProp name="HTTPSampler.path">/api/v1/open/api-sync</stringProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="HTTP 401">
+            <collectionProp name="Asserion.test_strings"><stringProp name="49586">401</stringProp></collectionProp>
+            <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+            <boolProp name="Assertion.assume_success">true</boolProp>
+            <intProp name="Assertion.test_type">8</intProp>
+          </ResponseAssertion>
+          <hashTree/>
+          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="code=10001">
+            <stringProp name="JSON_PATH">$.code</stringProp>
+            <stringProp name="EXPECTED_VALUE">10001</stringProp>
+            <boolProp name="JSONVALIDATION">true</boolProp>
+          </JSONPathAssertion>
+          <hashTree/>
+          <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion" testname="&lt;3000ms">
+            <stringProp name="DurationAssertion.duration">3000</stringProp>
+          </DurationAssertion>
+          <hashTree/>
+        </hashTree>
+
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="T2-2 错误密钥 → 401·10010">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                <stringProp name="Argument.value">{&quot;projectId&quot;:&quot;${__P(P4_PROJECT_ID)}&quot;,&quot;apis&quot;:[{&quot;name&quot;:&quot;同步接口 1&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/1&quot;}]}</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+          <stringProp name="HTTPSampler.domain">${__P(HOST,localhost)}</stringProp>
+          <stringProp name="HTTPSampler.port">${__P(PORT,3100)}</stringProp>
+          <stringProp name="HTTPSampler.path">/api/v1/open/api-sync</stringProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="Header Authorization">
+            <collectionProp name="HeaderManager.headers">
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">Authorization</stringProp>
+                <stringProp name="Header.value">Bearer bad.key</stringProp>
+              </elementProp>
+            </collectionProp>
+          </HeaderManager>
+          <hashTree/>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="HTTP 401">
+            <collectionProp name="Asserion.test_strings"><stringProp name="49586">401</stringProp></collectionProp>
+            <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+            <boolProp name="Assertion.assume_success">true</boolProp>
+            <intProp name="Assertion.test_type">8</intProp>
+          </ResponseAssertion>
+          <hashTree/>
+          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="code=10010">
+            <stringProp name="JSON_PATH">$.code</stringProp>
+            <stringProp name="EXPECTED_VALUE">10010</stringProp>
+            <boolProp name="JSONVALIDATION">true</boolProp>
+          </JSONPathAssertion>
+          <hashTree/>
+          <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion" testname="&lt;3000ms">
+            <stringProp name="DurationAssertion.duration">3000</stringProp>
+          </DurationAssertion>
+          <hashTree/>
+        </hashTree>
+
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="T3-1 批内重复 → 422·10023">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                <stringProp name="Argument.value">{&quot;projectId&quot;:&quot;${__P(P4_PROJECT_ID)}&quot;,&quot;apis&quot;:[{&quot;name&quot;:&quot;dup&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/dup&quot;},{&quot;name&quot;:&quot;dup2&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/dup&quot;}]}</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+          <stringProp name="HTTPSampler.domain">${__P(HOST,localhost)}</stringProp>
+          <stringProp name="HTTPSampler.port">${__P(PORT,3100)}</stringProp>
+          <stringProp name="HTTPSampler.path">/api/v1/open/api-sync</stringProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="Header Authorization">
+            <collectionProp name="HeaderManager.headers">
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">Authorization</stringProp>
+                <stringProp name="Header.value">Bearer ${__P(AK)}.${__P(SK)}</stringProp>
+              </elementProp>
+            </collectionProp>
+          </HeaderManager>
+          <hashTree/>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="HTTP 422">
+            <collectionProp name="Asserion.test_strings"><stringProp name="49586">422</stringProp></collectionProp>
+            <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+            <boolProp name="Assertion.assume_success">true</boolProp>
+            <intProp name="Assertion.test_type">8</intProp>
+          </ResponseAssertion>
+          <hashTree/>
+          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="code=10023">
+            <stringProp name="JSON_PATH">$.code</stringProp>
+            <stringProp name="EXPECTED_VALUE">10023</stringProp>
+            <boolProp name="JSONVALIDATION">true</boolProp>
+          </JSONPathAssertion>
+          <hashTree/>
+          <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion" testname="&lt;3000ms">
+            <stringProp name="DurationAssertion.duration">3000</stringProp>
+          </DurationAssertion>
+          <hashTree/>
+        </hashTree>
+
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="T3-2 批量 101 条超限 → 422·10024">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                <stringProp name="Argument.value">{&quot;projectId&quot;:&quot;${__P(P4_PROJECT_ID)}&quot;,&quot;apis&quot;:[{&quot;name&quot;:&quot;同步接口 1&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/1&quot;},{&quot;name&quot;:&quot;同步接口 2&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/2&quot;},{&quot;name&quot;:&quot;同步接口 3&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/3&quot;},{&quot;name&quot;:&quot;同步接口 4&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/4&quot;},{&quot;name&quot;:&quot;同步接口 5&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/5&quot;},{&quot;name&quot;:&quot;同步接口 6&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/6&quot;},{&quot;name&quot;:&quot;同步接口 7&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/7&quot;},{&quot;name&quot;:&quot;同步接口 8&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/8&quot;},{&quot;name&quot;:&quot;同步接口 9&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/9&quot;},{&quot;name&quot;:&quot;同步接口 10&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/10&quot;},{&quot;name&quot;:&quot;同步接口 11&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/11&quot;},{&quot;name&quot;:&quot;同步接口 12&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/12&quot;},{&quot;name&quot;:&quot;同步接口 13&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/13&quot;},{&quot;name&quot;:&quot;同步接口 14&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/14&quot;},{&quot;name&quot;:&quot;同步接口 15&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/15&quot;},{&quot;name&quot;:&quot;同步接口 16&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/16&quot;},{&quot;name&quot;:&quot;同步接口 17&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/17&quot;},{&quot;name&quot;:&quot;同步接口 18&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/18&quot;},{&quot;name&quot;:&quot;同步接口 19&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/19&quot;},{&quot;name&quot;:&quot;同步接口 20&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/20&quot;},{&quot;name&quot;:&quot;同步接口 21&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/21&quot;},{&quot;name&quot;:&quot;同步接口 22&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/22&quot;},{&quot;name&quot;:&quot;同步接口 23&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/23&quot;},{&quot;name&quot;:&quot;同步接口 24&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/24&quot;},{&quot;name&quot;:&quot;同步接口 25&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/25&quot;},{&quot;name&quot;:&quot;同步接口 26&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/26&quot;},{&quot;name&quot;:&quot;同步接口 27&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/27&quot;},{&quot;name&quot;:&quot;同步接口 28&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/28&quot;},{&quot;name&quot;:&quot;同步接口 29&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/29&quot;},{&quot;name&quot;:&quot;同步接口 30&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/30&quot;},{&quot;name&quot;:&quot;同步接口 31&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/31&quot;},{&quot;name&quot;:&quot;同步接口 32&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/32&quot;},{&quot;name&quot;:&quot;同步接口 33&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/33&quot;},{&quot;name&quot;:&quot;同步接口 34&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/34&quot;},{&quot;name&quot;:&quot;同步接口 35&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/35&quot;},{&quot;name&quot;:&quot;同步接口 36&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/36&quot;},{&quot;name&quot;:&quot;同步接口 37&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/37&quot;},{&quot;name&quot;:&quot;同步接口 38&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/38&quot;},{&quot;name&quot;:&quot;同步接口 39&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/39&quot;},{&quot;name&quot;:&quot;同步接口 40&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/40&quot;},{&quot;name&quot;:&quot;同步接口 41&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/41&quot;},{&quot;name&quot;:&quot;同步接口 42&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/42&quot;},{&quot;name&quot;:&quot;同步接口 43&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/43&quot;},{&quot;name&quot;:&quot;同步接口 44&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/44&quot;},{&quot;name&quot;:&quot;同步接口 45&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/45&quot;},{&quot;name&quot;:&quot;同步接口 46&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/46&quot;},{&quot;name&quot;:&quot;同步接口 47&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/47&quot;},{&quot;name&quot;:&quot;同步接口 48&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/48&quot;},{&quot;name&quot;:&quot;同步接口 49&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/49&quot;},{&quot;name&quot;:&quot;同步接口 50&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/50&quot;},{&quot;name&quot;:&quot;同步接口 51&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/51&quot;},{&quot;name&quot;:&quot;同步接口 52&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/52&quot;},{&quot;name&quot;:&quot;同步接口 53&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/53&quot;},{&quot;name&quot;:&quot;同步接口 54&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/54&quot;},{&quot;name&quot;:&quot;同步接口 55&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/55&quot;},{&quot;name&quot;:&quot;同步接口 56&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/56&quot;},{&quot;name&quot;:&quot;同步接口 57&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/57&quot;},{&quot;name&quot;:&quot;同步接口 58&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/58&quot;},{&quot;name&quot;:&quot;同步接口 59&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/59&quot;},{&quot;name&quot;:&quot;同步接口 60&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/60&quot;},{&quot;name&quot;:&quot;同步接口 61&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/61&quot;},{&quot;name&quot;:&quot;同步接口 62&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/62&quot;},{&quot;name&quot;:&quot;同步接口 63&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/63&quot;},{&quot;name&quot;:&quot;同步接口 64&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/64&quot;},{&quot;name&quot;:&quot;同步接口 65&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/65&quot;},{&quot;name&quot;:&quot;同步接口 66&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/66&quot;},{&quot;name&quot;:&quot;同步接口 67&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/67&quot;},{&quot;name&quot;:&quot;同步接口 68&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/68&quot;},{&quot;name&quot;:&quot;同步接口 69&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/69&quot;},{&quot;name&quot;:&quot;同步接口 70&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/70&quot;},{&quot;name&quot;:&quot;同步接口 71&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/71&quot;},{&quot;name&quot;:&quot;同步接口 72&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/72&quot;},{&quot;name&quot;:&quot;同步接口 73&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/73&quot;},{&quot;name&quot;:&quot;同步接口 74&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/74&quot;},{&quot;name&quot;:&quot;同步接口 75&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/75&quot;},{&quot;name&quot;:&quot;同步接口 76&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/76&quot;},{&quot;name&quot;:&quot;同步接口 77&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/77&quot;},{&quot;name&quot;:&quot;同步接口 78&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/78&quot;},{&quot;name&quot;:&quot;同步接口 79&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/79&quot;},{&quot;name&quot;:&quot;同步接口 80&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/80&quot;},{&quot;name&quot;:&quot;同步接口 81&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/81&quot;},{&quot;name&quot;:&quot;同步接口 82&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/82&quot;},{&quot;name&quot;:&quot;同步接口 83&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/83&quot;},{&quot;name&quot;:&quot;同步接口 84&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/84&quot;},{&quot;name&quot;:&quot;同步接口 85&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/85&quot;},{&quot;name&quot;:&quot;同步接口 86&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/86&quot;},{&quot;name&quot;:&quot;同步接口 87&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/87&quot;},{&quot;name&quot;:&quot;同步接口 88&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/88&quot;},{&quot;name&quot;:&quot;同步接口 89&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/89&quot;},{&quot;name&quot;:&quot;同步接口 90&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/90&quot;},{&quot;name&quot;:&quot;同步接口 91&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/91&quot;},{&quot;name&quot;:&quot;同步接口 92&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/92&quot;},{&quot;name&quot;:&quot;同步接口 93&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/93&quot;},{&quot;name&quot;:&quot;同步接口 94&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/94&quot;},{&quot;name&quot;:&quot;同步接口 95&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/95&quot;},{&quot;name&quot;:&quot;同步接口 96&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/96&quot;},{&quot;name&quot;:&quot;同步接口 97&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/97&quot;},{&quot;name&quot;:&quot;同步接口 98&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/98&quot;},{&quot;name&quot;:&quot;同步接口 99&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/99&quot;},{&quot;name&quot;:&quot;同步接口 100&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/100&quot;},{&quot;name&quot;:&quot;同步接口 101&quot;,&quot;method&quot;:&quot;GET&quot;,&quot;path&quot;:&quot;/jm/p4/sync/101&quot;}]}</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+          <stringProp name="HTTPSampler.domain">${__P(HOST,localhost)}</stringProp>
+          <stringProp name="HTTPSampler.port">${__P(PORT,3100)}</stringProp>
+          <stringProp name="HTTPSampler.path">/api/v1/open/api-sync</stringProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="Header Authorization">
+            <collectionProp name="HeaderManager.headers">
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">Authorization</stringProp>
+                <stringProp name="Header.value">Bearer ${__P(AK)}.${__P(SK)}</stringProp>
+              </elementProp>
+            </collectionProp>
+          </HeaderManager>
+          <hashTree/>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="HTTP 422">
+            <collectionProp name="Asserion.test_strings"><stringProp name="49586">422</stringProp></collectionProp>
+            <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+            <boolProp name="Assertion.assume_success">true</boolProp>
+            <intProp name="Assertion.test_type">8</intProp>
+          </ResponseAssertion>
+          <hashTree/>
+          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="code=10024">
+            <stringProp name="JSON_PATH">$.code</stringProp>
+            <stringProp name="EXPECTED_VALUE">10024</stringProp>
+            <boolProp name="JSONVALIDATION">true</boolProp>
+          </JSONPathAssertion>
+          <hashTree/>
+          <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion" testname="&lt;3000ms">
+            <stringProp name="DurationAssertion.duration">3000</stringProp>
+          </DurationAssertion>
+          <hashTree/>
+        </hashTree>
+      </hashTree>
+    </hashTree>
+  </hashTree>
+</jmeterTestPlan>

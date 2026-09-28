@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="utf-8" />
+    <title>EXEC-004 K8S 型资源池（池管理 · 四态）</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-slate-50 text-slate-800 text-sm">
+    <header class="h-12 bg-white border-b flex items-center px-4 gap-3">
+      <span class="font-semibold">RabbitAITest</span>
+      <span class="ml-auto flex items-center gap-3 text-slate-400 text-xs">系统设置 · 资源池</span>
+    </header>
+    <main class="p-4 space-y-4 max-w-[1100px]">
+      <!-- 画板一：NODE 型现状（type Tag + K8S 型配置行缺席） -->
+      <section class="bg-white border rounded-md">
+        <div class="px-3 py-2 border-b bg-slate-50 font-medium">
+          画板一 · 池详情 · NODE 型（现状增强：type Tag + 社区版单池说明条）
+        </div>
+        <div class="p-4 space-y-3 text-[13px]">
+          <div
+            class="flex items-center gap-2 text-xs text-slate-500 bg-slate-50 border rounded px-3 py-2"
+          >
+            ℹ 社区版限 1 个默认资源池且不可删除；多资源池属企业版（License 激活后开放）
+          </div>
+          <div class="border rounded p-3 space-y-2" data-testid="pool-card">
+            <div class="flex items-center gap-2">
+              <span class="font-medium">默认资源池</span>
+              <span
+                class="border rounded px-1.5 py-0.5 text-[11px] bg-slate-100"
+                data-testid="pool-type"
+                >NODE</span
+              >
+              <span class="text-green-600 text-xs">● ACTIVE</span>
+              <span class="text-xs text-slate-400">默认池</span>
+              <button
+                class="ml-auto border rounded px-2 py-1 text-xs hover:bg-slate-100"
+                data-testid="pool-edit"
+              >
+                编辑
+              </button>
+            </div>
+            <div class="grid grid-cols-3 gap-2 text-xs text-slate-500">
+              <span>最大并发：<b class="text-slate-700">4</b></span>
+              <span>节点：1 在线</span>
+              <span>心跳：10s 前</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 画板二：编辑对话框 · 切 K8S 型表单 -->
+      <section class="bg-white border rounded-md">
+        <div class="px-3 py-2 border-b bg-slate-50 font-medium">
+          画板二 · 编辑对话框 · 类型切换 K8S + 四项配置表单
+        </div>
+        <div class="p-4 flex justify-center">
+          <div class="border rounded-lg shadow-md w-[520px] bg-white text-[13px]">
+            <div class="px-4 py-3 border-b font-medium flex items-center">编辑资源池</div>
+            <div class="p-4 space-y-3">
+              <div class="flex items-center gap-4">
+                <span class="w-20 text-slate-500">类型</span>
+                <label class="flex items-center gap-1"
+                  ><input type="radio" name="t" /> NODE（单机进程）</label
+                >
+                <label class="flex items-center gap-1"
+                  ><input type="radio" name="t" checked />
+                  <span class="text-[#574BFF] font-medium">K8S（集群 task-runner）</span></label
+                >
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="w-20 text-slate-500">最大并发</span
+                ><input class="border rounded px-2 py-1.5 w-24" value="4" />
+              </div>
+              <div class="border-t pt-3 space-y-3" data-testid="k8s-form">
+                <div class="flex items-center gap-2">
+                  <span class="w-20 text-slate-500">apiServer</span
+                  ><input
+                    class="flex-1 border rounded px-2 py-1.5 font-mono text-xs"
+                    value="https://k8s.internal:6443"
+                    data-testid="k8s-apiserver"
+                  />
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="w-20 text-slate-500">命名空间</span
+                  ><input
+                    class="border rounded px-2 py-1.5 w-44 font-mono text-xs"
+                    value="rabbit-exec"
+                    data-testid="k8s-namespace"
+                  /><span class="text-xs text-slate-400">RFC1123（小写字母数字与连字符）</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="w-20 text-slate-500">Token</span
+                  ><input
+                    type="password"
+                    class="flex-1 border rounded px-2 py-1.5 font-mono text-xs"
+                    value="eyJhbGciOi…"
+                    data-testid="k8s-token"
+                  /><span class="text-xs text-amber-500">只写不读（保存后显示已设置）</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="w-20 text-slate-500">镜像</span
+                  ><input
+                    class="flex-1 border rounded px-2 py-1.5 font-mono text-xs"
+                    value="rabbitaitest/task-runner:latest"
+                    data-testid="k8s-image"
+                  /><span class="text-xs text-slate-400">可缺省</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <button
+                    class="border border-[#574BFF] text-[#574BFF] rounded px-3 py-1.5 text-xs"
+                    data-testid="k8s-test"
+                  >
+                    测试连接（试连不保存）
+                  </button>
+                  <span class="text-green-600 text-xs hidden">✓ 连接成功 · Kubernetes v1.29.4</span>
+                </div>
+              </div>
+              <div class="flex justify-end gap-2 pt-2 border-t">
+                <button class="border rounded px-3 py-1.5">取消</button>
+                <button class="bg-[#574BFF] text-white rounded px-3 py-1.5" data-testid="pool-save">
+                  保存
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 画板三：测试连接态 -->
+      <section class="bg-white border rounded-md">
+        <div class="px-3 py-2 border-b bg-slate-50 font-medium">
+          画板三 · 测试连接三态（loading / 成功 / 失败行内反馈，不弹窗）
+        </div>
+        <div class="p-4 space-y-3 text-[13px]">
+          <div class="flex items-center gap-2">
+            <button class="border rounded px-3 py-1.5 text-xs text-slate-400" disabled>
+              ⟳ 连接中…（≤5s）</button
+            ><span class="text-xs text-slate-400">PUT /api/v1/system/pools/{id}?test=true</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-green-600 text-xs"
+              >✓ 连接成功 · Kubernetes v1.29.4（配置未落库——test 语义=试连不保存）</span
+            >
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-red-500 text-xs"
+              >✗ 连接失败：ETIMEDOUT（5s 超时）· 502·50423 POOL_K8S_UNREACHABLE</span
+            >
+          </div>
+        </div>
+      </section>
+
+      <!-- 画板四：K8S 型保存后详情 + 休眠往返 -->
+      <section class="bg-white border rounded-md">
+        <div class="px-3 py-2 border-b bg-slate-50 font-medium">
+          画板四 · K8S 型详情（token 掩码）与 K8S→NODE→K8S 休眠保留
+        </div>
+        <div class="p-4 space-y-2 text-[13px]">
+          <div class="border rounded p-3 space-y-2">
+            <div class="flex items-center gap-2">
+              <span class="font-medium">默认资源池</span>
+              <span
+                class="border rounded px-1.5 py-0.5 text-[11px] bg-[#574BFF]/10 text-[#574BFF]"
+                data-testid="pool-type-k8s"
+                >K8S</span
+              >
+              <span class="text-green-600 text-xs">● ACTIVE</span>
+              <span class="ml-auto flex gap-1"
+                ><span class="border rounded px-1.5 py-0.5 text-[11px] text-slate-400"
+                  >loadTest：—</span
+                ><span class="border rounded px-1.5 py-0.5 text-[11px] text-slate-400"
+                  >uiTest：—</span
+                ></span
+              >
+            </div>
+            <div class="grid grid-cols-2 gap-2 text-xs text-slate-500">
+              <span
+                >apiServer：<code class="bg-slate-50 border rounded px-1"
+                  >https://k8s.internal:6443</code
+                ></span
+              >
+              <span
+                >命名空间：<code class="bg-slate-50 border rounded px-1">rabbit-exec</code></span
+              >
+              <span
+                >Token：<span class="text-amber-600" data-testid="k8s-token-set"
+                  >已设置（不回显）</span
+                ></span
+              >
+              <span
+                >镜像：<code class="bg-slate-50 border rounded px-1"
+                  >rabbitaitest/task-runner:latest</code
+                ></span
+              >
+            </div>
+            <div class="text-xs text-slate-400">
+              loadTest/uiTest=企业版方向占位字段（恒 false 展示为「—」，对齐基线资源池 DTO）
+            </div>
+          </div>
+          <div class="border rounded p-3 bg-slate-50 text-xs text-slate-500 space-y-1">
+            <p>
+              <b>休眠保留</b>：K8S→NODE 切换不清 k8s 配置（再切回免重填）；心跳 nodes
+              拓扑由节点自然重注册刷新。
+            </p>
+            <p>
+              <b>调度零变化</b>：K8S 型仅改变部署拓扑（kubectl apply 附录 A 清单），worker
+              注册/心跳/槽位走既有契约，BullMQ exec 队列不变。
+            </p>
+          </div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

@@ -62,10 +62,25 @@ export const requestBodySchema = z.discriminatedUnion("kind", [
   }),
   z.object({
     kind: z.literal("raw_json"),
-    content: z.string().max(256 * 1024).default(""),
+    content: z
+      .string()
+      .max(256 * 1024)
+      .default(""),
   }),
-  z.object({ kind: z.literal("raw_xml"), content: z.string().max(256 * 1024).default("") }),
-  z.object({ kind: z.literal("raw_text"), content: z.string().max(256 * 1024).default("") }),
+  z.object({
+    kind: z.literal("raw_xml"),
+    content: z
+      .string()
+      .max(256 * 1024)
+      .default(""),
+  }),
+  z.object({
+    kind: z.literal("raw_text"),
+    content: z
+      .string()
+      .max(256 * 1024)
+      .default(""),
+  }),
   z.object({ kind: z.literal("binary"), fileId: z.string().uuid() }),
 ]);
 export type RequestBody = z.infer<typeof requestBodySchema>;
@@ -122,7 +137,10 @@ export const processorSchema = z.discriminatedUnion("kind", [
   }),
   z.object({
     kind: z.literal("sql"),
-    sql: z.string().min(1).max(16 * 1024),
+    sql: z
+      .string()
+      .min(1)
+      .max(16 * 1024),
     datasourceId: z.string().min(1).max(128),
     /** 首行结果列 → 变量名映射（{colName: varName}），仅前置/后置 SQL 提取用 */
     varMapping: z.record(z.string().min(1).max(128), z.string().min(1).max(128)).default({}),
@@ -214,7 +232,10 @@ export type EnvSnapshot = z.infer<typeof envSnapshotSchema>;
 /** CSV 表（web 解析后内嵌 command；columns=列名，rows=行数组）。 */
 export const csvTableSchema = z.object({
   columns: z.array(z.string().min(1).max(128)).max(200).default([]),
-  rows: z.array(z.array(z.string().max(8192)).max(200)).max(10000).default([]),
+  rows: z
+    .array(z.array(z.string().max(8192)).max(200))
+    .max(10000)
+    .default([]),
 });
 export type CsvTable = z.infer<typeof csvTableSchema>;
 
@@ -231,7 +252,12 @@ export const scenarioParamsSchema = z.object({
     .max(200)
     .default([]),
   lists: z
-    .array(z.object({ name: z.string().min(1).max(128), values: z.array(z.string().max(8192)).max(1000).default([]) }))
+    .array(
+      z.object({
+        name: z.string().min(1).max(128),
+        values: z.array(z.string().max(8192)).max(1000).default([]),
+      }),
+    )
     .max(50)
     .default([]),
   /** 命令形态：web 已按 delimiter/hasHeader 解析的表（存储形态见 web 侧 scenarioSaveSchema） */
@@ -289,7 +315,12 @@ export const loopConfigSchema = z.discriminatedUnion("mode", [
     source: z.string().min(1).max(128),
     /** web 预展开迭代序列：列表=仅 value；CSV 列=value+row 整行（row 注入为 `var` 与 `row.列名` 键） */
     iterations: z
-      .array(z.object({ value: z.string().max(8192).default(""), row: z.record(z.string().min(1).max(128), z.string().max(8192)).default({}) }))
+      .array(
+        z.object({
+          value: z.string().max(8192).default(""),
+          row: z.record(z.string().min(1).max(128), z.string().max(8192)).default({}),
+        }),
+      )
       .max(10000)
       .default([]),
   }),
@@ -297,21 +328,41 @@ export const loopConfigSchema = z.discriminatedUnion("mode", [
 export type LoopConfig = z.infer<typeof loopConfigSchema>;
 
 /** 场景步骤树节点（web 下发原样树；engine flatten+递归执行）。 */
-export const scenarioStepNodeSchema: z.ZodType<ScenarioStepNode, z.ZodTypeDef, unknown> = z.lazy(() =>
-  z.object({
-    uid: z.string().min(1).max(64),
-    stepType: z.enum(["ref_api", "ref_case", "ref_scenario", "custom", "loop", "condition", "once", "script", "wait"]),
-    name: z.string().min(1).max(256),
-    enabled: z.boolean().default(true),
-    config: z.record(z.string(), z.unknown()).default({}),
-    /** loop: LoopConfig / condition: {expression} / script: {script} / wait: {ms}
-     *  custom: {bundle: StepBundle} / ref_*: {bundle(已解析), override?, refMeta?{refMode,refName}} */
-    children: z.array(scenarioStepNodeSchema).max(200).default([]),
-  }),
+export const scenarioStepNodeSchema: z.ZodType<ScenarioStepNode, z.ZodTypeDef, unknown> = z.lazy(
+  () =>
+    z.object({
+      uid: z.string().min(1).max(64),
+      stepType: z.enum([
+        "ref_api",
+        "ref_case",
+        "ref_scenario",
+        "custom",
+        "loop",
+        "condition",
+        "once",
+        "script",
+        "wait",
+      ]),
+      name: z.string().min(1).max(256),
+      enabled: z.boolean().default(true),
+      config: z.record(z.string(), z.unknown()).default({}),
+      /** loop: LoopConfig / condition: {expression} / script: {script} / wait: {ms}
+       *  custom: {bundle: StepBundle} / ref_*: {bundle(已解析), override?, refMeta?{refMode,refName}} */
+      children: z.array(scenarioStepNodeSchema).max(200).default([]),
+    }),
 );
 export type ScenarioStepNode = {
   uid: string;
-  stepType: "ref_api" | "ref_case" | "ref_scenario" | "custom" | "loop" | "condition" | "once" | "script" | "wait";
+  stepType:
+    | "ref_api"
+    | "ref_case"
+    | "ref_scenario"
+    | "custom"
+    | "loop"
+    | "condition"
+    | "once"
+    | "script"
+    | "wait";
   name: string;
   enabled: boolean;
   config: Record<string, unknown>;
@@ -574,7 +625,9 @@ export const execCallbackSchema = z.object({
   failureKind: failureKindSchema.optional(),
   message: z.string().max(4000).default(""),
   lastSeq: z.number().int(),
-  varUpdates: z.array(z.object({ name: z.string().max(128), value: z.string().max(8192) })).default([]),
+  varUpdates: z
+    .array(z.object({ name: z.string().max(128), value: z.string().max(8192) }))
+    .default([]),
 });
 export type ExecCallback = z.infer<typeof execCallbackSchema>;
 
@@ -604,3 +657,52 @@ export type TaskStatus = z.infer<typeof taskStatusSchema>;
 /** 引擎契约版本（心跳协商：不一致节点 web 标「版本不匹配」不下发新类型任务展示）
  * v4（S4 PLAN-003）：+plan 命令（计划引擎执行）、step-start 帧 +stepName——全 additive。 */
 export const EXEC_CONTRACT_VERSION = 4;
+
+// ── K8S 型资源池（S-future EXEC-004 §4）──
+
+export const POOL_TYPES = ["NODE", "K8S"] as const;
+export type PoolType = (typeof POOL_TYPES)[number];
+
+/** K8S 四项配置（apiServer 强制 https；namespace=RFC1123 label；token 只写不读；image 可缺省）。 */
+export const poolK8sConfigSchema = z.object({
+  apiServer: z
+    .string()
+    .url()
+    .max(512)
+    .refine((u) => u.startsWith("https://"), { message: "apiServer 必须为 https URL" }),
+  namespace: z
+    .string()
+    .min(1)
+    .max(63)
+    .regex(/^[a-z0-9]([-a-z0-9]*[a-z0-9])?$/, { message: "namespace 须符合 RFC1123 标签规则" }),
+  token: z.string().min(1).max(4096),
+  image: z
+    .string()
+    .regex(/^[a-z0-9./:_-]{1,255}$/, { message: "镜像名非法" })
+    .default("rabbitaitest/task-runner:latest"),
+});
+export type PoolK8sConfig = z.infer<typeof poolK8sConfigSchema>;
+
+/** 池配置落库载体（ResourcePool.config，门禁 3 例外登记 test-domain-model §6）。
+ * token 更新语义：save 时缺省 token=保留旧值（编辑回填场景）。 */
+export const poolK8sConfigSaveSchema = poolK8sConfigSchema.extend({
+  token: z.string().max(4096).optional(), // 缺省=不修改
+});
+
+export const poolUpdateSchema = z.object({
+  name: z.string().min(1).max(128).optional(),
+  maxConcurrency: z.number().int().min(2).max(64).optional(),
+  type: z.enum(POOL_TYPES).optional(),
+  k8s: poolK8sConfigSaveSchema.optional(),
+});
+/** 服务入参口径=输入类型（k8s.image 带 default 可省——z.infer 输出型会强制调用方传 image）。 */
+export type PoolUpdateInput = z.input<typeof poolUpdateSchema>;
+
+/** K8S 配置回显（token 永不回明文，仅 tokenSet 标记）。 */
+export const poolK8sConfigViewSchema = z.object({
+  apiServer: z.string(),
+  namespace: z.string(),
+  image: z.string(),
+  tokenSet: z.boolean(),
+});
+export type PoolK8sConfigView = z.infer<typeof poolK8sConfigViewSchema>;

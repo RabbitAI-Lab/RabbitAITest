@@ -15,7 +15,8 @@ export const POST = withApiKey(async (ctx, req) => {
       where: { id: body.scenarioId, deletedAt: null },
       select: { projectId: true },
     });
-    if (!scenario) return NextResponse.json({ code: 40474, message: "场景不存在", data: null }, { status: 404 });
+    if (!scenario)
+      return NextResponse.json({ code: 40474, message: "场景不存在", data: null }, { status: 404 });
     await assertProjectVisible(ctx.userId, scenario.projectId);
     const { taskId } = await createScenarioTask(scenario.projectId, ctx.userId, {
       scenarioIds: [body.scenarioId],

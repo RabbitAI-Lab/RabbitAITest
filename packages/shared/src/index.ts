@@ -16,3 +16,4 @@ export * from "./ai/schemas";
 export * from "./plugins/spi";
 export * from "./integration/schemas";
 export * from "./message/schemas";
+export * from "./tool/schemas";

@@ -15,13 +15,10 @@ import {
 /** query 布尔：z.coerce.boolean 对字符串 "false" 误判 truthy（Boolean("false")=true）——
  *  显式映射修复（S3 勘误：场景列表 recycle=false 曾因此恒查回收站）；缺省回落 def。 */
 export const queryBool = (def: boolean) =>
-  z.preprocess(
-    (v) => {
-      if (v === undefined || v === null || v === "") return def;
-      return v === "true" || v === true || v === 1 || v === "1";
-    },
-    z.boolean(),
-  );
+  z.preprocess((v) => {
+    if (v === undefined || v === null || v === "") return def;
+    return v === "true" || v === true || v === 1 || v === "1";
+  }, z.boolean());
 
 // ── 接口定义（API-002）──
 
@@ -31,7 +28,10 @@ export const apiStatusSchema = z.enum(["DEBUG", "RELEASED"]);
 export const apiResponseSchema = z.object({
   status: z.number().int().min(100).max(599).default(200),
   headers: z.array(kvSchema).max(50).default([]),
-  body: z.string().max(256 * 1024).default(""),
+  body: z
+    .string()
+    .max(256 * 1024)
+    .default(""),
 });
 
 /** 定义/用例共用的请求包：spec + 断言/前后置/提取（落库 request JSONB 单列，API-003 §4） */
@@ -113,7 +113,10 @@ export const mockMatchersSchema = z.object({
 export const mockResponseSchema = z.object({
   status: z.number().int().min(100).max(599).default(200),
   headers: z.array(mockMatcherKvSchema).max(20).default([]),
-  body: z.string().max(256 * 1024).default(""),
+  body: z
+    .string()
+    .max(256 * 1024)
+    .default(""),
   delayMs: z.number().int().min(0).max(10000).default(0),
 });
 export const mockUpsertSchema = z.object({
@@ -157,7 +160,10 @@ export const apiImportSchema = z.object({
   format: z.enum(apiImportFormats),
   source: z.object({
     url: z.string().url().max(2048).optional(),
-    content: z.string().max(2 * 1024 * 1024).optional(),
+    content: z
+      .string()
+      .max(2 * 1024 * 1024)
+      .optional(),
   }),
   overwrite: z.boolean().default(false),
   moduleId: z.string().uuid(),
@@ -167,7 +173,10 @@ export const apiExportQuerySchema = z.object({
   ids: z.array(z.string().uuid()).max(500).optional(),
 });
 export const curlParseSchema = z.object({
-  curl: z.string().min(3).max(32 * 1024),
+  curl: z
+    .string()
+    .min(3)
+    .max(32 * 1024),
 });
 
 /** Rabbit 自有导入导出格式（roundtrip；再导入时 moduleId 由导入向导重选） */
@@ -284,6 +293,58 @@ export const shareCreateSchema = z.object({
   expireHours: z.union([z.literal(1), z.literal(24), z.literal(168), z.literal(720)]),
 });
 
+// ── 报告高级分析（S-future RPT-004：跨报告统计，超出基线自主设计）──
+
+export const REPORT_STATS_WINDOWS = [7, 14, 30] as const;
+
+export const reportStatsQuerySchema = z.object({
+  days: z.coerce
+    .number()
+    .int()
+    .refine((d) => (REPORT_STATS_WINDOWS as readonly number[]).includes(d), {
+      message: "days 仅支持 7/14/30",
+    })
+    .default(14),
+});
+
+/** 趋势行（无报告日期补零；passRate 分母 0 时为 null）。 */
+export const reportTrendPointSchema = z.object({
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  total: z.number().int(),
+  passed: z.number().int(),
+  failed: z.number().int(),
+  fakeError: z.number().int(),
+  passRate: z.number().nullable(),
+});
+
+export const reportStatsByTypeSchema = z.object({
+  reportType: z.enum(["api_debug", "api_case", "scenario", "plan"]),
+  total: z.number().int(),
+  passed: z.number().int(),
+  failed: z.number().int(),
+  passRate: z.number().nullable(),
+});
+
+export const reportTopFailedSchema = z.object({
+  taskId: z.string(),
+  name: z.string(),
+  reportType: z.enum(["api_debug", "api_case", "scenario", "plan"]),
+  failed: z.number().int(),
+  durationMs: z.number().nullable(),
+});
+
+export const reportStatsSchema = z.object({
+  range: z.object({
+    from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    days: z.number().int(),
+  }),
+  trend: z.array(reportTrendPointSchema),
+  byType: z.array(reportStatsByTypeSchema),
+  topFailed: z.array(reportTopFailedSchema),
+});
+export type ReportStats = z.infer<typeof reportStatsSchema>;
+
 // ── 用例关联接口（CASE-006）──
 
 export const caseApiRefCreateSchema = z.object({
@@ -296,25 +357,47 @@ import type { ScenarioStepNode } from "../execution/schemas";
 import { csvSourceSchema } from "../execution/csv";
 
 /** 步骤保存形态（前端树；uid=前端稳定键，stepPath 帧由执行序生成）。 */
-export const scenarioStepSaveSchema: z.ZodType<ScenarioStepNode, z.ZodTypeDef, unknown> = z.lazy(() =>
-  z.object({
-    uid: z.string().min(1).max(64),
-    stepType: z.enum(["ref_api", "ref_case", "ref_scenario", "custom", "loop", "condition", "once", "script", "wait"]),
-    name: z.string().min(1).max(256),
-    enabled: z.boolean().default(true),
-    config: z.record(z.string(), z.unknown()).default({}),
-    children: z.array(scenarioStepSaveSchema).max(200).default([]),
-  }),
+export const scenarioStepSaveSchema: z.ZodType<ScenarioStepNode, z.ZodTypeDef, unknown> = z.lazy(
+  () =>
+    z.object({
+      uid: z.string().min(1).max(64),
+      stepType: z.enum([
+        "ref_api",
+        "ref_case",
+        "ref_scenario",
+        "custom",
+        "loop",
+        "condition",
+        "once",
+        "script",
+        "wait",
+      ]),
+      name: z.string().min(1).max(256),
+      enabled: z.boolean().default(true),
+      config: z.record(z.string(), z.unknown()).default({}),
+      children: z.array(scenarioStepSaveSchema).max(200).default([]),
+    }),
 );
 
 /** 场景参数存储形态（CSV 为来源配置；任务创建时解析为 csvTable 内嵌命令，API-007）。 */
 export const scenarioParamsSaveSchema = z.object({
   constants: z
-    .array(z.object({ name: z.string().min(1).max(128), value: z.string().max(8192).default(""), description: z.string().max(512).default("") }))
+    .array(
+      z.object({
+        name: z.string().min(1).max(128),
+        value: z.string().max(8192).default(""),
+        description: z.string().max(512).default(""),
+      }),
+    )
     .max(200)
     .default([]),
   lists: z
-    .array(z.object({ name: z.string().min(1).max(128), values: z.array(z.string().max(8192)).max(1000).default([]) }))
+    .array(
+      z.object({
+        name: z.string().min(1).max(128),
+        values: z.array(z.string().max(8192)).max(1000).default([]),
+      }),
+    )
     .max(50)
     .default([]),
   csv: csvSourceSchema.default({ source: "inline", delimiter: ",", hasHeader: true }),
@@ -329,30 +412,37 @@ export const scenarioSaveSchema = z.object({
   version: z.number().int().min(1).default(1), // 乐观锁
   /** 五配置区存储：params/prePost/asserts/settings（steps 单独端点整树保存；
    *  三对象可整体省略——内层字段全 default，部分保存（仅 params 等）合法） */
-  config: z
-    .object({
-      params: scenarioParamsSaveSchema.default({ constants: [], lists: [], csv: { source: "inline", delimiter: ",", hasHeader: true } }),
-      prePost: z
-        .object({
-          pre: z.array(z.unknown()).max(20).default([]),
-          post: z.array(z.unknown()).max(20).default([]),
-        })
-        .default({}),
-      asserts: z.array(z.unknown()).max(50).default([]),
-      settings: z
-        .object({
-          cookieMode: z.enum(["off", "keep"]).default("off"),
-          thinkTimeMs: z.number().int().min(0).max(30000).default(0),
-          onFailure: z.enum(["continue", "abort"]).default("abort"),
-        })
-        .default({}),
+  config: z.object({
+    params: scenarioParamsSaveSchema.default({
+      constants: [],
+      lists: [],
+      csv: { source: "inline", delimiter: ",", hasHeader: true },
     }),
+    prePost: z
+      .object({
+        pre: z.array(z.unknown()).max(20).default([]),
+        post: z.array(z.unknown()).max(20).default([]),
+      })
+      .default({}),
+    asserts: z.array(z.unknown()).max(50).default([]),
+    settings: z
+      .object({
+        cookieMode: z.enum(["off", "keep"]).default("off"),
+        thinkTimeMs: z.number().int().min(0).max(30000).default(0),
+        onFailure: z.enum(["continue", "abort"]).default("abort"),
+      })
+      .default({}),
+  }),
 });
 
 /** 创建口径：config 可省（服务端补空五配置区；update 沿用 scenarioSaveSchema 全量校验）。 */
 export const scenarioCreateSchema = scenarioSaveSchema.extend({
   config: scenarioSaveSchema.shape.config.default({
-    params: { constants: [], lists: [], csv: { source: "inline", delimiter: ",", hasHeader: true } },
+    params: {
+      constants: [],
+      lists: [],
+      csv: { source: "inline", delimiter: ",", hasHeader: true },
+    },
     prePost: { pre: [], post: [] },
     asserts: [],
     settings: { cookieMode: "off", thinkTimeMs: 0, onFailure: "abort" },

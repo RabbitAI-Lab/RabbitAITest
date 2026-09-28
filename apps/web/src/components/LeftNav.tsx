@@ -22,6 +22,8 @@ import {
   FileCode2,
   Bell,
   UserCircle2,
+  Gauge,
+  MonitorPlay,
 } from "lucide-react";
 import { usePermissions, useProjectInfo } from "@/hooks/usePermissions";
 
@@ -30,7 +32,7 @@ interface NavItem {
   label: string;
   icon: React.ReactNode;
   perm?: string; // 菜单级权限守卫（SYS-004：无权限点菜单不出现）
-  module?: "case" | "plan" | "bug" | "api"; // 模块开关（PROJ-001：关闭=菜单隐藏）
+  module?: "case" | "plan" | "bug" | "api" | "load" | "uit"; // 模块开关（PROJ-001：关闭=菜单隐藏；load/uit 缺省即关，S-future 占位口径）
   testid?: string;
 }
 
@@ -135,6 +137,33 @@ export function LeftNav() {
           icon: <ClipboardCheck size={15} strokeWidth={1.8} />,
           perm: "PROJECT_EXEC_TASK:READ",
           testid: "nav-tasks",
+        },
+      ],
+    },
+    // S-future LOAD-001/UIT-001：企业版方向占位（模块开关默认关 + 保留权限点双门控；对齐基线 menu.UI_*/PERFORMANCE_TEST_* 口径）
+    {
+      label: "性能测试",
+      items: [
+        {
+          href: "/load",
+          label: "性能测试",
+          icon: <Gauge size={15} strokeWidth={1.8} />,
+          perm: "PROJECT_LOAD:READ",
+          module: "load",
+          testid: "nav-load",
+        },
+      ],
+    },
+    {
+      label: "UI 测试",
+      items: [
+        {
+          href: "/ui-test",
+          label: "UI 测试",
+          icon: <MonitorPlay size={15} strokeWidth={1.8} />,
+          perm: "PROJECT_UIT:READ",
+          module: "uit",
+          testid: "nav-uit",
         },
       ],
     },

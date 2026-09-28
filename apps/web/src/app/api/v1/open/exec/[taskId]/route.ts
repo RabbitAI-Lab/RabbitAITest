@@ -13,7 +13,8 @@ export const GET = withApiKey(async (ctx, _req, seg) => {
       where: { id: taskId },
       select: { id: true, projectId: true, status: true, finishedAt: true },
     });
-    if (!task) return NextResponse.json({ code: 40404, message: "任务不存在", data: null }, { status: 404 });
+    if (!task)
+      return NextResponse.json({ code: 40404, message: "任务不存在", data: null }, { status: 404 });
     await assertProjectVisible(ctx.userId, task.projectId);
     const report = await prisma.report.findFirst({
       where: { taskId },

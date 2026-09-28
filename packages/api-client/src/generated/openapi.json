@@ -22,6 +22,9 @@
       "name": "open"
     },
     {
+      "name": "plugins"
+    },
+    {
       "name": "个人中心"
     },
     {
@@ -437,6 +440,81 @@
         "summary": "POST /api/v1/internal/pools/register",
         "tags": [
           "内部（引擎）"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/open/api-capture": {
+      "post": {
+        "summary": "POST /api/v1/open/api-capture",
+        "tags": [
+          "open"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/open/api-definitions": {
+      "get": {
+        "summary": "GET /api/v1/open/api-definitions",
+        "tags": [
+          "open"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/open/api-sync": {
+      "post": {
+        "summary": "POST /api/v1/open/api-sync",
+        "tags": [
+          "open"
         ],
         "security": [
           {
@@ -1731,6 +1809,31 @@
         "summary": "GET /api/v1/personal/projects",
         "tags": [
           "个人中心"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/plugins/protocols": {
+      "get": {
+        "summary": "GET /api/v1/plugins/protocols",
+        "tags": [
+          "plugins"
         ],
         "security": [
           {
@@ -7014,6 +7117,31 @@
         }
       }
     },
+    "/api/v1/projects/{projectId}/reports/stats": {
+      "get": {
+        "summary": "GET /api/v1/projects/{projectId}/reports/stats",
+        "tags": [
+          "项目·reports"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/projects/{projectId}/restore": {
       "post": {
         "summary": "POST /api/v1/projects/{projectId}/restore",
@@ -7523,7 +7651,6 @@
         "tags": [
           "项目"
         ],
-        "x-permission": "ORG_PROJECT:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -7547,7 +7674,6 @@
         "tags": [
           "项目"
         ],
-        "x-permission": "ORG_PROJECT:UPDATE",
         "security": [
           {
             "cookieAuth": []

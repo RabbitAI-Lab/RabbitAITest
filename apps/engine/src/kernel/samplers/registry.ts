@@ -25,7 +25,9 @@ function registry(): Map<string, { plugin: SamplerPlugin; version: string }> {
 }
 
 function webBaseUrl(): string {
-  return process.env.WEB_INTERNAL_URL ?? "http://127.0.0.1:3000";
+  // WEB_INTERNAL_URL 显式优先；缺省回退 WEB_URL（S6 潜伏缺陷：e2e/jm 栈只设 WEB_URL(:3100/:3101)，
+  // 旧实现恒回退 :3000 导致协议注册表永远空→执行 40510——PLUG-003 e2e 首次覆盖引擎执行链路时暴露）
+  return process.env.WEB_INTERNAL_URL ?? process.env.WEB_URL ?? "http://127.0.0.1:3000";
 }
 
 function internalToken(): string {
@@ -35,7 +37,9 @@ function internalToken(): string {
 async function fetchProtocols(): Promise<ProtocolInfo[]> {
   try {
     const res = await fetch(`${webBaseUrl()}/api/v1/internal/plugins/protocols`, {
-      headers: { Authorization: `Bearer ${internalToken()}` },
+      // internal 面鉴权头=x-internal-token（withInternalToken；S6 潜伏缺陷：旧实现发 Bearer 恒 401——
+      // 轮询链路 PLUG-003 前无执行方覆盖，注册表恒空）
+      headers: { "x-internal-token": internalToken() },
       signal: AbortSignal.timeout(5000),
     });
     if (!res.ok) return [];
@@ -69,15 +73,28 @@ export async function syncOnce(): Promise<void> {
     if (current && current.version === info.version) continue;
     try {
       const mod = (await import(`${info.dir}/${info.entry}`)) as {
-        default?: () => SamplerPlugin;
+        default?:
+          | (() => SamplerPlugin)
+          | { default?: () => SamplerPlugin; createPlugin?: () => SamplerPlugin };
         createPlugin?: () => SamplerPlugin;
       };
-      const factory = mod.default ?? mod.createPlugin;
+      // 双层解包：ESM bundle default=工厂；CJS bundle 经 import() 后 default=module.exports 命名空间（S-future PLUG-003 websocket CJS 内联）
+      const raw = mod.default ?? mod.createPlugin;
+      const factory =
+        typeof raw === "function"
+          ? raw
+          : typeof raw?.default === "function"
+            ? raw.default
+            : typeof raw?.createPlugin === "function"
+              ? raw.createPlugin
+              : null;
       if (!factory) throw new Error("入口未导出 default/createPlugin 工厂");
       reg.set(info.protocol, { plugin: factory(), version: info.version });
     } catch (err) {
       // 加载失败：注册表不变更（保持旧版本可用），结构化日志
-      console.error(`[samplers] 协议插件加载失败 ${info.protocol}@${info.version}: ${err instanceof Error ? err.message : err}`);
+      console.error(
+        `[samplers] 协议插件加载失败 ${info.protocol}@${info.version}: ${err instanceof Error ? err.message : err}`,
+      );
     }
   }
 }

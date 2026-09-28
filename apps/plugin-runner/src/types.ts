@@ -30,5 +30,11 @@ export interface PluginHandle {
 export interface RunnerStatus {
   status: "UP";
   spiVersion: string;
-  plugins: Array<PluginHandle & { workerStatus: "RUNNING" | "STOPPED" | "ERROR"; restarts: number; lastError?: string }>;
+  plugins: Array<
+    PluginHandle & {
+      workerStatus: "RUNNING" | "STOPPED" | "ERROR";
+      restarts: number;
+      lastError?: string;
+    }
+  >;
 }
