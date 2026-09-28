@@ -155,11 +155,16 @@ export async function todo(
     let apiMap = new Map<string, string>();
     let scMap = new Map<string, string>();
     if (apiIds.length > 0 || scIds.length > 0) {
-      const { listApiRefSummary, listScenarioRefSummary } = await import(
-        "@/server/domains/api/api-ref.provider"
-      );
-      if (apiIds.length > 0) apiMap = new Map((await listApiRefSummary(projectId, apiIds)).map((s) => [s.refId, s.name]));
-      if (scIds.length > 0) scMap = new Map((await listScenarioRefSummary(projectId, scIds)).map((s) => [s.refId, s.name]));
+      const { listApiRefSummary, listScenarioRefSummary } =
+        await import("@/server/domains/api/api-ref.provider");
+      if (apiIds.length > 0)
+        apiMap = new Map(
+          (await listApiRefSummary(projectId, apiIds)).map((s) => [s.refId, s.name]),
+        );
+      if (scIds.length > 0)
+        scMap = new Map(
+          (await listScenarioRefSummary(projectId, scIds)).map((s) => [s.refId, s.name]),
+        );
     }
     return pageOf(
       rows.map((r) => ({
@@ -236,50 +241,91 @@ export async function followed(
         select: { id: true, name: true, updatedAt: true },
       });
       if (c)
-        items.push({ id: c.id, kind: "case", title: c.name, href: `/cases/${c.id}`, updatedAt: c.updatedAt.toISOString() });
+        items.push({
+          id: c.id,
+          kind: "case",
+          title: c.name,
+          href: `/cases/${c.id}`,
+          updatedAt: c.updatedAt.toISOString(),
+        });
     } else if (f.entityType === "bug") {
       const b = await prisma.bug.findFirst({
         where: { id: f.entityId, deletedAt: null, ...(projectId ? { projectId } : {}) },
         select: { id: true, title: true, updatedAt: true },
       });
       if (b)
-        items.push({ id: b.id, kind: "bug", title: b.title, href: `/bugs/${b.id}`, updatedAt: b.updatedAt.toISOString() });
+        items.push({
+          id: b.id,
+          kind: "bug",
+          title: b.title,
+          href: `/bugs/${b.id}`,
+          updatedAt: b.updatedAt.toISOString(),
+        });
     } else if (f.entityType === "test_plan") {
       const p = await prisma.testPlan.findFirst({
         where: { id: f.entityId, deletedAt: null, ...(projectId ? { projectId } : {}) },
         select: { id: true, name: true, updatedAt: true },
       });
       if (p)
-        items.push({ id: p.id, kind: "plan", title: p.name, href: `/plans/${p.id}`, updatedAt: p.updatedAt.toISOString() });
+        items.push({
+          id: p.id,
+          kind: "plan",
+          title: p.name,
+          href: `/plans/${p.id}`,
+          updatedAt: p.updatedAt.toISOString(),
+        });
     } else if (f.entityType === "case_review") {
       const r = await prisma.caseReview.findFirst({
         where: { id: f.entityId, deletedAt: null, ...(projectId ? { projectId } : {}) },
         select: { id: true, name: true, updatedAt: true },
       });
       if (r)
-        items.push({ id: r.id, kind: "review", title: r.name, href: `/reviews/${r.id}`, updatedAt: r.updatedAt.toISOString() });
+        items.push({
+          id: r.id,
+          kind: "review",
+          title: r.name,
+          href: `/reviews/${r.id}`,
+          updatedAt: r.updatedAt.toISOString(),
+        });
     }
   }
   // 接口域两维度经 Provider（dash 聚合唯一通道；projectId 过滤经 ApiCase→ApiDefinition join 在 Provider 内完成）
   const apiFollows = follows.filter((f) => f.entityType === "api_case");
   const scFollows = follows.filter((f) => f.entityType === "scenario");
   if (apiFollows.length > 0 || scFollows.length > 0) {
-    const { listApiRefSummary, listScenarioRefSummary } = await import(
-      "@/server/domains/api/api-ref.provider"
-    );
+    const { listApiRefSummary, listScenarioRefSummary } =
+      await import("@/server/domains/api/api-ref.provider");
     if (apiFollows.length > 0) {
-      const summaries = await listApiRefSummary(projectId ?? "", apiFollows.map((f) => f.entityId));
+      const summaries = await listApiRefSummary(
+        projectId ?? "",
+        apiFollows.map((f) => f.entityId),
+      );
       const nameMap = new Map(summaries.map((s) => [s.refId, s]));
       for (const f of apiFollows) {
         const s = nameMap.get(f.entityId);
         if (s && !s.deleted)
-          items.push({ id: f.entityId, kind: "api_case", title: s.name, href: `/apis`, updatedAt: "" });
+          items.push({
+            id: f.entityId,
+            kind: "api_case",
+            title: s.name,
+            href: `/apis`,
+            updatedAt: "",
+          });
       }
     }
     if (scFollows.length > 0) {
-      const summaries = await listScenarioRefSummary(projectId ?? "", scFollows.map((f) => f.entityId));
+      const summaries = await listScenarioRefSummary(
+        projectId ?? "",
+        scFollows.map((f) => f.entityId),
+      );
       for (const s of summaries) {
-        items.push({ id: s.refId, kind: "scenario", title: s.name, href: `/scenarios`, updatedAt: s.updatedAt });
+        items.push({
+          id: s.refId,
+          kind: "scenario",
+          title: s.name,
+          href: `/scenarios`,
+          updatedAt: s.updatedAt,
+        });
       }
     }
   }
@@ -346,9 +392,8 @@ export async function created(
     );
   }
   if (kind === "api_case" || kind === "scenario") {
-    const { listCreatedApiCases, listCreatedScenarios } = await import(
-      "@/server/domains/api/api-ref.provider"
-    );
+    const { listCreatedApiCases, listCreatedScenarios } =
+      await import("@/server/domains/api/api-ref.provider");
     if (kind === "api_case") {
       const rows = await listCreatedApiCases(projectId, userId);
       return pageOf(

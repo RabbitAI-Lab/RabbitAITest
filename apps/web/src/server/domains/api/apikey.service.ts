@@ -35,7 +35,10 @@ export async function listApiKeys(userId: string) {
 export async function createApiKey(userId: string, name: string) {
   const count = await prisma.apiKey.count({ where: { userId, revokedAt: null } });
   if (count >= MAX_KEYS) {
-    throw new DomainError(ErrCode.APIKEY_LIMIT_EXCEEDED, `APIKEY 上限 ${MAX_KEYS} 条（当前 ${count}）`);
+    throw new DomainError(
+      ErrCode.APIKEY_LIMIT_EXCEEDED,
+      `APIKEY 上限 ${MAX_KEYS} 条（当前 ${count}）`,
+    );
   }
   const accessKey = AK_PREFIX + randomToken(20);
   const secretKey = "sk_" + randomToken(40);
@@ -71,7 +74,9 @@ export async function verifyApiKey(accessKey: string, secretKey: string): Promis
   for (const c of candidates) {
     const actual = Buffer.from(c.keyHash, "hex");
     if (expected.length === actual.length && timingSafeEqual(expected, actual)) {
-      await prisma.apiKey.update({ where: { id: c.id }, data: { lastUsedAt: new Date() } }).catch(() => undefined);
+      await prisma.apiKey
+        .update({ where: { id: c.id }, data: { lastUsedAt: new Date() } })
+        .catch(() => undefined);
       return c.userId;
     }
   }
@@ -79,7 +84,9 @@ export async function verifyApiKey(accessKey: string, secretKey: string): Promis
 }
 
 /** 解析 Authorization 头 → {ak, sk}（Basic 优先，其次 Bearer ak.sk） */
-export function parseAuthHeader(header: string | null): { accessKey: string; secretKey: string } | null {
+export function parseAuthHeader(
+  header: string | null,
+): { accessKey: string; secretKey: string } | null {
   if (!header) return null;
   const [scheme, value] = header.split(" ");
   if (scheme === "Basic" && value) {

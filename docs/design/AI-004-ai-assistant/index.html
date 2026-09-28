@@ -7,7 +7,8 @@
   </head>
   <body class="bg-slate-50 text-slate-800 text-sm">
     <header class="h-12 bg-white border-b flex items-center px-4 gap-3">
-      <span class="font-semibold">RabbitAITest</span><span class="border rounded px-2 py-0.5">演示项目 #1</span>
+      <span class="font-semibold">RabbitAITest</span
+      ><span class="border rounded px-2 py-0.5">演示项目 #1</span>
       <span class="ml-auto flex items-center gap-3 text-slate-400 text-xs">
         <span class="text-[#574BFF] font-medium" title="AI 助手（点亮=激活态）">✦ AI</span>
         帮助 · 消息 · 用户
@@ -16,25 +17,49 @@
     <main class="p-4 space-y-4 max-w-[1100px]">
       <!-- 画板一：助手面板全貌 -->
       <section class="bg-white border rounded-md">
-        <div class="px-3 py-2 border-b bg-slate-50 font-medium">画板一 · 顶栏 ✦ → 右侧滑出面板（会话列表 + 消息流 + 输入区）</div>
+        <div class="px-3 py-2 border-b bg-slate-50 font-medium">
+          画板一 · 顶栏 ✦ → 右侧滑出面板（会话列表 + 消息流 + 输入区）
+        </div>
         <div class="flex h-[420px] text-[13px]">
           <div class="w-48 border-r p-2 space-y-1">
-            <button class="w-full border border-[#574BFF] text-[#574BFF] rounded px-2 py-1.5 text-xs">＋ 新对话</button>
+            <button
+              class="w-full border border-[#574BFF] text-[#574BFF] rounded px-2 py-1.5 text-xs"
+            >
+              ＋ 新对话
+            </button>
             <p class="px-2 py-1 text-slate-400 text-[11px]">历史会话（个人级）</p>
-            <a class="block px-2 py-1.5 rounded bg-[#574BFF]/10 text-[#574BFF] truncate">密码锁定策略怎么设计用例<span class="float-right opacity-40" title="重命名/删除">⋯</span></a>
-            <a class="block px-2 py-1.5 rounded hover:bg-slate-100 truncate text-slate-600">502 排查思路 <span class="float-right opacity-30">⋯</span></a>
-            <a class="block px-2 py-1.5 rounded hover:bg-slate-100 truncate text-slate-600">jmx 参数化语法 <span class="float-right opacity-30">⋯</span></a>
+            <a class="block px-2 py-1.5 rounded bg-[#574BFF]/10 text-[#574BFF] truncate"
+              >密码锁定策略怎么设计用例<span class="float-right opacity-40" title="重命名/删除"
+                >⋯</span
+              ></a
+            >
+            <a class="block px-2 py-1.5 rounded hover:bg-slate-100 truncate text-slate-600"
+              >502 排查思路 <span class="float-right opacity-30">⋯</span></a
+            >
+            <a class="block px-2 py-1.5 rounded hover:bg-slate-100 truncate text-slate-600"
+              >jmx 参数化语法 <span class="float-right opacity-30">⋯</span></a
+            >
             <p class="px-2 pt-2 text-[10px] text-slate-300">软删 30 天清理 · 仅本人可见</p>
           </div>
           <div class="flex-1 flex flex-col">
             <div class="flex-1 p-4 space-y-3 overflow-hidden">
-              <div class="flex justify-end"><div class="bg-[#574BFF] text-white rounded-xl rounded-br-sm px-3 py-2 max-w-[70%]">密码连续输错 5 次锁定的场景，测试用例该怎么设计？</div></div>
+              <div class="flex justify-end">
+                <div class="bg-[#574BFF] text-white rounded-xl rounded-br-sm px-3 py-2 max-w-[70%]">
+                  密码连续输错 5 次锁定的场景，测试用例该怎么设计？
+                </div>
+              </div>
               <div class="flex">
                 <div class="border rounded-xl rounded-bl-sm px-3 py-2 max-w-[70%] space-y-1.5">
                   <p>可以从三层设计：</p>
-                  <p class="pl-3">1. <b>边界值</b>：第 4 次（未触发）与第 5 次（触发锁定）各一条；</p>
+                  <p class="pl-3">
+                    1. <b>边界值</b>：第 4 次（未触发）与第 5 次（触发锁定）各一条；
+                  </p>
                   <p class="pl-3">2. <b>锁定期间行为</b>：正确密码也不放行（负向验证）；</p>
-                  <p class="pl-3">3. <b>时间边界</b>：29 分 59 秒仍锁定、30 分整自动解锁<span class="inline-block w-0.5 h-4 bg-[#574BFF] align-middle animate-pulse ml-0.5"></span></p>
+                  <p class="pl-3">
+                    3. <b>时间边界</b>：29 分 59 秒仍锁定、30 分整自动解锁<span
+                      class="inline-block w-0.5 h-4 bg-[#574BFF] align-middle animate-pulse ml-0.5"
+                    ></span>
+                  </p>
                   <p class="text-[10px] text-slate-400 pt-1">glm-4.6 · 流式输出中…</p>
                 </div>
               </div>
@@ -42,14 +67,23 @@
             <div class="border-t p-3 space-y-2">
               <div class="flex items-center gap-2">
                 <span class="text-slate-400 text-xs">模型</span>
-                <select class="border rounded px-2 py-1 text-xs"><option>★ glm-4.6（默认）</option><option>deepseek-chat</option></select>
+                <select class="border rounded px-2 py-1 text-xs">
+                  <option>★ glm-4.6（默认）</option>
+                  <option>deepseek-chat</option>
+                </select>
                 <span class="ml-auto text-[10px] text-slate-300">上下文取最近 20 条</span>
               </div>
               <div class="flex gap-2">
-                <textarea rows="2" class="border rounded px-2 py-1.5 flex-1" placeholder="输入问题…（Enter 发送 / Shift+Enter 换行）"></textarea>
+                <textarea
+                  rows="2"
+                  class="border rounded px-2 py-1.5 flex-1"
+                  placeholder="输入问题…（Enter 发送 / Shift+Enter 换行）"
+                ></textarea>
                 <div class="flex flex-col gap-1">
                   <button class="bg-[#574BFF] text-white rounded px-3 py-1.5">发送</button>
-                  <button class="border border-red-300 text-red-500 rounded px-3 py-1 text-xs">■ 停止</button>
+                  <button class="border border-red-300 text-red-500 rounded px-3 py-1 text-xs">
+                    ■ 停止
+                  </button>
                 </div>
               </div>
             </div>
@@ -58,21 +92,32 @@
       </section>
       <!-- 画板二：空态与异常态 -->
       <section class="bg-white border rounded-md">
-        <div class="px-3 py-2 border-b bg-slate-50 font-medium">画板二 · 状态两态（新对话空态引导 / 上游错误气泡）</div>
+        <div class="px-3 py-2 border-b bg-slate-50 font-medium">
+          画板二 · 状态两态（新对话空态引导 / 上游错误气泡）
+        </div>
         <div class="p-4 grid grid-cols-2 gap-3 text-[13px]">
           <div class="border rounded-md p-4 text-center space-y-2">
             <p class="text-2xl">✦</p>
             <p class="font-medium">我是 RabbitAITest 智能助手</p>
-            <p class="text-xs text-slate-400">可以帮你：梳理用例设计思路 · 接口故障排查 · 解读测试文档</p>
-            <div class="flex justify-center gap-2 text-xs"><span class="border rounded-full px-2 py-0.5 text-[#574BFF]">用例设计思路</span><span class="border rounded-full px-2 py-0.5 text-[#574BFF]">502 排查</span></div>
+            <p class="text-xs text-slate-400">
+              可以帮你：梳理用例设计思路 · 接口故障排查 · 解读测试文档
+            </p>
+            <div class="flex justify-center gap-2 text-xs">
+              <span class="border rounded-full px-2 py-0.5 text-[#574BFF]">用例设计思路</span
+              ><span class="border rounded-full px-2 py-0.5 text-[#574BFF]">502 排查</span>
+            </div>
           </div>
           <div class="border rounded-md p-3 space-y-2">
             <p class="text-xs text-slate-400">用户消息已发出 → 上游失败：</p>
-            <div class="border border-red-200 bg-red-50 rounded-xl px-3 py-2 text-xs text-red-500 space-y-1">
+            <div
+              class="border border-red-200 bg-red-50 rounded-xl px-3 py-2 text-xs text-red-500 space-y-1"
+            >
               <p>✗ 模型服务暂时不可用（60501 · 上游 503）</p>
               <p>本条回复未保存，可点击重试<button class="underline ml-1">重试</button></p>
             </div>
-            <p class="text-[11px] text-slate-400">错误帧不落库（半截内容不留存）；无可用模型时显示配置引导</p>
+            <p class="text-[11px] text-slate-400">
+              错误帧不落库（半截内容不留存）；无可用模型时显示配置引导
+            </p>
           </div>
         </div>
       </section>

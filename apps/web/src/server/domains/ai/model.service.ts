@@ -9,7 +9,18 @@ import { decryptSecret, encryptSecret } from "./crypto";
 
 type SaveInput = z.infer<typeof aiModelSaveSchema>;
 
-function toRow(m: { id: string; name: string; provider: string; baseUrl: string; model: string; apiKeyEnc: string; enabled: boolean; isDefault: boolean; createdAt: Date; updatedAt: Date }) {
+function toRow(m: {
+  id: string;
+  name: string;
+  provider: string;
+  baseUrl: string;
+  model: string;
+  apiKeyEnc: string;
+  enabled: boolean;
+  isDefault: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}) {
   return {
     id: m.id,
     name: m.name,
@@ -27,7 +38,9 @@ function toRow(m: { id: string; name: string; provider: string; baseUrl: string;
 }
 
 export async function listModels() {
-  const models = await prisma.aiModel.findMany({ orderBy: [{ isDefault: "desc" }, { createdAt: "asc" }] });
+  const models = await prisma.aiModel.findMany({
+    orderBy: [{ isDefault: "desc" }, { createdAt: "asc" }],
+  });
   return { total: models.length, list: models.map(toRow) };
 }
 
@@ -35,7 +48,8 @@ export async function createModel(input: SaveInput) {
   await assertAiBaseUrl(input.baseUrl);
   if (!input.apiKey) throw new DomainError(ErrCode.VALIDATION_FAILED, "API Key 必填");
   const count = await prisma.aiModel.count();
-  if (count >= AI_MODELS_LIMIT) throw new DomainError(ErrCode.RULES_LIMIT_EXCEEDED, `模型数量上限 ${AI_MODELS_LIMIT} 个`);
+  if (count >= AI_MODELS_LIMIT)
+    throw new DomainError(ErrCode.RULES_LIMIT_EXCEEDED, `模型数量上限 ${AI_MODELS_LIMIT} 个`);
   const existingDefault = await prisma.aiModel.count({ where: { isDefault: true } });
   const m = await prisma.aiModel.create({
     data: {
@@ -78,7 +92,9 @@ export async function deleteModel(id: string) {
 }
 
 /** 连接测试：1 条 ping（小额 max_tokens），返回耗时与回声 */
-export async function testModel(id: string): Promise<{ ok: true; latencyMs: number; echo: string }> {
+export async function testModel(
+  id: string,
+): Promise<{ ok: true; latencyMs: number; echo: string }> {
   const m = await prisma.aiModel.findFirst({ where: { id } });
   if (!m) throw new DomainError(ErrCode.AI_MODEL_NOT_FOUND, "模型不存在");
   const started = Date.now();
@@ -106,16 +122,27 @@ export async function setDefaultModel(id: string) {
 }
 
 /** 解析可用模型：显式 id > 默认 > 首台启用；无可用 → 70444 */
-export async function resolveRuntime(modelId?: string | null): Promise<AiModelRuntime & { name: string }> {
+export async function resolveRuntime(
+  modelId?: string | null,
+): Promise<AiModelRuntime & { name: string }> {
   const m = modelId
     ? await prisma.aiModel.findFirst({ where: { id: modelId, enabled: true } })
-    : await prisma.aiModel.findFirst({ where: { enabled: true }, orderBy: [{ isDefault: "desc" }, { createdAt: "asc" }] });
+    : await prisma.aiModel.findFirst({
+        where: { enabled: true },
+        orderBy: [{ isDefault: "desc" }, { createdAt: "asc" }],
+      });
   if (!m) {
     throw modelId
       ? new DomainError(ErrCode.AI_MODEL_NOT_FOUND, "模型不存在或未启用")
       : new DomainError(ErrCode.AI_NO_MODEL_AVAILABLE, "尚未配置任何启用的 AI 模型");
   }
-  return { id: m.id, name: m.name, baseUrl: m.baseUrl, model: m.model, apiKey: decryptSecret(m.apiKeyEnc) };
+  return {
+    id: m.id,
+    name: m.name,
+    baseUrl: m.baseUrl,
+    model: m.model,
+    apiKey: decryptSecret(m.apiKeyEnc),
+  };
 }
 
 /** S5 SYS-007：用户态解析——显式 id > 个人默认（启用中）> 系统默认链。 */

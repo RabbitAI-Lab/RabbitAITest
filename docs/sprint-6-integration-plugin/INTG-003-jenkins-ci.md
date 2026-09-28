@@ -1,20 +1,20 @@
 # Jenkins CI 集成（APIKEY 认证 · 开放执行 API）
 
-| 元信息项     | 内容                                                                                                                                     |
-| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| 文档编号     | INTG-003                                                                                                                                  |
-| 所属迭代     | Sprint 6 — 集成与插件                                                                                                                     |
-| 优先级       | P2（迭代内）                                                                                                                              |
-| 所属模块     | 个人中心（personal）+ 认证（auth）+ 执行（exec 域）                                                                                       |
-| 文档状态     | Implemented（2026-09-27 交付：代码+单测+JMeter+Playwright 全绿、CI 六作业全绿；高保真走查随验收） |
-| 最后更新日期 | 2026-09-27                                                                                                                                |
-| 上游依赖     | S2 执行链路（api-case 执行）、S3 场景执行（scenario）、EXEC-002 资源池                                                                     |
-| 下游消费     | S4 PLAN-003（计划执行触发——Jenkins 触发测试计划届时接线）、S5 SYS-007（个人中心 UI 复用 APIKEY 页）                                        |
-| 上游依据     | 需求文档 §二「CI 集成」；功能清单 §9.3 APIKEY（第三方 API 调用、Jenkins 插件）、§十一 Jenkins 插件（流水线触发）                            |
-| 对标基线     | 功能清单 §9.3：APIKEY Access Key/Secret Key（最多 5 条）用于 Jenkins 插件；§十一：Jenkins 插件=流水线触发测试（社区版）                     |
-| 关联架构文档 | api-conventions.md §4（认证三通道 Session+Token+APIKEY——需求文档 §八安全行）；rbac-permission-model.md                                      |
-| 高保真确认   | 待确认（原型 docs/design/INTG-003-jenkins-ci/）                                                                                           |
-| 工作量估算   | 后端 4 人日 / 前端 2 人日                                                                                                                  |
+| 元信息项     | 内容                                                                                                                    |
+| ------------ | ----------------------------------------------------------------------------------------------------------------------- |
+| 文档编号     | INTG-003                                                                                                                |
+| 所属迭代     | Sprint 6 — 集成与插件                                                                                                   |
+| 优先级       | P2（迭代内）                                                                                                            |
+| 所属模块     | 个人中心（personal）+ 认证（auth）+ 执行（exec 域）                                                                     |
+| 文档状态     | Implemented（2026-09-27 交付：代码+单测+JMeter+Playwright 全绿、CI 六作业全绿；高保真走查随验收）                       |
+| 最后更新日期 | 2026-09-27                                                                                                              |
+| 上游依赖     | S2 执行链路（api-case 执行）、S3 场景执行（scenario）、EXEC-002 资源池                                                  |
+| 下游消费     | S4 PLAN-003（计划执行触发——Jenkins 触发测试计划届时接线）、S5 SYS-007（个人中心 UI 复用 APIKEY 页）                     |
+| 上游依据     | 需求文档 §二「CI 集成」；功能清单 §9.3 APIKEY（第三方 API 调用、Jenkins 插件）、§十一 Jenkins 插件（流水线触发）        |
+| 对标基线     | 功能清单 §9.3：APIKEY Access Key/Secret Key（最多 5 条）用于 Jenkins 插件；§十一：Jenkins 插件=流水线触发测试（社区版） |
+| 关联架构文档 | api-conventions.md §4（认证三通道 Session+Token+APIKEY——需求文档 §八安全行）；rbac-permission-model.md                  |
+| 高保真确认   | 待确认（原型 docs/design/INTG-003-jenkins-ci/）                                                                         |
+| 工作量估算   | 后端 4 人日 / 前端 2 人日                                                                                               |
 
 ## 1. 概述
 
@@ -24,15 +24,15 @@ CI 集成的本侧能力：个人 APIKEY 管理（生成/吊销，认证通道�
 
 ### 1.2 范围边界（能力行 → §5 用例映射）
 
-| 能力                                                                                       | P1 ✅ | 后续                                                    |
-| ------------------------------------------------------------------------------------------- | ----- | ------------------------------------------------------- |
-| APIKEY 生成：`access_key`（前缀展示）+`secret_key`（仅创建时一次返回明文；库存 sha256）      | ✅     | —                                                       |
-| APIKEY 列表/吊销（revoke 软删，lastUsedAt 回显）；上限 5 条/人（基线）                       | ✅     | —                                                       |
-| APIKEY 认证中间件：`Authorization: Basic base64(ak:sk)` 或 `Bearer ak.sk`；校验=prefix 索引+哈希比对+revoked 拒绝 | ✅     | HMAC 签名请求（时间戳防重放，登记）                     |
-| 开放 API（/api/v1/open/*，APIKEY 通道，绕过 session/权限点——本人身份）：触发执行（api-case/scenario：目标+环境+资源池可选）、任务状态轮询、报告摘要 | ✅     | 回调通知（CI 完成回调 webhook，登记 S5 消息基建后）     |
-| 触发语义：同步返回 `{taskId}`（长任务约定 api-conventions §4）；open 端点限流（每 key 10 QPS，Redis 令牌桶） | ✅     | 批量触发（多场景一次）                                  |
-| Jenkins 接入文档：README CI 章节（curl 示例+Jenkinsfile stage 片段：sh curl 触发→sleep 轮询→结果门禁） | ✅     | Jenkins 端原生插件（基线插件形态，登记不交付）           |
-| Jenkins 触发测试计划                                                                        | ❌     | S4 PLAN-003 后接线（本规格 §7 里程碑登记）               |
+| 能力                                                                                                                                                | P1 ✅ | 后续                                                |
+| --------------------------------------------------------------------------------------------------------------------------------------------------- | ----- | --------------------------------------------------- |
+| APIKEY 生成：`access_key`（前缀展示）+`secret_key`（仅创建时一次返回明文；库存 sha256）                                                             | ✅    | —                                                   |
+| APIKEY 列表/吊销（revoke 软删，lastUsedAt 回显）；上限 5 条/人（基线）                                                                              | ✅    | —                                                   |
+| APIKEY 认证中间件：`Authorization: Basic base64(ak:sk)` 或 `Bearer ak.sk`；校验=prefix 索引+哈希比对+revoked 拒绝                                   | ✅    | HMAC 签名请求（时间戳防重放，登记）                 |
+| 开放 API（/api/v1/open/*，APIKEY 通道，绕过 session/权限点——本人身份）：触发执行（api-case/scenario：目标+环境+资源池可选）、任务状态轮询、报告摘要 | ✅    | 回调通知（CI 完成回调 webhook，登记 S5 消息基建后） |
+| 触发语义：同步返回 `{taskId}`（长任务约定 api-conventions §4）；open 端点限流（每 key 10 QPS，Redis 令牌桶）                                        | ✅    | 批量触发（多场景一次）                              |
+| Jenkins 接入文档：README CI 章节（curl 示例+Jenkinsfile stage 片段：sh curl 触发→sleep 轮询→结果门禁）                                              | ✅    | Jenkins 端原生插件（基线插件形态，登记不交付）      |
+| Jenkins 触发测试计划                                                                                                                                | ❌    | S4 PLAN-003 后接线（本规格 §7 里程碑登记）          |
 
 ### 1.3 前置依赖
 

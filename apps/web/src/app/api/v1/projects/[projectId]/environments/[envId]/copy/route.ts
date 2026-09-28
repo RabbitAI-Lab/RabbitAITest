@@ -10,10 +10,7 @@ export const POST = withProjectScope(async (ctx, _req, seg) => {
     ctx.requirePerm("PROJECT_ENV:CREATE");
     ctx.requireWritable();
     const { envId } = await (seg as { params: Promise<{ envId: string }> }).params;
-    return NextResponse.json(
-      ok(await copyEnvironment(ctx.projectId, envId)),
-      { status: 201 },
-    );
+    return NextResponse.json(ok(await copyEnvironment(ctx.projectId, envId)), { status: 201 });
   } catch (err) {
     return toResponse(err);
   }

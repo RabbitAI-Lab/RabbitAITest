@@ -398,7 +398,9 @@ export default function PlanDetailPage({ params }: { params: Promise<{ id: strin
                       <span className={row.deleted ? "text-[#A8ABB0] line-through" : ""}>{v}</span>
                       {row.method && <MethodTag method={row.method} />}
                       {row.path && (
-                        <span className="font-mono text-xs text-[#87888D] truncate">{row.path}</span>
+                        <span className="font-mono text-xs text-[#87888D] truncate">
+                          {row.path}
+                        </span>
                       )}
                       {row.deleted && (
                         <Tag bordered={false} className="!m-0">
@@ -416,7 +418,8 @@ export default function PlanDetailPage({ params }: { params: Promise<{ id: strin
                 title: "等级",
                 dataIndex: "level",
                 width: 64,
-                render: (l: string) => (l ? <Tag color={levelColor[l] ?? "default"}>{l}</Tag> : "—"),
+                render: (l: string) =>
+                  l ? <Tag color={levelColor[l] ?? "default"}>{l}</Tag> : "—",
               },
               {
                 title: "执行人",
@@ -445,7 +448,11 @@ export default function PlanDetailPage({ params }: { params: Promise<{ id: strin
                     (() => {
                       const m = EXEC_META[v] ?? EXEC_META.NOT_RUN!;
                       return (
-                        <span className="text-xs font-medium" style={{ color: m.color }} data-testid={`ref-status-${row.refId}`}>
+                        <span
+                          className="text-xs font-medium"
+                          style={{ color: m.color }}
+                          data-testid={`ref-status-${row.refId}`}
+                        >
                           ● {m.label}
                         </span>
                       );
@@ -481,7 +488,9 @@ export default function PlanDetailPage({ params }: { params: Promise<{ id: strin
                   row.refType === "api_case" ? (
                     <span className="text-xs text-[#C0C4CC]">—</span>
                   ) : (
-                    <Tooltip title={row.status === "NOT_RUN" ? "先标记执行状态后可填写" : "回车保存"}>
+                    <Tooltip
+                      title={row.status === "NOT_RUN" ? "先标记执行状态后可填写" : "回车保存"}
+                    >
                       <Input
                         key={`${row.refId}-${row.status}`}
                         size="small"
@@ -510,7 +519,12 @@ export default function PlanDetailPage({ params }: { params: Promise<{ id: strin
                 render: (_, row) =>
                   row.refType === "api_case" || row.refType === "scenario" ? (
                     <span className="flex gap-1 whitespace-nowrap items-center">
-                      <RunRefButton projectId={projectId} planId={id} refId={row.refId} disabled={!writable} />
+                      <RunRefButton
+                        projectId={projectId}
+                        planId={id}
+                        refId={row.refId}
+                        disabled={!writable}
+                      />
                       {(() => {
                         const r = row.result as { reportTaskId?: string };
                         return r?.reportTaskId ? (
@@ -637,7 +651,9 @@ export default function PlanDetailPage({ params }: { params: Promise<{ id: strin
           const r = await planApi.addCases(projectId, id, caseIds, apiCaseIds);
           invalidate();
           // S4 口径：added=三类实际新建总数（服务端 before/after 计数）
-          message.success(`已关联 ${r.added} 条用例（功能 ${caseIds.length} 提交 · 接口 ${apiCaseIds.length} 提交）`);
+          message.success(
+            `已关联 ${r.added} 条用例（功能 ${caseIds.length} 提交 · 接口 ${apiCaseIds.length} 提交）`,
+          );
         }}
       />
 
@@ -1104,7 +1120,14 @@ function LinkCasesModal({
   }, [open]);
 
   return (
-    <Modal title="关联用例" open={open} onCancel={onClose} footer={null} width={780} destroyOnHidden>
+    <Modal
+      title="关联用例"
+      open={open}
+      onCancel={onClose}
+      footer={null}
+      width={780}
+      destroyOnHidden
+    >
       <Tabs
         activeKey={pickerTab}
         onChange={(k) => setPickerTab(k as "cases" | "apiCases")}
@@ -1114,7 +1137,12 @@ function LinkCasesModal({
         ]}
       />
       {pickerTab === "cases" ? (
-        <FunctionalCasePicker projectId={projectId} open={open} onClose={onClose} onConfirm={onConfirm} />
+        <FunctionalCasePicker
+          projectId={projectId}
+          open={open}
+          onClose={onClose}
+          onConfirm={onConfirm}
+        />
       ) : (
         <ApiCasePicker projectId={projectId} open={open} onClose={onClose} onConfirm={onConfirm} />
       )}

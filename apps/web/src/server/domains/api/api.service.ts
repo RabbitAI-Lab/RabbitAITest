@@ -54,7 +54,11 @@ function serialize(a: {
     name: a.name,
     status: a.status,
     request: a.request as ApiRequestBundle,
-    response: a.response as { status: number; headers: { key: string; value: string }[]; body: string },
+    response: a.response as {
+      status: number;
+      headers: { key: string; value: string }[];
+      body: string;
+    },
     version: a.version,
     createdBy: a.createdBy,
     createdAt: a.createdAt.toISOString(),
@@ -63,7 +67,12 @@ function serialize(a: {
 }
 
 /** 模块子树 id 集合（含自身；includeChildren=false 仅自身）。 */
-export async function moduleSubtreeIds(projectId: string, scene: string, rootId: string, includeChildren: boolean) {
+export async function moduleSubtreeIds(
+  projectId: string,
+  scene: string,
+  rootId: string,
+  includeChildren: boolean,
+) {
   if (!includeChildren) return [rootId];
   const nodes = await prisma.moduleNode.findMany({
     where: { projectId, scene },
@@ -201,7 +210,10 @@ export async function updateApi(projectId: string, id: string, userId: string, i
       data: {
         entityType: "api_definition",
         entityId: api.id,
-        seq: (await tx.changeLog.count({ where: { entityType: "api_definition", entityId: api.id } })) + 1,
+        seq:
+          (await tx.changeLog.count({
+            where: { entityType: "api_definition", entityId: api.id },
+          })) + 1,
         action: "update",
         userId,
         diff: {

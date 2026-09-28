@@ -290,7 +290,10 @@ export async function updateBug(
   await prisma.changeLog.create({
     data: { entityType: "bug", entityId: bugId, seq, action: "update", userId, diff: toJson(diff) },
   });
-  await bugEventNotify(projectId, userId, "BUG_UPDATED", { id: bugId, title: input.title ?? existing.title });
+  await bugEventNotify(projectId, userId, "BUG_UPDATED", {
+    id: bugId,
+    title: input.title ?? existing.title,
+  });
   return updated;
 }
 
@@ -339,7 +342,10 @@ export async function transitionBug(
       },
     });
   }
-  await bugEventNotify(projectId, userId, "BUG_TRANSITION", bug, { from: bug.status, to: input.toState });
+  await bugEventNotify(projectId, userId, "BUG_TRANSITION", bug, {
+    from: bug.status,
+    to: input.toState,
+  });
   return { id: bugId, status: input.toState };
 }
 
@@ -508,36 +514,49 @@ export async function batchDeleteBugs(projectId: string, ids: string[]) {
   return { affected: r.count };
 }
 
-export async function exportBugs(projectId: string): Promise<{ buffer: Buffer; filename: string; contentType: string }> {
+export async function exportBugs(
+  projectId: string,
+): Promise<{ buffer: Buffer; filename: string; contentType: string }> {
   const bugs = await prisma.bug.findMany({
     where: { projectId, deletedAt: null },
-    orderBy: { num: 'desc' },
-    select: { num: true, title: true, status: true, handleUserId: true, tags: true, createdAt: true, updatedAt: true },
+    orderBy: { num: "desc" },
+    select: {
+      num: true,
+      title: true,
+      status: true,
+      handleUserId: true,
+      tags: true,
+      createdAt: true,
+      updatedAt: true,
+    },
   });
   const users = await prisma.user.findMany({ select: { id: true, name: true } });
   const nameOf = new Map(users.map((u) => [u.id, u.name]));
-  const ExcelJS = (await import('exceljs')).default;
+  const ExcelJS = (await import("exceljs")).default;
   const wb = new ExcelJS.Workbook();
-  const ws = wb.addWorksheet('缺陷');
-  ws.addRow(['ID', '标题', '状态', '处理人', '标签', '创建时间', '更新时间']);
+  const ws = wb.addWorksheet("缺陷");
+  ws.addRow(["ID", "标题", "状态", "处理人", "标签", "创建时间", "更新时间"]);
   for (const b of bugs) {
     ws.addRow([
-      `B-${String(b.num).padStart(4, '0')}`,
+      `B-${String(b.num).padStart(4, "0")}`,
       b.title,
       b.status,
-      b.handleUserId ? (nameOf.get(b.handleUserId) ?? '—') : '—',
-      ((b.tags as string[]) ?? []).join(','),
+      b.handleUserId ? (nameOf.get(b.handleUserId) ?? "—") : "—",
+      ((b.tags as string[]) ?? []).join(","),
       b.createdAt.toISOString().slice(0, 10),
       b.updatedAt.toISOString().slice(0, 10),
     ]);
   }
-  const project = await prisma.project.findFirst({ where: { id: projectId }, select: { name: true } });
-  const stamp = new Date().toISOString().replace(/[-:T]/g, '').slice(0, 12);
+  const project = await prisma.project.findFirst({
+    where: { id: projectId },
+    select: { name: true },
+  });
+  const stamp = new Date().toISOString().replace(/[-:T]/g, "").slice(0, 12);
   const buf = await wb.xlsx.writeBuffer();
   return {
     buffer: Buffer.from(buf as ArrayBuffer),
-    filename: `${project?.name ?? '项目'}-缺陷-${stamp}.xlsx`,
-    contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    filename: `${project?.name ?? "项目"}-缺陷-${stamp}.xlsx`,
+    contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
   };
 }
 
@@ -554,7 +573,7 @@ export async function bugEventNotify(
   try {
     const { dispatch } = await import("../message/notify.service");
     const wantFollowers = event === "BUG_UPDATED" || event === "BUG_TRANSITION";
-    const [user, follows] = await Promise.all([
+    const [user, follows, project] = await Promise.all([
       prisma.user.findUnique({ where: { id: actorId }, select: { name: true } }),
       wantFollowers
         ? prisma.follow.findMany({
@@ -562,15 +581,34 @@ export async function bugEventNotify(
             select: { userId: true },
           })
         : Promise.resolve([] as { userId: string }[]),
+      prisma.project.findUnique({ where: { id: projectId }, select: { name: true } }),
     ]);
     const action =
-      event === "BUG_CREATED" ? "新建" : event === "BUG_UPDATED" ? "更新" : event === "BUG_DELETED" ? "删除" : "流转";
+      event === "BUG_CREATED"
+        ? "新建"
+        : event === "BUG_UPDATED"
+          ? "更新"
+          : event === "BUG_DELETED"
+            ? "删除"
+            : "流转";
     const extra = event === "BUG_TRANSITION" && detail ? `：${detail.from} → ${detail.to}` : "";
+    const actorName = user?.name ?? actorId.slice(0, 8);
+    const time = new Date().toLocaleString("zh-CN");
     await dispatch({
       projectId,
       event,
-      title: `[缺陷] ${bug.title} ${action}${extra}`.slice(0, 256),
-      content: `操作人：${user?.name ?? actorId.slice(0, 8)}\n时间：${new Date().toLocaleString("zh-CN")}${extra}`,
+      // ENTP-005：模板存在且 License 有效 → vars 渲染；否则回退 defaults（S5 固定文案）
+      vars: {
+        project: project?.name ?? "",
+        actorName,
+        time,
+        title: bug.title,
+        ...(detail ? { fromStatus: detail.from ?? "", toStatus: detail.to ?? "" } : {}),
+      },
+      defaults: {
+        title: `[缺陷] ${bug.title} ${action}${extra}`.slice(0, 256),
+        content: `操作人：${actorName}\n时间：${time}${extra}`,
+      },
       actorId,
       receivers: { followerIds: follows.map((f) => f.userId) },
     });

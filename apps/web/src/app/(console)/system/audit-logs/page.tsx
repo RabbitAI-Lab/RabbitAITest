@@ -14,7 +14,9 @@ export default function SystemAuditLogsPage() {
   const [keyword, setKeyword] = useState("");
   const [action, setAction] = useState("");
   const [objectType, setObjectType] = useState<string | undefined>(undefined);
-  const [query, setQuery] = useState<{ keyword?: string; action?: string; objectType?: string }>({});
+  const [query, setQuery] = useState<{ keyword?: string; action?: string; objectType?: string }>(
+    {},
+  );
 
   const { data, isLoading } = useQuery({
     queryKey: ["audit-logs", "system", query, page],
@@ -22,22 +24,56 @@ export default function SystemAuditLogsPage() {
   });
 
   const columns = [
-    { title: "时间", dataIndex: "createdAt", width: 170, render: (v: string) => <span className="text-xs text-gray-400">{fmt(v)}</span> },
-    { title: "操作人", dataIndex: "userName", width: 110, render: (v: string | null, r: AuditLogRow) => v ?? r.userId?.slice(0, 8) ?? "system" },
-    { title: "动作", dataIndex: "action", width: 170, render: (v: string) => (
-      <code className="text-[11px] bg-gray-100 rounded px-1.5 py-0.5">{v}</code>
-    ) },
-    { title: "对象", dataIndex: "objectType", width: 130, render: (v: string, r: AuditLogRow) => (
-      <span className="text-xs">
-        {v} {r.objectId && <code className="text-gray-400" title={r.objectId}>{r.objectId.slice(0, 6)}</code>}
-      </span>
-    ) },
-    { title: "摘要", dataIndex: "detail", render: (v: unknown) => (
-      <span className="text-xs text-gray-500 truncate inline-block max-w-[340px] align-middle">
-        {v ? JSON.stringify(v).slice(0, 120) : "—"}
-      </span>
-    ) },
-    { title: "IP", dataIndex: "ip", width: 120, render: (v: string | null) => <code className="text-[11px] text-gray-400">{v ?? "—"}</code> },
+    {
+      title: "时间",
+      dataIndex: "createdAt",
+      width: 170,
+      render: (v: string) => <span className="text-xs text-gray-400">{fmt(v)}</span>,
+    },
+    {
+      title: "操作人",
+      dataIndex: "userName",
+      width: 110,
+      render: (v: string | null, r: AuditLogRow) => v ?? r.userId?.slice(0, 8) ?? "system",
+    },
+    {
+      title: "动作",
+      dataIndex: "action",
+      width: 170,
+      render: (v: string) => (
+        <code className="text-[11px] bg-gray-100 rounded px-1.5 py-0.5">{v}</code>
+      ),
+    },
+    {
+      title: "对象",
+      dataIndex: "objectType",
+      width: 130,
+      render: (v: string, r: AuditLogRow) => (
+        <span className="text-xs">
+          {v}{" "}
+          {r.objectId && (
+            <code className="text-gray-400" title={r.objectId}>
+              {r.objectId.slice(0, 6)}
+            </code>
+          )}
+        </span>
+      ),
+    },
+    {
+      title: "摘要",
+      dataIndex: "detail",
+      render: (v: unknown) => (
+        <span className="text-xs text-gray-500 truncate inline-block max-w-[340px] align-middle">
+          {v ? JSON.stringify(v).slice(0, 120) : "—"}
+        </span>
+      ),
+    },
+    {
+      title: "IP",
+      dataIndex: "ip",
+      width: 120,
+      render: (v: string | null) => <code className="text-[11px] text-gray-400">{v ?? "—"}</code>,
+    },
     { title: "范围", dataIndex: "scope", width: 80, render: (v: string) => <Tag>{v}</Tag> },
   ];
 
@@ -71,7 +107,15 @@ export default function SystemAuditLogsPage() {
           className="w-36"
           value={objectType}
           onChange={setObjectType}
-          options={["bug", "plugin", "scenario", "user", "api_key", "platform_integration", "api_call"].map((v) => ({ value: v, label: v }))}
+          options={[
+            "bug",
+            "plugin",
+            "scenario",
+            "user",
+            "api_key",
+            "platform_integration",
+            "api_call",
+          ].map((v) => ({ value: v, label: v }))}
         />
         <Button
           type="primary"

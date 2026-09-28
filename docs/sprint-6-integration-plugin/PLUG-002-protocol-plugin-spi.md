@@ -1,20 +1,20 @@
 # 协议插件 SPI（SamplerPlugin · engine 进程内加载）
 
-| 元信息项     | 内容                                                                                                                                    |
-| ------------ | --------------------------------------------------------------------------------------------------------------------------------------- |
-| 文档编号     | PLUG-002                                                                                                                                |
-| 所属迭代     | Sprint 6 — 集成与插件                                                                                                                   |
-| 优先级       | P2（迭代内）                                                                                                                            |
-| 所属模块     | 执行引擎（apps/engine）+ 接口测试（api_test 域）                                                                                        |
-| 文档状态     | Implemented（2026-09-27 交付：代码+单测+JMeter+Playwright 全绿、CI 六作业全绿；高保真走查随验收） |
-| 最后更新日期 | 2026-09-27                                                                                                                              |
-| 上游依赖     | PLUG-001（插件框架/上传链路）、EXEC-001/002（采样器管线）、API-002（接口定义 protocol 字段）                                              |
-| 下游消费     | P4 协议扩展（WebSocket/MQTT/gRPC 等，企业版对标但本项目按 P4 节奏）；PROJ-003 数据源插件化（driver SPI 同模式复用）                       |
-| 上游依据     | 需求文档 §六「接口调试：HTTP 起步（协议插件扩展）」；功能清单 §6.2 多协议切换、§十一 协议插件                                            |
-| 对标基线     | 功能清单 §6.2：「内置 HTTP，其余协议经系统插件上传后启用」；§十一 协议插件（基线多为企业版，本项目协议本体全列 P4）                        |
-| 关联架构文档 | plugin-architecture.md §1/§3（SamplerPlugin SPI、engine 进程内加载不经过 runner）；engine-execution-architecture.md                       |
-| 高保真确认   | 以「接口契约评审」替代（纯后端/引擎类规格，适用门禁 2 豁免条款；SPI+帧契约见 §4，评审通过=本规格 Approved）                              |
-| 工作量估算   | 引擎 3 人日 / shared 契约 1 人日                                                                                                        |
+| 元信息项     | 内容                                                                                                                |
+| ------------ | ------------------------------------------------------------------------------------------------------------------- |
+| 文档编号     | PLUG-002                                                                                                            |
+| 所属迭代     | Sprint 6 — 集成与插件                                                                                               |
+| 优先级       | P2（迭代内）                                                                                                        |
+| 所属模块     | 执行引擎（apps/engine）+ 接口测试（api_test 域）                                                                    |
+| 文档状态     | Implemented（2026-09-27 交付：代码+单测+JMeter+Playwright 全绿、CI 六作业全绿；高保真走查随验收）                   |
+| 最后更新日期 | 2026-09-27                                                                                                          |
+| 上游依赖     | PLUG-001（插件框架/上传链路）、EXEC-001/002（采样器管线）、API-002（接口定义 protocol 字段）                        |
+| 下游消费     | P4 协议扩展（WebSocket/MQTT/gRPC 等，企业版对标但本项目按 P4 节奏）；PROJ-003 数据源插件化（driver SPI 同模式复用） |
+| 上游依据     | 需求文档 §六「接口调试：HTTP 起步（协议插件扩展）」；功能清单 §6.2 多协议切换、§十一 协议插件                       |
+| 对标基线     | 功能清单 §6.2：「内置 HTTP，其余协议经系统插件上传后启用」；§十一 协议插件（基线多为企业版，本项目协议本体全列 P4） |
+| 关联架构文档 | plugin-architecture.md §1/§3（SamplerPlugin SPI、engine 进程内加载不经过 runner）；engine-execution-architecture.md |
+| 高保真确认   | 以「接口契约评审」替代（纯后端/引擎类规格，适用门禁 2 豁免条款；SPI+帧契约见 §4，评审通过=本规格 Approved）         |
+| 工作量估算   | 引擎 3 人日 / shared 契约 1 人日                                                                                    |
 
 ## 1. 概述
 
@@ -24,15 +24,15 @@
 
 ### 1.2 范围边界（能力行 → §5 用例映射）
 
-| 能力                                                                                  | P1 ✅ | 后续                                                  |
-| -------------------------------------------------------------------------------------- | ----- | ----------------------------------------------------- |
-| SamplerPlugin SPI 冻结：`protocol` 标识 / `configSchema`（zod→JSON Schema）/ `buildSampler(config)` 返回标准采样器接口 | ✅     | —                                                     |
-| engine 侧协议注册表：启动加载内置 http；运行时接受 web 通知（插件启用/停用）热更新        | ✅     | 引擎主动轮询 MinIO 版本（登记：当前推送驱动）         |
-| 协议插件加载路径：MinIO 拉取 tarball → 本地缓存目录解包 → dynamic import（engine 进程内） | ✅     | —                                                     |
-| 采样结果标准化：任意协议采样器输出统一 `SamplerResult`（响应体/耗时/成功标志/原始日志）  | ✅     | —                                                     |
-| 示例协议插件 `tcp-conn`：配置 host/port/timeout，connect 采样返回连通性+握手延迟          | ✅     | TCP 全语义（发包/断言）登记 P4                        |
-| ApiDefinition.protocol 扩展：`http`（S2 既有）+ 动态协议列表（运行时插件并集）；非 http 的执行走插件采样器 | ✅     | —                                                     |
-| 请求编辑器联动：protocol 下拉=内置+已启用协议插件；选中后按 configSchema 渲染动态表单     | ✅     | 协议级断言器（当前沿用 HTTP 断言子集）                 |
+| 能力                                                                                                                   | P1 ✅ | 后续                                          |
+| ---------------------------------------------------------------------------------------------------------------------- | ----- | --------------------------------------------- |
+| SamplerPlugin SPI 冻结：`protocol` 标识 / `configSchema`（zod→JSON Schema）/ `buildSampler(config)` 返回标准采样器接口 | ✅    | —                                             |
+| engine 侧协议注册表：启动加载内置 http；运行时接受 web 通知（插件启用/停用）热更新                                     | ✅    | 引擎主动轮询 MinIO 版本（登记：当前推送驱动） |
+| 协议插件加载路径：MinIO 拉取 tarball → 本地缓存目录解包 → dynamic import（engine 进程内）                              | ✅    | —                                             |
+| 采样结果标准化：任意协议采样器输出统一 `SamplerResult`（响应体/耗时/成功标志/原始日志）                                | ✅    | —                                             |
+| 示例协议插件 `tcp-conn`：配置 host/port/timeout，connect 采样返回连通性+握手延迟                                       | ✅    | TCP 全语义（发包/断言）登记 P4                |
+| ApiDefinition.protocol 扩展：`http`（S2 既有）+ 动态协议列表（运行时插件并集）；非 http 的执行走插件采样器             | ✅    | —                                             |
+| 请求编辑器联动：protocol 下拉=内置+已启用协议插件；选中后按 configSchema 渲染动态表单                                  | ✅    | 协议级断言器（当前沿用 HTTP 断言子集）        |
 
 ### 1.3 前置依赖
 
@@ -67,9 +67,11 @@ export interface SamplerPlugin {
   };
 }
 export interface SamplerResult {
-  ok: boolean; code: number; // 协议映射码（tcp: 0=连通 1=超时 2=拒绝）
+  ok: boolean;
+  code: number; // 协议映射码（tcp: 0=连通 1=超时 2=拒绝）
   bodyText: string; // 响应/日志摘要（≤4KB）
-  responseTimeMs: number; headers?: Record<string, string>;
+  responseTimeMs: number;
+  headers?: Record<string, string>;
 }
 ```
 

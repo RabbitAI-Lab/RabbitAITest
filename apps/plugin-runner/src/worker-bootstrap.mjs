@@ -13,7 +13,8 @@ parentPort.on("message", async (msg) => {
     if (msg.op === "load") {
       const mod = await import(`${msg.dir}/${msg.entry}`);
       const factory = mod.default ?? mod.createPlugin;
-      if (typeof factory !== "function") throw new Error("插件入口未导出 default/createPlugin 工厂");
+      if (typeof factory !== "function")
+        throw new Error("插件入口未导出 default/createPlugin 工厂");
       plugin = factory();
       reply({ ok: true, result: { loaded: true } });
       return;

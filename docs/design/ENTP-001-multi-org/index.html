@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="utf-8" />
+    <title>ENTP-001 多组织管理（组织 CRUD · 顶栏切换器 · 项目过滤）</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-slate-50 text-slate-800 text-sm">
+    <header class="h-12 bg-white border-b flex items-center px-4 gap-3">
+      <span class="font-semibold">RabbitAITest</span
+      ><span class="border rounded px-2 py-0.5">系统设置 · 组织管理 /system/orgs</span>
+      <span class="ml-auto text-slate-400 text-xs">帮助</span
+      ><span class="text-slate-500">admin</span>
+    </header>
+    <main class="p-4 space-y-4 max-w-[1200px]">
+      <!-- 画板一：组织管理页 -->
+      <section class="bg-white border rounded-md">
+        <div class="px-3 py-2 border-b bg-slate-50 font-medium">
+          画板一 · 系统设置 → 组织管理 /system/orgs（列表 + 新建弹窗 + 删除确认）
+        </div>
+        <div class="flex">
+          <div class="flex-1">
+            <div class="px-3 pt-3 flex items-center gap-2">
+              <p class="font-medium">组织列表</p>
+              <span class="text-xs text-slate-400"
+                >社区版限 1 个组织——多组织为企业版能力（License 门控）</span
+              >
+              <button class="ml-auto bg-[#574BFF] text-white rounded-md px-3 py-1.5 text-xs">
+                ＋ 新建组织
+              </button>
+              <button
+                class="bg-[#574BFF]/30 text-white rounded-md px-3 py-1.5 text-xs cursor-not-allowed flex items-center gap-1"
+              >
+                🔒 ＋ 新建组织<span class="text-[10px]">（社区版禁用态）</span>
+              </button>
+            </div>
+            <table class="w-full text-[13px] mt-2">
+              <thead class="text-slate-500 text-xs bg-slate-50">
+                <tr class="text-left">
+                  <th class="px-3 py-2">组织名称</th>
+                  <th>描述</th>
+                  <th>成员</th>
+                  <th>项目</th>
+                  <th>状态</th>
+                  <th>创建时间</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y">
+                <tr>
+                  <td class="px-3 py-2">
+                    管理员组织
+                    <span class="text-[10px] border rounded px-1 py-0.5 bg-slate-100 text-slate-500"
+                      >默认</span
+                    >
+                  </td>
+                  <td class="px-3 py-2 text-xs text-slate-500">seed 内置组织</td>
+                  <td class="px-3 py-2">3</td>
+                  <td class="px-3 py-2">2</td>
+                  <td class="px-3 py-2">
+                    <span
+                      class="text-[10px] border rounded px-1.5 py-0.5 bg-emerald-50 text-emerald-600 border-emerald-200"
+                      >进行中</span
+                    >
+                  </td>
+                  <td class="px-3 py-2 text-xs text-slate-500">2026-09-01</td>
+                  <td class="px-3 py-2 space-x-2 text-[#574BFF] text-xs">
+                    <a>编辑</a><a>成员</a><a class="text-slate-300">结束</a
+                    ><a class="text-slate-300">删除</a
+                    ><span class="text-[10px] text-slate-300">（默认组织保护）</span>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="px-3 py-2">电商事业部</td>
+                  <td class="px-3 py-2 text-xs text-slate-500">交易链路质量团队</td>
+                  <td class="px-3 py-2">12</td>
+                  <td class="px-3 py-2">5</td>
+                  <td class="px-3 py-2">
+                    <span
+                      class="text-[10px] border rounded px-1.5 py-0.5 bg-emerald-50 text-emerald-600 border-emerald-200"
+                      >进行中</span
+                    >
+                  </td>
+                  <td class="px-3 py-2 text-xs text-slate-500">2026-09-20</td>
+                  <td class="px-3 py-2 space-x-2 text-[#574BFF] text-xs">
+                    <a>编辑</a><a>成员</a><a>结束</a><a class="text-red-500">删除</a>
+                  </td>
+                </tr>
+                <tr class="opacity-60">
+                  <td class="px-3 py-2">poc 临时组织</td>
+                  <td class="px-3 py-2 text-xs text-slate-500">
+                    已结束：不出现在切换列表，数据保留
+                  </td>
+                  <td class="px-3 py-2">2</td>
+                  <td class="px-3 py-2">1</td>
+                  <td class="px-3 py-2">
+                    <span
+                      class="text-[10px] border rounded px-1.5 py-0.5 bg-slate-100 text-slate-500 border-slate-200"
+                      >已结束</span
+                    >
+                  </td>
+                  <td class="px-3 py-2 text-xs text-slate-500">2026-09-10</td>
+                  <td class="px-3 py-2 space-x-2 text-[#574BFF] text-xs">
+                    <a>编辑</a><a>恢复</a><a class="text-red-500">删除</a>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            <p class="px-3 py-2 text-xs text-slate-400 border-t">
+              结束=从切换列表隐去（数据与成员访问保留）；删除=连同项目数据级联硬删（二次确认）
+            </p>
+          </div>
+          <!-- 新建 + 删除确认 -->
+          <div class="w-[340px] border-l p-4 text-[13px] space-y-4">
+            <div class="space-y-3">
+              <p class="font-medium">新建组织</p>
+              <div>
+                <p class="text-slate-500 text-xs mb-1">组织名称</p>
+                <input class="border rounded px-2 py-1.5 w-full" placeholder="如：电商事业部" />
+              </div>
+              <div>
+                <p class="text-slate-500 text-xs mb-1">管理员（既有用户）</p>
+                <div class="border rounded px-2 py-1.5 flex items-center justify-between">
+                  <span class="text-slate-600 text-xs">li.si@corp.example</span
+                  ><span class="text-slate-300 text-xs">▾</span>
+                </div>
+                <p class="text-[11px] text-red-400 mt-1 hidden">
+                  该邮箱用户不存在（仅可选择既有 ACTIVE 用户）
+                </p>
+              </div>
+              <div>
+                <p class="text-slate-500 text-xs mb-1">描述</p>
+                <input class="border rounded px-2 py-1.5 w-full" placeholder="选填" />
+              </div>
+              <p class="text-[11px] text-slate-400">
+                创建后自动初始化模板/字段预设；不创建演示项目
+              </p>
+              <div class="flex gap-2">
+                <button class="bg-[#574BFF] text-white rounded px-4 py-1.5">确定</button
+                ><button class="border rounded px-4 py-1.5">取消</button>
+              </div>
+            </div>
+            <div class="border-t pt-3 space-y-2">
+              <p class="font-medium text-red-500">删除组织（二次确认）</p>
+              <div class="border border-red-200 bg-red-50 rounded p-2 text-xs text-red-600">
+                将删除 <b>5</b> 个项目及其全部用例 / 接口 / 场景 / 执行 / 报告数据，<b>不可恢复</b>
+              </div>
+              <input
+                class="border rounded px-2 py-1.5 w-full"
+                placeholder="输入组织名称「电商事业部」确认"
+              />
+              <div class="flex gap-2">
+                <button class="bg-red-500 text-white rounded px-4 py-1.5">确认删除</button
+                ><button class="border rounded px-4 py-1.5">取消</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <!-- 画板二：顶栏组织切换器 -->
+      <section class="bg-white border rounded-md">
+        <div class="px-3 py-2 border-b bg-slate-50 font-medium">
+          画板二 · 顶栏组织切换器（多组织成员可见；切换后项目列表过滤）
+        </div>
+        <div class="p-4 space-y-3">
+          <div class="flex items-center gap-2 text-[13px]">
+            <span class="text-slate-400 text-xs">单组织用户（切换器隐藏——现状不变）：</span>
+            <span class="border rounded px-2 py-1 bg-white">📁 管理员组织 / 管理项目 ▾</span>
+          </div>
+          <div class="flex items-center gap-2 text-[13px]">
+            <span class="text-slate-400 text-xs">多组织用户：</span>
+            <div class="border rounded px-2 py-1 bg-white flex items-center gap-1">
+              🏢 电商事业部 <span class="text-slate-300">▾</span>
+            </div>
+            <span class="text-slate-300">›</span>
+            <div class="border rounded px-2 py-1 bg-white flex items-center gap-1">
+              📁 交易中台 ▾ <span class="text-[10px] text-slate-400">（仅当前组织项目）</span>
+            </div>
+            <!-- 展开态 -->
+            <div class="border rounded-md shadow-lg w-56 bg-white text-[13px] divide-y">
+              <p class="px-3 py-2 text-xs text-slate-400">切换组织</p>
+              <div class="px-3 py-2 bg-slate-50 flex items-center">
+                <span>🏢 电商事业部</span><span class="ml-auto text-[#574BFF] text-xs">✓ 当前</span>
+              </div>
+              <div class="px-3 py-2 flex items-center"><span>🏢 管理员组织</span></div>
+              <div class="px-3 py-2 flex items-center text-slate-400">
+                <span>🏢 poc 临时组织</span
+                ><span class="ml-auto text-[10px]">已结束，不在列表（示意仅注释）</span>
+              </div>
+              <div class="px-3 py-2 text-[#574BFF] text-xs">组织管理 →</div>
+            </div>
+          </div>
+          <p class="text-xs text-slate-400">
+            切换持久化（浏览器记忆）；/org
+            下组织级页面（成员/用户组/模板/部门）随切换联动；项目切换器与「新建项目」均归属当前组织。ENDED
+            组织不出现在切换器与 personal/projects 过滤结果。
+          </p>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

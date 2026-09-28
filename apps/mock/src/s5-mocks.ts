@@ -24,30 +24,37 @@ export interface MockGitFile {
 const GIT_FILES: MockGitFile[] = [
   { path: "README.md", content: "# testdata\nmock git repo for e2e\n" },
   { path: "data/users_small.csv", content: "id,name\n1,alice\n2,bob\n3,carol\n" },
-  { path: "data/users_large.csv", content: "id,name\n" + Array.from({ length: 50 }, (_, i) => `${i + 1},user${i + 1}`).join("\n") + "\n" },
+  {
+    path: "data/users_large.csv",
+    content:
+      "id,name\n" + Array.from({ length: 50 }, (_, i) => `${i + 1},user${i + 1}`).join("\n") + "\n",
+  },
   { path: "data/city.json", content: '{"city":"shanghai","pop":25000000}\n' },
 ];
 
 export function buildRobotMocks(): Hono {
   const app = new Hono();
 
-  const record = (channel: string) => async (c: { req: { json: () => Promise<unknown> }; json: (b: unknown, s?: 200) => Response }) => {
-    const body = (await c.req.json().catch(() => ({}))) as {
-      text?: { content?: string };
-      content?: { text?: string };
+  const record =
+    (channel: string) =>
+    async (c: {
+      req: { json: () => Promise<unknown> };
+      json: (b: unknown, s?: 200) => Response;
+    }) => {
+      const body = (await c.req.json().catch(() => ({}))) as {
+        text?: { content?: string };
+        content?: { text?: string };
+      };
+      const text = body?.text?.content ?? body?.content?.text ?? "";
+      robotCalls.push({ channel, text, at: new Date().toISOString() });
+      return c.json({ errcode: 0 });
     };
-    const text = body?.text?.content ?? body?.content?.text ?? "";
-    robotCalls.push({ channel, text, at: new Date().toISOString() });
-    return c.json({ errcode: 0 });
-  };
 
   app.post("/dingtalk", (c) => record("dingtalk")(c));
   app.post("/wecom", (c) => record("wecom")(c));
   app.post("/feishu", (c) => record("feishu")(c));
 
-  app.get("/_test/calls", (c) =>
-    c.json({ total: robotCalls.length, items: [...robotCalls] }),
-  );
+  app.get("/_test/calls", (c) => c.json({ total: robotCalls.length, items: [...robotCalls] }));
   app.post("/_test/clear", (c) => {
     robotCalls.length = 0;
     return c.json({ ok: true });
@@ -90,10 +97,15 @@ export function buildGitMocks(): Hono {
 
   // ── gitea(/api/v1) / github-enterprise(/api/v3) / gitee(/api/v5)：contents 族同形 ──
   // repo 元信息（连接测试探活端点：{apiBase}/repos/{owner}/{repo}）
-  app.get("/api/v1/repos/:owner/:repo", (c) => c.json({ id: 1, full_name: `${c.req.param("owner")}/${c.req.param("repo")}` }));
+  app.get("/api/v1/repos/:owner/:repo", (c) =>
+    c.json({ id: 1, full_name: `${c.req.param("owner")}/${c.req.param("repo")}` }),
+  );
   app.get("/api/v3/repos/:owner/:repo", (c) => c.json({ id: 1, full_name: "qa/testdata" }));
   app.get("/api/v5/repos/:owner/:repo", (c) => c.json({ id: 1, full_name: "qa/testdata" }));
-  const contentsHandler = (c: { req: { path: string }; json: (b: unknown, s?: number) => Response }) => {
+  const contentsHandler = (c: {
+    req: { path: string };
+    json: (b: unknown, s?: number) => Response;
+  }) => {
     const m = c.req.path.match(/\/repos\/[^/]+\/[^/]+\/contents\/(.+)$/);
     const target = (m?.[1] ?? "").split("?")[0];
     const file = GIT_FILES.find((f) => f.path === target);
@@ -103,7 +115,9 @@ export function buildGitMocks(): Hono {
       return c.json(
         entries.map((e) =>
           e.type === "file"
-            ? contentsEntry(GIT_FILES.find((f) => f.path === e.path) ?? { path: e.path, content: "" })
+            ? contentsEntry(
+                GIT_FILES.find((f) => f.path === e.path) ?? { path: e.path, content: "" },
+              )
             : e,
         ),
       );

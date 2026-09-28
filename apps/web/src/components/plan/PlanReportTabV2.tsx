@@ -111,7 +111,10 @@ export function PlanReportTabV2({
     }
   };
 
-  if (viewQ.isLoading) return <div className="rabbit-card p-8 text-center text-[#A8ABB0] text-[13px]">报告加载中…</div>;
+  if (viewQ.isLoading)
+    return (
+      <div className="rabbit-card p-8 text-center text-[#A8ABB0] text-[13px]">报告加载中…</div>
+    );
   if (!view) return <Empty description="报告不可用" />;
 
   const cards: { label: string; value: string | number; color?: string }[] = [
@@ -126,17 +129,28 @@ export function PlanReportTabV2({
   return (
     <div className="space-y-3" data-testid="plan-report-v2">
       <div className="flex items-center gap-2 flex-wrap">
-        <Button onClick={() => refresh.mutate()} loading={refresh.isPending} data-testid="btn-report-refresh">
+        <Button
+          onClick={() => refresh.mutate()}
+          loading={refresh.isPending}
+          data-testid="btn-report-refresh"
+        >
           ↻ 刷新
         </Button>
-        <Button onClick={() => draft.mutate()} loading={draft.isPending} data-testid="btn-report-draft">
+        <Button
+          onClick={() => draft.mutate()}
+          loading={draft.isPending}
+          data-testid="btn-report-draft"
+        >
           ✨ 一键总结
         </Button>
         <Button onClick={() => setShareOpen(true)} data-testid="btn-report-share">
           🔗 分享
         </Button>
         <Tooltip title="打印页（浏览器打印为 PDF）">
-          <Button onClick={() => router.push(`/plans/${planId}/report/print`)} data-testid="btn-report-pdf">
+          <Button
+            onClick={() => router.push(`/plans/${planId}/report/print`)}
+            data-testid="btn-report-pdf"
+          >
             🖨 导出 PDF
           </Button>
         </Tooltip>
@@ -158,7 +172,8 @@ export function PlanReportTabV2({
           data-testid="report-threshold-banner"
         >
           {view.overview.thresholdMet ? "✓" : "✗"} 通过率 {view.overview.passRate ?? "—"}%{" "}
-          {view.overview.thresholdMet ? "≥" : "<"} 阈值 {view.threshold}% —— {view.overview.thresholdMet ? "达标" : "未达标"}
+          {view.overview.thresholdMet ? "≥" : "<"} 阈值 {view.threshold}% ——{" "}
+          {view.overview.thresholdMet ? "达标" : "未达标"}
         </div>
       )}
 
@@ -176,13 +191,17 @@ export function PlanReportTabV2({
       {/* 测试点维度 */}
       <div className="rabbit-card p-0 overflow-hidden">
         <Collapse
-          defaultActiveKey={view.points.filter((p) => p.rows.length > 0).map((p) => p.pointId ?? "__ungrouped__")}
+          defaultActiveKey={view.points
+            .filter((p) => p.rows.length > 0)
+            .map((p) => p.pointId ?? "__ungrouped__")}
           items={view.points.map((p) => ({
             key: p.pointId ?? "__ungrouped__",
             label: (
               <span className="flex items-center gap-2 text-[13px]">
                 测试点：{p.name}
-                <span className="text-[10px] border rounded px-1 py-0.5 bg-slate-100 text-slate-500">{p.rows.length} 条</span>
+                <span className="text-[10px] border rounded px-1 py-0.5 bg-slate-100 text-slate-500">
+                  {p.rows.length} 条
+                </span>
                 {p.passRate !== null && (
                   <span
                     className={`text-[10px] border rounded px-1 py-0.5 ${p.passRate >= view.threshold ? "bg-green-50 text-green-600 border-green-200" : "bg-red-50 text-red-600 border-red-200"}`}
@@ -205,15 +224,41 @@ export function PlanReportTabV2({
                     {
                       title: "类型",
                       width: 70,
-                      render: (_, r) => <Tag color={REF_TYPE_TAG[r.refType === "functional_case" ? "功能" : r.refType === "api_case" ? "接口" : "场景"]}>{r.refType === "functional_case" ? "功能" : r.refType === "api_case" ? "接口" : "场景"}</Tag>,
+                      render: (_, r) => (
+                        <Tag
+                          color={
+                            REF_TYPE_TAG[
+                              r.refType === "functional_case"
+                                ? "功能"
+                                : r.refType === "api_case"
+                                  ? "接口"
+                                  : "场景"
+                            ]
+                          }
+                        >
+                          {r.refType === "functional_case"
+                            ? "功能"
+                            : r.refType === "api_case"
+                              ? "接口"
+                              : "场景"}
+                        </Tag>
+                      ),
                     },
                     { title: "名称", dataIndex: "name", ellipsis: true },
-                    { title: "执行人", dataIndex: "executor", width: 90, render: (v: string | null) => v ?? "—" },
+                    {
+                      title: "执行人",
+                      dataIndex: "executor",
+                      width: 90,
+                      render: (v: string | null) => v ?? "—",
+                    },
                     {
                       title: "状态",
                       width: 80,
                       render: (_, r: { status: string }) => (
-                        <span style={{ color: STATUS_COLOR[r.status] ?? "#87888D" }} className="font-medium">
+                        <span
+                          style={{ color: STATUS_COLOR[r.status] ?? "#87888D" }}
+                          className="font-medium"
+                        >
                           {r.status}
                         </span>
                       ),
@@ -230,7 +275,10 @@ export function PlanReportTabV2({
                       width: 90,
                       render: (_, r: { reportTaskId: string | null }) =>
                         r.reportTaskId ? (
-                          <a className="text-[#574BFF] text-xs" onClick={() => router.push(`/reports/${r.reportTaskId}`)}>
+                          <a
+                            className="text-[#574BFF] text-xs"
+                            onClick={() => router.push(`/reports/${r.reportTaskId}`)}
+                          >
                             执行报告 ↗
                           </a>
                         ) : null,
@@ -252,13 +300,26 @@ export function PlanReportTabV2({
             </Button>
           )}
           {editing && (
-            <Button size="small" type="primary" loading={saveSummary.isPending} onClick={() => saveSummary.mutate()} data-testid="btn-save-summary">
+            <Button
+              size="small"
+              type="primary"
+              loading={saveSummary.isPending}
+              onClick={() => saveSummary.mutate()}
+              data-testid="btn-save-summary"
+            >
               保存
             </Button>
           )}
         </div>
         {editing ? (
-          <Input.TextArea className="mt-2" rows={4} value={summary} onChange={(e) => setSummary(e.target.value)} maxLength={4000} data-testid="summary-editor" />
+          <Input.TextArea
+            className="mt-2"
+            rows={4}
+            value={summary}
+            onChange={(e) => setSummary(e.target.value)}
+            maxLength={4000}
+            data-testid="summary-editor"
+          />
         ) : (
           <p className="text-[13px] pt-1 text-slate-600" data-testid="summary-text">
             {view.summary || "（暂无总结——可一键生成草稿后编辑保存）"}
@@ -276,7 +337,10 @@ export function PlanReportTabV2({
       >
         <div className="space-y-2">
           {(sharesQ.data?.items ?? []).map((s) => (
-            <div key={s.token} className="flex items-center gap-2 text-xs border rounded px-2 py-1.5">
+            <div
+              key={s.token}
+              className="flex items-center gap-2 text-xs border rounded px-2 py-1.5"
+            >
               <a
                 href={`/share/plan/${s.token}`}
                 target="_blank"
@@ -285,8 +349,15 @@ export function PlanReportTabV2({
               >
                 /share/plan/{s.token.slice(0, 10)}…
               </a>
-              <span className="text-slate-400">{s.expired ? "已过期" : new Date(s.expireAt).toLocaleString("zh-CN")}</span>
-              <Button size="small" danger className="ml-auto" onClick={() => revokeShare.mutate(s.token)}>
+              <span className="text-slate-400">
+                {s.expired ? "已过期" : new Date(s.expireAt).toLocaleString("zh-CN")}
+              </span>
+              <Button
+                size="small"
+                danger
+                className="ml-auto"
+                onClick={() => revokeShare.mutate(s.token)}
+              >
                 吊销
               </Button>
             </div>
@@ -303,7 +374,12 @@ export function PlanReportTabV2({
                 { value: 720, label: "30 天" },
               ]}
             />
-            <Button type="primary" loading={createShare.isPending} onClick={() => createShare.mutate()} data-testid="btn-create-share">
+            <Button
+              type="primary"
+              loading={createShare.isPending}
+              onClick={() => createShare.mutate()}
+              data-testid="btn-create-share"
+            >
               新建分享链接
             </Button>
           </div>

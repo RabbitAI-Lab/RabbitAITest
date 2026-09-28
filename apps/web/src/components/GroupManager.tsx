@@ -138,7 +138,10 @@ export function GroupManager({ scope, scopeId }: { scope: GroupScope; scopeId?: 
       }
       if (scope === "project") {
         const { projectInfoApi } = await import("@rabbit/api-client");
-        return projectInfoApi.members(resolvedScopeId, { keyword: userKeyword || undefined, pageSize: 20 });
+        return projectInfoApi.members(resolvedScopeId, {
+          keyword: userKeyword || undefined,
+          pageSize: 20,
+        });
       }
       return userApi.list({ keyword: userKeyword || undefined, pageSize: 20 });
     },
@@ -376,7 +379,12 @@ export function GroupManager({ scope, scopeId }: { scope: GroupScope; scopeId?: 
               )}
             </div>
             {readonly && (
-              <Alert type="info" showIcon banner message="预置组权限不可修改（对齐基线）；成员可正常管理" />
+              <Alert
+                type="info"
+                showIcon
+                banner
+                message="预置组权限不可修改（对齐基线）；成员可正常管理"
+              />
             )}
 
             {/* 成员区（预置组同样可管理成员——SYS-004 §1.2：组成员添加/移除独立于权限只读） */}

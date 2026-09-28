@@ -1,5 +1,5 @@
 /** EXEC-002/006 runner v4：api_debug 单请求 + api_case 批量（串行）+ scenario 场景（串行/并行）+ plan 计划（S4）。 */
-import { config, execCommandSchema, execStopKey } from "@rabbit/shared";
+import { config, execCommandSchema, execStopKey, execQueueNameFor } from "@rabbit/shared";
 import { logFor } from "@rabbit/shared/logger";
 import type { ExecCallback, ExecCommand } from "@rabbit/shared/execution";
 import { heartbeatResponseSchema } from "@rabbit/shared/execution";
@@ -332,12 +332,14 @@ export async function runTask(
   );
 }
 
-/** worker + 注册/心跳 v2（busy 槽位 + 在执任务清单 + 并发动态下发，EXEC-002 §2）。 */
+/** worker + 注册/心跳 v2（busy 槽位 + 在执任务清单 + 并发动态下发，EXEC-002 §2；ENTP-006 POOL_ID 池绑定）。 */
 export function startWorker(): void {
   const connection = new Redis(config.redisUrl, { maxRetriesPerRequest: null });
   let inFlight = new Set<string>();
+  // ENTP-006：engine 进程绑定池（env POOL_ID，缺省默认池=exec 队列，单引擎部署零感知）
+  const queueName = execQueueNameFor(config.enginePoolId);
   const worker = new Worker(
-    config.execQueueName,
+    queueName,
     async (job) => {
       if (job.name !== "exec") return;
       const taskId = String((job.data as { taskId?: string }).taskId ?? job.id ?? "");
@@ -367,6 +369,7 @@ export function startWorker(): void {
           busy: inFlight.size,
           taskIds: [...inFlight],
           ts: Date.now(),
+          poolId: config.enginePoolId,
         }),
       });
       if (res.ok) {
@@ -399,5 +402,8 @@ export function startWorker(): void {
   process.on("SIGTERM", () => void shutdown());
   // S6 PLUG-002：协议插件注册表周期同步（30s 轮询 web internal 清单；版本变更才拉包）
   startProtocolSync();
-  logFor("engine").info({ version: VERSION, nodeId: NODE_ID }, "worker started");
+  logFor("engine").info(
+    { version: VERSION, nodeId: NODE_ID, queue: queueName, poolId: config.enginePoolId },
+    "worker started",
+  );
 }

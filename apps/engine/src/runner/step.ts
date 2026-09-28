@@ -36,7 +36,11 @@ export interface StepSpec {
   counter?: Map<string, number>;
 }
 
-export type StepOutcome = { status: "SUCCESS" | "FAILED" | "STOPPED"; failureKind?: string; message: string };
+export type StepOutcome = {
+  status: "SUCCESS" | "FAILED" | "STOPPED";
+  failureKind?: string;
+  message: string;
+};
 
 async function isStopped(redis: Redis, taskId: string): Promise<boolean> {
   return (await redis.exists(execStopKey(taskId))) === 1;
@@ -125,16 +129,23 @@ export async function runStep(
     }, 300);
     let result;
     // PLUG-002：非 http(s) 协议走插件采样器（协议标识=request.protocol 小写；engine 进程内）
-    const rawProtocol = String((step.request as { protocol?: unknown }).protocol ?? "http").toLowerCase();
+    const rawProtocol = String(
+      (step.request as { protocol?: unknown }).protocol ?? "http",
+    ).toLowerCase();
     const protocolPlugin =
       rawProtocol !== "http" && rawProtocol !== "https" ? getSamplerPlugin(rawProtocol) : null;
     if (rawProtocol !== "http" && rawProtocol !== "https" && !protocolPlugin) {
-      throw new ProcessorError("CONFIG_ERROR", `协议插件不可用：${rawProtocol}（未启用或加载失败）`);
+      throw new ProcessorError(
+        "CONFIG_ERROR",
+        `协议插件不可用：${rawProtocol}（未启用或加载失败）`,
+      );
     }
     try {
       if (protocolPlugin) {
         // SamplerResult → HTTP 采样形态标准化（headers kv 数组 / durationMs 字段名对齐）
-        const sampler = protocolPlugin.buildSampler((step.request as { protocolConfig?: unknown }).protocolConfig);
+        const sampler = protocolPlugin.buildSampler(
+          (step.request as { protocolConfig?: unknown }).protocolConfig,
+        );
         const sr = await sampler.run();
         result = {
           status: sr.ok ? 200 : sr.code === 1 ? 504 : 502,

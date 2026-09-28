@@ -10,7 +10,9 @@ export const POST = withProjectScope(async (ctx, _req, seg) => {
     ctx.requirePerm("PROJECT_SCENARIO:CREATE");
     ctx.requireWritable();
     const { id } = await (seg as { params: Promise<{ id: string }> }).params;
-    return NextResponse.json(ok(await copyScenario(ctx.projectId, ctx.userId, id)), { status: 201 });
+    return NextResponse.json(ok(await copyScenario(ctx.projectId, ctx.userId, id)), {
+      status: 201,
+    });
   } catch (err) {
     return toResponse(err);
   }

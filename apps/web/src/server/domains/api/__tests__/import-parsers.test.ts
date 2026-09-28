@@ -27,7 +27,9 @@ describe("parseOpenApi3", () => {
     expect(get.request.spec.query[0]).toMatchObject({ key: "kind", value: "dog" });
     const post = r.apis.find((a) => a.method === "POST")!;
     expect(post.request.spec.body).toMatchObject({ kind: "raw_json" });
-    expect(post.request.spec.body.kind === "raw_json" && post.request.spec.body.content).toContain("阿黄");
+    expect(post.request.spec.body.kind === "raw_json" && post.request.spec.body.content).toContain(
+      "阿黄",
+    );
   });
   it("非 3.x / 非法 JSON 拒绝（40422）", () => {
     expect(() => parseOpenApi3('{"openapi":"2.0","paths":{}}')).toThrow(DomainError);
@@ -36,7 +38,10 @@ describe("parseOpenApi3", () => {
 });
 
 const postman = JSON.stringify({
-  info: { name: "demo", schema: "https://schema.getpostman.com/json/collection/v2.1.0/collection.json" },
+  info: {
+    name: "demo",
+    schema: "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+  },
   item: [
     {
       name: "宠物目录",
@@ -45,13 +50,25 @@ const postman = JSON.stringify({
           name: "查询宠物",
           request: {
             method: "GET",
-            url: { protocol: "https", host: ["petstore", "local"], path: ["pets"], query: [{ key: "kind", value: "dog" }] },
+            url: {
+              protocol: "https",
+              host: ["petstore", "local"],
+              path: ["pets"],
+              query: [{ key: "kind", value: "dog" }],
+            },
             header: [{ key: "Accept", value: "application/json" }],
           },
         },
       ],
     },
-    { name: "新建宠物", request: { method: "POST", url: "https://petstore.local/pets", body: { mode: "raw", raw: "{\"name\":\"a\"}" } } },
+    {
+      name: "新建宠物",
+      request: {
+        method: "POST",
+        url: "https://petstore.local/pets",
+        body: { mode: "raw", raw: '{"name":"a"}' },
+      },
+    },
   ],
 });
 
@@ -78,15 +95,58 @@ describe("parseRabbit", () => {
           status: "RELEASED",
           request: {
             spec: {
-              method: "GET", url: "/pets", headers: [], query: [],
-              body: { kind: "none" }, auth: { kind: "none" },
-              timeoutMs: 60000, followRedirects: false, skipPre: false, skipPost: false,
+              method: "GET",
+              url: "/pets",
+              headers: [],
+              query: [],
+              body: { kind: "none" },
+              auth: { kind: "none" },
+              timeoutMs: 60000,
+              followRedirects: false,
+              skipPre: false,
+              skipPost: false,
             },
-            asserts: [], pre: [], post: [], extracts: [],
+            asserts: [],
+            pre: [],
+            post: [],
+            extracts: [],
           },
           response: { status: 200, headers: [], body: "{}" },
-          cases: [{ name: "狗", level: "P1", status: "UNDERWAY", tags: [], request: { spec: { method: "GET", url: "/pets?kind=dog", headers: [], query: [], body: { kind: "none" }, auth: { kind: "none" }, timeoutMs: 60000, followRedirects: false, skipPre: false, skipPost: false }, asserts: [], pre: [], post: [], extracts: [] } }],
-          mocks: [{ name: "狗查询", enabled: true, followApi: false, matchers: { headers: [], query: [{ key: "kind", value: "dog" }] }, response: { status: 200, headers: [], body: "{}", delayMs: 0 } }],
+          cases: [
+            {
+              name: "狗",
+              level: "P1",
+              status: "UNDERWAY",
+              tags: [],
+              request: {
+                spec: {
+                  method: "GET",
+                  url: "/pets?kind=dog",
+                  headers: [],
+                  query: [],
+                  body: { kind: "none" },
+                  auth: { kind: "none" },
+                  timeoutMs: 60000,
+                  followRedirects: false,
+                  skipPre: false,
+                  skipPost: false,
+                },
+                asserts: [],
+                pre: [],
+                post: [],
+                extracts: [],
+              },
+            },
+          ],
+          mocks: [
+            {
+              name: "狗查询",
+              enabled: true,
+              followApi: false,
+              matchers: { headers: [], query: [{ key: "kind", value: "dog" }] },
+              response: { status: 200, headers: [], body: "{}", delayMs: 0 },
+            },
+          ],
         },
       ],
     };

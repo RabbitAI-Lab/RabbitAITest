@@ -14,7 +14,9 @@ async function loginSeedAdmin(request: APIRequestContext, context: BrowserContex
   expect(res.status()).toBe(200);
   const ras = (res.headers()["set-cookie"] ?? "").split("ras=")[1]?.split(";")[0];
   expect(ras).toBeTruthy();
-  await context.addCookies([{ name: "ras", value: ras!, url: process.env.E2E_BASE_URL ?? "http://localhost:3100" }]);
+  await context.addCookies([
+    { name: "ras", value: ras!, url: process.env.E2E_BASE_URL ?? "http://localhost:3100" },
+  ]);
 }
 
 test("AI-001-01 模型管理全链路（新建/掩码/连接测试/设默认/SSRF 拒绝）", async ({
@@ -61,7 +63,9 @@ test("AI-001-01 模型管理全链路（新建/掩码/连接测试/设默认/SSR
   expect(testData.data.echo).toBe("pong");
 
   // 设默认 → 星标移动
-  const defaulted = page.waitForResponse(`**/api/v1/system/ai-models/${createdData.data.id}/default`);
+  const defaulted = page.waitForResponse(
+    `**/api/v1/system/ai-models/${createdData.data.id}/default`,
+  );
   await page.getByTestId(`ai-model-default-e2e-模型-${uniq}`).click();
   await defaulted;
   await expect(page.getByTestId(`ai-model-card-e2e-模型-${uniq}`)).toContainText("★ 默认");
@@ -87,7 +91,11 @@ test("AI-001-01 模型管理全链路（新建/掩码/连接测试/设默认/SSR
 
   // 白名单：SSRF 422 为预期安全拒绝（表单提交路径 fetch 失败留痕，显式登记）
   await expectNoConsoleErrors([
-    { pageUrlPattern: "/system/ai-models", textPattern: "(\\[http 422\\]|status of 422)", reason: "AI-001-01 SSRF 守卫拒绝的预期 422（70422）" },
+    {
+      pageUrlPattern: "/system/ai-models",
+      textPattern: "(\\[http 422\\]|status of 422)",
+      reason: "AI-001-01 SSRF 守卫拒绝的预期 422（70422）",
+    },
   ]);
 });
 
@@ -104,7 +112,9 @@ test("AI-001-02 掩码脱敏与权限（普通用户 403 + 响应无明文 key�
   // 登录可见下拉（无敏感字段）
   const picker = await request.get("/api/v1/ai/models");
   expect(picker.status()).toBe(200);
-  const pickerData = (await picker.json()) as { data: { list: { model: string; apiKeyMasked?: string }[] } };
+  const pickerData = (await picker.json()) as {
+    data: { list: { model: string; apiKeyMasked?: string }[] };
+  };
   expect(pickerData.data.list[0]!.model).toBe("mock-e2e-model");
   expect(JSON.stringify(pickerData.data)).not.toContain("apiKeyEnc");
   void authedPage;

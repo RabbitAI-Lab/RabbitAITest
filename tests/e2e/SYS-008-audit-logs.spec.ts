@@ -15,7 +15,10 @@ test("SYS-008-T2 系统面：写操作→日志可查（action 过滤+分页信�
 
   // 触发审计动作（更新基础参数）
   const put = await request.put("/api/v1/system/params/basic", {
-    data: { group: "basic", value: { siteUrl: "http://rabbit.test:3000", loginBanner: "e2e-audit" } },
+    data: {
+      group: "basic",
+      value: { siteUrl: "http://rabbit.test:3000", loginBanner: "e2e-audit" },
+    },
   });
   expect(put.status()).toBe(200);
 

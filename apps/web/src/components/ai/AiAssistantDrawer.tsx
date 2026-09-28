@@ -38,7 +38,11 @@ export function AiAssistantDrawer({ open, onClose }: { open: boolean; onClose: (
     queryFn: listAiConversations,
     enabled: open,
   });
-  const models = useQuery({ queryKey: ["ai-model-picker"], queryFn: listEnabledAiModels, enabled: open });
+  const models = useQuery({
+    queryKey: ["ai-model-picker"],
+    queryFn: listEnabledAiModels,
+    enabled: open,
+  });
   const history = useQuery({
     queryKey: ["ai-messages", activeId],
     queryFn: () => listAiMessages(activeId!),
@@ -48,7 +52,11 @@ export function AiAssistantDrawer({ open, onClose }: { open: boolean; onClose: (
   useEffect(() => {
     if (!history.data) return;
     setMessages(
-      history.data.list.map((m) => ({ id: m.id, role: m.role as "user" | "assistant", text: m.text })),
+      history.data.list.map((m) => ({
+        id: m.id,
+        role: m.role as "user" | "assistant",
+        text: m.text,
+      })),
     );
   }, [history.data]);
 
@@ -68,7 +76,11 @@ export function AiAssistantDrawer({ open, onClose }: { open: boolean; onClose: (
     if (!content || sending) return;
     setInput("");
     setSending(true);
-    setMessages((prev) => [...prev, { id: `u-${Date.now()}`, role: "user", text: content }, { id: `a-${Date.now()}`, role: "assistant", text: "", streaming: true }]);
+    setMessages((prev) => [
+      ...prev,
+      { id: `u-${Date.now()}`, role: "user", text: content },
+      { id: `a-${Date.now()}`, role: "assistant", text: "", streaming: true },
+    ]);
     const abort = new AbortController();
     abortRef.current = abort;
     let assistantId = `a-${Date.now()}`;
@@ -77,15 +89,30 @@ export function AiAssistantDrawer({ open, onClose }: { open: boolean; onClose: (
         { conversationId: activeId ?? undefined, content, modelId },
         (frame) => {
           if (frame.type === "delta") {
-            setMessages((prev) => prev.map((m) => (m.streaming ? { ...m, text: m.text + frame.text } : m)));
+            setMessages((prev) =>
+              prev.map((m) => (m.streaming ? { ...m, text: m.text + frame.text } : m)),
+            );
           } else if (frame.type === "done") {
             assistantId = frame.messageId;
-            setMessages((prev) => prev.map((m) => (m.streaming ? { ...m, id: assistantId, streaming: false } : m)));
+            setMessages((prev) =>
+              prev.map((m) => (m.streaming ? { ...m, id: assistantId, streaming: false } : m)),
+            );
             if (!activeId) setActiveId(frame.conversationId);
             void qc.invalidateQueries({ queryKey: ["ai-conversations"] });
           } else if (frame.type === "error") {
             // 错误帧：助手消息标记错误（半截不落库，服务端未保存）
-            setMessages((prev) => prev.filter((m) => !m.streaming).concat([{ id: assistantId, role: "assistant", text: "", error: `✗ ${frame.message}（${frame.code}）——本条未保存，可重试` }]));
+            setMessages((prev) =>
+              prev
+                .filter((m) => !m.streaming)
+                .concat([
+                  {
+                    id: assistantId,
+                    role: "assistant",
+                    text: "",
+                    error: `✗ ${frame.message}（${frame.code}）——本条未保存，可重试`,
+                  },
+                ]),
+            );
           }
         },
         abort.signal,
@@ -124,8 +151,18 @@ export function AiAssistantDrawer({ open, onClose }: { open: boolean; onClose: (
       data-testid="ai-assistant-drawer"
     >
       <div className="flex h-full">
-        <div className="w-48 border-r p-2 space-y-1 overflow-y-auto" data-testid="ai-conversation-list">
-          <Button block size="small" type="primary" ghost onClick={newConversation} data-testid="ai-new-conversation">
+        <div
+          className="w-48 border-r p-2 space-y-1 overflow-y-auto"
+          data-testid="ai-conversation-list"
+        >
+          <Button
+            block
+            size="small"
+            type="primary"
+            ghost
+            onClick={newConversation}
+            data-testid="ai-new-conversation"
+          >
             ＋ 新对话
           </Button>
           <p className="px-2 py-1 text-slate-400 text-[11px]">历史会话（个人级）</p>
@@ -147,8 +184,17 @@ export function AiAssistantDrawer({ open, onClose }: { open: boolean; onClose: (
               >
                 {c.title}
               </span>
-              <Popconfirm title="删除该会话？" onConfirm={(e) => { e?.stopPropagation(); void removeConversation(c.id); }}>
-                <span className="hidden group-hover:inline text-red-400 ml-1" onClick={(e) => e.stopPropagation()}>
+              <Popconfirm
+                title="删除该会话？"
+                onConfirm={(e) => {
+                  e?.stopPropagation();
+                  void removeConversation(c.id);
+                }}
+              >
+                <span
+                  className="hidden group-hover:inline text-red-400 ml-1"
+                  onClick={(e) => e.stopPropagation()}
+                >
                   ×
                 </span>
               </Popconfirm>
@@ -162,24 +208,36 @@ export function AiAssistantDrawer({ open, onClose }: { open: boolean; onClose: (
                 <div className="space-y-2">
                   <p className="text-2xl">✦</p>
                   <p className="font-medium text-sm">我是 RabbitAITest 智能助手</p>
-                  <p className="text-xs text-slate-400">可以帮你：梳理用例设计思路 · 接口故障排查 · 解读测试文档</p>
+                  <p className="text-xs text-slate-400">
+                    可以帮你：梳理用例设计思路 · 接口故障排查 · 解读测试文档
+                  </p>
                 </div>
               </div>
             ) : (
               messages.map((m) => (
-                <div key={m.id} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+                <div
+                  key={m.id}
+                  className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
+                >
                   {m.error ? (
-                    <div className="border border-red-200 bg-red-50 rounded-xl px-3 py-2 text-xs text-red-500 max-w-[80%]" data-testid="ai-chat-error">
+                    <div
+                      className="border border-red-200 bg-red-50 rounded-xl px-3 py-2 text-xs text-red-500 max-w-[80%]"
+                      data-testid="ai-chat-error"
+                    >
                       {m.error}
                     </div>
                   ) : (
                     <div
                       className={`rounded-xl px-3 py-2 text-[13px] max-w-[80%] whitespace-pre-wrap break-words ${
-                        m.role === "user" ? "bg-[#574BFF] text-white rounded-br-sm" : "border bg-white rounded-bl-sm"
+                        m.role === "user"
+                          ? "bg-[#574BFF] text-white rounded-br-sm"
+                          : "border bg-white rounded-bl-sm"
                       }`}
                     >
                       {m.text}
-                      {m.streaming && <span className="inline-block w-0.5 h-4 bg-[#574BFF] align-middle animate-pulse ml-0.5" />}
+                      {m.streaming && (
+                        <span className="inline-block w-0.5 h-4 bg-[#574BFF] align-middle animate-pulse ml-0.5" />
+                      )}
                     </div>
                   )}
                 </div>
@@ -196,7 +254,10 @@ export function AiAssistantDrawer({ open, onClose }: { open: boolean; onClose: (
                 placeholder={(models.data?.total ?? 0) === 0 ? "未配置模型" : "默认模型"}
                 value={modelId}
                 onChange={setModelId}
-                options={(models.data?.list ?? []).map((m) => ({ value: m.id, label: `${m.isDefault ? "★ " : ""}${m.model}` }))}
+                options={(models.data?.list ?? []).map((m) => ({
+                  value: m.id,
+                  label: `${m.isDefault ? "★ " : ""}${m.model}`,
+                }))}
                 data-testid="ai-chat-model-select"
               />
             </div>
@@ -216,11 +277,22 @@ export function AiAssistantDrawer({ open, onClose }: { open: boolean; onClose: (
               />
               <div className="flex flex-col gap-1">
                 {sending ? (
-                  <Button size="small" danger onClick={() => abortRef.current?.abort()} data-testid="ai-chat-stop">
+                  <Button
+                    size="small"
+                    danger
+                    onClick={() => abortRef.current?.abort()}
+                    data-testid="ai-chat-stop"
+                  >
                     ■ 停止
                   </Button>
                 ) : (
-                  <Button type="primary" size="small" onClick={send} disabled={!input.trim()} data-testid="ai-chat-send">
+                  <Button
+                    type="primary"
+                    size="small"
+                    onClick={send}
+                    disabled={!input.trim()}
+                    data-testid="ai-chat-send"
+                  >
                     发送
                   </Button>
                 )}

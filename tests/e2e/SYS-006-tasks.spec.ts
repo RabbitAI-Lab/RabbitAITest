@@ -99,7 +99,9 @@ test("SYS-006-01 任务主链路：本项目行→终态操作两态→重跑「
   const allList = await allListP;
   expect(allList.status()).toBe(200);
   await expect(
-    page.getByTestId("task-list-table").getByRole("row", { name: new RegExp(okTaskId.slice(0, 8)) }),
+    page
+      .getByTestId("task-list-table")
+      .getByRole("row", { name: new RegExp(okTaskId.slice(0, 8)) }),
   ).toBeVisible();
 
   // ── 定时任务 Tab 空态（S3/S4/S6 接入前）──

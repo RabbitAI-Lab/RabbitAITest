@@ -37,7 +37,8 @@ export default function PluginsPage() {
   });
 
   const toggle = useMutation({
-    mutationFn: ({ id, enabled }: { id: string; enabled: boolean }) => pluginApi.update(id, { enabled }),
+    mutationFn: ({ id, enabled }: { id: string; enabled: boolean }) =>
+      pluginApi.update(id, { enabled }),
     onSuccess: (_r, v) => {
       msg.success(v.enabled ? "已启用（plugin-runner 热加载）" : "已停用（配置保留）");
       invalidate();
@@ -55,49 +56,84 @@ export default function PluginsPage() {
   });
 
   const columns = [
-    { title: "名称", dataIndex: "name", render: (v: string, r: PluginRow) => (
-      <div>
-        <span className="font-medium">{v}</span>
-        {r.runtimeStatus === "ERROR" && (
-          <div className="text-[11px] text-red-500 mt-0.5">↳ {r.runtimeError ?? "worker 异常"}</div>
-        )}
-      </div>
-    ) },
-    { title: "类型", dataIndex: "kind", render: (v: string) => (
-      <Tag color={KIND_COLOR[v]}>{KIND_LABEL[v] ?? v}</Tag>
-    ) },
-    { title: "版本", dataIndex: "version", render: (v: string) => <code className="text-xs">{v}</code> },
-    { title: "SPI", dataIndex: "spiVersion", render: (v: string) => <code className="text-xs">{v}</code> },
-    { title: "组织范围", dataIndex: "orgScope", render: (v: PluginRow["orgScope"]) =>
-      v === "ALL" ? "全部组织" : `${v.length} 个组织` },
-    { title: "状态", dataIndex: "runtimeStatus", render: (v: string) =>
-      v === "RUNNING" ? <Tag color="success">● 运行中</Tag> : v === "ERROR" ? <Tag color="error">● 异常</Tag> : <Tag>已停用</Tag> },
-    { title: "更新时间", dataIndex: "updatedAt", render: (v: string) => <span className="text-xs text-gray-400">{fmt(v)}</span> },
+    {
+      title: "名称",
+      dataIndex: "name",
+      render: (v: string, r: PluginRow) => (
+        <div>
+          <span className="font-medium">{v}</span>
+          {r.runtimeStatus === "ERROR" && (
+            <div className="text-[11px] text-red-500 mt-0.5">
+              ↳ {r.runtimeError ?? "worker 异常"}
+            </div>
+          )}
+        </div>
+      ),
+    },
+    {
+      title: "类型",
+      dataIndex: "kind",
+      render: (v: string) => <Tag color={KIND_COLOR[v]}>{KIND_LABEL[v] ?? v}</Tag>,
+    },
+    {
+      title: "版本",
+      dataIndex: "version",
+      render: (v: string) => <code className="text-xs">{v}</code>,
+    },
+    {
+      title: "SPI",
+      dataIndex: "spiVersion",
+      render: (v: string) => <code className="text-xs">{v}</code>,
+    },
+    {
+      title: "组织范围",
+      dataIndex: "orgScope",
+      render: (v: PluginRow["orgScope"]) => (v === "ALL" ? "全部组织" : `${v.length} 个组织`),
+    },
+    {
+      title: "状态",
+      dataIndex: "runtimeStatus",
+      render: (v: string) =>
+        v === "RUNNING" ? (
+          <Tag color="success">● 运行中</Tag>
+        ) : v === "ERROR" ? (
+          <Tag color="error">● 异常</Tag>
+        ) : (
+          <Tag>已停用</Tag>
+        ),
+    },
+    {
+      title: "更新时间",
+      dataIndex: "updatedAt",
+      render: (v: string) => <span className="text-xs text-gray-400">{fmt(v)}</span>,
+    },
     ...(canUpdate
-      ? [{
-          title: "操作",
-          render: (_: unknown, r: PluginRow) => (
-            <Space size={4}>
-              <Switch
-                size="small"
-                checked={r.enabled}
-                disabled={toggle.isPending}
-                onChange={(enabled) => toggle.mutate({ id: r.id, enabled })}
-                data-testid={`plugin-toggle-${r.name}`}
-              />
-              <Popconfirm
-                title="删除插件"
-                description="需先停用且无项目同步关联引用"
-                onConfirm={() => remove.mutate(r.id)}
-                disabled={r.enabled}
-              >
-                <Button size="small" type="link" danger disabled={r.enabled}>
-                  删除
-                </Button>
-              </Popconfirm>
-            </Space>
-          ),
-        }]
+      ? [
+          {
+            title: "操作",
+            render: (_: unknown, r: PluginRow) => (
+              <Space size={4}>
+                <Switch
+                  size="small"
+                  checked={r.enabled}
+                  disabled={toggle.isPending}
+                  onChange={(enabled) => toggle.mutate({ id: r.id, enabled })}
+                  data-testid={`plugin-toggle-${r.name}`}
+                />
+                <Popconfirm
+                  title="删除插件"
+                  description="需先停用且无项目同步关联引用"
+                  onConfirm={() => remove.mutate(r.id)}
+                  disabled={r.enabled}
+                >
+                  <Button size="small" type="link" danger disabled={r.enabled}>
+                    删除
+                  </Button>
+                </Popconfirm>
+              </Space>
+            ),
+          },
+        ]
       : []),
   ];
 
@@ -107,7 +143,11 @@ export default function PluginsPage() {
         title="插件管理"
         extra={
           canUpdate ? (
-            <Button type="primary" onClick={() => setUploadOpen(true)} data-testid="plugin-upload-btn">
+            <Button
+              type="primary"
+              onClick={() => setUploadOpen(true)}
+              data-testid="plugin-upload-btn"
+            >
               上传插件
             </Button>
           ) : null
@@ -147,9 +187,13 @@ export default function PluginsPage() {
         >
           <p className="ant-upload-drag-icon">📦</p>
           <p className="ant-upload-text">点击或拖入插件包（.tgz，≤32MB）</p>
-          <p className="ant-upload-hint">包内含 package.json（rabbitPlugin 清单）与入口 js；同名插件版本需递增</p>
+          <p className="ant-upload-hint">
+            包内含 package.json（rabbitPlugin 清单）与入口 js；同名插件版本需递增
+          </p>
         </Upload.Dragger>
-        {upload.isPending && <div className="mt-3 text-xs text-gray-400">清单校验 → 存储 → 解包 → 登记…</div>}
+        {upload.isPending && (
+          <div className="mt-3 text-xs text-gray-400">清单校验 → 存储 → 解包 → 登记…</div>
+        )}
       </Modal>
     </div>
   );

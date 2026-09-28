@@ -40,7 +40,16 @@ test("RPT-002-01 报告主链路：详情钻取→分享免登→撤销空态→
   const pass = await createApiCase(request, projectId, def.id, {
     name: passName,
     request: bundle("GET", "${base}/hello", {
-      extracts: [{ source: "body", kind: "jsonpath", expression: "$.status", match: "first", variable: "svcState", scope: "temp" }],
+      extracts: [
+        {
+          source: "body",
+          kind: "jsonpath",
+          expression: "$.status",
+          match: "first",
+          variable: "svcState",
+          scope: "temp",
+        },
+      ],
     }),
   });
   const fail = await createApiCase(request, projectId, def.id, {
@@ -71,22 +80,30 @@ test("RPT-002-01 报告主链路：详情钻取→分享免登→撤销空态→
   await expect(page.getByTestId("report-status")).toHaveText("FAILED", { timeout: 30000 });
   const cards = page.getByTestId("report-summary-cards");
   await expect(cards).toContainText("1 / 2"); // 通过 1/2
-  await expect(cards.locator(".rabbit-card", { hasText: "失败" }).locator("p").nth(1)).toHaveText("1");
+  await expect(cards.locator(".rabbit-card", { hasText: "失败" }).locator("p").nth(1)).toHaveText(
+    "1",
+  );
 
   const items = page.getByTestId("report-items-table");
-  await expect(items.getByRole("row", { name: new RegExp(passName) }).getByText("SUCCESS")).toBeVisible();
+  await expect(
+    items.getByRole("row", { name: new RegExp(passName) }).getByText("SUCCESS"),
+  ).toBeVisible();
   const failRow = items.getByRole("row", { name: new RegExp(failName) });
   await expect(failRow.getByText("FAILED")).toBeVisible();
   await failRow.click();
   await expect(page.getByTestId("item-drilldown")).toBeVisible();
   await expect(page.getByTestId("drill-request")).toContainText("http://127.0.0.1:4001/hello");
-  await expect(page.getByTestId("asserts-table").locator("tr.bg-red-50").first()).toContainText("500");
+  await expect(page.getByTestId("asserts-table").locator("tr.bg-red-50").first()).toContainText(
+    "500",
+  );
   await expect(page.getByTestId("extracts-table")).toBeVisible();
   await expect(page.getByTestId("drill-logs")).toBeVisible();
 
   // ── 分享：创建 → 免登只读访问（新开无 cookie context）──
   // POST 按方法圈定（弹窗打开时的 shares 列表 GET 同 URL，glob 会竞态）
-  const shareP = page.waitForResponse((r) => /\/shares$/.test(r.url()) && r.request().method() === "POST");
+  const shareP = page.waitForResponse(
+    (r) => /\/shares$/.test(r.url()) && r.request().method() === "POST",
+  );
   await page.getByTestId("btn-share-report").click();
   await expect(page.getByTestId("share-report-modal")).toBeVisible();
   await page.getByTestId("btn-create-share").click();
@@ -112,7 +129,9 @@ test("RPT-002-01 报告主链路：详情钻取→分享免登→撤销空态→
   await expect(anonPage.getByTestId("btn-delete-report")).toHaveCount(0);
   await expect(anonPage.getByTestId("btn-rerun-report")).toHaveCount(0);
   // 只读 item 表（无钻取）
-  await expect(anonPage.getByTestId("report-items-table").getByRole("row", { name: new RegExp(passName) })).toBeVisible();
+  await expect(
+    anonPage.getByTestId("report-items-table").getByRole("row", { name: new RegExp(passName) }),
+  ).toBeVisible();
   await expect(anonPage.getByText("步骤钻取需登录后在报告详情页查看")).toBeVisible();
   await anonCtx.close();
 
@@ -132,7 +151,9 @@ test("RPT-002-01 报告主链路：详情钻取→分享免登→撤销空态→
   await anonCtx2.close();
 
   // ── 过期二态（门禁 8 回补，RPT-002 §5 T3）：分享弹窗仍开着，再建一枚分享，直改库把 expire_at 置为过去 → 免登访问同样 404 ──
-  const shareP2 = page.waitForResponse((r) => /\/shares$/.test(r.url()) && r.request().method() === "POST");
+  const shareP2 = page.waitForResponse(
+    (r) => /\/shares$/.test(r.url()) && r.request().method() === "POST",
+  );
   await expect(page.getByTestId("share-report-modal")).toBeVisible();
   await page.getByTestId("btn-create-share").click();
   const shared2 = await shareP2;
@@ -156,13 +177,18 @@ test("RPT-002-01 报告主链路：详情钻取→分享免登→撤销空态→
   // ── 删除报告 → 列表消失（级联）──
   const delApi = expectApi("**/api/v1/projects/*/reports/*");
   await page.getByTestId("btn-delete-report").click();
-  await page.locator(".ant-popover").getByRole("button", { name: /删\s*除/ }).click();
+  await page
+    .locator(".ant-popover")
+    .getByRole("button", { name: /删\s*除/ })
+    .click();
   const deleted = await delApi;
   expect(deleted.status).toBe(200);
   expect(deleted.code).toBe(0);
   await expect(page).toHaveURL(/\/reports$/, { timeout: 10000 });
   await expect(
-    page.getByTestId("report-list-table").getByRole("row", { name: new RegExp(taskId.slice(0, 8)) }),
+    page
+      .getByTestId("report-list-table")
+      .getByRole("row", { name: new RegExp(taskId.slice(0, 8)) }),
   ).toHaveCount(0, { timeout: 10000 });
 
   await expectNoConsoleErrors();

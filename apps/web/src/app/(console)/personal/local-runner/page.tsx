@@ -11,7 +11,9 @@ export default function LocalRunnerPage() {
   const [address, setAddress] = useState<string | null>(null);
   const [preferLocal, setPreferLocal] = useState(false);
   const [loaded, setLoaded] = useState(false);
-  const [checkResult, setCheckResult] = useState<{ reachable: boolean; detail: string } | null>(null);
+  const [checkResult, setCheckResult] = useState<{ reachable: boolean; detail: string } | null>(
+    null,
+  );
 
   const q = useQuery({
     queryKey: ["local-runner"],
@@ -39,7 +41,8 @@ export default function LocalRunnerPage() {
   const check = useMutation({
     mutationFn: () => personalApi.checkLocalRunner(),
     onSuccess: (r) => setCheckResult(r),
-    onError: (e) => setCheckResult({ reachable: false, detail: e instanceof Error ? e.message : "检测失败" }),
+    onError: (e) =>
+      setCheckResult({ reachable: false, detail: e instanceof Error ? e.message : "检测失败" }),
   });
 
   return (
@@ -56,21 +59,45 @@ export default function LocalRunnerPage() {
               data-testid="local-runner-address"
             />
           </div>
-          <Button className="self-end" disabled={!address || Boolean(loopbackHint)} loading={check.isPending} onClick={() => check.mutate()} data-testid="local-runner-check">
+          <Button
+            className="self-end"
+            disabled={!address || Boolean(loopbackHint)}
+            loading={check.isPending}
+            onClick={() => check.mutate()}
+            data-testid="local-runner-check"
+          >
             检测连通
           </Button>
         </div>
-        {loopbackHint && <p className="text-xs text-red-500" data-testid="local-runner-invalid">{loopbackHint}</p>}
+        {loopbackHint && (
+          <p className="text-xs text-red-500" data-testid="local-runner-invalid">
+            {loopbackHint}
+          </p>
+        )}
         {checkResult && (
-          <p className={`text-xs ${checkResult.reachable ? "text-green-600" : "text-red-500"}`} data-testid="local-runner-check-result">
+          <p
+            className={`text-xs ${checkResult.reachable ? "text-green-600" : "text-red-500"}`}
+            data-testid="local-runner-check-result"
+          >
             {checkResult.reachable ? "✓ 连通" : "✗ 不可达"}（{checkResult.detail}）
           </p>
         )}
         <div className="flex items-center gap-2">
-          <Switch size="small" checked={preferLocal} onChange={setPreferLocal} data-testid="local-runner-prefer" />
+          <Switch
+            size="small"
+            checked={preferLocal}
+            onChange={setPreferLocal}
+            data-testid="local-runner-prefer"
+          />
           <span className="text-[13px]">优先本地执行</span>
         </div>
-        <Button type="primary" disabled={Boolean(loopbackHint)} loading={save.isPending} onClick={() => save.mutate()} data-testid="local-runner-save">
+        <Button
+          type="primary"
+          disabled={Boolean(loopbackHint)}
+          loading={save.isPending}
+          onClick={() => save.mutate()}
+          data-testid="local-runner-save"
+        >
           保存
         </Button>
         <Alert

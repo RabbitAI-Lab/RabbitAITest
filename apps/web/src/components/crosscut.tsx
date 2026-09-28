@@ -43,7 +43,8 @@ export function CommentThread({
   });
   const invalidate = () => qc.invalidateQueries({ queryKey: ["comments", projectId, entity] });
   const add = useMutation({
-    mutationFn: () => commentApi.create(projectId, entity, content, replyTo ?? undefined, mentionIds),
+    mutationFn: () =>
+      commentApi.create(projectId, entity, content, replyTo ?? undefined, mentionIds),
     onSuccess: () => {
       setContent("");
       setReplyTo(null);

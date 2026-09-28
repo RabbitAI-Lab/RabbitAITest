@@ -147,7 +147,9 @@ export async function importEnvironments(
 
 /** PostgreSQL 连接测试（超时 3s；仅校验连通，不落任何数据）。 */
 export async function testDatasource(url: string): Promise<{ ok: boolean; message: string }> {
-  const pg = await import("pg").then((m) => new m.default.Client({ connectionString: url, connectionTimeoutMillis: 3000 }));
+  const pg = await import("pg").then(
+    (m) => new m.default.Client({ connectionString: url, connectionTimeoutMillis: 3000 }),
+  );
   try {
     await pg.connect();
     await pg.query("SELECT 1");
@@ -158,13 +160,25 @@ export async function testDatasource(url: string): Promise<{ ok: boolean; messag
 }
 
 /** 执行快照构建（任务下发时调用；engine 无 DB，全部运行时配置经此注入，API-004 §4）。 */
-export async function buildEnvSnapshot(projectId: string, envId: string | undefined): Promise<EnvSnapshot | undefined> {
+export async function buildEnvSnapshot(
+  projectId: string,
+  envId: string | undefined,
+): Promise<EnvSnapshot | undefined> {
   const globalParam = await prisma.globalParam.findUnique({ where: { projectId } });
   const globalVars = (globalParam?.params as Record<string, string> | null) ?? {};
   if (!envId) {
     // 未选环境：仅注入全局参数（相对 URL 请求将在 engine 侧 422→CONFIG_ERROR）
     if (Object.keys(globalVars).length === 0) return undefined;
-    return { vars: globalVars, http: [], hosts: [], database: [], pre: [], post: [], asserts: [], extracts: [] };
+    return {
+      vars: globalVars,
+      http: [],
+      hosts: [],
+      database: [],
+      pre: [],
+      post: [],
+      asserts: [],
+      extracts: [],
+    };
   }
   const env = await getEnv(projectId, envId);
   const cfg = readConfig(env);
@@ -196,12 +210,21 @@ export async function listEnvGroups(projectId: string) {
     prisma.envGroup.count({ where: { projectId } }),
     prisma.envGroup.findMany({ where: { projectId }, orderBy: { createdAt: "asc" } }),
   ]);
-  return { total, items: items.map((g) => ({ id: g.id, name: g.name, environmentIds: g.environmentIds as string[], createdAt: g.createdAt.toISOString() })) };
+  return {
+    total,
+    items: items.map((g) => ({
+      id: g.id,
+      name: g.name,
+      environmentIds: g.environmentIds as string[],
+      createdAt: g.createdAt.toISOString(),
+    })),
+  };
 }
 
 async function validateGroupEnvs(projectId: string, environmentIds: string[]) {
   const unique = [...new Set(environmentIds)];
-  if (unique.length === 0) throw new DomainError(ErrCode.VALIDATION_FAILED, "环境组至少包含一个环境");
+  if (unique.length === 0)
+    throw new DomainError(ErrCode.VALIDATION_FAILED, "环境组至少包含一个环境");
   const envs = await prisma.environment.findMany({
     where: { id: { in: unique }, projectId, deletedAt: null },
     select: { id: true },
@@ -215,9 +238,15 @@ async function validateGroupEnvs(projectId: string, environmentIds: string[]) {
 export async function createEnvGroup(projectId: string, input: EnvGroupUpsertInput) {
   const count = await prisma.envGroup.count({ where: { projectId } });
   if (count >= ENV_GROUP_LIMIT) {
-    throw new DomainError(ErrCode.VALIDATION_FAILED, `环境组数量超出上限（${ENV_GROUP_LIMIT}/项目）`);
+    throw new DomainError(
+      ErrCode.VALIDATION_FAILED,
+      `环境组数量超出上限（${ENV_GROUP_LIMIT}/项目）`,
+    );
   }
-  const dup = await prisma.envGroup.findFirst({ where: { projectId, name: input.name }, select: { id: true } });
+  const dup = await prisma.envGroup.findFirst({
+    where: { projectId, name: input.name },
+    select: { id: true },
+  });
   if (dup) throw new DomainError(ErrCode.VALIDATION_FAILED, "环境组名称已存在");
   const environmentIds = await validateGroupEnvs(projectId, input.environmentIds);
   const g = await prisma.envGroup.create({
@@ -235,7 +264,10 @@ export async function updateEnvGroup(projectId: string, id: string, input: EnvGr
   });
   if (dup) throw new DomainError(ErrCode.VALIDATION_FAILED, "环境组名称已存在");
   const environmentIds = await validateGroupEnvs(projectId, input.environmentIds);
-  await prisma.envGroup.update({ where: { id }, data: { name: input.name, environmentIds: toJson2(environmentIds) } });
+  await prisma.envGroup.update({
+    where: { id },
+    data: { name: input.name, environmentIds: toJson2(environmentIds) },
+  });
   return { id, name: input.name, environmentIds };
 }
 
@@ -259,7 +291,9 @@ export async function expandEnvGroup(projectId: string, id: string) {
       })
     : [];
   const byId = new Map(envs.map((e) => [e.id, e]));
-  const resolved = ids.map((id2) => byId.get(id2)).filter((e): e is { id: string; name: string } => Boolean(e));
+  const resolved = ids
+    .map((id2) => byId.get(id2))
+    .filter((e): e is { id: string; name: string } => Boolean(e));
   if (resolved.length === 0) throw new DomainError(ErrCode.ENV_GROUP_EMPTY, "环境组内没有可用环境");
   return { groupId: g.id, name: g.name, environments: resolved };
 }

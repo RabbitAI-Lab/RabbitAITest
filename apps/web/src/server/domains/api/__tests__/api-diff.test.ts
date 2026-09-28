@@ -3,11 +3,7 @@ import { describe, expect, it } from "vitest";
 import { diffBundles } from "../api-case.service";
 import { apiRequestBundleSchema } from "@rabbit/shared";
 
-const bundle = (over: {
-  url?: string;
-  body?: string;
-  op?: string;
-}) =>
+const bundle = (over: { url?: string; body?: string; op?: string }) =>
   apiRequestBundleSchema.parse({
     spec: {
       method: "POST",

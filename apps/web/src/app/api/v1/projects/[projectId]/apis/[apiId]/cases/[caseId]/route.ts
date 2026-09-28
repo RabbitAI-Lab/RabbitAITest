@@ -21,9 +21,7 @@ export const PUT = withProjectScope(async (ctx, req, seg) => {
     const { caseId } = await (seg as { params: Promise<{ caseId: string }> }).params;
     const parsed = updateSchema.safeParse(await req.json());
     if (!parsed.success) return unprocessable(parsed.error.issues[0]?.message);
-    return NextResponse.json(
-      ok(await updateCase(ctx.projectId, caseId, ctx.userId, parsed.data)),
-    );
+    return NextResponse.json(ok(await updateCase(ctx.projectId, caseId, ctx.userId, parsed.data)));
   } catch (err) {
     return toResponse(err);
   }

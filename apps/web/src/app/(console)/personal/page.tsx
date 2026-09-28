@@ -49,7 +49,12 @@ export default function PersonalMePage() {
           <Form.Item name="phone" label="手机（选填）">
             <Input data-testid="personal-phone-input" />
           </Form.Item>
-          <Button type="primary" htmlType="submit" loading={save.isPending} data-testid="personal-save-btn">
+          <Button
+            type="primary"
+            htmlType="submit"
+            loading={save.isPending}
+            data-testid="personal-save-btn"
+          >
             保存
           </Button>
         </Form>

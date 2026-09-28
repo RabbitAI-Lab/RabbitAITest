@@ -73,7 +73,7 @@ async function ensureRedis() {
   process.env.E2E_REDIS_URL = `redis://127.0.0.1:${port}`;
   // 1000 而非 200：pg-e2e 常驻库跨轮累积用户（注册通道不查上限，仅管理端 createUser 查），
   // 2026-09-27 累积 268>200 致 SYS-004-01 建用户 400 USER_TOO_MANY；产品默认 30 不变
-  process.env.RABBIT_USER_LIMIT = '1000';
+  process.env.RABBIT_USER_LIMIT = "1000";
   log(`redis(e2e) :${port}`);
 }
 
@@ -103,7 +103,18 @@ export default async function globalSetup() {
     E2E_PLATFORM_USER: process.env.E2E_PLATFORM_USER ?? "platform-e2e-user",
     E2E_PLATFORM_PASS: process.env.E2E_PLATFORM_PASS ?? "platform-e2e-pass",
   };
-  for (const k of ["DATABASE_URL", "REDIS_URL", "WEB_URL", "SESSION_SECRET", "INTERNAL_TOKEN", "RABBIT_INTEGRATION_SECRET", "OUTBOUND_ALLOW_PRIVATE", "MOCK_PORT", "E2E_PLATFORM_USER", "E2E_PLATFORM_PASS"]) {
+  for (const k of [
+    "DATABASE_URL",
+    "REDIS_URL",
+    "WEB_URL",
+    "SESSION_SECRET",
+    "INTERNAL_TOKEN",
+    "RABBIT_INTEGRATION_SECRET",
+    "OUTBOUND_ALLOW_PRIVATE",
+    "MOCK_PORT",
+    "E2E_PLATFORM_USER",
+    "E2E_PLATFORM_PASS",
+  ]) {
     if (env[k]) process.env[k] = env[k];
   }
   // webServer（独立进程）经 env 文件获取上述变量
@@ -129,7 +140,10 @@ export default async function globalSetup() {
   // :4001 若被上一轮残留占用先释放（e2e mock 专用端口，与开发栈 :4000 隔离）
   try {
     const holders = spawnSync("lsof", ["-ti", ":4001"], { encoding: "utf8" });
-    const pids = (holders.stdout ?? "").split("\n").map((s) => s.trim()).filter(Boolean);
+    const pids = (holders.stdout ?? "")
+      .split("\n")
+      .map((s) => s.trim())
+      .filter(Boolean);
     for (const pid of pids) {
       try {
         process.kill(Number(pid), "SIGKILL");

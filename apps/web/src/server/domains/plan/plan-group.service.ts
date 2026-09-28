@@ -14,7 +14,12 @@ async function loadGroup(projectId: string, groupId: string) {
 /** 组视图：组行（聚合）+ 成员嵌套 + 未分组平铺。 */
 export async function listPlanGroups(projectId: string, archived: boolean) {
   const groups = await prisma.testPlan.findMany({
-    where: { projectId, deletedAt: null, type: "GROUP", archivedAt: archived ? { not: null } : null },
+    where: {
+      projectId,
+      deletedAt: null,
+      type: "GROUP",
+      archivedAt: archived ? { not: null } : null,
+    },
     orderBy: { createdAt: "desc" },
     include: {
       caseRefs: false,
@@ -41,7 +46,8 @@ export async function listPlanGroups(projectId: string, archived: boolean) {
       groupId: m.groupId,
       caseCount: m.caseRefs.length,
       executed: stats.executed,
-      progress: m.caseRefs.length === 0 ? 0 : Math.round((stats.executed / m.caseRefs.length) * 100),
+      progress:
+        m.caseRefs.length === 0 ? 0 : Math.round((stats.executed / m.caseRefs.length) * 100),
       passRate: stats.passRate,
       thresholdMet: stats.passRate === null ? null : stats.passRate >= (settings.threshold ?? 100),
       status: m.status,
@@ -57,7 +63,9 @@ export async function listPlanGroups(projectId: string, archived: boolean) {
           id: m.id,
           name: m.name,
           refs: members.find((x) => x.id === m.id)!.caseRefs,
-          threshold: ((members.find((x) => x.id === m.id)!.settings ?? {}) as { threshold?: number }).threshold ?? 100,
+          threshold:
+            ((members.find((x) => x.id === m.id)!.settings ?? {}) as { threshold?: number })
+              .threshold ?? 100,
         })),
       );
       return {
@@ -73,7 +81,11 @@ export async function listPlanGroups(projectId: string, archived: boolean) {
   };
 }
 
-export async function createPlanGroup(projectId: string, userId: string, input: { name: string; description?: string }) {
+export async function createPlanGroup(
+  projectId: string,
+  userId: string,
+  input: { name: string; description?: string },
+) {
   return prisma.testPlan.create({
     data: {
       projectId,
@@ -87,7 +99,11 @@ export async function createPlanGroup(projectId: string, userId: string, input: 
   });
 }
 
-export async function updatePlanGroup(projectId: string, groupId: string, input: { name?: string; description?: string }) {
+export async function updatePlanGroup(
+  projectId: string,
+  groupId: string,
+  input: { name?: string; description?: string },
+) {
   const g = await loadGroup(projectId, groupId);
   if (g.archivedAt) throw new DomainError(ErrCode.PLAN_ARCHIVED, "计划组已归档，只读");
   await prisma.testPlan.update({
@@ -105,7 +121,10 @@ export async function deletePlanGroup(projectId: string, groupId: string) {
   if (g.archivedAt) throw new DomainError(ErrCode.PLAN_ARCHIVED, "计划组已归档，只读");
   const memberCount = await prisma.testPlan.count({ where: { groupId, deletedAt: null } });
   if (memberCount > 0)
-    throw new DomainError(ErrCode.PLAN_GROUP_NOT_EMPTY, `计划组内还有 ${memberCount} 个成员计划，请先移出`);
+    throw new DomainError(
+      ErrCode.PLAN_GROUP_NOT_EMPTY,
+      `计划组内还有 ${memberCount} 个成员计划，请先移出`,
+    );
   await prisma.testPlan.delete({ where: { id: groupId } });
   return { ok: true };
 }
@@ -183,7 +202,8 @@ export async function getPlanGroupReport(projectId: string, groupId: string) {
       name: m.name,
       caseCount: m.caseRefs.length,
       executed: stats.executed,
-      progress: m.caseRefs.length === 0 ? 0 : Math.round((stats.executed / m.caseRefs.length) * 100),
+      progress:
+        m.caseRefs.length === 0 ? 0 : Math.round((stats.executed / m.caseRefs.length) * 100),
       passRate: stats.passRate,
       thresholdMet: stats.passRate === null ? null : stats.passRate >= threshold,
       status: m.status,
@@ -238,7 +258,11 @@ export async function getPlanGroupReport(projectId: string, groupId: string) {
   };
 }
 
-export async function updatePlanGroupReportSummary(projectId: string, groupId: string, summary: string) {
+export async function updatePlanGroupReportSummary(
+  projectId: string,
+  groupId: string,
+  summary: string,
+) {
   await loadGroup(projectId, groupId);
   const existing = await prisma.report.findFirst({
     where: { reportType: "plan_group", name: { startsWith: `组报告:${groupId}:` } },

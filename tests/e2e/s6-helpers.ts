@@ -1,4 +1,9 @@
-import { expect, type APIRequestContext, type BrowserContext, type Playwright } from "@playwright/test";
+import {
+  expect,
+  type APIRequestContext,
+  type BrowserContext,
+  type Playwright,
+} from "@playwright/test";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 
@@ -48,17 +53,17 @@ export function readPluginB64(tgzName: string): string {
 }
 
 /** 上传插件 tarball（JSON base64 形态；201 或 409（已存在幂等））。返回插件 id。 */
-export async function uploadPlugin(
-  request: APIRequestContext,
-  tgzName: string,
-): Promise<string> {
+export async function uploadPlugin(request: APIRequestContext, tgzName: string): Promise<string> {
   const b64 = readPluginB64(tgzName);
   const res = await request.post("/api/v1/system/plugins", {
     data: { filename: tgzName, contentBase64: b64, orgScope: "ALL" },
   });
   expect([201, 409], `上传 ${tgzName} 应 201/409（幂等）`).toContain(res.status());
   if (res.status() === 201) {
-    const body = (await res.json()) as { code: number; data: { id: string; manifest: { name: string } } };
+    const body = (await res.json()) as {
+      code: number;
+      data: { id: string; manifest: { name: string } };
+    };
     expect(body.code).toBe(0);
     expect(body.data.manifest.name).toBe(tgzName.replace(/-\d+\.\d+\.\d+\.tgz$/, ""));
     return body.data.id;

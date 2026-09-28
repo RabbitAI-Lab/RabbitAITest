@@ -21,7 +21,9 @@ test("PLAN-002-01 测试点树与挂载移动", async ({
     data: { name: caseName, precondition: "", steps: [{ desc: "s", expect: "e" }] },
   });
   const caseId = ((await caseRes.json()) as { data: { id: string } }).data.id;
-  const planRes = await request.post(`/api/v1/projects/${projectId}/plans`, { data: { name: planName } });
+  const planRes = await request.post(`/api/v1/projects/${projectId}/plans`, {
+    data: { name: planName },
+  });
   const planId = ((await planRes.json()) as { data: { id: string } }).data.id;
 
   await navFromHome(page, "测试计划");
@@ -32,7 +34,10 @@ test("PLAN-002-01 测试点树与挂载移动", async ({
   // 建父点 → 子点（显式配置）
   await page.getByTestId("btn-add-point").click();
   await page.getByRole("dialog").getByPlaceholder("测试点名称").fill(`支付域-${uniq}`);
-  await page.getByRole("dialog").getByRole("button", { name: /确 定|确定/ }).click();
+  await page
+    .getByRole("dialog")
+    .getByRole("button", { name: /确 定|确定/ })
+    .click();
   await expect(page.getByTestId("plan-points-panel")).toContainText(`支付域-${uniq}`);
 
   // 接口断言：关联挂点 payload 带 pointId
@@ -64,7 +69,9 @@ test("PLAN-002-02 删除非空点被拒绝（UI Toast + 接口 422）", async ({
     data: { name: `非空点用例-${uniq}`, precondition: "", steps: [] },
   });
   const caseId = ((await caseRes.json()) as { data: { id: string } }).data.id;
-  const planRes = await request.post(`/api/v1/projects/${projectId}/plans`, { data: { name: `非空点计划-${uniq}` } });
+  const planRes = await request.post(`/api/v1/projects/${projectId}/plans`, {
+    data: { name: `非空点计划-${uniq}` },
+  });
   const planId = ((await planRes.json()) as { data: { id: string } }).data.id;
   const ptRes = await request.post(`/api/v1/projects/${projectId}/plans/${planId}/points`, {
     data: { name: `非空点-${uniq}` },
@@ -76,7 +83,9 @@ test("PLAN-002-02 删除非空点被拒绝（UI Toast + 接口 422）", async ({
   });
 
   // 接口断言：30455 POINT_NOT_EMPTY
-  const delRes = await request.delete(`/api/v1/projects/${projectId}/plans/${planId}/points/${pointId}`);
+  const delRes = await request.delete(
+    `/api/v1/projects/${projectId}/plans/${planId}/points/${pointId}`,
+  );
   expect(delRes.status()).toBe(422);
   expect(((await delRes.json()) as { code: number }).code).toBe(30455);
 

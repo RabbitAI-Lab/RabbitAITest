@@ -126,6 +126,31 @@ const PROJECT_AI = [
   "PROJECT_AI:UPDATE",
   "PROJECT_AI:DELETE",
 ] as const;
+/** 授权管理（S9 ENTP-007 随规格入库——企业版总开关面） */
+const SYSTEM_LICENSE = ["SYSTEM_LICENSE:READ", "SYSTEM_LICENSE:UPDATE"] as const;
+/** 多组织管理，系统级（S9 ENTP-001 随规格入库；rbac §6 预登记语义兑现） */
+const ENTP_ORG = [
+  "ENTP_ORG:READ",
+  "ENTP_ORG:CREATE",
+  "ENTP_ORG:UPDATE",
+  "ENTP_ORG:DELETE",
+] as const;
+/** SSO 认证源（S9 ENTP-002 随规格入库；rbac §6 预登记 ENTP_SSO:UPDATE 扩四动作） */
+const ENTP_SSO = [
+  "ENTP_SSO:READ",
+  "ENTP_SSO:CREATE",
+  "ENTP_SSO:UPDATE",
+  "ENTP_SSO:DELETE",
+] as const;
+/** 多资源池增删改（S9 ENTP-006 随规格入库；读复用 SYSTEM_POOL:READ，rbac §6 预登记 CREATE|UPDATE+DELETE） */
+const ENTP_POOL = ["ENTP_POOL:CREATE", "ENTP_POOL:UPDATE", "ENTP_POOL:DELETE"] as const;
+/** 组织级部门管理（S9 ENTP-008 随规格入库） */
+const ORG_DEPARTMENT = [
+  "ORG_DEPARTMENT:READ",
+  "ORG_DEPARTMENT:CREATE",
+  "ORG_DEPARTMENT:UPDATE",
+  "ORG_DEPARTMENT:DELETE",
+] as const;
 
 export const PERMISSION_POINTS = [
   ...SYSTEM_USER,
@@ -159,6 +184,11 @@ export const PERMISSION_POINTS = [
   ...PROJECT_EXEC_TASK,
   ...SYSTEM_AI,
   ...PROJECT_AI,
+  ...SYSTEM_LICENSE,
+  ...ENTP_ORG,
+  ...ENTP_SSO,
+  ...ENTP_POOL,
+  ...ORG_DEPARTMENT,
 ] as const;
 
 export type PermissionPoint = (typeof PERMISSION_POINTS)[number];
@@ -183,6 +213,7 @@ export const PRESET_GROUP_PERMISSIONS = {
     ...ORG_TEMPLATE,
     ...ORG_INTEGRATION,
     ...ORG_AUDIT,
+    ...ORG_DEPARTMENT,
     ...PROJECT_GROUP,
     "PROJECT_MEMBER:READ",
     "PROJECT_TEMPLATE:READ",

@@ -1,9 +1,5 @@
 import { test, expect, navFromHome } from "./fixtures";
-import {
-  createScenario,
-  customStep,
-  saveSteps,
-} from "./s3-helpers";
+import { createScenario, customStep, saveSteps } from "./s3-helpers";
 
 /**
  * API-009 场景导入导出（规格：docs/sprint-3-scenario-automation/API-009-scenario-import-export.md）。
@@ -25,7 +21,11 @@ function rabbitExportJson(name: string, stepName: string): string {
         tags: ["e2e"],
         modulePath: "",
         config: {
-          params: { constants: [], lists: [], csv: { source: "inline", delimiter: ",", hasHeader: true } },
+          params: {
+            constants: [],
+            lists: [],
+            csv: { source: "inline", delimiter: ",", hasHeader: true },
+          },
           prePost: { pre: [], post: [] },
           asserts: [],
           settings: { cookieMode: "off", thinkTimeMs: 0, onFailure: "abort" },
@@ -38,7 +38,14 @@ function rabbitExportJson(name: string, stepName: string): string {
             enabled: true,
             config: {
               bundle: {
-                request: { method: "GET", url: "http://127.0.0.1:1/import-step", headers: [], query: [], body: { kind: "none" }, auth: { kind: "none" } },
+                request: {
+                  method: "GET",
+                  url: "http://127.0.0.1:1/import-step",
+                  headers: [],
+                  query: [],
+                  body: { kind: "none" },
+                  auth: { kind: "none" },
+                },
                 asserts: [{ kind: "status_code", path: "", op: "eq", expected: "200" }],
                 pre: [],
                 post: [],
@@ -65,7 +72,14 @@ test("API-009-01 导出→删除→导入往返：步骤树等价（保留引用
   const sc = await createScenario(request, pid, { name });
   await saveSteps(request, pid, sc.id, [
     customStep("原始步骤", "http://127.0.0.1:1/roundtrip"),
-    { uid: "exp-script", stepType: "script", name: "脚本步骤", enabled: true, config: { script: 'setVar("x","1")' }, children: [] },
+    {
+      uid: "exp-script",
+      stepType: "script",
+      name: "脚本步骤",
+      enabled: true,
+      config: { script: 'setVar("x","1")' },
+      children: [],
+    },
   ]);
 
   // 接口断言：导出（attachment 流）含引用模式与步骤
@@ -74,7 +88,11 @@ test("API-009-01 导出→删除→导入往返：步骤树等价（保留引用
   });
   expect(exp.status()).toBe(200);
   expect(exp.headers()["content-disposition"] ?? "").toContain("attachment");
-  const expBody = (await exp.json()) as { format: string; mode: string; scenarios: { name: string; steps: unknown[] }[] };
+  const expBody = (await exp.json()) as {
+    format: string;
+    mode: string;
+    scenarios: { name: string; steps: unknown[] }[];
+  };
   expect(expBody.format).toBe("rabbit-scenario");
   expect(expBody.mode).toBe("ref");
   expect(expBody.scenarios[0]!.steps).toHaveLength(2);
@@ -102,12 +120,26 @@ test("API-009-01 导出→删除→导入往返：步骤树等价（保留引用
   await page.getByTestId("btn-do-import").click();
   const res = await imported;
   expect(res.status()).toBe(201);
-  const importData = (await res.json()) as { data: { count: number; list: { id: string; num: number }[] } };
+  const importData = (await res.json()) as {
+    data: { count: number; list: { id: string; num: number }[] };
+  };
   expect(importData.data.count).toBe(1);
 
   // 等价断言（接口）：导入件步骤树 = 原树（stepType/名称/断言期望）
-  const detail = await request.get(`/api/v1/projects/${pid}/scenarios/${importData.data.list[0]!.id}`);
-  const d = (await detail.json()) as { data: { name: string; stepCount: number; steps: { stepType: string; name: string; config: { bundle?: { asserts?: { expected: string }[] } } }[] } };
+  const detail = await request.get(
+    `/api/v1/projects/${pid}/scenarios/${importData.data.list[0]!.id}`,
+  );
+  const d = (await detail.json()) as {
+    data: {
+      name: string;
+      stepCount: number;
+      steps: {
+        stepType: string;
+        name: string;
+        config: { bundle?: { asserts?: { expected: string }[] } };
+      }[];
+    };
+  };
   expect(d.data.stepCount).toBe(1); // 导入文件（rabbitExportJson）本身只含 1 步——等价以文件内容为基准
   const custom = d.data.steps.find((s) => s.stepType === "custom")!;
   expect(custom.name).toBe("原始步骤");

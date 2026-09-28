@@ -1,10 +1,28 @@
 "use client";
 
-import { Button, Drawer, Empty, Form, Input, Popconfirm, Switch, Table, Tabs, Tag, message } from "antd";
+import {
+  Button,
+  Drawer,
+  Empty,
+  Form,
+  Input,
+  Popconfirm,
+  Switch,
+  Table,
+  Tabs,
+  Tag,
+  message,
+} from "antd";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { AI_PROMPT_SCENE_LABEL, PROMPT_PLACEHOLDERS, type AiPromptScene } from "@rabbit/shared";
-import { createAiPrompt, deleteAiPrompt, listAiPrompts, updateAiPrompt, type AiPromptRow } from "@rabbit/api-client";
+import {
+  createAiPrompt,
+  deleteAiPrompt,
+  listAiPrompts,
+  updateAiPrompt,
+  type AiPromptRow,
+} from "@rabbit/api-client";
 import { PageHeader } from "@/components/PageHeader";
 import { useProjectStore } from "@/stores/project";
 import { usePermissions } from "@/hooks/usePermissions";
@@ -50,13 +68,26 @@ export default function AiPromptsPage() {
   const openEdit = (row: AiPromptRow) => {
     setEditing(row);
     form.resetFields();
-    form.setFieldsValue({ name: row.name, template: row.template, designMethod: row.designMethod ?? "", isDefault: row.isDefault, enabled: row.enabled });
+    form.setFieldsValue({
+      name: row.name,
+      template: row.template,
+      designMethod: row.designMethod ?? "",
+      isDefault: row.isDefault,
+      enabled: row.enabled,
+    });
     setOpen(true);
   };
 
   const save = useMutation({
     mutationFn: async (v: FormValues) => {
-      const body = { name: v.name, scene, template: v.template, designMethod: v.designMethod || undefined, isDefault: v.isDefault, enabled: v.enabled };
+      const body = {
+        name: v.name,
+        scene,
+        template: v.template,
+        designMethod: v.designMethod || undefined,
+        isDefault: v.isDefault,
+        enabled: v.enabled,
+      };
       if (editing) return updateAiPrompt(projectId!, editing.id, body);
       return createAiPrompt(projectId!, body);
     },
@@ -70,7 +101,14 @@ export default function AiPromptsPage() {
 
   const setDefault = useMutation({
     mutationFn: async (row: AiPromptRow) => {
-      const body = { name: row.name, scene: row.scene, template: row.template, designMethod: row.designMethod ?? undefined, isDefault: true, enabled: row.enabled };
+      const body = {
+        name: row.name,
+        scene: row.scene,
+        template: row.template,
+        designMethod: row.designMethod ?? undefined,
+        isDefault: true,
+        enabled: row.enabled,
+      };
       return updateAiPrompt(projectId!, row.id, body);
     },
     onSuccess: () => {
@@ -107,10 +145,14 @@ export default function AiPromptsPage() {
           activeKey={scene}
           onChange={(k) => setScene(k as AiPromptScene)}
           className="px-4 pt-2"
-          items={(["case_gen", "api_gen"] as AiPromptScene[]).map((s) => ({ key: s, label: AI_PROMPT_SCENE_LABEL[s] }))}
+          items={(["case_gen", "api_gen"] as AiPromptScene[]).map((s) => ({
+            key: s,
+            label: AI_PROMPT_SCENE_LABEL[s],
+          }))}
         />
         <div className="px-4 pb-2 text-xs text-slate-400">
-          合法占位符：{placeholders.map((p) => (
+          合法占位符：
+          {placeholders.map((p) => (
             <Tag key={p} className="font-mono !text-[10px]" color="purple">{`{{${p}}}`}</Tag>
           ))}
           ；无模板时生成抽屉回退「内置默认」；停用模板不出现在生成抽屉且不可为默认
@@ -124,18 +166,29 @@ export default function AiPromptsPage() {
           pagination={false}
           data-testid="ai-prompt-table"
           columns={[
-            { title: "名称", dataIndex: "name", width: 180, render: (v, r) => <span data-testid={`ai-prompt-row-${r.name}`}>{v}</span> },
+            {
+              title: "名称",
+              dataIndex: "name",
+              width: 180,
+              render: (v, r) => <span data-testid={`ai-prompt-row-${r.name}`}>{v}</span>,
+            },
             {
               title: "设计方法",
               dataIndex: "designMethod",
               width: 140,
-              render: (v: string | null) => (v ? <Tag color="blue">{v}</Tag> : <span className="text-slate-300">—</span>),
+              render: (v: string | null) =>
+                v ? <Tag color="blue">{v}</Tag> : <span className="text-slate-300">—</span>,
             },
             {
               title: "默认",
               dataIndex: "isDefault",
               width: 70,
-              render: (v: boolean) => (v ? <span className="text-amber-500">★</span> : <span className="text-slate-300">—</span>),
+              render: (v: boolean) =>
+                v ? (
+                  <span className="text-amber-500">★</span>
+                ) : (
+                  <span className="text-slate-300">—</span>
+                ),
             },
             {
               title: "启用",
@@ -148,12 +201,25 @@ export default function AiPromptsPage() {
                   disabled={!canUpdate}
                   loading={save.isPending}
                   onChange={(checked) =>
-                    save.mutate({ name: r.name, template: r.template, designMethod: r.designMethod ?? undefined, isDefault: checked ? r.isDefault : false, enabled: checked })
+                    save.mutate({
+                      name: r.name,
+                      template: r.template,
+                      designMethod: r.designMethod ?? undefined,
+                      isDefault: checked ? r.isDefault : false,
+                      enabled: checked,
+                    })
                   }
                 />
               ),
             },
-            { title: "更新时间", dataIndex: "updatedAt", width: 140, render: (s: string) => <span className="text-slate-400 text-xs">{s.replace("T", " ").slice(0, 16)}</span> },
+            {
+              title: "更新时间",
+              dataIndex: "updatedAt",
+              width: 140,
+              render: (s: string) => (
+                <span className="text-slate-400 text-xs">{s.replace("T", " ").slice(0, 16)}</span>
+              ),
+            },
             {
               title: "操作",
               key: "ops",
@@ -164,7 +230,10 @@ export default function AiPromptsPage() {
                     <>
                       <a onClick={() => openEdit(r)}>编辑</a>
                       {!r.isDefault && r.enabled && (
-                        <a onClick={() => setDefault.mutate(r)} data-testid={`ai-prompt-default-${r.name}`}>
+                        <a
+                          onClick={() => setDefault.mutate(r)}
+                          data-testid={`ai-prompt-default-${r.name}`}
+                        >
                           设为默认
                         </a>
                       )}
@@ -188,13 +257,22 @@ export default function AiPromptsPage() {
         width={460}
         destroyOnClose
         extra={
-          <Button type="primary" loading={save.isPending} onClick={() => form.validateFields().then((v) => save.mutate(v))} data-testid="ai-prompt-save">
+          <Button
+            type="primary"
+            loading={save.isPending}
+            onClick={() => form.validateFields().then((v) => save.mutate(v))}
+            data-testid="ai-prompt-save"
+          >
             保存
           </Button>
         }
       >
         <Form form={form} layout="vertical">
-          <Form.Item name="name" label="名称" rules={[{ required: true, message: "名称必填" }, { max: 64 }]}>
+          <Form.Item
+            name="name"
+            label="名称"
+            rules={[{ required: true, message: "名称必填" }, { max: 64 }]}
+          >
             <Input placeholder="如：边界值侧重" data-testid="ai-prompt-form-name" />
           </Form.Item>
           <Form.Item label="模板正文（占位符可点击插入）">
@@ -212,15 +290,30 @@ export default function AiPromptsPage() {
               ))}
             </div>
           </Form.Item>
-          <Form.Item name="template" label="正文" rules={[{ required: true, message: "模板正文必填" }, { max: 8000 }]}>
-            <Input.TextArea rows={8} className="font-mono text-xs" placeholder="提示词正文…占位符渲染时替换，缺失变量替换为空串" data-testid="ai-prompt-form-template" />
+          <Form.Item
+            name="template"
+            label="正文"
+            rules={[{ required: true, message: "模板正文必填" }, { max: 8000 }]}
+          >
+            <Input.TextArea
+              rows={8}
+              className="font-mono text-xs"
+              placeholder="提示词正文…占位符渲染时替换，缺失变量替换为空串"
+              data-testid="ai-prompt-form-template"
+            />
           </Form.Item>
           <Form.Item name="designMethod" label="设计方法">
             <Input placeholder="如：边界值分析" data-testid="ai-prompt-form-design" />
           </Form.Item>
           <div className="flex gap-1 flex-wrap mb-4">
             {DESIGN_SUGGESTIONS.map((d) => (
-              <Button key={d} size="small" shape="round" className="!text-[10px]" onClick={() => form.setFieldValue("designMethod", d)}>
+              <Button
+                key={d}
+                size="small"
+                shape="round"
+                className="!text-[10px]"
+                onClick={() => form.setFieldValue("designMethod", d)}
+              >
                 {d}
               </Button>
             ))}

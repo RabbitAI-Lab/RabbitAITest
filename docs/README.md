@@ -51,7 +51,7 @@ RabbitAITest 是一套**复刻 [MeterSphere](https://metersphere.io) v3.x 社区
 | M7     | W17-19 | [sprint-6-integration-plugin](./sprint-6-integration-plugin/sprint-overview.md)   | 集成与插件（P2/P3）                                           | 7      | Implemented（2026-09-27 worktree 分支 sprint-6-integration-plugin 交付，run 36340768438 六作业全绿） |
 | M8     | W20-21 | [sprint-7-ai](./sprint-7-ai/sprint-overview.md)                                   | AI 能力（P2，**提前并行启动** 2026-09-27）                    | 5      | Implemented（2026-09-27 worktree 分支 sprint-7-ai 交付）                                             |
 | M9     | W22-23 | [sprint-8-stabilize](./sprint-8-stabilize/sprint-overview.md)                     | 稳定化 → **标准版 v1.0 GA**（性能基线/安全加固/可观测与备份） | 3      | Implemented（2026-09-28 worktree 分支 sprint-8-stabilize 交付；走查随验收）                          |
-| M10    | W24-27 | sprint-9-enterprise                                                               | 企业版核心（P3）→ v2.0                                        | 8      | 待产出                                                                                               |
+| M10    | W24-27 | sprint-9-enterprise                                                               | 企业版核心（P3）→ v2.0                                        | 8      | Implemented（待验收走查 → Verified）                                                                 |
 | —      | W28+   | sprint-future-p4                                                                  | 远期：性能/UI 测试、协议插件、外部工具（P4）                  | 8      | 待产出                                                                                               |
 
 各 Sprint 的完整文档清单见 [plan/迭代架构设计与功能规格拆解.md](./plan/迭代架构设计与功能规格拆解.md) §二目录树。

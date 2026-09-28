@@ -6,7 +6,10 @@ import { updateSchedule, deleteSchedule } from "@/server/domains/api/schedule.se
 export const runtime = "nodejs";
 
 const unprocessable = (message?: string) =>
-  NextResponse.json({ code: 20422, message: message ?? "参数校验失败", data: null }, { status: 422 });
+  NextResponse.json(
+    { code: 20422, message: message ?? "参数校验失败", data: null },
+    { status: 422 },
+  );
 
 export const PUT = withProjectScope(async (ctx, req, seg) => {
   try {

@@ -23,34 +23,91 @@ export const ASSERT_KIND_OPTIONS = [
   { value: "response_header", label: "响应头" },
   { value: "variable", label: "变量（终态）" },
 ];
-const ASSERT_OP_OPTIONS = ["eq", "ne", "gt", "lt", "ge", "le", "contains"].map((v) => ({ value: v, label: v }));
+const ASSERT_OP_OPTIONS = ["eq", "ne", "gt", "lt", "ge", "le", "contains"].map((v) => ({
+  value: v,
+  label: v,
+}));
 
 // ── 可复用行编辑器（场景断言 / 前后置处理器 / 常量） ──
 
-export function AssertRowsEditor({ rows, onChange, testid }: { rows: AssertSpec[]; onChange: (rows: AssertSpec[]) => void; testid: string }) {
-  const patch = (i: number, part: Partial<AssertSpec>) => onChange(rows.map((r, idx) => (idx === i ? { ...r, ...part } : r)));
+export function AssertRowsEditor({
+  rows,
+  onChange,
+  testid,
+}: {
+  rows: AssertSpec[];
+  onChange: (rows: AssertSpec[]) => void;
+  testid: string;
+}) {
+  const patch = (i: number, part: Partial<AssertSpec>) =>
+    onChange(rows.map((r, idx) => (idx === i ? { ...r, ...part } : r)));
   return (
     <div className="space-y-1" data-testid={testid}>
       {rows.map((r, i) => (
         <div key={i} className="flex items-center gap-1">
-          <Select size="small" className="!w-32" value={r.kind} onChange={(v) => patch(i, { kind: v as AssertSpec["kind"] })} options={ASSERT_KIND_OPTIONS} />
-          <Input size="small" className="!w-36" placeholder="path/变量名" value={r.path} onChange={(e) => patch(i, { path: e.target.value })} />
-          <Select size="small" className="!w-20" value={r.op} onChange={(v) => patch(i, { op: v as AssertSpec["op"] })} options={ASSERT_OP_OPTIONS} />
-          <Input size="small" className="flex-1" placeholder="期望值" value={r.expected} onChange={(e) => patch(i, { expected: e.target.value })} />
-          <Button type="text" size="small" className="!px-1 !text-[#FF4D4F]" onClick={() => onChange(rows.filter((_, idx) => idx !== i))}>
+          <Select
+            size="small"
+            className="!w-32"
+            value={r.kind}
+            onChange={(v) => patch(i, { kind: v as AssertSpec["kind"] })}
+            options={ASSERT_KIND_OPTIONS}
+          />
+          <Input
+            size="small"
+            className="!w-36"
+            placeholder="path/变量名"
+            value={r.path}
+            onChange={(e) => patch(i, { path: e.target.value })}
+          />
+          <Select
+            size="small"
+            className="!w-20"
+            value={r.op}
+            onChange={(v) => patch(i, { op: v as AssertSpec["op"] })}
+            options={ASSERT_OP_OPTIONS}
+          />
+          <Input
+            size="small"
+            className="flex-1"
+            placeholder="期望值"
+            value={r.expected}
+            onChange={(e) => patch(i, { expected: e.target.value })}
+          />
+          <Button
+            type="text"
+            size="small"
+            className="!px-1 !text-[#FF4D4F]"
+            onClick={() => onChange(rows.filter((_, idx) => idx !== i))}
+          >
             <X size={12} strokeWidth={1.8} />
           </Button>
         </div>
       ))}
-      <Button type="link" size="small" className="!px-0 !text-[#574BFF]" onClick={() => onChange([...rows, { kind: "status_code", path: "", op: "eq", expected: "200" }])}>
+      <Button
+        type="link"
+        size="small"
+        className="!px-0 !text-[#574BFF]"
+        onClick={() =>
+          onChange([...rows, { kind: "status_code", path: "", op: "eq", expected: "200" }])
+        }
+      >
         ＋ 添加断言
       </Button>
     </div>
   );
 }
 
-export function ProcessorRowsEditor({ rows, onChange, testid }: { rows: Processor[]; onChange: (rows: Processor[]) => void; testid: string }) {
-  const patch = (i: number, part: Record<string, unknown>) => onChange(rows.map((r, idx) => (idx === i ? ({ ...r, ...part } as Processor) : r)));
+export function ProcessorRowsEditor({
+  rows,
+  onChange,
+  testid,
+}: {
+  rows: Processor[];
+  onChange: (rows: Processor[]) => void;
+  testid: string;
+}) {
+  const patch = (i: number, part: Record<string, unknown>) =>
+    onChange(rows.map((r, idx) => (idx === i ? ({ ...r, ...part } as Processor) : r)));
   return (
     <div className="space-y-1" data-testid={testid}>
       {rows.map((r, i) => (
@@ -67,31 +124,66 @@ export function ProcessorRowsEditor({ rows, onChange, testid }: { rows: Processo
             ]}
           />
           {r.kind === "wait" ? (
-            <InputNumber size="small" className="!w-32" min={0} max={30000} addonAfter="ms" value={r.ms ?? 0} onChange={(v) => patch(i, { ms: Number(v ?? 0) })} />
+            <InputNumber
+              size="small"
+              className="!w-32"
+              min={0}
+              max={30000}
+              addonAfter="ms"
+              value={r.ms ?? 0}
+              onChange={(v) => patch(i, { ms: Number(v ?? 0) })}
+            />
           ) : (r as { scriptRef?: unknown }).scriptRef ? (
             <div className="flex-1">
               <ScriptRefPanel
-                value={(r as { scriptRef: { scriptId: string; params: Record<string, string> } }).scriptRef}
+                value={
+                  (r as { scriptRef: { scriptId: string; params: Record<string, string> } })
+                    .scriptRef
+                }
                 onChange={(v) => patch(i, v ? { script: "", scriptRef: v } : { script: "" })}
               />
-              <button type="button" className="text-[11px] text-[#574BFF]" onClick={() => patch(i, { script: "" })}>
+              <button
+                type="button"
+                className="text-[11px] text-[#574BFF]"
+                onClick={() => patch(i, { script: "" })}
+              >
                 切换为内联脚本
               </button>
             </div>
           ) : (
             <div className="flex-1 flex gap-1">
-              <Input size="small" className="flex-1 font-mono" placeholder='脚本（quickjs：log / setVar / getVar / envGet）' value={(r as { script?: string }).script ?? ""} onChange={(e) => patch(i, { script: e.target.value })} />
-              <button type="button" className="text-[11px] text-[#574BFF] shrink-0" onClick={() => patch(i, { script: "", scriptRef: { scriptId: "", params: {} } })}>
+              <Input
+                size="small"
+                className="flex-1 font-mono"
+                placeholder="脚本（quickjs：log / setVar / getVar / envGet）"
+                value={(r as { script?: string }).script ?? ""}
+                onChange={(e) => patch(i, { script: e.target.value })}
+              />
+              <button
+                type="button"
+                className="text-[11px] text-[#574BFF] shrink-0"
+                onClick={() => patch(i, { script: "", scriptRef: { scriptId: "", params: {} } })}
+              >
                 引用公共脚本
               </button>
             </div>
           )}
-          <Button type="text" size="small" className="!px-1 !text-[#FF4D4F]" onClick={() => onChange(rows.filter((_, idx) => idx !== i))}>
+          <Button
+            type="text"
+            size="small"
+            className="!px-1 !text-[#FF4D4F]"
+            onClick={() => onChange(rows.filter((_, idx) => idx !== i))}
+          >
             <X size={12} strokeWidth={1.8} />
           </Button>
         </div>
       ))}
-      <Button type="link" size="small" className="!px-0 !text-[#574BFF]" onClick={() => onChange([...rows, { kind: "script", script: "" } as Processor])}>
+      <Button
+        type="link"
+        size="small"
+        className="!px-0 !text-[#574BFF]"
+        onClick={() => onChange([...rows, { kind: "script", script: "" } as Processor])}
+      >
         ＋ 添加处理器
       </Button>
     </div>
@@ -107,20 +199,43 @@ export function ConstRowsEditor({
   onChange: (rows: { name: string; value: string; description?: string }[]) => void;
   testid: string;
 }) {
-  const patch = (i: number, part: Partial<{ name: string; value: string }>) => onChange(rows.map((r, idx) => (idx === i ? { ...r, ...part } : r)));
+  const patch = (i: number, part: Partial<{ name: string; value: string }>) =>
+    onChange(rows.map((r, idx) => (idx === i ? { ...r, ...part } : r)));
   return (
     <div className="space-y-1" data-testid={testid}>
       {rows.map((r, i) => (
         <div key={i} className="flex items-center gap-1">
-          <Input size="small" className="!w-40 font-mono" placeholder="变量名" value={r.name} onChange={(e) => patch(i, { name: e.target.value })} />
+          <Input
+            size="small"
+            className="!w-40 font-mono"
+            placeholder="变量名"
+            value={r.name}
+            onChange={(e) => patch(i, { name: e.target.value })}
+          />
           <span className="text-xs text-[#A8ABB0]">=</span>
-          <Input size="small" className="flex-1 font-mono" placeholder="值（支持 ${__func} / @mock / 管道）" value={r.value} onChange={(e) => patch(i, { value: e.target.value })} />
-          <Button type="text" size="small" className="!px-1 !text-[#FF4D4F]" onClick={() => onChange(rows.filter((_, idx) => idx !== i))}>
+          <Input
+            size="small"
+            className="flex-1 font-mono"
+            placeholder="值（支持 ${__func} / @mock / 管道）"
+            value={r.value}
+            onChange={(e) => patch(i, { value: e.target.value })}
+          />
+          <Button
+            type="text"
+            size="small"
+            className="!px-1 !text-[#FF4D4F]"
+            onClick={() => onChange(rows.filter((_, idx) => idx !== i))}
+          >
             <X size={12} strokeWidth={1.8} />
           </Button>
         </div>
       ))}
-      <Button type="link" size="small" className="!px-0 !text-[#574BFF]" onClick={() => onChange([...rows, { name: "", value: "" }])}>
+      <Button
+        type="link"
+        size="small"
+        className="!px-0 !text-[#574BFF]"
+        onClick={() => onChange([...rows, { name: "", value: "" }])}
+      >
         ＋ 添加
       </Button>
     </div>
@@ -169,7 +284,10 @@ export function RefTargetPicker({
           optionFilterProp="label"
           value={caseApiId || undefined}
           onChange={setCaseApiId}
-          options={(apisQ.data?.items ?? []).map((a) => ({ value: a.id, label: `${a.name}（${a.method} ${a.path}）` }))}
+          options={(apisQ.data?.items ?? []).map((a) => ({
+            value: a.id,
+            label: `${a.name}（${a.method} ${a.path}）`,
+          }))}
           data-testid="ref-picker-case-api"
         />
         <Select
@@ -185,14 +303,19 @@ export function RefTargetPicker({
           options={(casesQ.data?.items ?? []).map((c) => ({ value: c.id, label: c.name }))}
           data-testid="ref-picker-case-target"
         />
-        {value && !caseApiId && <p className="text-[11px] text-[#A8ABB0]">已绑定用例；如需更换请先选择其所属接口</p>}
+        {value && !caseApiId && (
+          <p className="text-[11px] text-[#A8ABB0]">已绑定用例；如需更换请先选择其所属接口</p>
+        )}
       </div>
     );
   }
 
   const options =
     mode === "api"
-      ? (apisQ.data?.items ?? []).map((a) => ({ value: a.id, label: `${a.name}（${a.method} ${a.path}）` }))
+      ? (apisQ.data?.items ?? []).map((a) => ({
+          value: a.id,
+          label: `${a.name}（${a.method} ${a.path}）`,
+        }))
       : (scenQ.data?.items ?? []).map((s) => ({ value: s.id, label: `${s.name} #${s.num}` }));
   return (
     <Select
@@ -223,7 +346,12 @@ export interface StepConfigEditorProps {
   canEdit: boolean;
 }
 
-export default function StepConfigEditor({ step, onChange, foreachSources, canEdit }: StepConfigEditorProps) {
+export default function StepConfigEditor({
+  step,
+  onChange,
+  foreachSources,
+  canEdit,
+}: StepConfigEditorProps) {
   const cfg = step.config as Record<string, unknown>;
   const setConfig = (part: Record<string, unknown>) => onChange({ config: { ...cfg, ...part } });
   const disabled = !canEdit;
@@ -241,19 +369,36 @@ export default function StepConfigEditor({ step, onChange, foreachSources, canEd
     </div>
   );
 
-  if (step.stepType === "ref_api" || step.stepType === "ref_case" || step.stepType === "ref_scenario") {
-    const override = (cfg.override ?? {}) as { onFailure?: "continue" | "abort"; asserts?: AssertSpec[] };
+  if (
+    step.stepType === "ref_api" ||
+    step.stepType === "ref_case" ||
+    step.stepType === "ref_scenario"
+  ) {
+    const override = (cfg.override ?? {}) as {
+      onFailure?: "continue" | "abort";
+      asserts?: AssertSpec[];
+    };
     const refMode = (cfg.refMode as string) ?? "ref";
     return (
       <div className="space-y-4" data-testid="step-config-ref">
         {nameRow}
         <div>
           <p className="mb-1 text-xs text-[#646A73]">引用目标</p>
-          {step.stepType === "ref_scenario" && <span className="mr-2 rounded bg-[#13C2C2]/10 px-1 text-[10px] text-[#13C2C2]">引用（执行时展开子树）</span>}
+          {step.stepType === "ref_scenario" && (
+            <span className="mr-2 rounded bg-[#13C2C2]/10 px-1 text-[10px] text-[#13C2C2]">
+              引用（执行时展开子树）
+            </span>
+          )}
           <div className="flex items-center gap-2">
             <div className="flex-1">
               <RefTargetPicker
-                mode={step.stepType === "ref_api" ? "api" : step.stepType === "ref_case" ? "case" : "scenario"}
+                mode={
+                  step.stepType === "ref_api"
+                    ? "api"
+                    : step.stepType === "ref_case"
+                      ? "case"
+                      : "scenario"
+                }
                 value={(cfg.refId as string) || undefined}
                 onPick={(id, name) => {
                   setConfig({ refId: id });
@@ -283,7 +428,15 @@ export default function StepConfigEditor({ step, onChange, foreachSources, canEd
               className="!w-44"
               disabled={disabled}
               value={override.onFailure ?? "follow"}
-              onChange={(v) => setConfig({ override: { ...override, onFailure: v === "follow" ? undefined : (v as "continue" | "abort"), asserts: override.asserts ?? [] } })}
+              onChange={(v) =>
+                setConfig({
+                  override: {
+                    ...override,
+                    onFailure: v === "follow" ? undefined : (v as "continue" | "abort"),
+                    asserts: override.asserts ?? [],
+                  },
+                })
+              }
               options={[
                 { value: "follow", label: "跟随场景设置" },
                 { value: "continue", label: "忽略错误继续" },
@@ -306,7 +459,13 @@ export default function StepConfigEditor({ step, onChange, foreachSources, canEd
   if (step.stepType === "custom") {
     const bundle = (cfg.bundle as StepBundle | undefined) ?? undefined;
     const rb = bundle
-      ? { spec: bundle.request, asserts: bundle.asserts ?? [], pre: bundle.pre ?? [], post: bundle.post ?? [], extracts: bundle.extracts ?? [] }
+      ? {
+          spec: bundle.request,
+          asserts: bundle.asserts ?? [],
+          pre: bundle.pre ?? [],
+          post: bundle.post ?? [],
+          extracts: bundle.extracts ?? [],
+        }
       : emptyBundle();
     return (
       <div className="space-y-3" data-testid="step-config-custom">
@@ -314,14 +473,31 @@ export default function StepConfigEditor({ step, onChange, foreachSources, canEd
         <RequestEditor
           bundle={rb}
           compact
-          onChange={(nb) => setConfig({ bundle: { request: nb.spec, asserts: nb.asserts, pre: nb.pre, post: nb.post, extracts: nb.extracts } })}
+          onChange={(nb) =>
+            setConfig({
+              bundle: {
+                request: nb.spec,
+                asserts: nb.asserts,
+                pre: nb.pre,
+                post: nb.post,
+                extracts: nb.extracts,
+              },
+            })
+          }
         />
       </div>
     );
   }
 
   if (step.stepType === "loop") {
-    const loop = (cfg ?? {}) as { mode?: string; count?: number; condition?: string; maxLoops?: number; var?: string; source?: string };
+    const loop = (cfg ?? {}) as {
+      mode?: string;
+      count?: number;
+      condition?: string;
+      maxLoops?: number;
+      var?: string;
+      source?: string;
+    };
     const mode = (loop.mode ?? "count") as "count" | "while" | "foreach";
     const iterations = (cfg.iterations as unknown[] | undefined) ?? [];
     return (
@@ -335,7 +511,13 @@ export default function StepConfigEditor({ step, onChange, foreachSources, canEd
             data-testid="radio-loop-mode"
             onChange={(e) => {
               const m = e.target.value as "count" | "while" | "foreach";
-              setConfig(m === "count" ? { mode: m, count: 1 } : m === "while" ? { mode: m, condition: "true", maxLoops: 10000 } : { mode: m, var: "item", source: foreachSources[0] ?? "" });
+              setConfig(
+                m === "count"
+                  ? { mode: m, count: 1 }
+                  : m === "while"
+                    ? { mode: m, condition: "true", maxLoops: 10000 }
+                    : { mode: m, var: "item", source: foreachSources[0] ?? "" },
+              );
             }}
             options={[
               { value: "count", label: "次数" },
@@ -347,18 +529,38 @@ export default function StepConfigEditor({ step, onChange, foreachSources, canEd
         {mode === "count" && (
           <div className="flex items-center gap-2">
             <span className="w-24 text-xs text-[#646A73]">循环次数</span>
-            <InputNumber min={1} max={10000} disabled={disabled} value={loop.count ?? 1} data-testid="input-loop-count" onChange={(v) => setConfig({ count: Number(v ?? 1) })} />
+            <InputNumber
+              min={1}
+              max={10000}
+              disabled={disabled}
+              value={loop.count ?? 1}
+              data-testid="input-loop-count"
+              onChange={(v) => setConfig({ count: Number(v ?? 1) })}
+            />
           </div>
         )}
         {mode === "while" && (
           <>
             <div>
               <p className="mb-1 text-xs text-[#646A73]">条件表达式（quickjs；truthy 继续循环）</p>
-              <Input className="!w-full font-mono" disabled={disabled} placeholder='如：getVar("ok") === "1"' value={loop.condition ?? ""} data-testid="input-loop-while" onChange={(e) => setConfig({ condition: e.target.value })} />
+              <Input
+                className="!w-full font-mono"
+                disabled={disabled}
+                placeholder='如：getVar("ok") === "1"'
+                value={loop.condition ?? ""}
+                data-testid="input-loop-while"
+                onChange={(e) => setConfig({ condition: e.target.value })}
+              />
             </div>
             <div className="flex items-center gap-2">
               <span className="w-24 text-xs text-[#646A73]">最大循环数</span>
-              <InputNumber min={1} max={10000} disabled={disabled} value={loop.maxLoops ?? 10000} onChange={(v) => setConfig({ maxLoops: Number(v ?? 10000) })} />
+              <InputNumber
+                min={1}
+                max={10000}
+                disabled={disabled}
+                value={loop.maxLoops ?? 10000}
+                onChange={(v) => setConfig({ maxLoops: Number(v ?? 10000) })}
+              />
             </div>
           </>
         )}
@@ -378,14 +580,26 @@ export default function StepConfigEditor({ step, onChange, foreachSources, canEd
             </div>
             <div className="flex items-center gap-2">
               <span className="w-24 text-xs text-[#646A73]">迭代变量 var</span>
-              <Input className="!w-64 font-mono" disabled={disabled} value={loop.var ?? ""} data-testid="input-loop-foreach-var" onChange={(e) => setConfig({ var: e.target.value })} placeholder="如 item / user；CSV 整行经 row.列名 可取" />
+              <Input
+                className="!w-64 font-mono"
+                disabled={disabled}
+                value={loop.var ?? ""}
+                data-testid="input-loop-foreach-var"
+                onChange={(e) => setConfig({ var: e.target.value })}
+                placeholder="如 item / user；CSV 整行经 row.列名 可取"
+              />
             </div>
             <p className="text-[11px] text-[#A8ABB0]">
-              迭代序列在任务下发时由服务端预展开（列表 {foreachSources.length} 个候选源）；{iterations.length > 0 ? `当前已内嵌 ${iterations.length} 条` : "编辑态不保存迭代序列"}
+              迭代序列在任务下发时由服务端预展开（列表 {foreachSources.length} 个候选源）；
+              {iterations.length > 0
+                ? `当前已内嵌 ${iterations.length} 条`
+                : "编辑态不保存迭代序列"}
             </p>
           </>
         )}
-        <p className="rounded bg-[#F7F8FA] px-3 py-2 text-[11px] text-[#87888D]">子步骤在左侧树中该节点下添加（＋ 子步骤）</p>
+        <p className="rounded bg-[#F7F8FA] px-3 py-2 text-[11px] text-[#87888D]">
+          子步骤在左侧树中该节点下添加（＋ 子步骤）
+        </p>
       </div>
     );
   }
@@ -395,10 +609,21 @@ export default function StepConfigEditor({ step, onChange, foreachSources, canEd
       <div className="space-y-4" data-testid="step-config-condition">
         {nameRow}
         <div>
-          <p className="mb-1 text-xs text-[#646A73]">条件表达式（quickjs；truthy 执行子步骤，否则子步骤 SKIPPED）</p>
-          <Input className="!w-full font-mono" disabled={disabled} placeholder='如：getVar("token") !== ""' value={(cfg.expression as string) ?? ""} data-testid="input-condition-expr" onChange={(e) => setConfig({ expression: e.target.value })} />
+          <p className="mb-1 text-xs text-[#646A73]">
+            条件表达式（quickjs；truthy 执行子步骤，否则子步骤 SKIPPED）
+          </p>
+          <Input
+            className="!w-full font-mono"
+            disabled={disabled}
+            placeholder='如：getVar("token") !== ""'
+            value={(cfg.expression as string) ?? ""}
+            data-testid="input-condition-expr"
+            onChange={(e) => setConfig({ expression: e.target.value })}
+          />
         </div>
-        <p className="rounded bg-[#F7F8FA] px-3 py-2 text-[11px] text-[#87888D]">子步骤在左侧树中该节点下添加</p>
+        <p className="rounded bg-[#F7F8FA] px-3 py-2 text-[11px] text-[#87888D]">
+          子步骤在左侧树中该节点下添加
+        </p>
       </div>
     );
   }
@@ -408,7 +633,8 @@ export default function StepConfigEditor({ step, onChange, foreachSources, canEd
       <div className="space-y-4" data-testid="step-config-once">
         {nameRow}
         <p className="rounded bg-[#F7F8FA] px-3 py-2 text-[11px] leading-5 text-[#87888D]">
-          仅一次控制器：批量执行/重跑等重复触发时，本节点子树每次任务内只执行首轮（repeatable job 重入自动跳过）。子步骤在左侧树中该节点下添加。
+          仅一次控制器：批量执行/重跑等重复触发时，本节点子树每次任务内只执行首轮（repeatable job
+          重入自动跳过）。子步骤在左侧树中该节点下添加。
         </p>
       </div>
     );
@@ -446,7 +672,15 @@ export default function StepConfigEditor({ step, onChange, foreachSources, canEd
       {nameRow}
       <div className="flex items-center gap-2">
         <span className="w-20 text-xs text-[#646A73]">等待时长</span>
-        <InputNumber min={0} max={30000} disabled={disabled} value={(cfg.ms as number) ?? 1000} data-testid="input-wait-ms" onChange={(v) => setConfig({ ms: Number(v ?? 0) })} addonAfter="ms" />
+        <InputNumber
+          min={0}
+          max={30000}
+          disabled={disabled}
+          value={(cfg.ms as number) ?? 1000}
+          data-testid="input-wait-ms"
+          onChange={(v) => setConfig({ ms: Number(v ?? 0) })}
+          addonAfter="ms"
+        />
       </div>
     </div>
   );

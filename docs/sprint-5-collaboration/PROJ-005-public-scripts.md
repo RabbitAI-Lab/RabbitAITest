@@ -1,20 +1,20 @@
 # 公共脚本（脚本库 · 在线调试 · 前后置引用）
 
-| 字段           | 内容                                                                                                   |
-| -------------- | -------------------------------------------------------------------------------------------------------- |
-| 文档编号       | PROJ-005                                                                                                 |
-| 所属迭代       | Sprint 5 — 协作通知                                                                                      |
-| 优先级         | P2（迭代内 P1）                                                                                          |
-| 所属模块       | project 域（web 管理面）+ execution 契约（构建期展开，engine 保持无感知）                                 |
-| 文档状态       | Implemented（2026-09-28 交付：代码+单测 6（沙箱）+ JMeter 1 + Playwright 3 全绿；走查随验收） |                                                                                   |
-| 最后更新日期   | 2026-09-28                                                                                               |
-| 上游依赖       | PROJ-001（项目设置容器）、API-004（前后置处理器契约，登记「公共脚本引用(S5)」）、EXEC-003（内置函数）、PROJ-004（JAR 启用制登记） |
-| 下游消费       | S8 QA-001（覆盖率核对「公共脚本」行）                                                                    |
-| 上游依据       | 需求文档 §三 M2（公共脚本：参数定义+多语言+在线调试+前后置引用）；功能清单 §8.5、§6.6                    |
-| 对标基线       | 功能清单 §8.5：项目级脚本库、定义传递参数（支持 Mock/JMeter 函数）、多语言脚本编写、在线调试（控制台）、前后置中引用执行、编辑/删除（删除影响引用用例） |
-| 关联架构文档   | test-domain-model.md §2（public_scripts 表）；engine-execution-architecture §4（quickjs 沙箱 API 面）；api-conventions §4/§6（additive 契约变更） |
-| 高保真确认     | 待确认（原型 docs/design/PROJ-005-public-scripts/，人工确认待 Sprint 验收走查）                           |
-| 工作量估算     | 后端 2.5 人日 / 前端 2 人日 / 联调 1 人日                                                                 |
+| 字段         | 内容                                                                                                                                                    |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 文档编号     | PROJ-005                                                                                                                                                |
+| 所属迭代     | Sprint 5 — 协作通知                                                                                                                                     |
+| 优先级       | P2（迭代内 P1）                                                                                                                                         |
+| 所属模块     | project 域（web 管理面）+ execution 契约（构建期展开，engine 保持无感知）                                                                               |
+| 文档状态     | Implemented（2026-09-28 交付：代码+单测 6（沙箱）+ JMeter 1 + Playwright 3 全绿；走查随验收）                                                           |     |
+| 最后更新日期 | 2026-09-28                                                                                                                                              |
+| 上游依赖     | PROJ-001（项目设置容器）、API-004（前后置处理器契约，登记「公共脚本引用(S5)」）、EXEC-003（内置函数）、PROJ-004（JAR 启用制登记）                       |
+| 下游消费     | S8 QA-001（覆盖率核对「公共脚本」行）                                                                                                                   |
+| 上游依据     | 需求文档 §三 M2（公共脚本：参数定义+多语言+在线调试+前后置引用）；功能清单 §8.5、§6.6                                                                   |
+| 对标基线     | 功能清单 §8.5：项目级脚本库、定义传递参数（支持 Mock/JMeter 函数）、多语言脚本编写、在线调试（控制台）、前后置中引用执行、编辑/删除（删除影响引用用例） |
+| 关联架构文档 | test-domain-model.md §2（public_scripts 表）；engine-execution-architecture §4（quickjs 沙箱 API 面）；api-conventions §4/§6（additive 契约变更）       |
+| 高保真确认   | 待确认（原型 docs/design/PROJ-005-public-scripts/，人工确认待 Sprint 验收走查）                                                                         |
+| 工作量估算   | 后端 2.5 人日 / 前端 2 人日 / 联调 1 人日                                                                                                               |
 
 ## 1. 概述
 
@@ -24,16 +24,16 @@
 
 ### 1.2 范围边界（能力行 → §5 用例映射）
 
-| 能力                                                                                             | P1 ✅ | 后续                                                       |
-| ------------------------------------------------------------------------------------------------ | ----- | ---------------------------------------------------------- |
-| 脚本 CRUD：name(1-128,项目内唯一)/language 固定 javascript/tags(≤10)/params 定义/content；上限 100/项目 | ✅     | —                                                          |
-| 参数定义：params=[{name, defaultValue, required}]（name 唯一 ≤64，默认值 ≤1024 支持 `${__fn}`/`@mock` 字面量——运行期由渲染链解析） | ✅     | 参数校验表达式 Backlog                                     |
-| 状态二态：DRAFT（默认）→ ENABLED（发布）↔ DRAFT（停用）；仅 ENABLED 可被引用；调试不限状态        | ✅     | 版本历史 Backlog                                           |
-| 在线调试：`POST {id}/debug {vars, params}` → `{logs, result, durationMs}`；web 侧 quickjs 沙箱（API 面与 engine processors 对齐：log/getVar/setVar/envGet/randomInt/now）；5s 超时强杀 | ✅     | 断点调试 Backlog                                           |
-| 前后置引用：处理器 script 类型新增可选 `scriptRef:{scriptId, params: Record<string,string>}`；构建期展开：content 内联+参数注入 vars（显式>默认>不注入）；api 用例/场景步骤/环境全局前后置三链路 | ✅     | 引用变更通知（脚本被改后提示引用方）Backlog               |
-| 删除保护：被引用（扫描 api_cases/scenarios/environments 配置）→ 409 SCRIPT_IN_USE 附引用清单；`?force=true` 强删（引用处执行期按缺失处理 CONFIG_ERROR） | ✅     | —                                                          |
-| 多语言：python3/groovy/beanshell                                                                | ❌     | Backlog（引擎 quickjs-only，技术差异登记）                  |
-| 脚本引用 JAR（PROJ-004 jarEnabled 打通）                                                         | ❌     | Backlog（JS 沙箱无 JVM classpath，无法类加载）              |
+| 能力                                                                                                                                                                                             | P1 ✅ | 后续                                           |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----- | ---------------------------------------------- |
+| 脚本 CRUD：name(1-128,项目内唯一)/language 固定 javascript/tags(≤10)/params 定义/content；上限 100/项目                                                                                          | ✅    | —                                              |
+| 参数定义：params=[{name, defaultValue, required}]（name 唯一 ≤64，默认值 ≤1024 支持 `${__fn}`/`@mock` 字面量——运行期由渲染链解析）                                                               | ✅    | 参数校验表达式 Backlog                         |
+| 状态二态：DRAFT（默认）→ ENABLED（发布）↔ DRAFT（停用）；仅 ENABLED 可被引用；调试不限状态                                                                                                       | ✅    | 版本历史 Backlog                               |
+| 在线调试：`POST {id}/debug {vars, params}` → `{logs, result, durationMs}`；web 侧 quickjs 沙箱（API 面与 engine processors 对齐：log/getVar/setVar/envGet/randomInt/now）；5s 超时强杀           | ✅    | 断点调试 Backlog                               |
+| 前后置引用：处理器 script 类型新增可选 `scriptRef:{scriptId, params: Record<string,string>}`；构建期展开：content 内联+参数注入 vars（显式>默认>不注入）；api 用例/场景步骤/环境全局前后置三链路 | ✅    | 引用变更通知（脚本被改后提示引用方）Backlog    |
+| 删除保护：被引用（扫描 api_cases/scenarios/environments 配置）→ 409 SCRIPT_IN_USE 附引用清单；`?force=true` 强删（引用处执行期按缺失处理 CONFIG_ERROR）                                          | ✅    | —                                              |
+| 多语言：python3/groovy/beanshell                                                                                                                                                                 | ❌    | Backlog（引擎 quickjs-only，技术差异登记）     |
+| 脚本引用 JAR（PROJ-004 jarEnabled 打通）                                                                                                                                                         | ❌    | Backlog（JS 沙箱无 JVM classpath，无法类加载） |
 
 ### 1.3 前置依赖
 

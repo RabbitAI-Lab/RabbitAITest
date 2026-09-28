@@ -1,5 +1,5 @@
 /** MSG-001 事件分发 + 个人站内信查询/已读（业务域只调 dispatch，不感知渠道细节）。 */
-import { ErrCode, DomainError } from "@rabbit/shared";
+import { ErrCode, DomainError, renderMessageTemplate } from "@rabbit/shared";
 import {
   type RobotChannel,
   MESSAGE_EVENT_KEYS,
@@ -9,6 +9,7 @@ import {
 } from "@rabbit/shared";
 import type { Prisma } from "@rabbit/db";
 import { prisma } from "@rabbit/db";
+import { entpFeatureActive } from "@/server/domains/entp/license.service";
 
 const CONFIG_KEY = "message.events";
 const NOTIFY_WINDOW_DAYS = 90; // 基线：右上角近 3 个月
@@ -19,8 +20,13 @@ const toJson = (v: unknown): Prisma.InputJsonValue =>
 export interface DispatchInput {
   projectId: string;
   event: MessageEventKey;
-  title: string;
-  content: string;
+  /** 直接文案（robot 测试发送等不经模板的场景） */
+  title?: string;
+  content?: string;
+  /** 默认文案（MSG-001 固定模板，无自定义模板/License 失效时回退——S5 零回归基线） */
+  defaults?: { title: string; content: string };
+  /** 模板变量（ENTP-005：自定义模板 `${var}` 渲染） */
+  vars?: Record<string, string | number | null | undefined>;
   /** 操作人（同人去重：恒被剔除） */
   actorId: string;
   receivers?: {
@@ -57,7 +63,8 @@ export async function writeEventsConfig(projectId: string, cfg: MessageEventsCon
 }
 
 /**
- * 事件分发（MSG-001 §2）：
+ * 事件分发（MSG-001 §2 + ENTP-005 模板渲染）：
+ *  - 文案解析序：自定义模板（存在且 License MSG_TEMPLATE 有效）→ defaults（MSG-001 固定文案）→ title/content 直传
  *  - 总闸（event.enabled）关 → 全不发（含提及/关注）
  *  - 接收人 = 配置接收人 ∪ 提及人 ∪（变更类）关注者 − 操作人，Set 去重
  *  - inapp 机器人 → notifications 落库（接收人）；email 机器人 → SMTP 尽力投递
@@ -73,7 +80,30 @@ export async function dispatch(input: DispatchInput): Promise<DispatchResult> {
       result.skipped = true;
       return result;
     }
-    const receivers = new Set<string>([...(ev.receiverUserIds ?? []), ...(input.receivers?.mentionIds ?? []), ...(input.receivers?.followerIds ?? [])]);
+
+    // ENTP-005 文案解析（模板 → defaults → 直传）
+    let title = input.title ?? "";
+    let content = input.content ?? "";
+    const tpl = input.vars
+      ? await prisma.messageTemplate
+          .findUnique({
+            where: { projectId_event: { projectId: input.projectId, event: input.event } },
+          })
+          .catch(() => null)
+      : null;
+    if (tpl && (await entpFeatureActive("MSG_TEMPLATE"))) {
+      title = renderMessageTemplate(tpl.title, input.vars ?? {});
+      content = renderMessageTemplate(tpl.content, input.vars ?? {});
+    } else if (input.defaults) {
+      title = input.defaults.title;
+      content = input.defaults.content;
+    }
+
+    const receivers = new Set<string>([
+      ...(ev.receiverUserIds ?? []),
+      ...(input.receivers?.mentionIds ?? []),
+      ...(input.receivers?.followerIds ?? []),
+    ]);
     receivers.delete(input.actorId);
 
     const robots = ev.robotIds.length
@@ -88,8 +118,8 @@ export async function dispatch(input: DispatchInput): Promise<DispatchResult> {
         data: [...receivers].map((userId) => ({
           userId,
           type: input.event,
-          title: input.title.slice(0, 256),
-          content: input.content.slice(0, 2048),
+          title: title.slice(0, 256),
+          content: content.slice(0, 2048),
         })),
       });
       result.inappCount = receivers.size;
@@ -102,16 +132,22 @@ export async function dispatch(input: DispatchInput): Promise<DispatchResult> {
         select: { email: true, name: true },
       });
       const { sendEmailBestEffort } = await import("./robot-sender");
-      await sendEmailBestEffort(users, input.title, input.content).catch(() => {});
+      await sendEmailBestEffort(users, title, content).catch(() => {});
     }
 
     // 三方机器人：各投一条（有界等待保证测试可断言；失败仅计日志）
     const { sendRobotWebhook } = await import("./robot-sender");
     for (const r of robots) {
       if (r.channel === "inapp" || r.channel === "email" || !r.webhook) continue;
-      const sent = await sendRobotWebhook(r.channel as RobotChannel, r.webhook, input.title, input.content).catch(
-        (err: unknown) => ({ delivered: false, detail: err instanceof Error ? err.message : String(err) }),
-      );
+      const sent = await sendRobotWebhook(
+        r.channel as RobotChannel,
+        r.webhook,
+        title,
+        content,
+      ).catch((err: unknown) => ({
+        delivered: false,
+        detail: err instanceof Error ? err.message : String(err),
+      }));
       if (sent.delivered) result.robotCount += 1;
       else console.warn(`[notify] robot ${r.id} delivery failed:`, sent.detail);
     }

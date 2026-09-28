@@ -63,7 +63,11 @@ export const POST = withSystemPerm("SYSTEM_PLUGIN:UPDATE")(async (_ctx, req) => 
       } | null;
       if (!body?.filename || !body?.contentBase64) {
         return NextResponse.json(
-          { code: 70002, message: "缺少 filename/contentBase64（或 file multipart 字段）", data: null },
+          {
+            code: 70002,
+            message: "缺少 filename/contentBase64（或 file multipart 字段）",
+            data: null,
+          },
           { status: 422 },
         );
       }

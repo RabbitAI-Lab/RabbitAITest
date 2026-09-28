@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="utf-8" />
+    <title>ENTP-003 扫码登录（企微 / 钉钉 / 飞书 · 授权中转）</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-slate-50 text-slate-800 text-sm">
+    <main class="p-4 space-y-4 max-w-[1200px]">
+      <!-- 画板一：登录页扫码入口 -->
+      <section class="bg-white border rounded-md">
+        <div class="px-3 py-2 border-b bg-slate-50 font-medium">
+          画板一 · 登录页扫码入口（与 SSO 方式并列的扫码按钮组）
+        </div>
+        <div class="p-6 flex justify-center">
+          <div class="w-[320px] border rounded-lg p-6 space-y-4">
+            <div class="text-center">
+              <div
+                class="w-12 h-12 mx-auto rounded-lg bg-[#574BFF] text-white flex items-center justify-center text-2xl"
+              >
+                🐇
+              </div>
+              <p class="font-medium mt-2">RabbitAITest</p>
+            </div>
+            <div class="space-y-2">
+              <input class="border rounded px-2 py-2 w-full" placeholder="邮箱" />
+              <input class="border rounded px-2 py-2 w-full" placeholder="密码" type="password" />
+              <button class="bg-[#574BFF] text-white rounded w-full py-2">登 录</button>
+            </div>
+            <div class="flex items-center gap-2 text-xs text-slate-300">
+              <span class="flex-1 border-t"></span>其他登录方式<span class="flex-1 border-t"></span>
+            </div>
+            <div class="space-y-2">
+              <button
+                class="border rounded w-full py-2 flex items-center justify-center gap-2 text-xs"
+              >
+                🔐 公司 Keycloak <span class="text-slate-400">(OIDC)</span>
+              </button>
+              <div class="grid grid-cols-3 gap-2">
+                <button class="border rounded py-2 text-xs flex flex-col items-center gap-1">
+                  <span class="text-lg" style="color: #07c160">💬</span>企微扫码
+                </button>
+                <button class="border rounded py-2 text-xs flex flex-col items-center gap-1">
+                  <span class="text-lg" style="color: #0089ff">🔷</span>钉钉扫码
+                </button>
+                <button class="border rounded py-2 text-xs flex flex-col items-center gap-1">
+                  <span class="text-lg" style="color: #3370ff">🕊️</span>飞书扫码
+                </button>
+              </div>
+            </div>
+            <p class="text-[11px] text-slate-400 text-center">
+              扫码将跳转平台授权页，确认后自动返回登录
+            </p>
+          </div>
+        </div>
+        <p class="px-3 pb-3 text-xs text-slate-400">
+          扫码源按钮 hover 提示「将跳转平台扫码授权」；仅启用的扫码源渲染；社区版（无
+          License）整块不出现
+        </p>
+      </section>
+      <!-- 画板二：扫码授权中转（mock 形态）+ 回调成功 -->
+      <section class="bg-white border rounded-md">
+        <div class="px-3 py-2 border-b bg-slate-50 font-medium">
+          画板二 · 平台扫码授权中转（真实环境为平台页面；mock 形态含「模拟扫码确认」控面）→
+          回调登录成功
+        </div>
+        <div class="grid grid-cols-3 divide-x">
+          <div class="p-6 flex justify-center">
+            <div class="w-[280px] border rounded-lg p-6 space-y-3 text-center">
+              <p class="font-medium">钉钉扫码登录</p>
+              <div
+                class="w-36 h-36 mx-auto border-2 rounded-lg grid grid-cols-6 grid-rows-6 gap-0.5 p-1.5 bg-white"
+              >
+                <!-- 二维码占位 -->
+                <span class="bg-slate-800 rounded-sm"></span><span></span
+                ><span class="bg-slate-800 rounded-sm"></span><span></span><span></span
+                ><span class="bg-slate-800 rounded-sm"></span> <span></span
+                ><span class="bg-slate-800 rounded-sm"></span><span></span
+                ><span class="bg-slate-800 rounded-sm"></span><span></span><span></span>
+                <span class="bg-slate-800 rounded-sm"></span><span></span
+                ><span class="bg-slate-800 rounded-sm"></span><span></span><span></span
+                ><span></span> <span></span><span></span><span></span
+                ><span class="bg-slate-800 rounded-sm"></span><span></span
+                ><span class="bg-slate-800 rounded-sm"></span> <span></span
+                ><span class="bg-slate-800 rounded-sm"></span><span></span><span></span><span></span
+                ><span></span> <span class="bg-slate-800 rounded-sm"></span><span></span
+                ><span></span><span class="bg-slate-800 rounded-sm"></span><span></span
+                ><span></span>
+              </div>
+              <p class="text-xs text-slate-500">请使用钉钉 App 扫码</p>
+              <button class="bg-[#0089FF] text-white rounded w-full py-2 text-xs">
+                模拟扫码确认（测试控面）
+              </button>
+              <p class="text-[11px] text-slate-400">mock：authorize 自动携带 code 回跳本站回调</p>
+            </div>
+          </div>
+          <div class="p-6 flex flex-col justify-center items-center gap-3 text-center">
+            <p class="text-4xl">✅</p>
+            <p class="font-medium">授权成功，正在返回…</p>
+            <p class="text-xs text-slate-500 font-mono break-all px-4">
+              GET /api/v1/auth/sso/dingtalk/{authId}/callback?authCode=mock-xx&amp;state=eyJ…
+            </p>
+            <p class="text-[11px] text-slate-400">
+              state 校验（Redis 5 分钟）→ code 换用户身份 → 属性映射 → 建号/关联 → 会话建立
+            </p>
+            <button class="border rounded px-4 py-1.5 text-xs">若页面未自动跳转请点击</button>
+          </div>
+          <div class="p-6 flex flex-col justify-center gap-3">
+            <div class="border rounded-md p-3">
+              <p class="text-xs text-slate-400 mb-1">登录成功态（控制台首页顶栏）</p>
+              <div class="h-10 bg-white border rounded flex items-center px-3 gap-3 text-[13px]">
+                <span class="font-semibold">RabbitAITest</span>
+                <span class="ml-auto text-xs text-slate-500">dingtalk-zhangsan（钉钉）</span>
+                <span class="text-slate-400 text-xs">🔔</span>
+              </div>
+              <p class="text-[11px] text-slate-400 mt-1.5">
+                用户 source=DINGTALK；平台无邮箱时合成
+                <span class="font-mono">0zK9x@…@sso.scan</span> 形态账号
+              </p>
+            </div>
+            <div class="border border-red-200 bg-red-50 rounded-md p-3 text-xs text-red-600">
+              失败态：平台返回异常（502 90013）——<br />「扫码登录失败：钉钉服务暂不可用，请稍后重试或使用账号登录」<br />
+              <span class="text-[10px] text-red-400"
+                >坏 state → 422 90012「授权状态已过期，请重新发起」</span
+              >
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

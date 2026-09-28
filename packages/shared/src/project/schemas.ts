@@ -105,7 +105,10 @@ export const publicScriptUpsertSchema = z.object({
   language: z.literal("javascript").default("javascript"),
   tags: z.array(z.string().min(1).max(32)).max(10).default([]),
   params: z.array(publicScriptParamSchema).max(20).default([]),
-  content: z.string().max(64 * 1024).default(""),
+  content: z
+    .string()
+    .max(64 * 1024)
+    .default(""),
 });
 export const publicScriptDebugSchema = z.object({
   vars: z.record(z.string().min(1).max(128), z.string().max(8192)).default({}),

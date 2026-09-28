@@ -58,7 +58,8 @@ export function ApiRefPanel({
     queryKey: ["case-api-refs", projectId, caseId],
     queryFn: () => caseApiRefApi.list(projectId, caseId),
   });
-  const invalidate = () => void qc.invalidateQueries({ queryKey: ["case-api-refs", projectId, caseId] });
+  const invalidate = () =>
+    void qc.invalidateQueries({ queryKey: ["case-api-refs", projectId, caseId] });
 
   const remove = useMutation({
     mutationFn: (refId: string) => caseApiRefApi.remove(projectId, caseId, refId),
@@ -119,7 +120,9 @@ export function ApiRefPanel({
                   data-testid="case-api-ref-row"
                 >
                   <td className="p-3">
-                    <span className={r.deleted ? "line-through decoration-[#C9CDD4]" : "text-[#574BFF]"}>
+                    <span
+                      className={r.deleted ? "line-through decoration-[#C9CDD4]" : "text-[#574BFF]"}
+                    >
                       {r.name}
                     </span>
                     {r.deleted && (
@@ -296,7 +299,15 @@ function ApiRefPicker({
               }}
               expandable={{
                 expandRowByClick: true,
-                expandedRowRender: (api) => <ApiCaseCheckList projectId={projectId} api={api} keyword={keyword} selected={selected} onToggle={toggle} />,
+                expandedRowRender: (api) => (
+                  <ApiCaseCheckList
+                    projectId={projectId}
+                    api={api}
+                    keyword={keyword}
+                    selected={selected}
+                    onToggle={toggle}
+                  />
+                ),
               }}
               columns={[
                 {
@@ -381,7 +392,8 @@ function ApiCaseCheckList({
           >
             <Checkbox checked={selected.has(c.id)} onChange={() => onToggle(c.id)} />
             <span>
-              {c.name} <span className="text-[#A8ABB0] text-xs">AC-{String(c.num).padStart(4, "0")}</span>
+              {c.name}{" "}
+              <span className="text-[#A8ABB0] text-xs">AC-{String(c.num).padStart(4, "0")}</span>
             </span>
             <span className="text-xs text-[#A8ABB0]">
               {c.level}

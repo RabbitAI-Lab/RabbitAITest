@@ -7,56 +7,157 @@
   </head>
   <body class="bg-slate-50 text-slate-800 text-sm">
     <header class="h-12 bg-white border-b flex items-center px-4 gap-3">
-      <span class="font-semibold">RabbitAITest</span><span class="border rounded px-2 py-0.5">演示项目 #1</span>
+      <span class="font-semibold">RabbitAITest</span
+      ><span class="border rounded px-2 py-0.5">演示项目 #1</span>
       <span class="ml-auto text-slate-400 text-xs">帮助 · 消息 · 用户</span>
     </header>
     <main class="p-4 space-y-4 max-w-[1200px]">
       <!-- 画板一：列表组视图（折叠组 + 展开组 + 未分组平铺） -->
       <section class="bg-white border rounded-md">
-        <div class="px-3 py-2 border-b bg-slate-50 font-medium">画板一 · 计划列表组视图（组行折叠/展开 · 聚合进度 · 批量归档）</div>
+        <div class="px-3 py-2 border-b bg-slate-50 font-medium">
+          画板一 · 计划列表组视图（组行折叠/展开 · 聚合进度 · 批量归档）
+        </div>
         <div class="p-3 flex items-center gap-2 border-b">
           <button class="bg-[#574BFF] text-white rounded-md px-3 py-1.5">＋ 新建计划</button>
           <button class="border rounded-md px-3 py-1.5">＋ 新建计划组</button>
           <span class="text-xs text-slate-400 ml-2">已选 3 项：</span>
           <button class="border rounded-md px-2.5 py-1 text-xs">批量归档</button>
           <button class="border rounded-md px-2.5 py-1 text-xs">批量恢复</button>
-          <div class="ml-auto flex items-center rounded-md border p-0.5 text-xs"><span class="px-2 py-1 rounded bg-[#574BFF] text-white">进行中</span><span class="px-2 py-1 text-slate-500">已归档</span></div>
+          <div class="ml-auto flex items-center rounded-md border p-0.5 text-xs">
+            <span class="px-2 py-1 rounded bg-[#574BFF] text-white">进行中</span
+            ><span class="px-2 py-1 text-slate-500">已归档</span>
+          </div>
         </div>
         <table class="w-full text-[13px]">
-          <thead class="text-slate-500 text-xs bg-slate-50"><tr class="text-left"><th class="px-3 py-2 w-8"><input type="checkbox" /></th><th class="px-3 py-2">名称</th><th class="px-3 py-2">用例数</th><th class="px-3 py-2">进度</th><th class="px-3 py-2">通过率</th><th class="px-3 py-2">阈值</th><th class="px-3 py-2">操作</th></tr></thead>
+          <thead class="text-slate-500 text-xs bg-slate-50">
+            <tr class="text-left">
+              <th class="px-3 py-2 w-8"><input type="checkbox" /></th>
+              <th class="px-3 py-2">名称</th>
+              <th class="px-3 py-2">用例数</th>
+              <th class="px-3 py-2">进度</th>
+              <th class="px-3 py-2">通过率</th>
+              <th class="px-3 py-2">阈值</th>
+              <th class="px-3 py-2">操作</th>
+            </tr>
+          </thead>
           <tbody class="divide-y">
             <tr class="bg-blue-50/40">
               <td class="px-3 py-2"><input type="checkbox" checked /></td>
-              <td class="px-3 py-2 font-medium">▾ 📁 支付域回归组 <span class="text-[10px] border rounded px-1 py-0.5 bg-slate-100 text-slate-500">组 · 2 成员</span></td>
+              <td class="px-3 py-2 font-medium">
+                ▾ 📁 支付域回归组
+                <span class="text-[10px] border rounded px-1 py-0.5 bg-slate-100 text-slate-500"
+                  >组 · 2 成员</span
+                >
+              </td>
               <td class="px-3 py-2 text-slate-500">16</td>
-              <td class="px-3 py-2"><div class="w-24 h-1.5 bg-slate-100 rounded"><div class="h-full bg-[#574BFF] w-[69%]"></div></div><span class="text-[11px] text-slate-400">69%</span></td>
+              <td class="px-3 py-2">
+                <div class="w-24 h-1.5 bg-slate-100 rounded">
+                  <div class="h-full bg-[#574BFF] w-[69%]"></div>
+                </div>
+                <span class="text-[11px] text-slate-400">69%</span>
+              </td>
               <td class="px-3 py-2">73%</td>
-              <td class="px-3 py-2"><span class="text-[10px] border rounded px-1 py-0.5 bg-amber-50 text-amber-600 border-amber-200">1/2 达标</span></td>
-              <td class="px-3 py-2 space-x-2 text-[#574BFF] text-xs"><a>报告</a><a>执行组</a><a>归档</a><a>编辑</a><a class="text-red-500">删除</a></td>
+              <td class="px-3 py-2">
+                <span
+                  class="text-[10px] border rounded px-1 py-0.5 bg-amber-50 text-amber-600 border-amber-200"
+                  >1/2 达标</span
+                >
+              </td>
+              <td class="px-3 py-2 space-x-2 text-[#574BFF] text-xs">
+                <a>报告</a><a>执行组</a><a>归档</a><a>编辑</a><a class="text-red-500">删除</a>
+              </td>
             </tr>
-            <tr><td class="px-3 py-2"><input type="checkbox" checked /></td><td class="px-3 py-2 pl-9 text-slate-600">└ 支付域回归 V1.2</td><td class="px-3 py-2 text-slate-500">8</td><td class="px-3 py-2"><div class="w-24 h-1.5 bg-slate-100 rounded"><div class="h-full bg-[#574BFF] w-[62%]"></div></div></td><td class="px-3 py-2 text-green-600">85% ✓</td><td class="px-3 py-2 text-xs text-slate-400">80%</td><td class="px-3 py-2 space-x-2 text-[#574BFF] text-xs"><a>进入</a><a>移出组</a></td></tr>
-            <tr><td class="px-3 py-2"><input type="checkbox" checked /></td><td class="px-3 py-2 pl-9 text-slate-600">└ 支付域冒烟 V1.1</td><td class="px-3 py-2 text-slate-500">8</td><td class="px-3 py-2"><div class="w-24 h-1.5 bg-slate-100 rounded"><div class="h-full bg-[#574BFF] w-[75%]"></div></div></td><td class="px-3 py-2 text-red-500">60% ✗</td><td class="px-3 py-2 text-xs text-slate-400">80%</td><td class="px-3 py-2 space-x-2 text-[#574BFF] text-xs"><a>进入</a><a>移出组</a></td></tr>
-            <tr class="bg-blue-50/40"><td class="px-3 py-2"><input type="checkbox" /></td><td class="px-3 py-2 font-medium">▸ 📁 登录专项组 <span class="text-[10px] border rounded px-1 py-0.5 bg-slate-100 text-slate-500">组 · 1 成员</span></td><td class="px-3 py-2 text-slate-500">4</td><td class="px-3 py-2 text-xs text-slate-400">25%</td><td class="px-3 py-2">—</td><td class="px-3 py-2">—</td><td class="px-3 py-2 space-x-2 text-[#574BFF] text-xs"><a>报告</a><a>执行组</a><a>归档</a><a>编辑</a><a class="text-red-500">删除</a></td></tr>
-            <tr><td class="px-3 py-2"><input type="checkbox" /></td><td class="px-3 py-2">购物车主流程计划</td><td class="px-3 py-2 text-slate-500">12</td><td class="px-3 py-2"><div class="w-24 h-1.5 bg-slate-100 rounded"><div class="h-full bg-[#574BFF] w-[40%]"></div></div></td><td class="px-3 py-2">50%</td><td class="px-3 py-2 text-xs text-slate-400">80%</td><td class="px-3 py-2 space-x-2 text-[#574BFF] text-xs"><a>进入</a><a>归档</a><a>编辑</a><a>移入分组</a><a class="text-red-500">删除</a></td></tr>
+            <tr>
+              <td class="px-3 py-2"><input type="checkbox" checked /></td>
+              <td class="px-3 py-2 pl-9 text-slate-600">└ 支付域回归 V1.2</td>
+              <td class="px-3 py-2 text-slate-500">8</td>
+              <td class="px-3 py-2">
+                <div class="w-24 h-1.5 bg-slate-100 rounded">
+                  <div class="h-full bg-[#574BFF] w-[62%]"></div>
+                </div>
+              </td>
+              <td class="px-3 py-2 text-green-600">85% ✓</td>
+              <td class="px-3 py-2 text-xs text-slate-400">80%</td>
+              <td class="px-3 py-2 space-x-2 text-[#574BFF] text-xs"><a>进入</a><a>移出组</a></td>
+            </tr>
+            <tr>
+              <td class="px-3 py-2"><input type="checkbox" checked /></td>
+              <td class="px-3 py-2 pl-9 text-slate-600">└ 支付域冒烟 V1.1</td>
+              <td class="px-3 py-2 text-slate-500">8</td>
+              <td class="px-3 py-2">
+                <div class="w-24 h-1.5 bg-slate-100 rounded">
+                  <div class="h-full bg-[#574BFF] w-[75%]"></div>
+                </div>
+              </td>
+              <td class="px-3 py-2 text-red-500">60% ✗</td>
+              <td class="px-3 py-2 text-xs text-slate-400">80%</td>
+              <td class="px-3 py-2 space-x-2 text-[#574BFF] text-xs"><a>进入</a><a>移出组</a></td>
+            </tr>
+            <tr class="bg-blue-50/40">
+              <td class="px-3 py-2"><input type="checkbox" /></td>
+              <td class="px-3 py-2 font-medium">
+                ▸ 📁 登录专项组
+                <span class="text-[10px] border rounded px-1 py-0.5 bg-slate-100 text-slate-500"
+                  >组 · 1 成员</span
+                >
+              </td>
+              <td class="px-3 py-2 text-slate-500">4</td>
+              <td class="px-3 py-2 text-xs text-slate-400">25%</td>
+              <td class="px-3 py-2">—</td>
+              <td class="px-3 py-2">—</td>
+              <td class="px-3 py-2 space-x-2 text-[#574BFF] text-xs">
+                <a>报告</a><a>执行组</a><a>归档</a><a>编辑</a><a class="text-red-500">删除</a>
+              </td>
+            </tr>
+            <tr>
+              <td class="px-3 py-2"><input type="checkbox" /></td>
+              <td class="px-3 py-2">购物车主流程计划</td>
+              <td class="px-3 py-2 text-slate-500">12</td>
+              <td class="px-3 py-2">
+                <div class="w-24 h-1.5 bg-slate-100 rounded">
+                  <div class="h-full bg-[#574BFF] w-[40%]"></div>
+                </div>
+              </td>
+              <td class="px-3 py-2">50%</td>
+              <td class="px-3 py-2 text-xs text-slate-400">80%</td>
+              <td class="px-3 py-2 space-x-2 text-[#574BFF] text-xs">
+                <a>进入</a><a>归档</a><a>编辑</a><a>移入分组</a><a class="text-red-500">删除</a>
+              </td>
+            </tr>
           </tbody>
         </table>
       </section>
       <!-- 画板二：移入分组弹窗 + 组报告页 -->
       <section class="bg-white border rounded-md">
-        <div class="px-3 py-2 border-b bg-slate-50 font-medium">画板二 · 移入分组弹窗 / 组聚合报告页（汇总卡+成员明细+总结）</div>
+        <div class="px-3 py-2 border-b bg-slate-50 font-medium">
+          画板二 · 移入分组弹窗 / 组聚合报告页（汇总卡+成员明细+总结）
+        </div>
         <div class="flex">
           <div class="w-[300px] border-r p-4 text-[13px]">
             <div class="border rounded shadow-lg p-3 max-w-[280px]">
               <p class="font-medium pb-2">「支付域回归 V1.2」移入分组</p>
               <div class="border rounded p-2 text-xs space-y-1">
-                <label class="flex items-center gap-2"><input type="radio" name="g" /> 不属于任何分组</label>
-                <label class="flex items-center gap-2"><input type="radio" name="g" checked /> 📁 支付域回归组</label>
-                <label class="flex items-center gap-2"><input type="radio" name="g" /> 📁 登录专项组</label>
+                <label class="flex items-center gap-2"
+                  ><input type="radio" name="g" /> 不属于任何分组</label
+                >
+                <label class="flex items-center gap-2"
+                  ><input type="radio" name="g" checked /> 📁 支付域回归组</label
+                >
+                <label class="flex items-center gap-2"
+                  ><input type="radio" name="g" /> 📁 登录专项组</label
+                >
               </div>
-              <div class="flex items-center gap-2 pt-2 text-xs text-slate-400">＋ 新建组并移入 <input class="border rounded px-2 py-1 w-24" placeholder="组名" /></div>
-              <div class="flex justify-end gap-2 pt-3"><button class="border rounded px-3 py-1.5">取消</button><button class="bg-[#574BFF] text-white rounded px-3 py-1.5">移入</button></div>
+              <div class="flex items-center gap-2 pt-2 text-xs text-slate-400">
+                ＋ 新建组并移入 <input class="border rounded px-2 py-1 w-24" placeholder="组名" />
+              </div>
+              <div class="flex justify-end gap-2 pt-3">
+                <button class="border rounded px-3 py-1.5">取消</button
+                ><button class="bg-[#574BFF] text-white rounded px-3 py-1.5">移入</button>
+              </div>
             </div>
-            <p class="text-[11px] text-slate-400 pt-3">单计划至多一组；组不可嵌套（422 50013）；删除非空组拒绝（50015）</p>
+            <p class="text-[11px] text-slate-400 pt-3">
+              单计划至多一组；组不可嵌套（422 50013）；删除非空组拒绝（50015）
+            </p>
           </div>
           <div class="flex-1 p-4 text-[13px]">
             <div class="flex items-center gap-3 pb-3 border-b">
@@ -65,35 +166,99 @@
               <button class="ml-auto border rounded-md px-3 py-1.5 text-xs">编辑总结</button>
             </div>
             <div class="flex gap-3 py-3">
-              <div class="border rounded-md px-4 py-3 flex-1"><p class="text-xs text-slate-400">成员计划</p><p class="text-xl font-semibold">2</p></div>
-              <div class="border rounded-md px-4 py-3 flex-1"><p class="text-xs text-slate-400">用例总数</p><p class="text-xl font-semibold">16</p></div>
-              <div class="border rounded-md px-4 py-3 flex-1"><p class="text-xs text-slate-400">总进度</p><p class="text-xl font-semibold">69%</p></div>
-              <div class="border rounded-md px-4 py-3 flex-1"><p class="text-xs text-slate-400">通过率</p><p class="text-xl font-semibold">73%</p></div>
-              <div class="border rounded-md px-4 py-3 flex-1"><p class="text-xs text-slate-400">阈值达标</p><p class="text-xl font-semibold text-amber-500">1/2</p></div>
+              <div class="border rounded-md px-4 py-3 flex-1">
+                <p class="text-xs text-slate-400">成员计划</p>
+                <p class="text-xl font-semibold">2</p>
+              </div>
+              <div class="border rounded-md px-4 py-3 flex-1">
+                <p class="text-xs text-slate-400">用例总数</p>
+                <p class="text-xl font-semibold">16</p>
+              </div>
+              <div class="border rounded-md px-4 py-3 flex-1">
+                <p class="text-xs text-slate-400">总进度</p>
+                <p class="text-xl font-semibold">69%</p>
+              </div>
+              <div class="border rounded-md px-4 py-3 flex-1">
+                <p class="text-xs text-slate-400">通过率</p>
+                <p class="text-xl font-semibold">73%</p>
+              </div>
+              <div class="border rounded-md px-4 py-3 flex-1">
+                <p class="text-xs text-slate-400">阈值达标</p>
+                <p class="text-xl font-semibold text-amber-500">1/2</p>
+              </div>
             </div>
             <table class="w-full">
-              <thead class="text-slate-500 text-xs"><tr class="text-left"><th class="px-2 py-1.5">成员计划</th><th class="px-2 py-1.5">用例数</th><th class="px-2 py-1.5">进度</th><th class="px-2 py-1.5">通过率</th><th class="px-2 py-1.5">阈值判定</th><th class="px-2 py-1.5"></th></tr></thead>
+              <thead class="text-slate-500 text-xs">
+                <tr class="text-left">
+                  <th class="px-2 py-1.5">成员计划</th>
+                  <th class="px-2 py-1.5">用例数</th>
+                  <th class="px-2 py-1.5">进度</th>
+                  <th class="px-2 py-1.5">通过率</th>
+                  <th class="px-2 py-1.5">阈值判定</th>
+                  <th class="px-2 py-1.5"></th>
+                </tr>
+              </thead>
               <tbody class="divide-y">
-                <tr><td class="px-2 py-2">支付域回归 V1.2</td><td>8</td><td>62%</td><td class="text-green-600 font-medium">85%</td><td><span class="text-[10px] border rounded px-1 py-0.5 bg-green-50 text-green-600 border-green-200">达标</span></td><td class="text-[#574BFF]">报告 ↗</td></tr>
-                <tr><td class="px-2 py-2">支付域冒烟 V1.1</td><td>8</td><td>75%</td><td class="text-red-500 font-medium">60%</td><td><span class="text-[10px] border rounded px-1 py-0.5 bg-red-50 text-red-600 border-red-200">未达标</span></td><td class="text-[#574BFF]">报告 ↗</td></tr>
+                <tr>
+                  <td class="px-2 py-2">支付域回归 V1.2</td>
+                  <td>8</td>
+                  <td>62%</td>
+                  <td class="text-green-600 font-medium">85%</td>
+                  <td>
+                    <span
+                      class="text-[10px] border rounded px-1 py-0.5 bg-green-50 text-green-600 border-green-200"
+                      >达标</span
+                    >
+                  </td>
+                  <td class="text-[#574BFF]">报告 ↗</td>
+                </tr>
+                <tr>
+                  <td class="px-2 py-2">支付域冒烟 V1.1</td>
+                  <td>8</td>
+                  <td>75%</td>
+                  <td class="text-red-500 font-medium">60%</td>
+                  <td>
+                    <span
+                      class="text-[10px] border rounded px-1 py-0.5 bg-red-50 text-red-600 border-red-200"
+                      >未达标</span
+                    >
+                  </td>
+                  <td class="text-[#574BFF]">报告 ↗</td>
+                </tr>
               </tbody>
             </table>
-            <div class="mt-3 border rounded p-3 bg-slate-50"><p class="text-xs text-slate-400">组总结</p><p class="text-[13px] pt-1">冒烟计划通过率未达标（60% &lt; 80%），建议回归失败项后重跑…</p></div>
+            <div class="mt-3 border rounded p-3 bg-slate-50">
+              <p class="text-xs text-slate-400">组总结</p>
+              <p class="text-[13px] pt-1">
+                冒烟计划通过率未达标（60% &lt; 80%），建议回归失败项后重跑…
+              </p>
+            </div>
           </div>
         </div>
       </section>
       <!-- 画板三：级联归档 -->
       <section class="bg-white border rounded-md">
-        <div class="px-3 py-2 border-b bg-slate-50 font-medium">画板三 · 组归档级联确认 / 成员只读态</div>
+        <div class="px-3 py-2 border-b bg-slate-50 font-medium">
+          画板三 · 组归档级联确认 / 成员只读态
+        </div>
         <div class="grid grid-cols-2 gap-3 p-4 text-[13px]">
           <div class="border rounded p-3 max-w-[420px] shadow-lg">
             <p class="font-medium pb-1">归档「支付域回归组」？</p>
-            <p class="text-xs text-slate-500 pb-2">将级联归档 2 个成员计划：支付域回归 V1.2、支付域冒烟 V1.1</p>
-            <div class="flex justify-end gap-2"><button class="border rounded px-3 py-1.5">取消</button><button class="bg-[#574BFF] text-white rounded px-3 py-1.5">确认归档</button></div>
+            <p class="text-xs text-slate-500 pb-2">
+              将级联归档 2 个成员计划：支付域回归 V1.2、支付域冒烟 V1.1
+            </p>
+            <div class="flex justify-end gap-2">
+              <button class="border rounded px-3 py-1.5">取消</button
+              ><button class="bg-[#574BFF] text-white rounded px-3 py-1.5">确认归档</button>
+            </div>
           </div>
           <div class="border rounded p-3">
-            <p class="text-xs text-slate-500 pb-2">归档后成员写操作 422（code 10008 PLAN_ARCHIVED）</p>
-            <div class="bg-red-50 border border-red-200 text-red-600 rounded px-3 py-2 text-xs">操作失败：计划已归档（10008 PLAN_ARCHIVED）——恢复组后成员可编辑</div>
+            <p class="text-xs text-slate-500 pb-2">
+              归档后成员写操作 422（code 10008 PLAN_ARCHIVED）
+            </p>
+            <div class="bg-red-50 border border-red-200 text-red-600 rounded px-3 py-2 text-xs">
+              操作失败：计划已归档（10008 PLAN_ARCHIVED）——恢复组后成员可编辑
+            </div>
             <p class="text-[11px] text-slate-400 pt-2">组恢复=整组恢复（成员单独恢复登记后续）</p>
           </div>
         </div>

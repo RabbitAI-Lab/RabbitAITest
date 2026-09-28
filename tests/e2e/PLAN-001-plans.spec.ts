@@ -279,8 +279,10 @@ test("PLAN-001-03 重复关联开关开启二态与批量改执行人", async ({
   expect(saved.code).toBe(0);
   const saveRawRes = await saveRaw;
   expect(saveRawRes.request().method()).toBe("PUT");
-  expect((saveRawRes.request().postDataJSON() as { settings: { allowDuplicate: boolean } })
-    .settings.allowDuplicate).toBe(true);
+  expect(
+    (saveRawRes.request().postDataJSON() as { settings: { allowDuplicate: boolean } }).settings
+      .allowDuplicate,
+  ).toBe(true);
   await expect(page.getByText("设置已保存")).toBeVisible();
 
   // 开关开启后二次关联 A：不再 422（实现口径=静默跳过 added=0）；顺带关联 B（added=1）供批量执行人用

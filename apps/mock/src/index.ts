@@ -236,11 +236,14 @@ if (process.env.VITEST === undefined) {
   // S5 MSG-001/FILE-001 e2e：机器人 webhook 接收 + Git 平台（标准 API 前缀 /api/v1|v3|v4|v5）
   const { buildRobotMocks, buildGitMocks } = await import("./s5-mocks.js");
   app.route("/mock-robot", buildRobotMocks());
+  // S9 ENTP-002/003 e2e/jmx：SSO+扫码 mock IdP（/sso/{provider}/{authId}/authorize|token|userinfo + serviceValidate + _test 控面）
+  const { buildSsoMocks } = await import("./s9-sso-mocks.js");
+  app.route("/sso", buildSsoMocks());
   app.route("/", buildGitMocks());
   mountSwaggerDoc(app);
   serve({ fetch: app.fetch, port }, (info) => {
     console.log(
-      `[mock] listening :${info.port}（/healthz /hello /mock/{projectNum}/{path} + mock-jira/zentao/tapd + mock-robot + git-api）`,
+      `[mock] listening :${info.port}（/healthz /hello /mock/{projectNum}/{path} + mock-jira/zentao/tapd + mock-robot + git-api + sso-idp）`,
     );
   });
 }

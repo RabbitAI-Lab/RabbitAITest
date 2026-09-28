@@ -55,10 +55,21 @@ const ASSERT_KINDS: { value: AssertKind; label: string }[] = [
 ];
 const ASSERT_OPS = ["eq", "contains", "lt", "le", "gt", "ge", "regex"] as const;
 /** 目标列有义的类型（其余类型目标列禁用） */
-const ASSERT_PATH_KINDS: AssertKind[] = ["body_jsonpath", "body_regex", "response_header", "variable"];
+const ASSERT_PATH_KINDS: AssertKind[] = [
+  "body_jsonpath",
+  "body_regex",
+  "response_header",
+  "variable",
+];
 
 const pathPlaceholder = (kind: AssertKind) =>
-  kind === "body_jsonpath" ? "$.url" : kind === "body_regex" ? "\\d+" : kind === "response_header" ? "Header-Name" : "varName";
+  kind === "body_jsonpath"
+    ? "$.url"
+    : kind === "body_regex"
+      ? "\\d+"
+      : kind === "response_header"
+        ? "Header-Name"
+        : "varName";
 
 /** ── 处理器行（行式编辑：脚本/等待可选，SQL 禁用展示）── */
 function ProcessorRows({
@@ -94,10 +105,22 @@ function ProcessorRows({
             ((p as { scriptRef?: unknown }).scriptRef ? (
               <div className="flex-1">
                 <ScriptRefPanel
-                  value={(p as { scriptRef: { scriptId: string; params: Record<string, string> } }).scriptRef}
-                  onChange={(v) => patch(i, (v ? { script: "", scriptRef: v } : { script: "" }) as unknown as Processor)}
+                  value={
+                    (p as { scriptRef: { scriptId: string; params: Record<string, string> } })
+                      .scriptRef
+                  }
+                  onChange={(v) =>
+                    patch(
+                      i,
+                      (v ? { script: "", scriptRef: v } : { script: "" }) as unknown as Processor,
+                    )
+                  }
                 />
-                <button type="button" className="text-[11px] text-[#574BFF]" onClick={() => patch(i, { script: "" } as Processor)}>
+                <button
+                  type="button"
+                  className="text-[11px] text-[#574BFF]"
+                  onClick={() => patch(i, { script: "" } as Processor)}
+                >
                   切换为内联脚本
                 </button>
               </div>
@@ -113,7 +136,12 @@ function ProcessorRows({
                 <button
                   type="button"
                   className="text-[11px] text-[#574BFF] shrink-0"
-                  onClick={() => patch(i, { script: "", scriptRef: { scriptId: "", params: {} } } as unknown as Processor)}
+                  onClick={() =>
+                    patch(i, {
+                      script: "",
+                      scriptRef: { scriptId: "", params: {} },
+                    } as unknown as Processor)
+                  }
                 >
                   引用公共脚本
                 </button>
@@ -157,7 +185,13 @@ function ProcessorRows({
 }
 
 /** ── 断言行 ── */
-function AssertRows({ list, onChange }: { list: AssertSpec[]; onChange: (next: AssertSpec[]) => void }) {
+function AssertRows({
+  list,
+  onChange,
+}: {
+  list: AssertSpec[];
+  onChange: (next: AssertSpec[]) => void;
+}) {
   const patch = (i: number, a: Partial<AssertSpec>) =>
     onChange(list.map((x, idx) => (idx === i ? { ...x, ...a } : x)));
   return (
@@ -202,7 +236,9 @@ function AssertRows({ list, onChange }: { list: AssertSpec[]; onChange: (next: A
       <Button
         type="link"
         className="!px-0"
-        onClick={() => onChange([...list, { kind: "status_code", path: "", op: "eq", expected: "200" }])}
+        onClick={() =>
+          onChange([...list, { kind: "status_code", path: "", op: "eq", expected: "200" }])
+        }
       >
         ＋ 添加断言
       </Button>
@@ -211,7 +247,13 @@ function AssertRows({ list, onChange }: { list: AssertSpec[]; onChange: (next: A
 }
 
 /** ── 提取行 ── */
-function ExtractRows({ list, onChange }: { list: Extractor[]; onChange: (next: Extractor[]) => void }) {
+function ExtractRows({
+  list,
+  onChange,
+}: {
+  list: Extractor[];
+  onChange: (next: Extractor[]) => void;
+}) {
   const patch = (i: number, x: Partial<Extractor>) =>
     onChange(list.map((e, idx) => (idx === i ? { ...e, ...x } : e)));
   return (
@@ -294,7 +336,14 @@ function ExtractRows({ list, onChange }: { list: Extractor[]; onChange: (next: E
         onClick={() =>
           onChange([
             ...list,
-            { source: "body", kind: "jsonpath", expression: "", match: "first", variable: "", scope: "temp" },
+            {
+              source: "body",
+              kind: "jsonpath",
+              expression: "",
+              match: "first",
+              variable: "",
+              scope: "temp",
+            },
           ])
         }
       >
@@ -428,7 +477,11 @@ function EnvironmentsView() {
     },
     onError: (e, url) => {
       const ds = config.database.find((d) => d.url === url);
-      if (ds) setDbTest((prev) => ({ ...prev, [ds.id]: { ok: false, message: e instanceof Error ? e.message : "连接失败" } }));
+      if (ds)
+        setDbTest((prev) => ({
+          ...prev,
+          [ds.id]: { ok: false, message: e instanceof Error ? e.message : "连接失败" },
+        }));
     },
   });
 
@@ -443,7 +496,9 @@ function EnvironmentsView() {
           { value: n.id, label: `${"— ".repeat(depth)}${n.name}` },
           ...flatten(n.children as { id: string; name: string; children: unknown[] }[], depth + 1),
         ]);
-      return flatten((apiModulesQ.data?.items ?? []) as { id: string; name: string; children: unknown[] }[]);
+      return flatten(
+        (apiModulesQ.data?.items ?? []) as { id: string; name: string; children: unknown[] }[],
+      );
     })();
 
     const tabItems = [
@@ -465,7 +520,9 @@ function EnvironmentsView() {
                   onChange={(e) =>
                     setConfig((c) => ({
                       ...c,
-                      vars: c.vars.map((x, idx) => (idx === i ? { ...x, enabled: e.target.checked } : x)),
+                      vars: c.vars.map((x, idx) =>
+                        idx === i ? { ...x, enabled: e.target.checked } : x,
+                      ),
                     }))
                   }
                 />
@@ -487,7 +544,9 @@ function EnvironmentsView() {
                   onChange={(e) =>
                     setConfig((c) => ({
                       ...c,
-                      vars: c.vars.map((x, idx) => (idx === i ? { ...x, value: e.target.value } : x)),
+                      vars: c.vars.map((x, idx) =>
+                        idx === i ? { ...x, value: e.target.value } : x,
+                      ),
                     }))
                   }
                 />
@@ -495,7 +554,9 @@ function EnvironmentsView() {
                   type="text"
                   className="text-gray-400"
                   aria-label={`remove-var-${i + 1}`}
-                  onClick={() => setConfig((c) => ({ ...c, vars: c.vars.filter((_, idx) => idx !== i) }))}
+                  onClick={() =>
+                    setConfig((c) => ({ ...c, vars: c.vars.filter((_, idx) => idx !== i) }))
+                  }
                 >
                   ✕
                 </Button>
@@ -506,7 +567,10 @@ function EnvironmentsView() {
               className="!px-0"
               data-testid="btn-add-var"
               onClick={() =>
-                setConfig((c) => ({ ...c, vars: [...c.vars, { key: "", value: "", enabled: true }] }))
+                setConfig((c) => ({
+                  ...c,
+                  vars: [...c.vars, { key: "", value: "", enabled: true }],
+                }))
               }
             >
               ＋ 添加
@@ -530,7 +594,11 @@ function EnvironmentsView() {
                   http: c.http.map((x, idx) => (idx === i ? { ...x, ...p } : x)),
                 }));
               return (
-                <div key={h.id ?? i} className="border border-[#ECEEF1] rounded-md p-2.5 space-y-1.5" data-testid="env-http-card">
+                <div
+                  key={h.id ?? i}
+                  className="border border-[#ECEEF1] rounded-md p-2.5 space-y-1.5"
+                  data-testid="env-http-card"
+                >
                   <div className="flex gap-2 items-center flex-wrap">
                     <Input
                       className="w-32"
@@ -570,7 +638,9 @@ function EnvironmentsView() {
                       type="text"
                       className="text-gray-400 ml-auto"
                       aria-label={`remove-http-${i + 1}`}
-                      onClick={() => setConfig((c) => ({ ...c, http: c.http.filter((_, idx) => idx !== i) }))}
+                      onClick={() =>
+                        setConfig((c) => ({ ...c, http: c.http.filter((_, idx) => idx !== i) }))
+                      }
                     >
                       ✕
                     </Button>
@@ -581,20 +651,34 @@ function EnvironmentsView() {
                       className="w-40"
                       allowClear
                       placeholder="无（默认兜底）"
-                      value={h.conditions.moduleId ? `mod:${h.conditions.moduleId}` : h.conditions.pathPrefix ? "path" : undefined}
+                      value={
+                        h.conditions.moduleId
+                          ? `mod:${h.conditions.moduleId}`
+                          : h.conditions.pathPrefix
+                            ? "path"
+                            : undefined
+                      }
                       options={[
-                        ...moduleOptions.map((m) => ({ value: `mod:${m.value}`, label: `模块：${m.label}` })),
+                        ...moduleOptions.map((m) => ({
+                          value: `mod:${m.value}`,
+                          label: `模块：${m.label}`,
+                        })),
                         { value: "path", label: "路径前缀" },
                       ]}
                       onChange={(v) => {
                         if (!v) return patchHttp({ conditions: {} });
-                        if (v === "path") return patchHttp({ conditions: { pathPrefix: h.conditions.pathPrefix ?? "/" } });
+                        if (v === "path")
+                          return patchHttp({
+                            conditions: { pathPrefix: h.conditions.pathPrefix ?? "/" },
+                          });
                         patchHttp({ conditions: { moduleId: v.slice(4) } });
                       }}
                     />
                     {h.conditions.moduleId ? (
                       <span className="text-xs rounded bg-[#574BFF]/10 text-[#574BFF] px-1.5 py-0.5">
-                        条件：模块 {moduleOptions.find((m) => m.value === h.conditions.moduleId)?.label ?? h.conditions.moduleId}
+                        条件：模块{" "}
+                        {moduleOptions.find((m) => m.value === h.conditions.moduleId)?.label ??
+                          h.conditions.moduleId}
                       </span>
                     ) : h.conditions.pathPrefix !== undefined ? (
                       <Input
@@ -604,7 +688,9 @@ function EnvironmentsView() {
                         onChange={(e) => patchHttp({ conditions: { pathPrefix: e.target.value } })}
                       />
                     ) : (
-                      <span className="text-xs rounded bg-[#F2F3F5] text-[#646A73] px-1.5 py-0.5">无条件 · 默认兜底</span>
+                      <span className="text-xs rounded bg-[#F2F3F5] text-[#646A73] px-1.5 py-0.5">
+                        无条件 · 默认兜底
+                      </span>
                     )}
                   </div>
                 </div>
@@ -619,14 +705,24 @@ function EnvironmentsView() {
                   ...c,
                   http: [
                     ...c.http,
-                    { id: uid(), name: "", protocol: "http", hostname: "", port: 80, pathPrefix: "", conditions: {} },
+                    {
+                      id: uid(),
+                      name: "",
+                      protocol: "http",
+                      hostname: "",
+                      port: 80,
+                      pathPrefix: "",
+                      conditions: {},
+                    },
                   ],
                 }))
               }
             >
               ＋ 添加域名
             </Button>
-            <p className="text-xs text-[#A8ABB0]">相对路径匹配优先级：路径条件 &gt; 模块条件 &gt; 默认（无条件）</p>
+            <p className="text-xs text-[#A8ABB0]">
+              相对路径匹配优先级：路径条件 &gt; 模块条件 &gt; 默认（无条件）
+            </p>
           </div>
         ),
       },
@@ -645,7 +741,9 @@ function EnvironmentsView() {
                   onChange={(e) =>
                     setConfig((c) => ({
                       ...c,
-                      hosts: c.hosts.map((x, idx) => (idx === i ? { ...x, host: e.target.value } : x)),
+                      hosts: c.hosts.map((x, idx) =>
+                        idx === i ? { ...x, host: e.target.value } : x,
+                      ),
                     }))
                   }
                 />
@@ -657,7 +755,9 @@ function EnvironmentsView() {
                   onChange={(e) =>
                     setConfig((c) => ({
                       ...c,
-                      hosts: c.hosts.map((x, idx) => (idx === i ? { ...x, address: e.target.value } : x)),
+                      hosts: c.hosts.map((x, idx) =>
+                        idx === i ? { ...x, address: e.target.value } : x,
+                      ),
                     }))
                   }
                 />
@@ -665,7 +765,9 @@ function EnvironmentsView() {
                   type="text"
                   className="text-gray-400"
                   aria-label={`remove-host-${i + 1}`}
-                  onClick={() => setConfig((c) => ({ ...c, hosts: c.hosts.filter((_, idx) => idx !== i) }))}
+                  onClick={() =>
+                    setConfig((c) => ({ ...c, hosts: c.hosts.filter((_, idx) => idx !== i) }))
+                  }
                 >
                   ✕
                 </Button>
@@ -675,7 +777,9 @@ function EnvironmentsView() {
               type="link"
               className="!px-0"
               data-testid="btn-add-host"
-              onClick={() => setConfig((c) => ({ ...c, hosts: [...c.hosts, { host: "", address: "" }] }))}
+              onClick={() =>
+                setConfig((c) => ({ ...c, hosts: [...c.hosts, { host: "", address: "" }] }))
+              }
             >
               ＋ 添加
             </Button>
@@ -697,7 +801,11 @@ function EnvironmentsView() {
                 }));
               const test = dbTest[d.id];
               return (
-                <div key={d.id ?? i} className="border border-[#ECEEF1] rounded-md p-2.5" data-testid="env-db-card">
+                <div
+                  key={d.id ?? i}
+                  className="border border-[#ECEEF1] rounded-md p-2.5"
+                  data-testid="env-db-card"
+                >
                   <div className="flex gap-2 items-center flex-wrap">
                     <Input
                       className="w-32"
@@ -714,7 +822,12 @@ function EnvironmentsView() {
                       value={d.url}
                       onChange={(e) => patchDb({ url: e.target.value })}
                     />
-                    <Button size="small" loading={testDb.isPending} onClick={() => d.url && testDb.mutate(d.url)} data-testid={`btn-db-test-${i + 1}`}>
+                    <Button
+                      size="small"
+                      loading={testDb.isPending}
+                      onClick={() => d.url && testDb.mutate(d.url)}
+                      data-testid={`btn-db-test-${i + 1}`}
+                    >
                       连接测试
                     </Button>
                     <Button
@@ -722,15 +835,22 @@ function EnvironmentsView() {
                       className="text-gray-400"
                       aria-label={`remove-db-${i + 1}`}
                       onClick={() =>
-                        setConfig((c) => ({ ...c, database: c.database.filter((_, idx) => idx !== i) }))
+                        setConfig((c) => ({
+                          ...c,
+                          database: c.database.filter((_, idx) => idx !== i),
+                        }))
                       }
                     >
                       ✕
                     </Button>
                   </div>
                   {test && (
-                    <p className={`text-xs mt-1.5 ${test.ok ? "text-[#52C41A]" : "text-[#FF4D4F]"}`} data-testid={`db-test-result-${i + 1}`}>
-                      {test.ok ? "✓" : "✕"} {test.ok ? "连接成功" : "连接失败"} · {test.message}（仅测试连通性，不落库）
+                    <p
+                      className={`text-xs mt-1.5 ${test.ok ? "text-[#52C41A]" : "text-[#FF4D4F]"}`}
+                      data-testid={`db-test-result-${i + 1}`}
+                    >
+                      {test.ok ? "✓" : "✕"} {test.ok ? "连接成功" : "连接失败"} · {test.message}
+                      （仅测试连通性，不落库）
                     </p>
                   )}
                 </div>
@@ -773,11 +893,19 @@ function EnvironmentsView() {
             />
             <div className="space-y-2">
               <p className="text-[13px] text-[#646A73]">全局断言（{config.asserts.length}）</p>
-              <AssertRows list={config.asserts} onChange={(asserts) => setConfig((c) => ({ ...c, asserts }))} />
+              <AssertRows
+                list={config.asserts}
+                onChange={(asserts) => setConfig((c) => ({ ...c, asserts }))}
+              />
             </div>
             <div className="space-y-2">
-              <p className="text-[13px] text-[#646A73]">全局提取（{config.extracts.length}，写回变量供后续请求消费）</p>
-              <ExtractRows list={config.extracts} onChange={(extracts) => setConfig((c) => ({ ...c, extracts }))} />
+              <p className="text-[13px] text-[#646A73]">
+                全局提取（{config.extracts.length}，写回变量供后续请求消费）
+              </p>
+              <ExtractRows
+                list={config.extracts}
+                onChange={(extracts) => setConfig((c) => ({ ...c, extracts }))}
+              />
             </div>
           </div>
         ),
@@ -787,7 +915,12 @@ function EnvironmentsView() {
     return (
       <div>
         <div className="flex items-center gap-2 text-[13px] mb-3">
-          <Button type="link" className="!px-0" icon={<ArrowLeft size={14} />} onClick={() => setEditing(null)}>
+          <Button
+            type="link"
+            className="!px-0"
+            icon={<ArrowLeft size={14} />}
+            onClick={() => setEditing(null)}
+          >
             返回列表
           </Button>
           <span className="text-[#A8ABB0]">/</span>
@@ -822,7 +955,8 @@ function EnvironmentsView() {
               />
             </div>
             <p className="text-xs text-[#A8ABB0] leading-5">
-              环境在任务下发时解析为快照注入执行命令（engine 不读环境定义）；调试 / 用例执行处经环境选择器消费。
+              环境在任务下发时解析为快照注入执行命令（engine 不读环境定义）；调试 /
+              用例执行处经环境选择器消费。
             </p>
           </div>
           <div className="flex-1 min-w-0 rabbit-card">
@@ -854,7 +988,11 @@ function EnvironmentsView() {
               </Button>
             )}
             {canCreate && (
-              <Button icon={<Import size={14} />} onClick={() => setImportOpen(true)} data-testid="btn-import-env">
+              <Button
+                icon={<Import size={14} />}
+                onClick={() => setImportOpen(true)}
+                data-testid="btn-import-env"
+              >
                 导入
               </Button>
             )}
@@ -894,8 +1032,18 @@ function EnvironmentsView() {
                 </a>
               ),
             },
-            { title: "变量数", dataIndex: "config", width: 80, render: (c: EnvironmentRow["config"]) => c.vars.length },
-            { title: "域名数", dataIndex: "config", width: 80, render: (c: EnvironmentRow["config"]) => c.http.length },
+            {
+              title: "变量数",
+              dataIndex: "config",
+              width: 80,
+              render: (c: EnvironmentRow["config"]) => c.vars.length,
+            },
+            {
+              title: "域名数",
+              dataIndex: "config",
+              width: 80,
+              render: (c: EnvironmentRow["config"]) => c.http.length,
+            },
             {
               title: "更新时间",
               dataIndex: "updatedAt",
@@ -912,11 +1060,21 @@ function EnvironmentsView() {
                     编辑
                   </Button>
                   {canCreate && (
-                    <Button type="link" size="small" className="!px-0" onClick={() => copyEnv.mutate(row.id)}>
+                    <Button
+                      type="link"
+                      size="small"
+                      className="!px-0"
+                      onClick={() => copyEnv.mutate(row.id)}
+                    >
                       复制
                     </Button>
                   )}
-                  <Button type="link" size="small" className="!px-0" onClick={() => void exportEnv(row)}>
+                  <Button
+                    type="link"
+                    size="small"
+                    className="!px-0"
+                    onClick={() => void exportEnv(row)}
+                  >
                     导出
                   </Button>
                   {canDelete && (
@@ -952,22 +1110,31 @@ function EnvironmentsView() {
       >
         <div className="space-y-3 pt-1">
           <div>
-            <p className="text-[13px] text-[#646A73] mb-1">粘贴环境 JSON（数组，单次 ≤ 50 个环境）</p>
+            <p className="text-[13px] text-[#646A73] mb-1">
+              粘贴环境 JSON（数组，单次 ≤ 50 个环境）
+            </p>
             <Input.TextArea
               rows={7}
               className="font-mono text-xs"
-              placeholder={'[\n  { "name": "测试环境", "config": { "vars": [...], "http": [...], "hosts": [...] } }\n]'}
+              placeholder={
+                '[\n  { "name": "测试环境", "config": { "vars": [...], "http": [...], "hosts": [...] } }\n]'
+              }
               value={importText}
               onChange={(e) => setImportText(e.target.value)}
               data-testid="import-env-textarea"
             />
           </div>
           <span className="flex items-start gap-2">
-            <Switch checked={importOverwrite} onChange={setImportOverwrite} data-testid="import-env-overwrite" />
+            <Switch
+              checked={importOverwrite}
+              onChange={setImportOverwrite}
+              data-testid="import-env-overwrite"
+            />
             <span className="text-[13px]">
               同名环境覆盖
               <span className="block text-xs text-[#A8ABB0]">
-                开启：同名环境被覆盖且 version 重置为 1 · 关闭：同名跳过并计入校验报告；导入不产生「部分成功」（全合法才落库）
+                开启：同名环境被覆盖且 version 重置为 1 ·
+                关闭：同名跳过并计入校验报告；导入不产生「部分成功」（全合法才落库）
               </span>
             </span>
           </span>

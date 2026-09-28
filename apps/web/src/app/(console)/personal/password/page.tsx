@@ -25,10 +25,18 @@ export default function PersonalPasswordPage() {
   return (
     <div className="rabbit-card p-4 max-w-md" data-testid="page-personal-password">
       <Form form={form} layout="vertical" onFinish={(v) => change.mutate(v)}>
-        <Form.Item name="oldPassword" label="当前密码" rules={[{ required: true, message: "必填" }]}>
+        <Form.Item
+          name="oldPassword"
+          label="当前密码"
+          rules={[{ required: true, message: "必填" }]}
+        >
           <Input.Password data-testid="password-old-input" />
         </Form.Item>
-        <Form.Item name="newPassword" label="新密码" rules={[{ required: true }, { min: 8, message: "至少 8 位" }]}>
+        <Form.Item
+          name="newPassword"
+          label="新密码"
+          rules={[{ required: true }, { min: 8, message: "至少 8 位" }]}
+        >
           <Input.Password data-testid="password-new-input" />
         </Form.Item>
         <Form.Item
@@ -39,14 +47,29 @@ export default function PersonalPasswordPage() {
             { required: true, message: "必填" },
             ({ getFieldValue }) => ({
               validator: (_, v) =>
-                !v || v === getFieldValue("newPassword") ? Promise.resolve() : Promise.reject(new Error("两次输入不一致")),
+                !v || v === getFieldValue("newPassword")
+                  ? Promise.resolve()
+                  : Promise.reject(new Error("两次输入不一致")),
             }),
           ]}
         >
           <Input.Password data-testid="password-confirm-input" />
         </Form.Item>
-        {err && <Alert type="error" showIcon message={err} className="mb-3" data-testid="password-error" />}
-        <Button type="primary" htmlType="submit" loading={change.isPending} data-testid="password-submit">
+        {err && (
+          <Alert
+            type="error"
+            showIcon
+            message={err}
+            className="mb-3"
+            data-testid="password-error"
+          />
+        )}
+        <Button
+          type="primary"
+          htmlType="submit"
+          loading={change.isPending}
+          data-testid="password-submit"
+        >
           修改密码
         </Button>
       </Form>

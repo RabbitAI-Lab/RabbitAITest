@@ -51,7 +51,14 @@ test("INTG-001-T2 集成配置→测试连接→推送缺陷（platformKey 回�
   // 项目关联 + 组织集成
   await setupJiraIntegration(request, orgId);
   const cfg = await request.put(`/api/v1/projects/${projectId}/integration`, {
-    data: { platform: "jira", projectKey: "RABBIT", bugTypes: [], statusMapping: [], mode: "INCREMENT", enabled: true },
+    data: {
+      platform: "jira",
+      projectKey: "RABBIT",
+      bugTypes: [],
+      statusMapping: [],
+      mode: "INCREMENT",
+      enabled: true,
+    },
   });
   expect(cfg.status()).toBe(200);
 
@@ -97,7 +104,14 @@ test("INTG-001-T3 拉取回写两态：平台 done → 本地已解决", async (
   const orgId = ((await info.json()) as { data: { org: { id: string } } }).data.org.id;
   await setupJiraIntegration(request, orgId);
   await request.put(`/api/v1/projects/${projectId}/integration`, {
-    data: { platform: "jira", projectKey: "RABBIT", bugTypes: [], statusMapping: [], mode: "INCREMENT", enabled: true },
+    data: {
+      platform: "jira",
+      projectKey: "RABBIT",
+      bugTypes: [],
+      statusMapping: [],
+      mode: "INCREMENT",
+      enabled: true,
+    },
   });
 
   // 建+推送缺陷
@@ -125,14 +139,18 @@ test("INTG-001-T3 拉取回写两态：平台 done → 本地已解决", async (
   expect(db.data.platform).toBe("jira");
 });
 
-test("INTG-001-T4 断链保护：未配置平台的项目关联 → 422 70012", async ({
-  request,
-  authedPage,
-}) => {
+test("INTG-001-T4 断链保护：未配置平台的项目关联 → 422 70012", async ({ request, authedPage }) => {
   const { projectId } = authedPage;
   // tapd 组织未配置 → 项目关联被拒
   const res = await request.put(`/api/v1/projects/${projectId}/integration`, {
-    data: { platform: "tapd", projectKey: "123", bugTypes: [], statusMapping: [], mode: "INCREMENT", enabled: false },
+    data: {
+      platform: "tapd",
+      projectKey: "123",
+      bugTypes: [],
+      statusMapping: [],
+      mode: "INCREMENT",
+      enabled: false,
+    },
   });
   expect(res.status()).toBe(422);
   const body = (await res.json()) as { code: number; message: string };

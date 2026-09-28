@@ -29,7 +29,9 @@ const ROW_COLUMNS = [
     dataIndex: "refType",
     width: 84,
     render: (v: string) => (
-      <span className={`rounded px-1.5 py-0.5 text-xs ${TYPE_TEXT[v]?.cls ?? "bg-[#F2F3F5] text-[#646A73]"}`}>
+      <span
+        className={`rounded px-1.5 py-0.5 text-xs ${TYPE_TEXT[v]?.cls ?? "bg-[#F2F3F5] text-[#646A73]"}`}
+      >
         {TYPE_TEXT[v]?.label ?? v}
       </span>
     ),
@@ -82,12 +84,17 @@ export default function SharePlanPrintPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-white grid place-items-center p-6" data-testid="share-plan-expired">
+      <div
+        className="min-h-screen bg-white grid place-items-center p-6"
+        data-testid="share-plan-expired"
+      >
         <div className="grid place-items-center gap-2">
           <p className="text-[#C9CDD4] text-2xl font-medium m-0">分享链接不存在或已过期</p>
           <p className="text-[#A8ABB0] text-sm m-0">
             链接可能已被撤销、超过有效期，或从未创建
-            {error instanceof ApiError && error.code ? `（${error.code}）` : "（SHARE_NOT_FOUND 60414）"}
+            {error instanceof ApiError && error.code
+              ? `（${error.code}）`
+              : "（SHARE_NOT_FOUND 60414）"}
           </p>
         </div>
       </div>

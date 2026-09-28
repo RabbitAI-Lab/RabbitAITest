@@ -103,7 +103,12 @@ export async function listCases(projectId: string, apiId: string, query: ListQue
   };
 }
 
-export async function createCase(projectId: string, userId: string, apiId: string, input: UpsertInput) {
+export async function createCase(
+  projectId: string,
+  userId: string,
+  apiId: string,
+  input: UpsertInput,
+) {
   const api = await getApi(projectId, apiId);
   const created = await prisma.$transaction(async (tx) => {
     const num = await nextNum(tx, "api_cases", projectId);
@@ -126,7 +131,12 @@ export async function createCase(projectId: string, userId: string, apiId: strin
   return serialize(created);
 }
 
-export async function updateCase(projectId: string, id: string, userId: string, input: UpsertInput & { version: number }) {
+export async function updateCase(
+  projectId: string,
+  id: string,
+  userId: string,
+  input: UpsertInput & { version: number },
+) {
   const c = await getCase(projectId, id);
   if (input.version !== c.version)
     throw new DomainError(ErrCode.VERSION_CONFLICT, "内容已被他人修改，请刷新后重试");
@@ -168,7 +178,12 @@ export async function syncCase(projectId: string, id: string) {
 /** 分区级 diff 摘要（参数/认证/请求体/前后置/断言/提取——API-003 §1.2 简化口径）。 */
 export function diffBundles(a: ApiRequestBundle, b: ApiRequestBundle) {
   const sections: { section: string; different: boolean; detail: string[] }[] = [];
-  const cmp = (name: string, x: unknown, y: unknown, fmt: (v: unknown) => string = (v) => JSON.stringify(v)) => {
+  const cmp = (
+    name: string,
+    x: unknown,
+    y: unknown,
+    fmt: (v: unknown) => string = (v) => JSON.stringify(v),
+  ) => {
     const ax = JSON.stringify(x);
     const ay = JSON.stringify(y);
     if (ax !== ay) sections.push({ section: name, different: true, detail: [fmt(x), fmt(y)] });

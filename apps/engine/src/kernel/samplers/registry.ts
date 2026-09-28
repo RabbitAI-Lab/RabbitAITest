@@ -77,7 +77,9 @@ export async function syncOnce(): Promise<void> {
       reg.set(info.protocol, { plugin: factory(), version: info.version });
     } catch (err) {
       // 加载失败：注册表不变更（保持旧版本可用），结构化日志
-      console.error(`[samplers] 协议插件加载失败 ${info.protocol}@${info.version}: ${err instanceof Error ? err.message : err}`);
+      console.error(
+        `[samplers] 协议插件加载失败 ${info.protocol}@${info.version}: ${err instanceof Error ? err.message : err}`,
+      );
     }
   }
 }

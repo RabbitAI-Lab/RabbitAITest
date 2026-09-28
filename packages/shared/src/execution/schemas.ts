@@ -62,10 +62,25 @@ export const requestBodySchema = z.discriminatedUnion("kind", [
   }),
   z.object({
     kind: z.literal("raw_json"),
-    content: z.string().max(256 * 1024).default(""),
+    content: z
+      .string()
+      .max(256 * 1024)
+      .default(""),
   }),
-  z.object({ kind: z.literal("raw_xml"), content: z.string().max(256 * 1024).default("") }),
-  z.object({ kind: z.literal("raw_text"), content: z.string().max(256 * 1024).default("") }),
+  z.object({
+    kind: z.literal("raw_xml"),
+    content: z
+      .string()
+      .max(256 * 1024)
+      .default(""),
+  }),
+  z.object({
+    kind: z.literal("raw_text"),
+    content: z
+      .string()
+      .max(256 * 1024)
+      .default(""),
+  }),
   z.object({ kind: z.literal("binary"), fileId: z.string().uuid() }),
 ]);
 export type RequestBody = z.infer<typeof requestBodySchema>;
@@ -122,7 +137,10 @@ export const processorSchema = z.discriminatedUnion("kind", [
   }),
   z.object({
     kind: z.literal("sql"),
-    sql: z.string().min(1).max(16 * 1024),
+    sql: z
+      .string()
+      .min(1)
+      .max(16 * 1024),
     datasourceId: z.string().min(1).max(128),
     /** 首行结果列 → 变量名映射（{colName: varName}），仅前置/后置 SQL 提取用 */
     varMapping: z.record(z.string().min(1).max(128), z.string().min(1).max(128)).default({}),
@@ -214,7 +232,10 @@ export type EnvSnapshot = z.infer<typeof envSnapshotSchema>;
 /** CSV 表（web 解析后内嵌 command；columns=列名，rows=行数组）。 */
 export const csvTableSchema = z.object({
   columns: z.array(z.string().min(1).max(128)).max(200).default([]),
-  rows: z.array(z.array(z.string().max(8192)).max(200)).max(10000).default([]),
+  rows: z
+    .array(z.array(z.string().max(8192)).max(200))
+    .max(10000)
+    .default([]),
 });
 export type CsvTable = z.infer<typeof csvTableSchema>;
 
@@ -231,7 +252,12 @@ export const scenarioParamsSchema = z.object({
     .max(200)
     .default([]),
   lists: z
-    .array(z.object({ name: z.string().min(1).max(128), values: z.array(z.string().max(8192)).max(1000).default([]) }))
+    .array(
+      z.object({
+        name: z.string().min(1).max(128),
+        values: z.array(z.string().max(8192)).max(1000).default([]),
+      }),
+    )
     .max(50)
     .default([]),
   /** 命令形态：web 已按 delimiter/hasHeader 解析的表（存储形态见 web 侧 scenarioSaveSchema） */
@@ -289,7 +315,12 @@ export const loopConfigSchema = z.discriminatedUnion("mode", [
     source: z.string().min(1).max(128),
     /** web 预展开迭代序列：列表=仅 value；CSV 列=value+row 整行（row 注入为 `var` 与 `row.列名` 键） */
     iterations: z
-      .array(z.object({ value: z.string().max(8192).default(""), row: z.record(z.string().min(1).max(128), z.string().max(8192)).default({}) }))
+      .array(
+        z.object({
+          value: z.string().max(8192).default(""),
+          row: z.record(z.string().min(1).max(128), z.string().max(8192)).default({}),
+        }),
+      )
       .max(10000)
       .default([]),
   }),
@@ -297,21 +328,41 @@ export const loopConfigSchema = z.discriminatedUnion("mode", [
 export type LoopConfig = z.infer<typeof loopConfigSchema>;
 
 /** 场景步骤树节点（web 下发原样树；engine flatten+递归执行）。 */
-export const scenarioStepNodeSchema: z.ZodType<ScenarioStepNode, z.ZodTypeDef, unknown> = z.lazy(() =>
-  z.object({
-    uid: z.string().min(1).max(64),
-    stepType: z.enum(["ref_api", "ref_case", "ref_scenario", "custom", "loop", "condition", "once", "script", "wait"]),
-    name: z.string().min(1).max(256),
-    enabled: z.boolean().default(true),
-    config: z.record(z.string(), z.unknown()).default({}),
-    /** loop: LoopConfig / condition: {expression} / script: {script} / wait: {ms}
-     *  custom: {bundle: StepBundle} / ref_*: {bundle(已解析), override?, refMeta?{refMode,refName}} */
-    children: z.array(scenarioStepNodeSchema).max(200).default([]),
-  }),
+export const scenarioStepNodeSchema: z.ZodType<ScenarioStepNode, z.ZodTypeDef, unknown> = z.lazy(
+  () =>
+    z.object({
+      uid: z.string().min(1).max(64),
+      stepType: z.enum([
+        "ref_api",
+        "ref_case",
+        "ref_scenario",
+        "custom",
+        "loop",
+        "condition",
+        "once",
+        "script",
+        "wait",
+      ]),
+      name: z.string().min(1).max(256),
+      enabled: z.boolean().default(true),
+      config: z.record(z.string(), z.unknown()).default({}),
+      /** loop: LoopConfig / condition: {expression} / script: {script} / wait: {ms}
+       *  custom: {bundle: StepBundle} / ref_*: {bundle(已解析), override?, refMeta?{refMode,refName}} */
+      children: z.array(scenarioStepNodeSchema).max(200).default([]),
+    }),
 );
 export type ScenarioStepNode = {
   uid: string;
-  stepType: "ref_api" | "ref_case" | "ref_scenario" | "custom" | "loop" | "condition" | "once" | "script" | "wait";
+  stepType:
+    | "ref_api"
+    | "ref_case"
+    | "ref_scenario"
+    | "custom"
+    | "loop"
+    | "condition"
+    | "once"
+    | "script"
+    | "wait";
   name: string;
   enabled: boolean;
   config: Record<string, unknown>;
@@ -574,17 +625,20 @@ export const execCallbackSchema = z.object({
   failureKind: failureKindSchema.optional(),
   message: z.string().max(4000).default(""),
   lastSeq: z.number().int(),
-  varUpdates: z.array(z.object({ name: z.string().max(128), value: z.string().max(8192) })).default([]),
+  varUpdates: z
+    .array(z.object({ name: z.string().max(128), value: z.string().max(8192) }))
+    .default([]),
 });
 export type ExecCallback = z.infer<typeof execCallbackSchema>;
 
-/** 心跳与注册（EXEC-002 v2：slots=总并发，busy=在执数；响应下发 maxConcurrency）。 */
+/** 心跳与注册（EXEC-002 v2：slots=总并发，busy=在执数；响应下发 maxConcurrency；poolId=S9 ENTP-006 引擎绑定池，缺省默认池兼容旧引擎）。 */
 export const heartbeatSchema = z.object({
   nodeId: z.string(),
   version: z.string(),
   slots: z.number().int(),
   busy: z.number().int().default(0),
   ts: z.number(),
+  poolId: z.string().uuid().optional(),
 });
 export type Heartbeat = z.infer<typeof heartbeatSchema>;
 

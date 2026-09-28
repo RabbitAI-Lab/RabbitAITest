@@ -73,11 +73,7 @@ test("SYS-005-01 参数保存与测试连接（管理员）", async ({
 });
 
 /** P-1 回归（coverage-audit §10）：登录横幅配置 → 登出 → 登录页渲染（SYS-005 §1.2 行 1）。 */
-test("SYS-005-02 登录横幅配置并渲染（P-1）", async ({
-  request,
-  context,
-  page,
-}) => {
+test("SYS-005-02 登录横幅配置并渲染（P-1）", async ({ request, context, page }) => {
   await loginSeedAdmin(request, context);
   const banner = `欢迎来到 Rabbit 测试平台 ${Date.now() % 100000}`;
   const put = await request.put("/api/v1/system/params/basic", {

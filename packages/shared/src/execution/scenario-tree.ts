@@ -20,7 +20,9 @@ export const treeNodeSchema: z.ZodType<TreeNode, z.ZodTypeDef, unknown> = z.lazy
     statusCode: z.number().int().optional(),
     failedAsserts: z.number().int().optional(),
     /** 迭代分组（loop 子级）：iteration → children */
-    iterations: z.array(z.object({ iteration: z.number().int(), children: z.array(treeNodeSchema) })).optional(),
+    iterations: z
+      .array(z.object({ iteration: z.number().int(), children: z.array(treeNodeSchema) }))
+      .optional(),
     skipReason: z.enum(["disabled", "condition", "once", "abort"]).optional(),
     children: z.array(treeNodeSchema).default([]),
   }),
@@ -70,7 +72,12 @@ export interface TreeFrameInput {
  * 帧 → 树。stepPath 为数字点路径（"0"、"0.2"、"0.2.1"）；迭代帧（iteration≥1）
  * 归入父 loop 节点的 iterations 分组；同 path 多次出现（循环）聚合为迭代组。
  */
-export function buildScenarioTree(itemId: string, name: string, status: string, frames: TreeFrameInput[]): ScenarioTreeView {
+export function buildScenarioTree(
+  itemId: string,
+  name: string,
+  status: string,
+  frames: TreeFrameInput[],
+): ScenarioTreeView {
   const root: TreeNode[] = [];
   const nodeIndex = new Map<string, TreeNode>();
   /** 帧直接命中的 path（用于剥离 engine 根前缀产生的「无帧包装层」，如 "0"） */
@@ -83,7 +90,13 @@ export function buildScenarioTree(itemId: string, name: string, status: string, 
     if (existing) return existing;
     const segments = path.split(".");
     const parentPath = segments.slice(0, -1).join(".");
-    const node: TreeNode = { stepPath: path, name: fallbackName, kind: "request", status: "SUCCESS", children: [] };
+    const node: TreeNode = {
+      stepPath: path,
+      name: fallbackName,
+      kind: "request",
+      status: "SUCCESS",
+      children: [],
+    };
     nodeIndex.set(path, node);
     if (!parentPath) {
       root.push(node);
@@ -116,10 +129,14 @@ export function buildScenarioTree(itemId: string, name: string, status: string, 
       const node = ensureNode(frame.stepPath, frame.stepName || frame.name || "步骤");
       node.status = "SKIPPED";
       node.skipReason =
-        frame.reason === "disabled" || frame.reason === "condition" || frame.reason === "once" || frame.reason === "abort"
+        frame.reason === "disabled" ||
+        frame.reason === "condition" ||
+        frame.reason === "once" ||
+        frame.reason === "abort"
           ? frame.reason
           : undefined;
-      node.kind = frame.reason === "once" ? "once" : frame.reason === "condition" ? "condition" : "request";
+      node.kind =
+        frame.reason === "once" ? "once" : frame.reason === "condition" ? "condition" : "request";
       stats.skipped++;
       continue;
     }
@@ -140,7 +157,8 @@ export function buildScenarioTree(itemId: string, name: string, status: string, 
     if (frame.type === "step-result") {
       const node = ensureNode(frame.stepPath, frame.stepName || `步骤 ${frame.stepPath}`);
       const httpStatus = typeof frame.status === "number" ? frame.status : 0;
-      const ok = httpStatus >= 200 && httpStatus < 400 && !(frame.asserts ?? []).some((a) => !a.passed);
+      const ok =
+        httpStatus >= 200 && httpStatus < 400 && !(frame.asserts ?? []).some((a) => !a.passed);
       node.status = ok ? "SUCCESS" : "FAILED";
       node.statusCode = httpStatus;
       node.durationMs = frame.durationMs;
@@ -175,7 +193,11 @@ export function buildScenarioTree(itemId: string, name: string, status: string, 
   // 且从未被帧数据充实（无状态码/耗时/迭代分组——纯父容器）→ 提升其 children。
   // 注：同 path 多次出现的「迭代组聚合」形态（iterations 挂包装层）不算纯包装，保留。
   const isPureWrapper = (n: TreeNode) =>
-    !directPaths.has(n.stepPath) && n.kind === "request" && n.statusCode === undefined && n.durationMs === undefined && !n.iterations;
+    !directPaths.has(n.stepPath) &&
+    n.kind === "request" &&
+    n.statusCode === undefined &&
+    n.durationMs === undefined &&
+    !n.iterations;
   while (tree.length === 1 && isPureWrapper(tree[0]!)) {
     tree = tree[0]!.children;
   }

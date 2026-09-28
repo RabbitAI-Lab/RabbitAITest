@@ -119,7 +119,10 @@ export default function ReportListPage() {
                 <span className="text-3xl">📄</span>
                 <p className="m-0">暂无报告</p>
                 <p className="m-0 text-xs">
-                  在<a className="text-[#574BFF]" href="/debug">接口调试</a>
+                  在
+                  <a className="text-[#574BFF]" href="/debug">
+                    接口调试
+                  </a>
                   发起调试，或在接口定义 CASE 批量执行后自动生成
                 </p>
               </div>
@@ -153,9 +156,7 @@ export default function ReportListPage() {
                   >
                     {v}
                   </a>
-                  <span className="text-[#A8ABB0] text-xs shrink-0">
-                    #{row.taskId.slice(0, 8)}
-                  </span>
+                  <span className="text-[#A8ABB0] text-xs shrink-0">#{row.taskId.slice(0, 8)}</span>
                 </span>
               ),
             },
@@ -177,11 +178,7 @@ export default function ReportListPage() {
               width: 90,
               render: (v: string) => {
                 const meta = STATUS_META[v] ?? { label: v, color: "#87888D" };
-                return (
-                  <span style={{ color: meta.color }}>
-                    ● {meta.label}
-                  </span>
-                );
+                return <span style={{ color: meta.color }}>● {meta.label}</span>;
               },
             },
             {

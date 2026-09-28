@@ -1,6 +1,7 @@
 import { hash, verify } from "@node-rs/argon2";
 import { DomainError, ErrCode } from "@rabbit/shared";
 import { prisma, initOrgAndProjectPresets } from "@rabbit/db";
+import { effectiveUserLimit } from "@/server/domains/entp/license.service";
 
 const ARGON_OPTS = { memoryCost: 19456, timeCost: 2, parallelism: 1 } as const;
 
@@ -11,6 +12,14 @@ export function hashPassword(password: string): Promise<string> {
 export async function registerUser(email: string, password: string, userId?: string) {
   const exist = await prisma.user.findFirst({ where: { email }, select: { id: true } });
   if (exist) throw new DomainError(ErrCode.EMAIL_EXISTS, "该邮箱已注册");
+  // ENTP-008：自助注册与管理员创建共用上限判定（社区 30 / License 放开 maxUsers 可封顶）
+  const limit = await effectiveUserLimit();
+  const active = await prisma.user.count({ where: { deletedAt: null } });
+  if (active >= limit)
+    throw new DomainError(
+      ErrCode.USER_TOO_MANY,
+      Number.isFinite(limit) ? `用户上限 ${limit}` : "用户超限",
+    );
   const emailName = email.split("@")[0] ?? "用户";
   // SYS-003：注册事务 = 用户 + 默认组织 + 演示项目 + OWNER 成员 + 两 scene 默认模块树
   return prisma.$transaction(async (tx) => {

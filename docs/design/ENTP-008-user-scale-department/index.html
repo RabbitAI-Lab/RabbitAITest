@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="utf-8" />
+    <title>ENTP-008 用户扩容与部门管理（上限提示 · 组织部门树）</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-slate-50 text-slate-800 text-sm">
+    <header class="h-12 bg-white border-b flex items-center px-4 gap-3">
+      <span class="font-semibold">RabbitAITest</span
+      ><span class="border rounded px-2 py-0.5">组织 → 部门管理 /org/departments</span>
+      <span class="ml-auto text-slate-400 text-xs">帮助</span
+      ><span class="text-slate-500">admin</span>
+    </header>
+    <main class="p-4 space-y-4 max-w-[1200px]">
+      <!-- 画板一：部门管理页 -->
+      <section class="bg-white border rounded-md">
+        <div class="px-3 py-2 border-b bg-slate-50 font-medium">
+          画板一 · 组织 → 部门管理 /org/departments（左部门树 · 右成员表 + 添加成员弹窗）
+        </div>
+        <div class="flex">
+          <div class="w-64 border-r p-3 text-[13px]">
+            <div class="flex items-center gap-2 mb-2">
+              <p class="font-medium">部门树</p>
+              <span class="text-[10px] text-slate-400">当前组织：电商事业部</span>
+            </div>
+            <div class="text-xs space-y-0.5">
+              <div class="rounded px-2 py-1.5 font-medium flex items-center gap-1">
+                🏢 电商事业部 <button class="ml-auto text-[#574BFF] text-[10px]">＋子部门</button>
+              </div>
+              <div class="rounded px-2 py-1.5 hover:bg-slate-50 ml-3 flex items-center gap-1">
+                📂 质量部
+                <span class="ml-auto flex gap-1.5 text-[10px]"
+                  ><a class="text-[#574BFF]">＋</a><a class="text-[#574BFF]">✎</a
+                  ><a class="text-red-400">✕</a></span
+                >
+              </div>
+              <div
+                class="rounded px-2 py-1.5 bg-[#574BFF]/10 text-[#574BFF] ml-6 flex items-center gap-1"
+              >
+                📄 测试一组（6 人）<span class="ml-auto flex gap-1.5 text-[10px]"
+                  ><a>✎</a><a class="text-red-400">✕</a></span
+                >
+              </div>
+              <div class="rounded px-2 py-1.5 hover:bg-slate-50 ml-6 flex items-center gap-1">
+                📄 测试二组（4 人）<span class="ml-auto flex gap-1.5 text-[10px]"
+                  ><a class="text-[#574BFF]">✎</a><a class="text-red-400">✕</a></span
+                >
+              </div>
+              <div class="rounded px-2 py-1.5 hover:bg-slate-50 ml-3 flex items-center gap-1">
+                📂 研发部
+                <span class="ml-auto flex gap-1.5 text-[10px]"
+                  ><a class="text-[#574BFF]">＋</a><a class="text-[#574BFF]">✎</a
+                  ><a class="text-red-400">✕</a></span
+                >
+              </div>
+            </div>
+            <p class="mt-3 text-[11px] text-slate-400">
+              层级不限（UI 两级+折叠）；同层重名 409；删除有子部门→409 90043
+            </p>
+            <p
+              class="mt-2 text-[11px] text-amber-600 bg-amber-50 border border-amber-200 rounded px-2 py-1.5"
+            >
+              🔒 社区版：组织菜单无「部门管理」入口（USER_SCALE 特性门控）
+            </p>
+          </div>
+          <div class="flex-1 p-4 text-[13px]">
+            <div class="flex items-center gap-2">
+              <p class="font-medium">测试一组</p>
+              <span class="text-xs text-slate-400">面包屑：电商事业部 / 质量部 / 测试一组</span>
+              <button class="ml-auto bg-[#574BFF] text-white rounded-md px-3 py-1.5 text-xs">
+                ＋ 添加成员
+              </button>
+            </div>
+            <table class="w-full text-[13px] mt-2">
+              <thead class="text-slate-500 text-xs bg-slate-50">
+                <tr class="text-left">
+                  <th class="px-3 py-2">姓名</th>
+                  <th>邮箱</th>
+                  <th>部门</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y">
+                <tr>
+                  <td class="px-3 py-2">张三</td>
+                  <td class="px-3 py-2 text-xs text-slate-500">zhangsan@corp.example</td>
+                  <td class="px-3 py-2 text-xs text-slate-500">质量部 / 测试一组 · 兼 测试二组</td>
+                  <td class="px-3 py-2 text-xs"><a class="text-red-500">移除</a></td>
+                </tr>
+                <tr>
+                  <td class="px-3 py-2">李四</td>
+                  <td class="px-3 py-2 text-xs text-slate-500">lisi@corp.example</td>
+                  <td class="px-3 py-2 text-xs text-slate-500">质量部 / 测试一组</td>
+                  <td class="px-3 py-2 text-xs"><a class="text-red-500">移除</a></td>
+                </tr>
+                <tr>
+                  <td class="px-3 py-2">王五</td>
+                  <td class="px-3 py-2 text-xs text-slate-500">wangwu@corp.example</td>
+                  <td class="px-3 py-2 text-xs text-slate-500">质量部 / 测试一组</td>
+                  <td class="px-3 py-2 text-xs"><a class="text-red-500">移除</a></td>
+                </tr>
+              </tbody>
+            </table>
+            <p class="px-3 py-2 text-xs text-slate-400 border-t">
+              成员可属多部门（多对多）；移除仅解除挂载不动组织成员身份
+            </p>
+            <!-- 添加成员弹窗 -->
+            <div class="border rounded-md p-4 w-[320px] mt-3 space-y-2">
+              <p class="font-medium">添加成员到「测试一组」</p>
+              <input
+                class="border rounded px-2 py-1.5 w-full text-xs"
+                placeholder="搜索本组织成员（仅未挂载本部门）"
+                value="赵"
+              />
+              <div class="space-y-1 text-xs">
+                <label class="flex items-center gap-2 border rounded px-2 py-1.5"
+                  ><input type="checkbox" checked /> 赵六 zhao6@corp.example</label
+                >
+                <label class="flex items-center gap-2 border rounded px-2 py-1.5"
+                  ><input type="checkbox" /> 钱七 qian7@corp.example</label
+                >
+              </div>
+              <p class="text-[11px] text-red-400 hidden">所选用户不在本组织（422 90044）</p>
+              <div class="flex gap-2">
+                <button class="bg-[#574BFF] text-white rounded px-4 py-1.5 text-xs">确定</button
+                ><button class="border rounded px-4 py-1.5 text-xs">取消</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <!-- 画板二：用户管理页上限提示 -->
+      <section class="bg-white border rounded-md">
+        <div class="px-3 py-2 border-b bg-slate-50 font-medium">
+          画板二 · 系统设置 → 用户管理（社区版容量进度条 ⇄ 企业版口径）
+        </div>
+        <div class="grid grid-cols-2 divide-x text-[13px]">
+          <div class="p-4 space-y-3">
+            <p class="text-xs text-slate-400">态① 社区版（27/30）</p>
+            <div class="border rounded-md p-3 space-y-2">
+              <div class="flex items-center gap-2 text-xs">
+                <span class="text-slate-500">用户规模</span>
+                <div class="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                  <div class="h-full bg-[#574BFF] rounded-full" style="width: 90%"></div>
+                </div>
+                <span class="font-medium">27 / 30</span>
+              </div>
+              <p class="text-[11px] text-amber-600">
+                接近社区版上限（30 名用户）—— 达到上限后无法继续创建，企业版授权可扩容
+              </p>
+              <button class="bg-[#574BFF] text-white rounded px-3 py-1.5 text-xs">
+                查看授权管理 →
+              </button>
+            </div>
+            <div
+              class="border border-red-200 bg-red-50 rounded-md p-3 text-xs text-red-600 space-y-1"
+            >
+              <p>达限态：新建用户提交 → 422 「社区版用户上限 30，无法继续创建（10151）」</p>
+              <p class="text-[10px] text-red-400">表单内联红字回显，不弹新页</p>
+            </div>
+          </div>
+          <div class="p-4 space-y-3">
+            <p class="text-xs text-slate-400">态② 企业版（License · maxUsers=1000）</p>
+            <div class="border rounded-md p-3 space-y-2">
+              <div class="flex items-center gap-2 text-xs">
+                <span class="text-slate-500">用户规模</span>
+                <div class="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                  <div class="h-full bg-emerald-500 rounded-full" style="width: 27%"></div>
+                </div>
+                <span class="font-medium"
+                  >27 / 1000 <span class="text-[10px] text-slate-400">（授权上限）</span></span
+                >
+              </div>
+              <p class="text-[11px] text-slate-500">
+                上限随 License maxUsers 声明；未声明=不限（显示「不限」）；License 移除后回落
+                30（存量用户不受影响，仅拦新增）
+              </p>
+            </div>
+            <p class="text-[11px] text-slate-400">
+              注册（自助）与管理员创建共用同一上限判定；批量导入为企业版后续能力（Backlog）
+            </p>
+          </div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

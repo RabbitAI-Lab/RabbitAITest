@@ -6,7 +6,14 @@ import { Download, Plus, TerminalSquare, Upload as UploadIcon } from "lucide-rea
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { ApiError, apiApi, apiCaseApi, moduleApi, type ApiRow, type ModuleNodeDto } from "@rabbit/api-client";
+import {
+  ApiError,
+  apiApi,
+  apiCaseApi,
+  moduleApi,
+  type ApiRow,
+  type ModuleNodeDto,
+} from "@rabbit/api-client";
 import { ApiCaseGenerateDrawer } from "@/components/ai/ApiCaseGenerateDrawer";
 import type { HttpMethod } from "@rabbit/shared";
 import { MethodTag } from "@rabbit/ui";
@@ -66,7 +73,12 @@ export default function ApiListPage() {
   const [page, setPage] = useState(1);
   const [executingId, setExecutingId] = useState<string | null>(null);
   const [aiOpen, setAiOpen] = useState(false);
-  const [aiTarget, setAiTarget] = useState<{ id: string; method: string; path: string; name: string } | null>(null);
+  const [aiTarget, setAiTarget] = useState<{
+    id: string;
+    method: string;
+    path: string;
+    name: string;
+  } | null>(null);
 
   // 模块（新建/导入弹窗的目标模块下拉：树数据展平）
   const modulesQ = useQuery({
@@ -518,7 +530,9 @@ export default function ApiListPage() {
         onCancel={() => setNewOpen(false)}
         okText="创建并编辑"
         cancelText="取消"
-        okButtonProps={{ disabled: !newName.trim() || !newPath.trim() || !(newModule ?? defaultModuleId) }}
+        okButtonProps={{
+          disabled: !newName.trim() || !newPath.trim() || !(newModule ?? defaultModuleId),
+        }}
         confirmLoading={create.isPending}
         onOk={() => create.mutate()}
       >
@@ -583,7 +597,8 @@ export default function ApiListPage() {
         cancelText="取消"
         confirmLoading={doImport.isPending}
         okButtonProps={{
-          disabled: !(importUrl.trim() || importContent.trim()) || !(importModule ?? defaultModuleId),
+          disabled:
+            !(importUrl.trim() || importContent.trim()) || !(importModule ?? defaultModuleId),
         }}
         onOk={() => doImport.mutate()}
         width={620}
@@ -669,7 +684,9 @@ export default function ApiListPage() {
           <div className="space-y-4" data-testid="import-report">
             <div className="grid grid-cols-4 gap-2 text-center py-2">
               <div>
-                <p className="text-2xl font-semibold text-[#52C41A]">{importReport.created.length}</p>
+                <p className="text-2xl font-semibold text-[#52C41A]">
+                  {importReport.created.length}
+                </p>
                 <p className="text-xs text-[#646A73] mt-1">新增</p>
               </div>
               <div>
@@ -679,11 +696,15 @@ export default function ApiListPage() {
                 <p className="text-xs text-[#646A73] mt-1">覆盖</p>
               </div>
               <div>
-                <p className="text-2xl font-semibold text-[#87888D]">{importReport.skipped.length}</p>
+                <p className="text-2xl font-semibold text-[#87888D]">
+                  {importReport.skipped.length}
+                </p>
                 <p className="text-xs text-[#646A73] mt-1">跳过</p>
               </div>
               <div>
-                <p className="text-2xl font-semibold text-[#FF4D4F]">{importReport.failed.length}</p>
+                <p className="text-2xl font-semibold text-[#FF4D4F]">
+                  {importReport.failed.length}
+                </p>
                 <p className="text-xs text-[#646A73] mt-1">失败</p>
               </div>
             </div>
@@ -756,7 +777,9 @@ export default function ApiListPage() {
           <Input.TextArea
             rows={5}
             className="font-mono text-xs"
-            placeholder={"curl -X POST 'https://httpbin.org/post' \\\n  -H 'Content-Type: application/json' \\\n  -d '{\"k\":\"v\"}'"}
+            placeholder={
+              "curl -X POST 'https://httpbin.org/post' \\\n  -H 'Content-Type: application/json' \\\n  -d '{\"k\":\"v\"}'"
+            }
             value={curlText}
             onChange={(e) => setCurlText(e.target.value)}
             data-testid="input-curl-text"
@@ -833,7 +856,9 @@ export default function ApiListPage() {
             try {
               await apiCaseApi.create(projectId!, aiTarget.id, {
                 name: it.name,
-                request: it.request as unknown as Parameters<typeof apiCaseApi.create>[2]["request"],
+                request: it.request as unknown as Parameters<
+                  typeof apiCaseApi.create
+                >[2]["request"],
               });
               ok++;
             } catch (e) {

@@ -8,7 +8,14 @@ import { test, expect, navFromHome } from "./fixtures";
 
 const mockUrl = "http://127.0.0.1:4001/hello";
 const apiSpec = () => ({
-  spec: { method: "GET" as const, url: mockUrl, headers: [], query: [], body: { kind: "none" as const }, auth: { kind: "none" as const } },
+  spec: {
+    method: "GET" as const,
+    url: mockUrl,
+    headers: [],
+    query: [],
+    body: { kind: "none" as const },
+    auth: { kind: "none" as const },
+  },
   asserts: [],
   pre: [],
   post: [],
@@ -27,19 +34,30 @@ test("PLAN-003-01 引擎执行主链路（关联→执行→回写→报告）",
   const planName = `执行计划-${uniq}`;
 
   const modRes = await request.get(`/api/v1/projects/${projectId}/modules?scene=api`);
-  const modId = (((await modRes.json()) as { data: { items: { id: string }[] } }).data.items[0]!).id;
+  const modId = ((await modRes.json()) as { data: { items: { id: string }[] } }).data.items[0]!.id;
   const apiRes = await request.post(`/api/v1/projects/${projectId}/apis`, {
     data: { moduleId: modId, name: `执行接口-${uniq}`, request: apiSpec() },
   });
   expect(apiRes.status()).toBe(201);
   const apiId = ((await apiRes.json()) as { data: { id: string } }).data.id;
   const caseRes = await request.post(`/api/v1/projects/${projectId}/apis/${apiId}/cases`, {
-    data: { name: `必败用例-${uniq}`, level: "P2", status: "UNDERWAY", tags: [], request: { ...apiSpec(), asserts: [{ kind: "status_code", path: "", op: "eq", expected: "500" }] } },
+    data: {
+      name: `必败用例-${uniq}`,
+      level: "P2",
+      status: "UNDERWAY",
+      tags: [],
+      request: {
+        ...apiSpec(),
+        asserts: [{ kind: "status_code", path: "", op: "eq", expected: "500" }],
+      },
+    },
   });
   expect(caseRes.status()).toBe(201);
   const acaseId = ((await caseRes.json()) as { data: { id: string } }).data.id;
 
-  const planRes = await request.post(`/api/v1/projects/${projectId}/plans`, { data: { name: planName } });
+  const planRes = await request.post(`/api/v1/projects/${projectId}/plans`, {
+    data: { name: planName },
+  });
   const planId = ((await planRes.json()) as { data: { id: string } }).data.id;
 
   await navFromHome(page, "测试计划");
@@ -100,9 +118,13 @@ test("PLAN-003-02 脑图执行 S/E/B 标记与列表同步", async ({
     data: { name: caseName, precondition: "", steps: [{ desc: "s1", expect: "e1" }] },
   });
   const caseId = ((await caseRes.json()) as { data: { id: string } }).data.id;
-  const planRes = await request.post(`/api/v1/projects/${projectId}/plans`, { data: { name: `脑图执行计划-${uniq}` } });
+  const planRes = await request.post(`/api/v1/projects/${projectId}/plans`, {
+    data: { name: `脑图执行计划-${uniq}` },
+  });
   const planId = ((await planRes.json()) as { data: { id: string } }).data.id;
-  await request.post(`/api/v1/projects/${projectId}/plans/${planId}/cases`, { data: { caseIds: [caseId] } });
+  await request.post(`/api/v1/projects/${projectId}/plans/${planId}/cases`, {
+    data: { caseIds: [caseId] },
+  });
 
   await navFromHome(page, "测试计划");
   await page.getByRole("link", { name: `脑图执行计划-${uniq}` }).click();

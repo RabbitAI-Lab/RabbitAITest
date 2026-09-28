@@ -48,7 +48,9 @@ const snap = (over: Partial<EnvSnapshot> = {}): EnvSnapshot => ({
 
 describe("render", () => {
   it("变量渲染与未定义变量保留原样", () => {
-    expect(renderString("${base}/pets/${petId}", { base: "http://x", petId: "9" })).toBe("http://x/pets/9");
+    expect(renderString("${base}/pets/${petId}", { base: "http://x", petId: "9" })).toBe(
+      "http://x/pets/9",
+    );
     expect(renderString("${unknown}/x", { base: "http://x" })).toBe("${unknown}/x");
   });
   it("渲染覆盖 url/headers/query/body/auth", () => {
@@ -67,13 +69,22 @@ describe("render", () => {
   });
   it("相对路径拼接与 query 组装（模块域名含端口与前缀）", () => {
     const url = resolveUrl(
-      { ...baseSpec(), url: "/orders", query: [{ key: "a", value: "1", enabled: true }, { key: "b", value: "2", enabled: false }] },
+      {
+        ...baseSpec(),
+        url: "/orders",
+        query: [
+          { key: "a", value: "1", enabled: true },
+          { key: "b", value: "2", enabled: false },
+        ],
+      },
       { vars: {}, env: snap(), moduleId: "m-order" },
     );
     expect(url).toBe("https://order.local:8443/api/orders?a=1");
   });
   it("无环境且相对路径 → 抛配置错误", () => {
-    expect(() => resolveUrl(baseSpec(), { vars: {}, env: undefined, moduleId: undefined })).toThrow(/未选择环境/);
+    expect(() => resolveUrl(baseSpec(), { vars: {}, env: undefined, moduleId: undefined })).toThrow(
+      /未选择环境/,
+    );
   });
   it("HOST 映射表构建", () => {
     expect(hostsMap(snap()).get("default.local")).toBe("10.0.0.5");
@@ -83,19 +94,80 @@ describe("render", () => {
 describe("extract", () => {
   const body = JSON.stringify({ code: 0, data: { name: "阿黄", tags: ["a", "b", "c"] } });
   it("JSONPath 首个/第N个", () => {
-    const r1 = runExtractors([{ source: "body", kind: "jsonpath", expression: "$.data.tags[*]", match: "first", variable: "t", scope: "temp" }], { bodyText: body, headers: [] });
+    const r1 = runExtractors(
+      [
+        {
+          source: "body",
+          kind: "jsonpath",
+          expression: "$.data.tags[*]",
+          match: "first",
+          variable: "t",
+          scope: "temp",
+        },
+      ],
+      { bodyText: body, headers: [] },
+    );
     expect(r1[0]?.value).toBe("a");
-    const rn = runExtractors([{ source: "body", kind: "jsonpath", expression: "$.data.tags[*]", match: "n", index: 3, variable: "t", scope: "temp" }], { bodyText: body, headers: [] });
+    const rn = runExtractors(
+      [
+        {
+          source: "body",
+          kind: "jsonpath",
+          expression: "$.data.tags[*]",
+          match: "n",
+          index: 3,
+          variable: "t",
+          scope: "temp",
+        },
+      ],
+      { bodyText: body, headers: [] },
+    );
     expect(rn[0]?.value).toBe("c");
   });
   it("正则捕获组；未命中不产出", () => {
-    const r = runExtractors([{ source: "body", kind: "regex", expression: '"name":"([^"]+)"', match: "first", variable: "n", scope: "temp" }], { bodyText: body, headers: [] });
+    const r = runExtractors(
+      [
+        {
+          source: "body",
+          kind: "regex",
+          expression: '"name":"([^"]+)"',
+          match: "first",
+          variable: "n",
+          scope: "temp",
+        },
+      ],
+      { bodyText: body, headers: [] },
+    );
     expect(r[0]?.value).toBe("阿黄");
-    const miss = runExtractors([{ source: "body", kind: "jsonpath", expression: "$.none", match: "first", variable: "x", scope: "temp" }], { bodyText: body, headers: [] });
+    const miss = runExtractors(
+      [
+        {
+          source: "body",
+          kind: "jsonpath",
+          expression: "$.none",
+          match: "first",
+          variable: "x",
+          scope: "temp",
+        },
+      ],
+      { bodyText: body, headers: [] },
+    );
     expect(miss).toHaveLength(0);
   });
   it("响应头提取（大小写不敏感）", () => {
-    const r = runExtractors([{ source: "headers", kind: "regex", expression: "X-Trace", match: "first", variable: "tr", scope: "env" }], { bodyText: "", headers: [{ key: "x-trace", value: "abc" }] });
+    const r = runExtractors(
+      [
+        {
+          source: "headers",
+          kind: "regex",
+          expression: "X-Trace",
+          match: "first",
+          variable: "tr",
+          scope: "env",
+        },
+      ],
+      { bodyText: "", headers: [{ key: "x-trace", value: "abc" }] },
+    );
     expect(r[0]).toEqual({ variable: "tr", value: "abc", scope: "env" });
   });
 });
@@ -172,9 +244,18 @@ describe("processors", () => {
     expect(Date.now() - t0).toBeGreaterThanOrEqual(25);
   });
   it("脚本：变量读写与日志（API-004 沙箱）", async () => {
-    const ctx: { vars: Record<string, string>; env: ReturnType<typeof snap>; logs: string[] } = { vars: { a: "1" }, env: snap(), logs: [] };
+    const ctx: { vars: Record<string, string>; env: ReturnType<typeof snap>; logs: string[] } = {
+      vars: { a: "1" },
+      env: snap(),
+      logs: [],
+    };
     await runProcessors(
-      [{ kind: "script", script: 'setVar("b", getVar("a") + "-x"); log("v=", getVar("b")); envGet("token");' }],
+      [
+        {
+          kind: "script",
+          script: 'setVar("b", getVar("a") + "-x"); log("v=", getVar("b")); envGet("token");',
+        },
+      ],
       ctx,
     );
     expect(ctx.vars.b).toBe("1-x");
@@ -182,20 +263,29 @@ describe("processors", () => {
   });
   it("脚本异常 → SCRIPT_ERROR", async () => {
     await expect(
-      runProcessors([{ kind: "script", script: "throw new Error('boom')" }], { vars: {}, env: undefined, logs: [] }),
+      runProcessors([{ kind: "script", script: "throw new Error('boom')" }], {
+        vars: {},
+        env: undefined,
+        logs: [],
+      }),
     ).rejects.toMatchObject({ kind: "SCRIPT_ERROR" });
   });
   it("脚本死循环 5s 强杀 → SCRIPT_ERROR", async () => {
     await expect(
-      runProcessors([{ kind: "script", script: "while(true){}" }], { vars: {}, env: undefined, logs: [] }),
+      runProcessors([{ kind: "script", script: "while(true){}" }], {
+        vars: {},
+        env: undefined,
+        logs: [],
+      }),
     ).rejects.toBeInstanceOf(ProcessorError);
   }, 15000);
   it("SQL 处理器显式未启用（勘误 1：不静默假实现）", async () => {
     await expect(
-      runProcessors(
-        [{ kind: "sql", sql: "SELECT 1", datasourceId: "x", varMapping: {} }],
-        { vars: {}, env: undefined, logs: [] },
-      ),
+      runProcessors([{ kind: "sql", sql: "SELECT 1", datasourceId: "x", varMapping: {} }], {
+        vars: {},
+        env: undefined,
+        logs: [],
+      }),
     ).rejects.toMatchObject({ kind: "CONFIG_ERROR", message: expect.stringContaining("SQL") });
   });
 });

@@ -79,7 +79,13 @@ export function MindmapExecTab({
   // S/E/B/K 快捷键（选中节点后）
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (!canUpdate || !focus || (e.target as HTMLElement)?.tagName === "INPUT" || (e.target as HTMLElement)?.tagName === "TEXTAREA") return;
+      if (
+        !canUpdate ||
+        !focus ||
+        (e.target as HTMLElement)?.tagName === "INPUT" ||
+        (e.target as HTMLElement)?.tagName === "TEXTAREA"
+      )
+        return;
       const status = KEY_TO_STATUS[e.key.toLowerCase()];
       if (status) {
         e.preventDefault();
@@ -112,14 +118,26 @@ export function MindmapExecTab({
     <div className="flex gap-3 items-stretch" data-testid="plan-mindmap-exec">
       <div className="rabbit-card flex-1 min-w-0 p-4 overflow-auto max-h-[640px]">
         <div className="flex items-center gap-2 pb-2 flex-wrap">
-          <span className="text-[10px] border rounded px-1.5 py-0.5 bg-green-50 text-green-700 border-green-200">S 成功</span>
-          <span className="text-[10px] border rounded px-1.5 py-0.5 bg-red-50 text-red-600 border-red-200">E 失败</span>
-          <span className="text-[10px] border rounded px-1.5 py-0.5 bg-orange-50 text-orange-600 border-orange-200">B 阻塞</span>
-          <span className="text-[10px] border rounded px-1.5 py-0.5 bg-slate-100 text-slate-500">K 跳过</span>
-          <span className="text-xs text-[#A8ABB0] ml-auto">选中节点后按键即标记（与列表模式数据同步）</span>
+          <span className="text-[10px] border rounded px-1.5 py-0.5 bg-green-50 text-green-700 border-green-200">
+            S 成功
+          </span>
+          <span className="text-[10px] border rounded px-1.5 py-0.5 bg-red-50 text-red-600 border-red-200">
+            E 失败
+          </span>
+          <span className="text-[10px] border rounded px-1.5 py-0.5 bg-orange-50 text-orange-600 border-orange-200">
+            B 阻塞
+          </span>
+          <span className="text-[10px] border rounded px-1.5 py-0.5 bg-slate-100 text-slate-500">
+            K 跳过
+          </span>
+          <span className="text-xs text-[#A8ABB0] ml-auto">
+            选中节点后按键即标记（与列表模式数据同步）
+          </span>
         </div>
         {fnCases.length === 0 ? (
-          <p className="text-center text-[#A8ABB0] py-10 text-[13px]">计划内暂无功能用例（接口/场景用例请用「执行全部」引擎执行）</p>
+          <p className="text-center text-[#A8ABB0] py-10 text-[13px]">
+            计划内暂无功能用例（接口/场景用例请用「执行全部」引擎执行）
+          </p>
         ) : (
           <div className="space-y-2 pt-2">
             {groups.map(([g, list]) => (
@@ -155,7 +173,10 @@ export function MindmapExecTab({
       </div>
 
       {/* 右：详情面板 */}
-      <div className="rabbit-card w-[340px] shrink-0 p-4 space-y-2 text-[13px]" data-testid="mindmap-exec-panel">
+      <div
+        className="rabbit-card w-[340px] shrink-0 p-4 space-y-2 text-[13px]"
+        data-testid="mindmap-exec-panel"
+      >
         {focus ? (
           <>
             <p className="font-medium">{focus.name}</p>
@@ -166,10 +187,17 @@ export function MindmapExecTab({
                   <span className="text-slate-400 block">预期：{s.expect}</span>
                 </p>
               ))}
-              {((focus.steps ?? []) as unknown[]).length === 0 && <p className="px-2 py-1.5 text-slate-400">（无步骤）</p>}
+              {((focus.steps ?? []) as unknown[]).length === 0 && (
+                <p className="px-2 py-1.5 text-slate-400">（无步骤）</p>
+              )}
             </div>
             <p className="text-slate-500 text-xs">实际结果（失败/阻塞建议填写）</p>
-            <Input.TextArea rows={3} value={actualResult} onChange={(e) => setActualResult(e.target.value)} data-testid="mindmap-exec-actual" />
+            <Input.TextArea
+              rows={3}
+              value={actualResult}
+              onChange={(e) => setActualResult(e.target.value)}
+              data-testid="mindmap-exec-actual"
+            />
             {blockedTip && (
               <div className="rounded border border-amber-200 bg-amber-50 text-amber-700 px-2.5 py-1.5 text-xs flex items-center gap-2">
                 ⚠ 前置用例未通过：{blockedTip.map((b) => b.name).join("、")}
@@ -191,13 +219,25 @@ export function MindmapExecTab({
               <div className="flex-1" />
               {canUpdate && (
                 <>
-                  <Button size="small" type="primary" onClick={() => mark.mutate({ refId: focus.refId, status: "PASS" })} data-testid="mindmap-mark-pass">
+                  <Button
+                    size="small"
+                    type="primary"
+                    onClick={() => mark.mutate({ refId: focus.refId, status: "PASS" })}
+                    data-testid="mindmap-mark-pass"
+                  >
                     提交 (S)
                   </Button>
-                  <Button size="small" danger onClick={() => mark.mutate({ refId: focus.refId, status: "FAIL" })}>
+                  <Button
+                    size="small"
+                    danger
+                    onClick={() => mark.mutate({ refId: focus.refId, status: "FAIL" })}
+                  >
                     (E)
                   </Button>
-                  <Button size="small" onClick={() => mark.mutate({ refId: focus.refId, status: "BLOCKED" })}>
+                  <Button
+                    size="small"
+                    onClick={() => mark.mutate({ refId: focus.refId, status: "BLOCKED" })}
+                  >
                     (B)
                   </Button>
                 </>
@@ -206,7 +246,9 @@ export function MindmapExecTab({
             <Tag className="mt-1">当前状态：{STATUS_LABEL[focus.status] ?? focus.status}</Tag>
           </>
         ) : (
-          <p className="text-[#A8ABB0] text-center py-10">选择左侧用例节点后用 S / E / B / K 快捷标记</p>
+          <p className="text-[#A8ABB0] text-center py-10">
+            选择左侧用例节点后用 S / E / B / K 快捷标记
+          </p>
         )}
       </div>
     </div>

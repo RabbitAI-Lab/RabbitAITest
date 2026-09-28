@@ -40,7 +40,10 @@ export async function createTemplate(projectId: string, input: SaveInput) {
   if (dup) throw new DomainError(ErrCode.AI_PROMPT_DUP, "模板名称已存在");
   const t = await prisma.$transaction(async (tx) => {
     if (input.isDefault) {
-      await tx.aiPromptTemplate.updateMany({ where: { projectId, scene: input.scene }, data: { isDefault: false } });
+      await tx.aiPromptTemplate.updateMany({
+        where: { projectId, scene: input.scene },
+        data: { isDefault: false },
+      });
     }
     return tx.aiPromptTemplate.create({
       data: {
@@ -61,11 +64,16 @@ export async function updateTemplate(projectId: string, id: string, input: SaveI
   validatePlaceholders(input);
   const existing = await prisma.aiPromptTemplate.findFirst({ where: { id, projectId } });
   if (!existing) throw new DomainError(ErrCode.AI_PROMPT_NOT_FOUND, "模板不存在");
-  const dup = await prisma.aiPromptTemplate.findFirst({ where: { projectId, name: input.name, NOT: { id } } });
+  const dup = await prisma.aiPromptTemplate.findFirst({
+    where: { projectId, name: input.name, NOT: { id } },
+  });
   if (dup) throw new DomainError(ErrCode.AI_PROMPT_DUP, "模板名称已存在");
   await prisma.$transaction(async (tx) => {
     if (input.isDefault) {
-      await tx.aiPromptTemplate.updateMany({ where: { projectId, scene: input.scene }, data: { isDefault: false } });
+      await tx.aiPromptTemplate.updateMany({
+        where: { projectId, scene: input.scene },
+        data: { isDefault: false },
+      });
     }
     await tx.aiPromptTemplate.update({
       where: { id },
@@ -95,8 +103,12 @@ export async function resolveTemplate(
   templateId?: string,
 ): Promise<{ template: string; designMethod: string | null } | null> {
   const t = templateId
-    ? await prisma.aiPromptTemplate.findFirst({ where: { id: templateId, projectId, enabled: true } })
-    : await prisma.aiPromptTemplate.findFirst({ where: { projectId, scene, enabled: true, isDefault: true } });
+    ? await prisma.aiPromptTemplate.findFirst({
+        where: { id: templateId, projectId, enabled: true },
+      })
+    : await prisma.aiPromptTemplate.findFirst({
+        where: { projectId, scene, enabled: true, isDefault: true },
+      });
   if (!t) return null;
   return { template: t.template, designMethod: t.designMethod };
 }

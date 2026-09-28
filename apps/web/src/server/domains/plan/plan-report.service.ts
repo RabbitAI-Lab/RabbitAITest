@@ -92,7 +92,10 @@ async function resolveRefNames(
 }
 
 /** 计划报告视图（点分组明细 + 概览 + 误报统计）。 */
-export async function buildPlanReportView(projectId: string, planId: string): Promise<PlanReportView> {
+export async function buildPlanReportView(
+  projectId: string,
+  planId: string,
+): Promise<PlanReportView> {
   const plan = await prisma.testPlan.findFirst({
     where: { id: planId, projectId, deletedAt: null },
     select: { id: true, name: true, settings: true },
@@ -113,17 +116,28 @@ export async function buildPlanReportView(projectId: string, planId: string): Pr
   const stats = planPassRate(refs);
   // 误报数：最近一次 plan 任务的 FAKE_ERROR item 数
   const lastTask = await prisma.execTask.findFirst({
-    where: { type: "plan", refType: "plan", refId: planId, status: { in: ["SUCCESS", "FAILED", "STOPPED"] } },
+    where: {
+      type: "plan",
+      refType: "plan",
+      refId: planId,
+      status: { in: ["SUCCESS", "FAILED", "STOPPED"] },
+    },
     orderBy: { createdAt: "desc" },
     select: { id: true, createdAt: true },
   });
   let fakeError = 0;
   if (lastTask) {
-    fakeError = await prisma.execItem.count({ where: { taskId: lastTask.id, status: "FAKE_ERROR" } });
+    fakeError = await prisma.execItem.count({
+      where: { taskId: lastTask.id, status: "FAKE_ERROR" },
+    });
   }
 
   const toRow = (r: (typeof refs)[number]): PlanReportRow => {
-    const result = (r.result ?? {}) as { actualResult?: string; reportTaskId?: string; lastRunAt?: string };
+    const result = (r.result ?? {}) as {
+      actualResult?: string;
+      reportTaskId?: string;
+      lastRunAt?: string;
+    };
     return {
       refId: r.id,
       refType: r.refType,
@@ -149,7 +163,12 @@ export async function buildPlanReportView(projectId: string, planId: string): Pr
   const ungrouped = refs.filter((r) => !r.pointId || !pointName.has(r.pointId));
   if (ungrouped.length > 0 || refs.length === 0) {
     const ps = planPassRate(ungrouped);
-    pointGroups.push({ pointId: null, name: "未分组", passRate: ps.passRate, rows: ungrouped.map(toRow) });
+    pointGroups.push({
+      pointId: null,
+      name: "未分组",
+      passRate: ps.passRate,
+      rows: ungrouped.map(toRow),
+    });
   }
 
   // 报告记录（懒创建口径同 PLAN-001 getPlanReport；这里读现有或返回虚拟 id 由调用方落库）
@@ -187,11 +206,12 @@ export async function buildSummaryDraft(projectId: string, planId: string) {
   const weakest = view.points
     .filter((p) => p.rows.length > 0 && p.passRate !== null)
     .sort((a, b) => (a.passRate ?? 100) - (b.passRate ?? 100))[0];
-  const lastRunAt = view.points
-    .flatMap((p) => p.rows.map((r) => r.lastRunAt))
-    .filter((t): t is string => Boolean(t))
-    .sort()
-    .at(-1) ?? null;
+  const lastRunAt =
+    view.points
+      .flatMap((p) => p.rows.map((r) => r.lastRunAt))
+      .filter((t): t is string => Boolean(t))
+      .sort()
+      .at(-1) ?? null;
   return {
     draft: buildPlanSummaryDraft({
       planName: view.planName,
@@ -209,7 +229,10 @@ export async function buildSummaryDraft(projectId: string, planId: string) {
 }
 
 /** CSV 明细导出（UTF-8 BOM 由路由层附加；attachment 下载语义）。 */
-export async function exportPlanReportCsv(projectId: string, planId: string): Promise<{ filename: string; csv: string }> {
+export async function exportPlanReportCsv(
+  projectId: string,
+  planId: string,
+): Promise<{ filename: string; csv: string }> {
   const view = await buildPlanReportView(projectId, planId);
   const rows = view.points.flatMap((p) =>
     p.rows.map((r) => ({
@@ -263,7 +286,9 @@ export async function revokePlanShare(projectId: string, planId: string, token: 
 }
 
 /** 免登录分享读：token → 计划报告视图（过期统一 SHARE_NOT_FOUND）。 */
-export async function planShareDetail(token: string): Promise<PlanReportView & { planName: string }> {
+export async function planShareDetail(
+  token: string,
+): Promise<PlanReportView & { planName: string }> {
   const share = await prisma.reportShare.findUnique({
     where: { token },
     include: { report: { select: { planId: true, projectId: true } } },

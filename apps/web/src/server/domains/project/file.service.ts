@@ -48,7 +48,10 @@ export async function listFiles(projectId: string, query: ListQuery) {
   // S5 FILE-001：仓库文件溯源徽标（repoId → platform；仓库已删=灰态）
   const repoIds = [...new Set(files.map((f) => f.repoId).filter((x): x is string => Boolean(x)))];
   const repos = repoIds.length
-    ? await prisma.fileRepo.findMany({ where: { id: { in: repoIds } }, select: { id: true, platform: true } })
+    ? await prisma.fileRepo.findMany({
+        where: { id: { in: repoIds } },
+        select: { id: true, platform: true },
+      })
     : [];
   const repoPlatform = new Map(repos.map((r) => [r.id, r.platform]));
   return {
@@ -63,7 +66,7 @@ export async function listFiles(projectId: string, query: ListQuery) {
       isJar: f.name.toLowerCase().endsWith(".jar"),
       jarEnabled: f.jarEnabled,
       repoId: f.repoId ?? null,
-      repoPlatform: f.repoId ? repoPlatform.get(f.repoId) ?? null : null,
+      repoPlatform: f.repoId ? (repoPlatform.get(f.repoId) ?? null) : null,
       branch: f.branch ?? null,
       repoPath: f.repoPath ?? null,
       deletedAt: f.deletedAt?.toISOString() ?? null,
@@ -78,7 +81,10 @@ export async function uploadFile(
   file: { name: string; mime?: string; buffer: Buffer },
 ) {
   if (!isAllowedFileName(file.name)) {
-    throw new DomainError(ErrCode.VALIDATION_FAILED, `不支持的文件类型（白名单：${FILE_ALLOWED_EXTS.join("/")}）`);
+    throw new DomainError(
+      ErrCode.VALIDATION_FAILED,
+      `不支持的文件类型（白名单：${FILE_ALLOWED_EXTS.join("/")}）`,
+    );
   }
   const limit = await maxUploadBytes();
   if (file.buffer.byteLength > limit) {
@@ -131,7 +137,12 @@ export async function updateFile(
       ...(input.jarEnabled !== undefined ? { jarEnabled: input.jarEnabled } : {}),
     },
   });
-  return { id: updated.id, jarEnabled: updated.jarEnabled, moduleId: updated.moduleId, name: updated.name };
+  return {
+    id: updated.id,
+    jarEnabled: updated.jarEnabled,
+    moduleId: updated.moduleId,
+    name: updated.name,
+  };
 }
 
 export async function deleteFile(projectId: string, id: string) {

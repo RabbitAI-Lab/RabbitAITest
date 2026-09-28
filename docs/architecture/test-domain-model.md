@@ -59,11 +59,11 @@
 
 ### 2.5 bug 域
 
-| 官体               | 关键列                                                                                | 备注         |
-| ------------------ | ------------------------------------------------------------------------------------- | ------------ |
-| Bug                | template FK、fields JSONB、platform(local/jira/zentao/tapd)、platform_key、sync_state |              |
-| BugCaseRef         | bug FK、ref_type、ref_id                                                              | 多态         |
-| PlatformSyncConfig | platform、project_key、mode(incr/full)、cron                                          | 项目应用设置 |
+| 官体                | 关键列                                                                                | 备注                                                                                           |
+| ------------------- | ------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| Bug                 | template FK、fields JSONB、platform(local/jira/zentao/tapd)、platform_key、sync_state |                                                                                                |
+| BugCaseRef          | bug FK、ref_type、ref_id                                                              | 多态                                                                                           |
+| PlatformSyncConfig  | platform、project_key、mode(incr/full)、cron                                          | 项目应用设置                                                                                   |
 | PlatformIntegration | org FK、platform、address、auth_type、credential(AES-GCM 密文)、test_status/tested_at | S6 建表（INTG-001：组织级服务集成；凭据 env RABBIT_INTEGRATION_SECRET 派生密钥加密，永不回显） |
 
 ### 2.6 api_test 域
@@ -89,12 +89,12 @@
 ### 2.8 ai 域（S7 新增；对齐 MeterSphere framework/ai-engine + services/system-setting 的 AI 会话）
 
 | 实体             | 关键列                                                                                   | 备注                                                                      |
-| ---------------- | ---------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| ---------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
 | AiModel          | name、provider(deepseek/openai/zhipu)、base_url、model、api_key_enc、enabled、is_default | 系统级；**apiKey AES-256-GCM 密文**（密钥自 SESSION_SECRET 派生，不落库） |
 | AiConversation   | user_id、title、deleted_at                                                               | 个人级会话（软删）；消息子表随会话删除清理                                |
-| AiMessage        | conversation FK、role(user/assistant)、content Json                                      | 对话消息；content 结构化（text + 预留 refs）                               |
-| AiPromptTemplate | project FK、scene(case_gen/api_gen)、template、design_method、is_default                  | 项目级提示词模板；`{{requirement}}` 等占位符                               |
-| AiGenRecord      | project/user/model FK、scene、generated_count、imported_count、prompt_snapshot Json      | 生成留痕（审计/回溯）；prompt 快照为组装后全文                             |
+| AiMessage        | conversation FK、role(user/assistant)、content Json                                      | 对话消息；content 结构化（text + 预留 refs）                              |
+| AiPromptTemplate | project FK、scene(case_gen/api_gen)、template、design_method、is_default                 | 项目级提示词模板；`{{requirement}}` 等占位符                              |
+| AiGenRecord      | project/user/model FK、scene、generated_count、imported_count、prompt_snapshot Json      | 生成留痕（审计/回溯）；prompt 快照为组装后全文                            |
 
 **Provider 边界**：ai 域消费 case 域（生成功能用例草稿→经既有 CASE-001 创建端点导入）与 api_test 域（读 ApiDefinition、生成接口用例草稿→经既有 API-003 创建导入）；**不反向依赖**（case/api_test 不感知 ai）。模型网关为 web 内服务（非 engine：LLM 调用读 DB 配置，engine 无 DB 红线不破）。
 
@@ -138,3 +138,4 @@ ExecTask(编排) → BullMQ → engine 执行 → ExecStepResult 事件流回写
 - 新增列需求必须在规格文档中说明「为何 P0 无法建齐」，并经架构评审
 - **例外登记（S7，2026-09-27）**：ai 域 5 表未在 INFRA-003 建齐——基线期（S0）ai 域无任何规格输入（供应商协议形状、apiKey 加密列、提示词占位符结构均依赖 AI-001~005 规格定型），属「依赖未来规格的表结构」而非「可预见的暂不启用列」，不违反本节原则；本次随 Sprint 7 一次建齐全部列（含 AiGenRecord.prompt_snapshot、AiMessage.content.refs 等启用即满列），后续迭代仅开关/种子/索引
 - **例外登记（S5，2026-09-28）**：`file_items` 增 `branch`(VarChar 128)/`repo_path`(VarChar 512) 两可空列——分支/路径属**仓库文件行级溯源属性**，其形态（单文件路径 vs 目录、分支命名约束、与 storageKey 的关系）依赖 FILE-001 规格定型，基线期（S0）无该规格输入，属「依赖未来规格的表结构」而非「可预见的暂不启用列」，与 S7 ai 域例外同类不违反本节原则；除此之外 S5 全部实体（robots/notifications/env_groups/global_params/public_scripts/file_repos）均已在 INFRA-003 建齐零 DDL，事件配置复用 app_settings 键值不建表
+- **例外登记（S9，2026-09-28）**：ENTP 域 4 表（`auth_sources` 认证源判别式 config、`departments`/`department_members` 组织部门树多对多、`message_templates` 项目×事件唯一模板）与 `resource_pools.org_scope` 列——基线期（S0）ENTP 域无任何规格输入（协议配置形状/部门树语义/模板变量目录/池应用组织语义均依赖 ENTP-002/008/005/006 规格定型），属「依赖未来规格的表结构」，与 S7 ai 域、S5 file_items 同类不违反本节原则；License 表（licenses）S0 已建齐零 DDL 仅启用；后续 ENTP 迭代仅开关/种子/索引

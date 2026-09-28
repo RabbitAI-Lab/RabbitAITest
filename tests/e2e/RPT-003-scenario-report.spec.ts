@@ -1,6 +1,13 @@
 import { test, expect } from "./fixtures";
 import { bundle, createApiDef, createMockRule, getMockUrl, pollTask } from "./s2-helpers";
-import { createScenario, customStep, executeScenario, loopForeachStep, saveSteps, scriptStep } from "./s3-helpers";
+import {
+  createScenario,
+  customStep,
+  executeScenario,
+  loopForeachStep,
+  saveSteps,
+  scriptStep,
+} from "./s3-helpers";
 
 /**
  * RPT-003 场景报告与分享（规格：docs/sprint-3-scenario-automation/RPT-003-scenario-report-share.md）。
@@ -74,7 +81,9 @@ test("RPT-003-02 分享链路复用：生成 token→免登页只读五卡（误
   await pollTask(request, pid, taskId);
 
   // 生成分享链接（接口）
-  const share = await request.post(`/api/v1/projects/${pid}/reports/${taskId}/shares`, { data: { expireHours: 1 } });
+  const share = await request.post(`/api/v1/projects/${pid}/reports/${taskId}/shares`, {
+    data: { expireHours: 1 },
+  });
   expect(share.status()).toBe(201);
   const token = ((await share.json()) as { data: { token: string } }).data.token;
 

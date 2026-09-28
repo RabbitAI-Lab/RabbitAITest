@@ -1,5 +1,11 @@
 import { test, expect } from "./fixtures";
-import { uploadPlugin, enablePlugin, newAdminContext, loginSeedAdmin, PLATFORM_MOCK_BASE } from "./s6-helpers";
+import {
+  uploadPlugin,
+  enablePlugin,
+  newAdminContext,
+  loginSeedAdmin,
+  PLATFORM_MOCK_BASE,
+} from "./s6-helpers";
 
 /**
  * MAINFLOW-s6：S6 主链路（插件上传启用 → 集成配置 → 缺陷推送拉取 → APIKEY CI → 审计留痕）。
@@ -38,7 +44,14 @@ test("MAINFLOW-s6 插件→集成→同步→APIKEY→审计 全链路", async (
   });
   expect(integ.status()).toBe(200);
   const cfg = await request.put(`/api/v1/projects/${projectId}/integration`, {
-    data: { platform: "jira", projectKey: "RABBIT", bugTypes: [], statusMapping: [], mode: "INCREMENT", enabled: true },
+    data: {
+      platform: "jira",
+      projectKey: "RABBIT",
+      bugTypes: [],
+      statusMapping: [],
+      mode: "INCREMENT",
+      enabled: true,
+    },
   });
   expect(cfg.status()).toBe(200);
 
@@ -58,12 +71,16 @@ test("MAINFLOW-s6 插件→集成→同步→APIKEY→审计 全链路", async (
     data: { key: platformKey, status: "done" },
   });
   const pull = await request.post(`/api/v1/projects/${projectId}/integration/pull`, { data: {} });
-  expect(((await pull.json()) as { data: { updated: number } }).data.updated).toBeGreaterThanOrEqual(1);
+  expect(
+    ((await pull.json()) as { data: { updated: number } }).data.updated,
+  ).toBeGreaterThanOrEqual(1);
 
   // 4. APIKEY → open 触发（认证通道验证）→ 吊销（用户态）
   const key = await request.post("/api/v1/personal/api-keys", { data: { name: "MAINFLOW" } });
   const kb = (await key.json()) as { data: { accessKey: string; secretKey: string; id: string } };
-  const openCtx = await playwright.request.newContext({ baseURL: process.env.E2E_BASE_URL ?? "http://localhost:3100" });
+  const openCtx = await playwright.request.newContext({
+    baseURL: process.env.E2E_BASE_URL ?? "http://localhost:3100",
+  });
   const auth = `Basic ${Buffer.from(`${kb.data.accessKey}:${kb.data.secretKey}`).toString("base64")}`;
   const probe = await openCtx.get("/api/v1/open/exec/00000000-0000-4000-8000-000000000000", {
     headers: { authorization: auth },
@@ -83,13 +100,18 @@ test("MAINFLOW-s6 插件→集成→同步→APIKEY→审计 全链路", async (
   await page.goto("/system/plugins");
   const jiraRow = page.getByRole("row").filter({ hasText: "jira-platform" });
   await expect(jiraRow).toBeVisible({ timeout: 15000 });
-  await expect(jiraRow.getByText("运行中", { exact: false }).first()).toBeVisible({ timeout: 20000 });
+  await expect(jiraRow.getByText("运行中", { exact: false }).first()).toBeVisible({
+    timeout: 20000,
+  });
   await admin.dispose();
 
   // 白名单：loginSeedAdmin 切换会话瞬间，旧页面（用户项目上下文）在飞请求以管理员会话
   // 访问用户项目 → 防枚举 401/403/404 属合规行为（非应用缺陷）
   await expectNoConsoleErrors([
-    { textPattern: "http (401|403|404)", pageUrlPattern: "personal/permissions|projects/[a-f0-9-]{36}/info|system/plugins" },
+    {
+      textPattern: "http (401|403|404)",
+      pageUrlPattern: "personal/permissions|projects/[a-f0-9-]{36}/info|system/plugins",
+    },
     { textPattern: "404", pageUrlPattern: "system/plugins" },
   ]);
 });

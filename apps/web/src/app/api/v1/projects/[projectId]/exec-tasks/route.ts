@@ -9,11 +9,7 @@ import {
   execTaskListQuerySchema,
 } from "@rabbit/shared";
 import { withProjectScope, toResponse } from "@/server/guard";
-import {
-  createDebugTask,
-  listExecTasks,
-  debugHistory,
-} from "@/server/domains/exec/exec.service";
+import { createDebugTask, listExecTasks, debugHistory } from "@/server/domains/exec/exec.service";
 
 export const runtime = "nodejs";
 
@@ -41,10 +37,9 @@ export const POST = withProjectScope(async (ctx, req) => {
     const parsed = createSchema.safeParse(await req.json());
     if (!parsed.success) return unprocessable(parsed.error.issues[0]?.message);
     const { type: _type, ...input } = parsed.data;
-    return NextResponse.json(
-      ok(await createDebugTask(ctx.projectId, ctx.userId, input)),
-      { status: 201 },
-    );
+    return NextResponse.json(ok(await createDebugTask(ctx.projectId, ctx.userId, input)), {
+      status: 201,
+    });
   } catch (err) {
     return toResponse(err);
   }
@@ -60,9 +55,7 @@ export const GET = withProjectScope(async (ctx, req) => {
     ctx.requirePerm("PROJECT_EXEC_TASK:READ");
     const parsed = execTaskListQuerySchema.safeParse(Object.fromEntries(url.searchParams));
     if (!parsed.success) return unprocessable(parsed.error.issues[0]?.message);
-    return NextResponse.json(
-      ok(await listExecTasks(ctx.projectId, [ctx.projectId], parsed.data)),
-    );
+    return NextResponse.json(ok(await listExecTasks(ctx.projectId, [ctx.projectId], parsed.data)));
   } catch (err) {
     return toResponse(err);
   }

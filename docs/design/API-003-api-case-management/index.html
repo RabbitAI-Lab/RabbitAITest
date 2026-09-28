@@ -21,8 +21,12 @@
         <p class="mx-2 px-3 py-[7px] rounded-md">测试计划</p>
         <p class="mx-2 px-3 py-[7px] rounded-md">缺陷管理</p>
         <p class="px-4 pt-3 pb-1 text-xs text-slate-400">接口测试</p>
-        <p class="mx-2 px-3 py-[7px] rounded-md bg-[#574BFF]/10 text-[#574BFF] font-medium relative">
-          <span class="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 rounded-r bg-[#574BFF]"></span>
+        <p
+          class="mx-2 px-3 py-[7px] rounded-md bg-[#574BFF]/10 text-[#574BFF] font-medium relative"
+        >
+          <span
+            class="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 rounded-r bg-[#574BFF]"
+          ></span>
           接口定义
         </p>
         <p class="mx-2 px-3 py-[7px] rounded-md">接口调试</p>
@@ -52,9 +56,14 @@
         <div class="bg-white border rounded-md">
           <div class="p-3 flex items-center gap-2 flex-wrap border-b">
             <input class="border rounded px-2 py-1.5 w-52 font-medium" value="查询宠物" />
-            <select class="border rounded px-2 py-1.5 w-24 text-green-600 font-bold"><option>GET</option></select>
+            <select class="border rounded px-2 py-1.5 w-24 text-green-600 font-bold">
+              <option>GET</option>
+            </select>
             <input class="border rounded px-2 py-1.5 w-64 font-mono" value="/pets/{id}" />
-            <select class="border rounded px-2 py-1.5"><option>已发布</option><option>调试中</option></select>
+            <select class="border rounded px-2 py-1.5">
+              <option>已发布</option>
+              <option>调试中</option>
+            </select>
             <span class="border rounded-md px-2 py-1 text-xs text-slate-500">当前版本 v5</span>
             <span class="ml-auto flex items-center gap-2">
               <button class="border rounded-md px-3 py-1.5">变更历史</button>
@@ -64,25 +73,56 @@
           </div>
           <div class="px-3 flex gap-4 border-b text-[13px]">
             <span class="py-2.5 text-slate-500">API</span>
-            <span class="py-2.5 border-b-2 border-[#574BFF] text-[#574BFF] font-medium">CASE（4）</span>
+            <span class="py-2.5 border-b-2 border-[#574BFF] text-[#574BFF] font-medium"
+              >CASE（4）</span
+            >
             <span class="py-2.5 text-slate-500">MOCK（2）</span>
           </div>
           <!-- 工具条：新建/批量执行/批量删除 + 筛选 -->
           <div class="flex items-center gap-2 px-3 py-2.5 border-b flex-wrap">
-            <button class="bg-[#574BFF] text-white rounded-md px-3 py-1.5" data-testid="proto-btn-new-case">新建用例</button>
-            <button class="border rounded-md px-3 py-1.5" data-testid="proto-btn-batch-exec">批量执行</button>
-            <button class="border rounded-md px-3 py-1.5 text-[#FF4D4F]" data-testid="proto-btn-batch-del">批量删除</button>
+            <button
+              class="bg-[#574BFF] text-white rounded-md px-3 py-1.5"
+              data-testid="proto-btn-new-case"
+            >
+              新建用例
+            </button>
+            <button class="border rounded-md px-3 py-1.5" data-testid="proto-btn-batch-exec">
+              批量执行
+            </button>
+            <button
+              class="border rounded-md px-3 py-1.5 text-[#FF4D4F]"
+              data-testid="proto-btn-batch-del"
+            >
+              批量删除
+            </button>
             <span class="ml-auto flex items-center gap-2">
-              <select class="border rounded px-2 py-1.5"><option>全部等级</option><option>P0</option><option>P1</option><option>P2</option><option>P3</option></select>
-              <select class="border rounded px-2 py-1.5"><option>全部状态</option><option>正常</option><option>未执行</option></select>
-              <select class="border rounded px-2 py-1.5"><option>全部标签</option><option>smoke</option><option>regression</option><option>edge</option></select>
+              <select class="border rounded px-2 py-1.5">
+                <option>全部等级</option>
+                <option>P0</option>
+                <option>P1</option>
+                <option>P2</option>
+                <option>P3</option>
+              </select>
+              <select class="border rounded px-2 py-1.5">
+                <option>全部状态</option>
+                <option>正常</option>
+                <option>未执行</option>
+              </select>
+              <select class="border rounded px-2 py-1.5">
+                <option>全部标签</option>
+                <option>smoke</option>
+                <option>regression</option>
+                <option>edge</option>
+              </select>
             </span>
           </div>
           <!-- 用例表格 -->
           <table class="w-full text-[13px]" data-testid="proto-table-cases">
             <thead class="text-slate-500 bg-slate-50 border-b">
               <tr>
-                <th class="w-10 px-3 py-2"><input type="checkbox" checked class="accent-[#574BFF]" /></th>
+                <th class="w-10 px-3 py-2">
+                  <input type="checkbox" checked class="accent-[#574BFF]" />
+                </th>
                 <th class="text-left font-normal px-2 py-2">名称</th>
                 <th class="text-left font-normal px-2 py-2 w-16">等级</th>
                 <th class="text-left font-normal px-2 py-2 w-20">状态</th>
@@ -94,45 +134,102 @@
             </thead>
             <tbody>
               <tr class="border-b hover:bg-slate-50">
-                <td class="px-3 py-2.5"><input type="checkbox" checked class="accent-[#574BFF]" /></td>
-                <td class="px-2 py-2.5">查询宠物-正常路径 <span class="text-slate-400 text-xs">#200101</span></td>
-                <td class="px-2 py-2.5"><span class="text-xs rounded border px-1.5 py-0.5 bg-red-50 border-red-200 text-red-600">P0</span></td>
+                <td class="px-3 py-2.5">
+                  <input type="checkbox" checked class="accent-[#574BFF]" />
+                </td>
+                <td class="px-2 py-2.5">
+                  查询宠物-正常路径 <span class="text-slate-400 text-xs">#200101</span>
+                </td>
+                <td class="px-2 py-2.5">
+                  <span
+                    class="text-xs rounded border px-1.5 py-0.5 bg-red-50 border-red-200 text-red-600"
+                    >P0</span
+                  >
+                </td>
                 <td class="px-2 py-2.5"><span class="text-green-600">● 正常</span></td>
-                <td class="px-2 py-2.5"><span class="border rounded px-1.5 py-0.5 text-xs text-slate-500">smoke</span></td>
+                <td class="px-2 py-2.5">
+                  <span class="border rounded px-1.5 py-0.5 text-xs text-slate-500">smoke</span>
+                </td>
                 <td class="px-2 py-2.5 text-slate-300">—</td>
                 <td class="px-2 py-2.5">admin</td>
-                <td class="px-2 py-2.5 space-x-2 text-[#574BFF]"><span>执行</span><span>历史</span><span>编辑</span><span class="text-[#FF4D4F]">删除</span></td>
+                <td class="px-2 py-2.5 space-x-2 text-[#574BFF]">
+                  <span>执行</span><span>历史</span><span>编辑</span
+                  ><span class="text-[#FF4D4F]">删除</span>
+                </td>
               </tr>
               <!-- 待同步行：黄点 + 「同步」链接 -->
               <tr class="border-b hover:bg-slate-50">
-                <td class="px-3 py-2.5"><input type="checkbox" checked class="accent-[#574BFF]" /></td>
-                <td class="px-2 py-2.5">查询宠物-猫查询 <span class="text-slate-400 text-xs">#200102</span></td>
-                <td class="px-2 py-2.5"><span class="text-xs rounded border px-1.5 py-0.5 bg-amber-50 border-amber-200 text-amber-600">P1</span></td>
+                <td class="px-3 py-2.5">
+                  <input type="checkbox" checked class="accent-[#574BFF]" />
+                </td>
+                <td class="px-2 py-2.5">
+                  查询宠物-猫查询 <span class="text-slate-400 text-xs">#200102</span>
+                </td>
+                <td class="px-2 py-2.5">
+                  <span
+                    class="text-xs rounded border px-1.5 py-0.5 bg-amber-50 border-amber-200 text-amber-600"
+                    >P1</span
+                  >
+                </td>
                 <td class="px-2 py-2.5"><span class="text-green-600">● 正常</span></td>
-                <td class="px-2 py-2.5"><span class="border rounded px-1.5 py-0.5 text-xs text-slate-500">regression</span></td>
-                <td class="px-2 py-2.5"><span class="inline-flex items-center gap-1 text-amber-500"><span class="w-2 h-2 rounded-full bg-amber-400"></span>待同步</span> <a class="text-[#574BFF] ml-1" data-testid="proto-link-sync">同步</a></td>
+                <td class="px-2 py-2.5">
+                  <span class="border rounded px-1.5 py-0.5 text-xs text-slate-500"
+                    >regression</span
+                  >
+                </td>
+                <td class="px-2 py-2.5">
+                  <span class="inline-flex items-center gap-1 text-amber-500"
+                    ><span class="w-2 h-2 rounded-full bg-amber-400"></span>待同步</span
+                  >
+                  <a class="text-[#574BFF] ml-1" data-testid="proto-link-sync">同步</a>
+                </td>
                 <td class="px-2 py-2.5">admin</td>
-                <td class="px-2 py-2.5 space-x-2 text-[#574BFF]"><span>执行</span><span>历史</span><span>编辑</span><span class="text-[#FF4D4F]">删除</span></td>
+                <td class="px-2 py-2.5 space-x-2 text-[#574BFF]">
+                  <span>执行</span><span>历史</span><span>编辑</span
+                  ><span class="text-[#FF4D4F]">删除</span>
+                </td>
               </tr>
               <tr class="border-b hover:bg-slate-50">
                 <td class="px-3 py-2.5"><input type="checkbox" class="accent-[#574BFF]" /></td>
-                <td class="px-2 py-2.5">查询宠物-不存在 <span class="text-slate-400 text-xs">#200103</span></td>
-                <td class="px-2 py-2.5"><span class="text-xs rounded border px-1.5 py-0.5 bg-blue-50 border-blue-200 text-blue-600">P2</span></td>
+                <td class="px-2 py-2.5">
+                  查询宠物-不存在 <span class="text-slate-400 text-xs">#200103</span>
+                </td>
+                <td class="px-2 py-2.5">
+                  <span
+                    class="text-xs rounded border px-1.5 py-0.5 bg-blue-50 border-blue-200 text-blue-600"
+                    >P2</span
+                  >
+                </td>
                 <td class="px-2 py-2.5"><span class="text-slate-400">● 未执行</span></td>
                 <td class="px-2 py-2.5 text-slate-300">—</td>
                 <td class="px-2 py-2.5 text-slate-300">—</td>
                 <td class="px-2 py-2.5">tester</td>
-                <td class="px-2 py-2.5 space-x-2 text-[#574BFF]"><span>执行</span><span>历史</span><span>编辑</span><span class="text-[#FF4D4F]">删除</span></td>
+                <td class="px-2 py-2.5 space-x-2 text-[#574BFF]">
+                  <span>执行</span><span>历史</span><span>编辑</span
+                  ><span class="text-[#FF4D4F]">删除</span>
+                </td>
               </tr>
               <tr class="hover:bg-slate-50">
                 <td class="px-3 py-2.5"><input type="checkbox" class="accent-[#574BFF]" /></td>
-                <td class="px-2 py-2.5">查询宠物-边界ID <span class="text-slate-400 text-xs">#200104</span></td>
-                <td class="px-2 py-2.5"><span class="text-xs rounded border px-1.5 py-0.5 bg-slate-50 border-slate-200 text-slate-500">P3</span></td>
+                <td class="px-2 py-2.5">
+                  查询宠物-边界ID <span class="text-slate-400 text-xs">#200104</span>
+                </td>
+                <td class="px-2 py-2.5">
+                  <span
+                    class="text-xs rounded border px-1.5 py-0.5 bg-slate-50 border-slate-200 text-slate-500"
+                    >P3</span
+                  >
+                </td>
                 <td class="px-2 py-2.5"><span class="text-slate-400">● 未执行</span></td>
-                <td class="px-2 py-2.5"><span class="border rounded px-1.5 py-0.5 text-xs text-slate-500">edge</span></td>
+                <td class="px-2 py-2.5">
+                  <span class="border rounded px-1.5 py-0.5 text-xs text-slate-500">edge</span>
+                </td>
                 <td class="px-2 py-2.5 text-slate-300">—</td>
                 <td class="px-2 py-2.5">tester</td>
-                <td class="px-2 py-2.5 space-x-2 text-[#574BFF]"><span>执行</span><span>历史</span><span>编辑</span><span class="text-[#FF4D4F]">删除</span></td>
+                <td class="px-2 py-2.5 space-x-2 text-[#574BFF]">
+                  <span>执行</span><span>历史</span><span>编辑</span
+                  ><span class="text-[#FF4D4F]">删除</span>
+                </td>
               </tr>
             </tbody>
           </table>
@@ -156,7 +253,9 @@
         <div class="bg-white border rounded-md text-[13px]" data-testid="proto-panel-case-edit">
           <div class="flex items-center gap-2 px-3 py-2.5 border-b">
             <span class="font-medium">用例编辑</span>
-            <span class="text-xs text-slate-400">全宽抽屉 · 基线 = 定义当前 request（新建时 syncedVersion 对齐）</span>
+            <span class="text-xs text-slate-400"
+              >全宽抽屉 · 基线 = 定义当前 request（新建时 syncedVersion 对齐）</span
+            >
             <span class="ml-auto text-slate-400">✕</span>
           </div>
           <div class="p-3 space-y-3">
@@ -165,9 +264,17 @@
               <span class="text-slate-500 w-12 text-right">名称</span>
               <input class="border rounded px-2 py-1.5 w-60" value="查询宠物-猫查询" />
               <span class="text-slate-500 w-10 text-right">等级</span>
-              <select class="border rounded px-2 py-1.5 w-20"><option>P1</option><option>P0</option><option>P2</option><option>P3</option></select>
+              <select class="border rounded px-2 py-1.5 w-20">
+                <option>P1</option>
+                <option>P0</option>
+                <option>P2</option>
+                <option>P3</option>
+              </select>
               <span class="text-slate-500 w-10 text-right">状态</span>
-              <select class="border rounded px-2 py-1.5 w-24"><option>正常</option><option>未执行</option></select>
+              <select class="border rounded px-2 py-1.5 w-24">
+                <option>正常</option>
+                <option>未执行</option>
+              </select>
               <span class="text-slate-500 w-10 text-right">标签</span>
               <input class="border rounded px-2 py-1.5 w-52" value="regression, cat" />
             </div>
@@ -175,15 +282,25 @@
             <div class="border rounded-md">
               <div class="p-2.5 border-b space-y-1.5">
                 <div class="flex gap-2 items-center">
-                  <select class="border rounded px-2 py-1.5 w-20 text-green-600 font-bold"><option>GET</option></select>
-                  <div class="flex-1 border rounded px-2 py-1.5 font-mono flex items-center gap-0.5 bg-white">
-                    <span class="bg-[#574BFF]/10 text-[#574BFF] rounded px-1">${base}</span>/pets/<span class="bg-[#574BFF]/10 text-[#574BFF] rounded px-1">${petId}</span>
+                  <select class="border rounded px-2 py-1.5 w-20 text-green-600 font-bold">
+                    <option>GET</option>
+                  </select>
+                  <div
+                    class="flex-1 border rounded px-2 py-1.5 font-mono flex items-center gap-0.5 bg-white"
+                  >
+                    <span class="bg-[#574BFF]/10 text-[#574BFF] rounded px-1">${base}</span
+                    >/pets/<span class="bg-[#574BFF]/10 text-[#574BFF] rounded px-1">${petId}</span>
                   </div>
-                  <select class="border rounded px-2 py-1.5"><option>环境：测试环境</option><option>不使用环境</option></select>
+                  <select class="border rounded px-2 py-1.5">
+                    <option>环境：测试环境</option>
+                    <option>不使用环境</option>
+                  </select>
                 </div>
               </div>
               <div class="flex gap-1 px-2.5 border-b text-[13px]">
-                <span class="px-3 py-1.5 border-b-2 border-[#574BFF] text-[#574BFF] font-medium">参数</span>
+                <span class="px-3 py-1.5 border-b-2 border-[#574BFF] text-[#574BFF] font-medium"
+                  >参数</span
+                >
                 <span class="px-3 py-1.5 text-slate-500">认证</span>
                 <span class="px-3 py-1.5 text-slate-500">请求体</span>
                 <span class="px-3 py-1.5 text-slate-500">前置</span>
@@ -198,7 +315,10 @@
                   <input class="border rounded px-2 py-1 flex-1" value="cat" />
                   <span class="text-slate-300">✕</span>
                 </div>
-                <p class="text-xs text-slate-400">&lt;RequestEditor/&gt; 七区完整交互见 API-004 原型（本抽屉复用同一组件，可改任意区）</p>
+                <p class="text-xs text-slate-400">
+                  &lt;RequestEditor/&gt; 七区完整交互见 API-004
+                  原型（本抽屉复用同一组件，可改任意区）
+                </p>
               </div>
             </div>
             <div class="flex justify-end gap-2">
@@ -212,10 +332,17 @@
         <div class="bg-white border rounded-md text-[13px]" data-testid="proto-panel-diff">
           <div class="flex items-center gap-2 px-3 py-2.5 border-b flex-wrap">
             <span class="font-medium">差异同步 · diff 视图</span>
-            <span class="text-xs text-slate-400">分区级摘要：参数 / 认证 / 请求体 / 前后置 / 断言（同步 = 整体替换，名称/等级/标签保留）</span>
-            <button class="ml-auto bg-[#574BFF] text-white rounded-md px-3 py-1.5">以定义覆盖本用例</button>
+            <span class="text-xs text-slate-400"
+              >分区级摘要：参数 / 认证 / 请求体 / 前后置 / 断言（同步 =
+              整体替换，名称/等级/标签保留）</span
+            >
+            <button class="ml-auto bg-[#574BFF] text-white rounded-md px-3 py-1.5">
+              以定义覆盖本用例
+            </button>
             <!-- 二次确认（弹层示意，静态展开） -->
-            <span class="border rounded-md p-2 shadow bg-white text-xs text-slate-600 flex items-center gap-2">
+            <span
+              class="border rounded-md p-2 shadow bg-white text-xs text-slate-600 flex items-center gap-2"
+            >
               确认以定义最新 v5 覆盖用例 #200102 的请求？操作不可撤销。
               <button class="bg-[#574BFF] text-white rounded px-2 py-0.5">确定</button>
               <button class="border rounded px-2 py-0.5">取消</button>
@@ -225,47 +352,85 @@
             <div class="grid grid-cols-2 gap-0 border rounded-md overflow-hidden">
               <!-- 左：定义最新 -->
               <div class="border-r">
-                <div class="px-3 py-2 bg-slate-50 border-b font-medium text-slate-600">定义最新 · v5</div>
+                <div class="px-3 py-2 bg-slate-50 border-b font-medium text-slate-600">
+                  定义最新 · v5
+                </div>
                 <div class="divide-y">
-                  <div class="px-3 py-2 flex items-center gap-2 text-slate-400"><span>▸</span>参数 <span class="ml-auto text-xs">无差异</span></div>
-                  <div class="px-3 py-2 flex items-center gap-2 text-slate-400"><span>▸</span>认证 <span class="ml-auto text-xs">无差异</span></div>
+                  <div class="px-3 py-2 flex items-center gap-2 text-slate-400">
+                    <span>▸</span>参数 <span class="ml-auto text-xs">无差异</span>
+                  </div>
+                  <div class="px-3 py-2 flex items-center gap-2 text-slate-400">
+                    <span>▸</span>认证 <span class="ml-auto text-xs">无差异</span>
+                  </div>
                   <div class="px-3 py-2 bg-amber-50/60">
-                    <div class="flex items-center gap-2 font-medium"><span>▾</span>请求体 <span class="ml-auto text-xs rounded bg-amber-100 text-amber-700 px-1.5 py-0.5">1 处差异</span></div>
+                    <div class="flex items-center gap-2 font-medium">
+                      <span>▾</span>请求体
+                      <span
+                        class="ml-auto text-xs rounded bg-amber-100 text-amber-700 px-1.5 py-0.5"
+                        >1 处差异</span
+                      >
+                    </div>
                     <pre class="mt-1.5 font-mono text-xs leading-5 text-slate-600">{
   "id": <span class="bg-[#574BFF]/10 text-[#574BFF] rounded px-1">${petId}</span>,
   <span class="bg-yellow-100 rounded px-1">"value": "dog",</span>
   "kind": "dog"
 }</pre>
                   </div>
-                  <div class="px-3 py-2 flex items-center gap-2 text-slate-400"><span>▸</span>前后置 <span class="ml-auto text-xs">1 处差异</span></div>
-                  <div class="px-3 py-2 flex items-center gap-2 text-slate-400"><span>▸</span>断言 <span class="ml-auto text-xs">3 处差异</span></div>
+                  <div class="px-3 py-2 flex items-center gap-2 text-slate-400">
+                    <span>▸</span>前后置 <span class="ml-auto text-xs">1 处差异</span>
+                  </div>
+                  <div class="px-3 py-2 flex items-center gap-2 text-slate-400">
+                    <span>▸</span>断言 <span class="ml-auto text-xs">3 处差异</span>
+                  </div>
                 </div>
               </div>
               <!-- 右：用例当前 -->
               <div>
-                <div class="px-3 py-2 bg-slate-50 border-b font-medium text-slate-600">用例当前 · 基线 v3</div>
+                <div class="px-3 py-2 bg-slate-50 border-b font-medium text-slate-600">
+                  用例当前 · 基线 v3
+                </div>
                 <div class="divide-y">
-                  <div class="px-3 py-2 flex items-center gap-2 text-slate-400"><span>▸</span>参数 <span class="ml-auto text-xs">无差异</span></div>
-                  <div class="px-3 py-2 flex items-center gap-2 text-slate-400"><span>▸</span>认证 <span class="ml-auto text-xs">无差异</span></div>
+                  <div class="px-3 py-2 flex items-center gap-2 text-slate-400">
+                    <span>▸</span>参数 <span class="ml-auto text-xs">无差异</span>
+                  </div>
+                  <div class="px-3 py-2 flex items-center gap-2 text-slate-400">
+                    <span>▸</span>认证 <span class="ml-auto text-xs">无差异</span>
+                  </div>
                   <div class="px-3 py-2 bg-amber-50/60">
-                    <div class="flex items-center gap-2 font-medium"><span>▾</span>请求体 <span class="ml-auto text-xs rounded bg-amber-100 text-amber-700 px-1.5 py-0.5">基线 v3</span></div>
+                    <div class="flex items-center gap-2 font-medium">
+                      <span>▾</span>请求体
+                      <span
+                        class="ml-auto text-xs rounded bg-amber-100 text-amber-700 px-1.5 py-0.5"
+                        >基线 v3</span
+                      >
+                    </div>
                     <pre class="mt-1.5 font-mono text-xs leading-5 text-slate-600">{
   "id": <span class="bg-[#574BFF]/10 text-[#574BFF] rounded px-1">${petId}</span>,
   <span class="bg-yellow-100 rounded px-1">"value": "cat",</span>
   "kind": "dog"
 }</pre>
                   </div>
-                  <div class="px-3 py-2 flex items-center gap-2 text-slate-400"><span>▸</span>前后置 <span class="ml-auto text-xs">较定义少 1 条 SQL 前置</span></div>
-                  <div class="px-3 py-2 flex items-center gap-2 text-slate-400"><span>▸</span>断言 <span class="ml-auto text-xs">较定义多 2 条 / 少 1 条</span></div>
+                  <div class="px-3 py-2 flex items-center gap-2 text-slate-400">
+                    <span>▸</span>前后置 <span class="ml-auto text-xs">较定义少 1 条 SQL 前置</span>
+                  </div>
+                  <div class="px-3 py-2 flex items-center gap-2 text-slate-400">
+                    <span>▸</span>断言 <span class="ml-auto text-xs">较定义多 2 条 / 少 1 条</span>
+                  </div>
                 </div>
               </div>
             </div>
-            <p class="text-xs text-slate-400 mt-1.5">差异字段黄底高亮（左 value: "dog" vs 右 value: "cat"）；同步后黄点消失、syncedVersion 对齐 v5，用例名/等级/标签保留</p>
+            <p class="text-xs text-slate-400 mt-1.5">
+              差异字段黄底高亮（左 value: "dog" vs 右 value: "cat"）；同步后黄点消失、syncedVersion
+              对齐 v5，用例名/等级/标签保留
+            </p>
           </div>
         </div>
 
         <!-- ============ 面板 ③ 批量执行弹窗 ============ -->
-        <div class="bg-white border rounded-md text-[13px] w-[520px]" data-testid="proto-panel-batch-exec">
+        <div
+          class="bg-white border rounded-md text-[13px] w-[520px]"
+          data-testid="proto-panel-batch-exec"
+        >
           <div class="flex items-center gap-2 px-3 py-2.5 border-b">
             <span class="font-medium">批量执行</span>
             <span class="text-xs text-slate-400">弹窗 · 1 个任务 N item 串行</span>
@@ -274,18 +439,29 @@
           <div class="p-3 space-y-2.5">
             <div class="flex gap-2 items-center">
               <span class="w-20 text-right text-slate-500">执行环境</span>
-              <select class="border rounded px-2 py-1.5 flex-1"><option>测试环境</option><option>正式环境</option><option>不使用环境</option></select>
+              <select class="border rounded px-2 py-1.5 flex-1">
+                <option>测试环境</option>
+                <option>正式环境</option>
+                <option>不使用环境</option>
+              </select>
             </div>
             <div class="flex gap-2 items-center">
               <span class="w-20 text-right text-slate-500">资源池</span>
-              <select class="border rounded px-2 py-1.5 flex-1"><option>默认池</option></select>
+              <select class="border rounded px-2 py-1.5 flex-1">
+                <option>默认池</option>
+              </select>
             </div>
             <div class="flex gap-2 items-center">
               <span class="w-20 text-right text-slate-500">失败停止</span>
-              <span class="inline-flex w-9 h-5 items-center rounded-full bg-[#574BFF] relative"><span class="absolute right-0.5 w-4 h-4 rounded-full bg-white"></span></span>
+              <span class="inline-flex w-9 h-5 items-center rounded-full bg-[#574BFF] relative"
+                ><span class="absolute right-0.5 w-4 h-4 rounded-full bg-white"></span
+              ></span>
               <span class="text-xs text-slate-400">开启后首个失败 item 后余项 SKIPPED</span>
             </div>
-            <p class="text-slate-500 bg-slate-50 border rounded px-2.5 py-2">已勾选 <b>2</b> 条 · 串行执行（单条执行同弹窗去掉勾选说明；clientTaskId 幂等防连点重复）</p>
+            <p class="text-slate-500 bg-slate-50 border rounded px-2.5 py-2">
+              已勾选 <b>2</b> 条 · 串行执行（单条执行同弹窗去掉勾选说明；clientTaskId
+              幂等防连点重复）
+            </p>
             <div class="flex justify-end gap-2 pt-1">
               <button class="border rounded-md px-4 py-1.5">取 消</button>
               <button class="bg-[#574BFF] text-white rounded-md px-4 py-1.5">提交执行</button>
@@ -304,33 +480,46 @@
         <div class="bg-white border rounded-md text-[13px]" data-testid="proto-panel-history">
           <div class="flex items-center gap-2 px-3 py-2.5 border-b">
             <span class="font-medium">执行历史</span>
-            <span class="text-xs text-slate-400">抽屉 · 用例 #200102 查询宠物-猫查询 · 响应内容经报告钻取</span>
+            <span class="text-xs text-slate-400"
+              >抽屉 · 用例 #200102 查询宠物-猫查询 · 响应内容经报告钻取</span
+            >
             <span class="ml-auto text-slate-400">✕</span>
           </div>
           <div class="divide-y">
             <div class="px-3 py-2.5 flex items-center gap-3 hover:bg-slate-50">
-              <span class="rounded bg-green-50 border border-green-200 text-green-600 text-xs px-1.5 py-0.5">● SUCCESS</span>
+              <span
+                class="rounded bg-green-50 border border-green-200 text-green-600 text-xs px-1.5 py-0.5"
+                >● SUCCESS</span
+              >
               <span>任务 #900012</span>
               <span class="text-slate-400">耗时 1.2s</span>
               <span class="ml-auto text-slate-400">2026-09-27 10:31</span>
               <a class="text-[#574BFF]" data-testid="proto-link-report">查看报告</a>
             </div>
             <div class="px-3 py-2.5 flex items-center gap-3 hover:bg-slate-50">
-              <span class="rounded bg-red-50 border border-red-200 text-[#FF4D4F] text-xs px-1.5 py-0.5">● FAILED</span>
+              <span
+                class="rounded bg-red-50 border border-red-200 text-[#FF4D4F] text-xs px-1.5 py-0.5"
+                >● FAILED</span
+              >
               <span>任务 #900004</span>
               <span class="text-slate-400">耗时 0.9s</span>
               <span class="ml-auto text-slate-400">2026-09-26 18:20</span>
               <a class="text-[#574BFF]">查看报告</a>
             </div>
             <div class="px-3 py-2.5 flex items-center gap-3 hover:bg-slate-50">
-              <span class="rounded bg-slate-50 border border-slate-200 text-slate-500 text-xs px-1.5 py-0.5">■ STOPPED</span>
+              <span
+                class="rounded bg-slate-50 border border-slate-200 text-slate-500 text-xs px-1.5 py-0.5"
+                >■ STOPPED</span
+              >
               <span>任务 #899951</span>
               <span class="text-slate-400">耗时 —（手动停止）</span>
               <span class="ml-auto text-slate-400">2026-09-25 09:50</span>
               <a class="text-[#574BFF]">查看报告</a>
             </div>
           </div>
-          <p class="px-3 py-2 border-t text-xs text-slate-400">行点击 / 「查看报告」→ 打开对应报告页；全部行可点击（示意仅高亮首行链接）</p>
+          <p class="px-3 py-2 border-t text-xs text-slate-400">
+            行点击 / 「查看报告」→ 打开对应报告页；全部行可点击（示意仅高亮首行链接）
+          </p>
         </div>
       </main>
     </div>

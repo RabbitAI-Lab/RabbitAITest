@@ -18,7 +18,11 @@ function requireNotArchived(archivedAt: Date | null) {
 }
 
 /** parent 不能指向自身或后代（POINT_CYCLE）。 */
-async function assertParentOk(planId: string, pointId: string | null, parentId: string | null | undefined) {
+async function assertParentOk(
+  planId: string,
+  pointId: string | null,
+  parentId: string | null | undefined,
+) {
   if (parentId === undefined || parentId === null) return;
   if (pointId && parentId === pointId)
     throw new DomainError(ErrCode.POINT_CYCLE, "父测试点不能是自身");
@@ -85,7 +89,10 @@ export async function listPoints(projectId: string, planId: string) {
     if (n.parentId && byId.has(n.parentId)) byId.get(n.parentId)!.children.push(n);
     else roots.push(n);
   }
-  return { points: roots, ungrouped: counts.get("__ungrouped__") ?? { functional_case: 0, api_case: 0, scenario: 0 } };
+  return {
+    points: roots,
+    ungrouped: counts.get("__ungrouped__") ?? { functional_case: 0, api_case: 0, scenario: 0 },
+  };
 }
 
 export async function createPoint(projectId: string, planId: string, input: PointUpsert) {
@@ -109,7 +116,12 @@ export async function createPoint(projectId: string, planId: string, input: Poin
   });
 }
 
-export async function updatePoint(projectId: string, planId: string, pointId: string, input: Partial<PointUpsert>) {
+export async function updatePoint(
+  projectId: string,
+  planId: string,
+  pointId: string,
+  input: Partial<PointUpsert>,
+) {
   const p = await loadPlan(projectId, planId);
   requireNotArchived(p.archivedAt);
   const point = await prisma.testPoint.findFirst({ where: { id: pointId, planId } });
@@ -138,7 +150,10 @@ export async function deletePoint(projectId: string, planId: string, pointId: st
     prisma.planCaseRef.count({ where: { pointId } }),
   ]);
   if (childCount > 0 || refCount > 0)
-    throw new DomainError(ErrCode.POINT_NOT_EMPTY, `测试点下还有 ${refCount} 条用例或 ${childCount} 个子点，请先清空`);
+    throw new DomainError(
+      ErrCode.POINT_NOT_EMPTY,
+      `测试点下还有 ${refCount} 条用例或 ${childCount} 个子点，请先清空`,
+    );
   await prisma.testPoint.delete({ where: { id: pointId } });
   return { ok: true };
 }
@@ -162,13 +177,21 @@ export async function reorderPoints(projectId: string, planId: string, orderedId
 }
 
 /** 批量移动挂载（保留执行状态与历史）。 */
-export async function movePlanCases(projectId: string, planId: string, refIds: string[], pointId: string | null) {
+export async function movePlanCases(
+  projectId: string,
+  planId: string,
+  refIds: string[],
+  pointId: string | null,
+) {
   const p = await loadPlan(projectId, planId);
   requireNotArchived(p.archivedAt);
   if (pointId) {
     const point = await prisma.testPoint.findFirst({ where: { id: pointId, planId } });
     if (!point) throw new DomainError(ErrCode.POINT_NOT_FOUND, "测试点不存在");
   }
-  const r = await prisma.planCaseRef.updateMany({ where: { id: { in: refIds }, planId }, data: { pointId } });
+  const r = await prisma.planCaseRef.updateMany({
+    where: { id: { in: refIds }, planId },
+    data: { pointId },
+  });
   return { affected: r.count };
 }

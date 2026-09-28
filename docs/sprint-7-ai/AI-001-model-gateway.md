@@ -1,20 +1,20 @@
 # 模型网关（三供应商接入 · 加密 · SSRF 守卫）
 
-| 元信息项     | 内容                                                                                                        |
-| ------------ | ----------------------------------------------------------------------------------------------------------- |
-| 文档编号     | AI-001                                                                                                      |
-| 所属迭代     | Sprint 7 — AI 能力                                                                                          |
-| 优先级       | P2（S7 基座：AI-002/003/004 的唯一模型出口）                                                                |
-| 所属模块     | ai 域（web 内服务，非 engine——LLM 调用读 DB 配置，engine 无 DB 红线不破）                                    |
-| 文档状态     | Implemented（2026-09-27 交付：代码+单测+JMeter+Playwright 全绿；高保真走查随验收）                          |
-| 最后更新日期 | 2026-09-27                                                                                                  |
-| 上游依赖     | SYS-005（系统参数宿主与系统管理导航）、SYS-002（认证守卫）、rbac（SYSTEM_AI 权限点）                          |
-| 下游消费     | AI-002/AI-003（生成调用）、AI-004（助手对话调用）                                                            |
-| 上游依据     | 需求文档 §六；功能清单 §十「模型接入」、§8「模型设置（AI）」                                                  |
-| 对标基线     | 功能清单 §十：系统级（系统参数-模型设置）入口；DeepSeek/OpenAI/智谱三类供应商；模型的添加/编辑/删除           |
-| 关联架构文档 | test-domain-model.md §2.8（AiModel）；security.md（密钥、SSRF）；api-conventions.md §3（70xxx 错误段——60xxx 已被报告域占用，AI 段顺延）       |
-| 高保真确认   | 待确认（原型 docs/design/AI-001-model-gateway/）                                                             |
-| 工作量估算   | 后端 3 人日 / 前端 1.5 人日                                                                                 |
+| 元信息项     | 内容                                                                                                                                    |
+| ------------ | --------------------------------------------------------------------------------------------------------------------------------------- |
+| 文档编号     | AI-001                                                                                                                                  |
+| 所属迭代     | Sprint 7 — AI 能力                                                                                                                      |
+| 优先级       | P2（S7 基座：AI-002/003/004 的唯一模型出口）                                                                                            |
+| 所属模块     | ai 域（web 内服务，非 engine——LLM 调用读 DB 配置，engine 无 DB 红线不破）                                                               |
+| 文档状态     | Implemented（2026-09-27 交付：代码+单测+JMeter+Playwright 全绿；高保真走查随验收）                                                      |
+| 最后更新日期 | 2026-09-27                                                                                                                              |
+| 上游依赖     | SYS-005（系统参数宿主与系统管理导航）、SYS-002（认证守卫）、rbac（SYSTEM_AI 权限点）                                                    |
+| 下游消费     | AI-002/AI-003（生成调用）、AI-004（助手对话调用）                                                                                       |
+| 上游依据     | 需求文档 §六；功能清单 §十「模型接入」、§8「模型设置（AI）」                                                                            |
+| 对标基线     | 功能清单 §十：系统级（系统参数-模型设置）入口；DeepSeek/OpenAI/智谱三类供应商；模型的添加/编辑/删除                                     |
+| 关联架构文档 | test-domain-model.md §2.8（AiModel）；security.md（密钥、SSRF）；api-conventions.md §3（70xxx 错误段——60xxx 已被报告域占用，AI 段顺延） |
+| 高保真确认   | 待确认（原型 docs/design/AI-001-model-gateway/）                                                                                        |
+| 工作量估算   | 后端 3 人日 / 前端 1.5 人日                                                                                                             |
 
 ## 1. 概述
 
@@ -24,16 +24,16 @@
 
 ### 1.2 范围边界（能力行 → §5 用例映射）
 
-| 能力                                                                          | P1 ✅ | 后续                                                     |
-| ----------------------------------------------------------------------------- | ----- | -------------------------------------------------------- |
-| 模型 CRUD：name/provider(deepseek\|openai\|zhipu)/baseUrl/model/apiKey/enabled/isDefault；上限 10 | ✅     | 代理模型/模型分组（企业版口径，ENTP 红线外）             |
-| apiKey 加密：AES-256-GCM（密钥=scrypt(SESSION_SECRET) 派生，不落库不进日志）   | ✅     | 独立 KMS/密钥服务（Backlog）                             |
-| 响应脱敏：列表/详情只回 `sk-****{尾4位}` 掩码；编辑不回填原文（留空=不改）     | ✅     | —                                                        |
-| 连接测试：发 1 条 `ping` 消息（max_tokens 小额），成功返回耗时与模型回声       | ✅     | 模型能力探测（function call 支持检测，Backlog）           |
-| 设默认：同表唯一 isDefault；AI-002/003/004 默认消费默认模型                    | ✅     | 按场景路由不同模型（Backlog）                             |
-| SSRF 守卫：baseUrl host 解析后全 IP 过检（私网/环回/链路本地/元数据/通配全拒）；`AI_ALLOW_PRIVATE_BASEURL=1` 测试栈开关 | ✅ | 连接期固定 IP 防 DNS rebinding（S8 QA-002 收口）     |
-| 统一 ChatClient：`callChat(model, messages, {stream})`；流式=SSE delta 增量    | ✅     | Anthropic 原生协议/多模态（Backlog）                     |
-| 启用模型下拉（登录可见，供 AI-004）：id/name/provider/model，无 key            | ✅     | —                                                        |
+| 能力                                                                                                                    | P1 ✅ | 后续                                             |
+| ----------------------------------------------------------------------------------------------------------------------- | ----- | ------------------------------------------------ |
+| 模型 CRUD：name/provider(deepseek\|openai\|zhipu)/baseUrl/model/apiKey/enabled/isDefault；上限 10                       | ✅    | 代理模型/模型分组（企业版口径，ENTP 红线外）     |
+| apiKey 加密：AES-256-GCM（密钥=scrypt(SESSION_SECRET) 派生，不落库不进日志）                                            | ✅    | 独立 KMS/密钥服务（Backlog）                     |
+| 响应脱敏：列表/详情只回 `sk-****{尾4位}` 掩码；编辑不回填原文（留空=不改）                                              | ✅    | —                                                |
+| 连接测试：发 1 条 `ping` 消息（max_tokens 小额），成功返回耗时与模型回声                                                | ✅    | 模型能力探测（function call 支持检测，Backlog）  |
+| 设默认：同表唯一 isDefault；AI-002/003/004 默认消费默认模型                                                             | ✅    | 按场景路由不同模型（Backlog）                    |
+| SSRF 守卫：baseUrl host 解析后全 IP 过检（私网/环回/链路本地/元数据/通配全拒）；`AI_ALLOW_PRIVATE_BASEURL=1` 测试栈开关 | ✅    | 连接期固定 IP 防 DNS rebinding（S8 QA-002 收口） |
+| 统一 ChatClient：`callChat(model, messages, {stream})`；流式=SSE delta 增量                                             | ✅    | Anthropic 原生协议/多模态（Backlog）             |
+| 启用模型下拉（登录可见，供 AI-004）：id/name/provider/model，无 key                                                     | ✅    | —                                                |
 
 ### 1.3 前置依赖
 

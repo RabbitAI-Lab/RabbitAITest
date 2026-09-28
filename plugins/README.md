@@ -1,11 +1,11 @@
 # plugins/ — 插件包源码与分发
 
-| 插件            | kind     | SPI        | 说明                                                       |
-| --------------- | -------- | ---------- | ---------------------------------------------------------- |
-| jira-platform   | platform | PlatformPlugin | Jira REST v2（Basic/Bearer；INTG-001）                 |
-| zentao-platform | platform | PlatformPlugin | 禅道 REST v1（token 会话；INTG-002）                   |
-| tapd-platform   | platform | PlatformPlugin | TAPD v1（Basic Auth；INTG-002）                        |
-| tcp-conn        | protocol | SamplerPlugin  | TCP 连通性采样（engine 进程内加载；PLUG-002）          |
+| 插件            | kind     | SPI            | 说明                                          |
+| --------------- | -------- | -------------- | --------------------------------------------- |
+| jira-platform   | platform | PlatformPlugin | Jira REST v2（Basic/Bearer；INTG-001）        |
+| zentao-platform | platform | PlatformPlugin | 禅道 REST v1（token 会话；INTG-002）          |
+| tapd-platform   | platform | PlatformPlugin | TAPD v1（Basic Auth；INTG-002）               |
+| tcp-conn        | protocol | SamplerPlugin  | TCP 连通性采样（engine 进程内加载；PLUG-002） |
 
 ## 构建
 

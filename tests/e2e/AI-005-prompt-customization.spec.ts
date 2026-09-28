@@ -24,7 +24,9 @@ test("AI-005-01 模板 CRUD 与默认语义（含生成抽屉联动）", async (
   // 新建模板一（设默认）
   await page.getByTestId("ai-prompt-create").click();
   await page.getByTestId("ai-prompt-form-name").fill(t1);
-  await page.getByTestId("ai-prompt-form-template").fill("用 {{design_method}} 覆盖 {{requirement}}，目标模块 {{module}}");
+  await page
+    .getByTestId("ai-prompt-form-template")
+    .fill("用 {{design_method}} 覆盖 {{requirement}}，目标模块 {{module}}");
   await page.getByTestId("ai-prompt-form-design").fill("边界值分析");
   const saved1 = page.waitForResponse(`**/api/v1/projects/${pid}/ai/prompt-templates`);
   await page.getByTestId("ai-prompt-save").click();
@@ -43,7 +45,9 @@ test("AI-005-01 模板 CRUD 与默认语义（含生成抽屉联动）", async (
   await saved2;
   // 接口断言：默认唯一（列表中 t1 不再 isDefault）
   const list = await request.get(`/api/v1/projects/${pid}/ai/prompt-templates`);
-  const listData = (await list.json()) as { data: { list: { name: string; isDefault: boolean }[] } };
+  const listData = (await list.json()) as {
+    data: { list: { name: string; isDefault: boolean }[] };
+  };
   expect(listData.data.list.find((x) => x.name === t2)?.isDefault).toBe(true);
   expect(listData.data.list.find((x) => x.name === t1)?.isDefault).toBe(false);
 
@@ -66,26 +70,38 @@ test("AI-005-01 模板 CRUD 与默认语义（含生成抽屉联动）", async (
 
   // 白名单：T5 未知占位符 422 为预期业务拒绝（表单提交路径 fetch 失败留痕，显式登记）
   await expectNoConsoleErrors([
-    { pageUrlPattern: "/settings/ai-prompts", textPattern: "(\\[http 422\\]|status of 422)", reason: "AI-005-01 占位符校验 422 的预期拒绝（70505）" },
+    {
+      pageUrlPattern: "/settings/ai-prompts",
+      textPattern: "(\\[http 422\\]|status of 422)",
+      reason: "AI-005-01 占位符校验 422 的预期拒绝（70505）",
+    },
   ]);
 });
 
-test("AI-005-02 模板二态（停用不出现在生成抽屉）", async ({
-  authedPage,
-  page,
-  request,
-}) => {
+test("AI-005-02 模板二态（停用不出现在生成抽屉）", async ({ authedPage, page, request }) => {
   const pid = authedPage.projectId;
   const uniq = `S${Date.now() % 1e7}`;
   const name = `停用验证-${uniq}`;
 
   // 建模板（启用）→ 停用（接口）
   const created = await request.post(`/api/v1/projects/${pid}/ai/prompt-templates`, {
-    data: { name, scene: "case_gen", template: "覆盖 {{requirement}}", isDefault: false, enabled: true },
+    data: {
+      name,
+      scene: "case_gen",
+      template: "覆盖 {{requirement}}",
+      isDefault: false,
+      enabled: true,
+    },
   });
   const { data } = (await created.json()) as { data: { id: string } };
   const disabled = await request.put(`/api/v1/projects/${pid}/ai/prompt-templates/${data.id}`, {
-    data: { name, scene: "case_gen", template: "覆盖 {{requirement}}", isDefault: false, enabled: false },
+    data: {
+      name,
+      scene: "case_gen",
+      template: "覆盖 {{requirement}}",
+      isDefault: false,
+      enabled: false,
+    },
   });
   expect(disabled.status()).toBe(200);
 
@@ -97,7 +113,13 @@ test("AI-005-02 模板二态（停用不出现在生成抽屉）", async ({
 
   // 停用模板设默认 → 422（schema refine）
   const badDefault = await request.put(`/api/v1/projects/${pid}/ai/prompt-templates/${data.id}`, {
-    data: { name, scene: "case_gen", template: "覆盖 {{requirement}}", isDefault: true, enabled: false },
+    data: {
+      name,
+      scene: "case_gen",
+      template: "覆盖 {{requirement}}",
+      isDefault: true,
+      enabled: false,
+    },
   });
   expect(badDefault.status()).toBe(422);
 });

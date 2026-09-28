@@ -33,7 +33,7 @@ export default defineConfig({
     command: [
       "bash -c '",
       "if [ -f /tmp/rabbit-e2e-root/apps/web/.next/BUILD_ID ]; then ",
-      'cd /tmp/rabbit-e2e-root/apps/web && exec env MOCK_PUBLIC_URL=http://127.0.0.1:4001 AI_ALLOW_PRIVATE_BASEURL=1 pnpm exec next start -p 3100;',
+      "cd /tmp/rabbit-e2e-root/apps/web && exec env MOCK_PUBLIC_URL=http://127.0.0.1:4001 AI_ALLOW_PRIVATE_BASEURL=1 pnpm exec next start -p 3100;",
       "else ",
       'export DATABASE_URL="${E2E_DATABASE_URL:-${DATABASE_URL:-postgresql://postgres:postgres@127.0.0.1:5434/rabbit_e2e}}"',
       'REDIS_URL="${E2E_REDIS_URL:-redis://127.0.0.1:6381}"',

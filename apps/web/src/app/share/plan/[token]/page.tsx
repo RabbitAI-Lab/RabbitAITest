@@ -28,7 +28,9 @@ const ROW_COLUMNS = [
     dataIndex: "refType",
     width: 90,
     render: (v: string) => (
-      <span className={`rounded px-1.5 py-0.5 text-xs ${TYPE_TEXT[v]?.cls ?? "bg-[#F2F3F5] text-[#646A73]"}`}>
+      <span
+        className={`rounded px-1.5 py-0.5 text-xs ${TYPE_TEXT[v]?.cls ?? "bg-[#F2F3F5] text-[#646A73]"}`}
+      >
         {TYPE_TEXT[v]?.label ?? v}
       </span>
     ),
@@ -84,7 +86,9 @@ export default function SharePlanPage() {
           <p className="text-[#C9CDD4] text-2xl font-medium m-0">分享链接不存在或已过期</p>
           <p className="text-[#A8ABB0] text-sm m-0">
             链接可能已被撤销、超过有效期，或从未创建
-            {error instanceof ApiError && error.code ? `（${error.code}）` : "（SHARE_NOT_FOUND 60414）"}
+            {error instanceof ApiError && error.code
+              ? `（${error.code}）`
+              : "（SHARE_NOT_FOUND 60414）"}
           </p>
           <a className="text-[#574BFF] text-sm mt-2" href="/">
             前往 RabbitAITest 首页
@@ -187,7 +191,10 @@ export default function SharePlanPage() {
         </div>
 
         {/* 测试点分组明细（折叠，默认全展开） */}
-        <div className="bg-white border border-[#E5E6EB] rounded-md p-3" data-testid="share-plan-points">
+        <div
+          className="bg-white border border-[#E5E6EB] rounded-md p-3"
+          data-testid="share-plan-points"
+        >
           <p className="rabbit-card-title">测试点分组明细</p>
           {data.points.length === 0 ? (
             <p className="text-[13px] text-[#A8ABB0] m-0">计划尚未关联用例</p>
@@ -232,11 +239,12 @@ export default function SharePlanPage() {
         </div>
 
         {/* 总结（只读） */}
-        <div className="bg-white border border-[#E5E6EB] rounded-md p-4" data-testid="share-plan-summary">
+        <div
+          className="bg-white border border-[#E5E6EB] rounded-md p-4"
+          data-testid="share-plan-summary"
+        >
           <p className="rabbit-card-title">报告总结</p>
-          <p className="text-[13px] whitespace-pre-wrap m-0">
-            {data.summary || "（暂无总结）"}
-          </p>
+          <p className="text-[13px] whitespace-pre-wrap m-0">{data.summary || "（暂无总结）"}</p>
         </div>
       </div>
     </div>

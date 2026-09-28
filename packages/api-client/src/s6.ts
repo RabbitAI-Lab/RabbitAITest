@@ -73,12 +73,25 @@ export interface SyncHistoryEntry {
 
 export const integrationApi = {
   list: (orgId: string) => get<IntegrationView[]>(`/api/v1/orgs/${orgId}/integrations`),
-  save: (orgId: string, body: { platform: string; address: string; authType: string; username?: string; password?: string; token?: string }) =>
-    put<{ ok: true }>(`/api/v1/orgs/${orgId}/integrations`, body),
+  save: (
+    orgId: string,
+    body: {
+      platform: string;
+      address: string;
+      authType: string;
+      username?: string;
+      password?: string;
+      token?: string;
+    },
+  ) => put<{ ok: true }>(`/api/v1/orgs/${orgId}/integrations`, body),
   remove: (orgId: string, platform: string) =>
-    del<{ ok: true }>(`/api/v1/orgs/${orgId}/integrations?platform=${encodeURIComponent(platform)}`),
+    del<{ ok: true }>(
+      `/api/v1/orgs/${orgId}/integrations?platform=${encodeURIComponent(platform)}`,
+    ),
   testConnection: (orgId: string, platform: string) =>
-    post<{ account?: string; email?: string }>(`/api/v1/orgs/${orgId}/integrations/test`, { platform }),
+    post<{ account?: string; email?: string }>(`/api/v1/orgs/${orgId}/integrations/test`, {
+      platform,
+    }),
   getSyncConfig: (projectId: string) =>
     get<SyncConfigView>(`/api/v1/projects/${projectId}/integration`),
   saveSyncConfig: (
@@ -115,7 +128,9 @@ export interface ApiKeyRow {
 export const apiKeyApi = {
   list: () => get<ApiKeyRow[]>(`/api/v1/personal/api-keys`),
   create: (name: string) =>
-    post<ApiKeyRow & { accessKey: string; secretKey: string }>(`/api/v1/personal/api-keys`, { name }),
+    post<ApiKeyRow & { accessKey: string; secretKey: string }>(`/api/v1/personal/api-keys`, {
+      name,
+    }),
   revoke: (id: string) => put<{ ok: true }>(`/api/v1/personal/api-keys/${id}/revoke`, {}),
 };
 
@@ -143,16 +158,23 @@ export interface SwaggerSyncTask {
 
 export const swaggerSyncApi = {
   list: (projectId: string) => get<SwaggerSyncTask[]>(`/api/v1/projects/${projectId}/swagger-sync`),
-  create: (projectId: string, body: { name: string; url: string; cover: boolean; moduleId?: string | null; cron: string }) =>
-    post<SwaggerSyncTask>(`/api/v1/projects/${projectId}/swagger-sync`, body),
-  update: (projectId: string, id: string, body: { name: string; url: string; cover: boolean; moduleId?: string | null; cron: string }) =>
-    put<{ ok: true }>(`/api/v1/projects/${projectId}/swagger-sync/${id}`, body),
+  create: (
+    projectId: string,
+    body: { name: string; url: string; cover: boolean; moduleId?: string | null; cron: string },
+  ) => post<SwaggerSyncTask>(`/api/v1/projects/${projectId}/swagger-sync`, body),
+  update: (
+    projectId: string,
+    id: string,
+    body: { name: string; url: string; cover: boolean; moduleId?: string | null; cron: string },
+  ) => put<{ ok: true }>(`/api/v1/projects/${projectId}/swagger-sync/${id}`, body),
   remove: (projectId: string, id: string) =>
     del<{ ok: true }>(`/api/v1/projects/${projectId}/swagger-sync/${id}`),
   run: (projectId: string, id: string) =>
     post<SwaggerSyncTask["lastResult"]>(`/api/v1/projects/${projectId}/swagger-sync/${id}/run`, {}),
   history: (projectId: string, id: string) =>
-    get<PageEnvelope<NonNullable<SwaggerSyncTask["lastResult"]>>>(`/api/v1/projects/${projectId}/swagger-sync/${id}/history`),
+    get<PageEnvelope<NonNullable<SwaggerSyncTask["lastResult"]>>>(
+      `/api/v1/projects/${projectId}/swagger-sync/${id}/history`,
+    ),
 };
 
 // ── SYS-008 审计日志 ──
@@ -172,11 +194,22 @@ export interface AuditLogRow {
 }
 
 const qsOf = (q: Record<string, unknown>) =>
-  new URLSearchParams(Object.entries(q).filter(([, v]) => v !== undefined).map(([k, v]) => [k, String(v)])).toString();
+  new URLSearchParams(
+    Object.entries(q)
+      .filter(([, v]) => v !== undefined)
+      .map(([k, v]) => [k, String(v)]),
+  ).toString();
 
 export const auditApi = {
-  system: (q: { action?: string; objectType?: string; keyword?: string; from?: string; to?: string; page?: number; pageSize?: number }) =>
-    get<PageEnvelope<AuditLogRow>>(`/api/v1/system/audit-logs?${qsOf(q)}`),
+  system: (q: {
+    action?: string;
+    objectType?: string;
+    keyword?: string;
+    from?: string;
+    to?: string;
+    page?: number;
+    pageSize?: number;
+  }) => get<PageEnvelope<AuditLogRow>>(`/api/v1/system/audit-logs?${qsOf(q)}`),
   org: (orgId: string, q: { action?: string; keyword?: string; page?: number }) =>
     get<PageEnvelope<AuditLogRow>>(`/api/v1/orgs/${orgId}/audit-logs?${qsOf(q)}`),
   project: (projectId: string, q: { action?: string; keyword?: string; page?: number }) =>

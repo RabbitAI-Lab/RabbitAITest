@@ -18,8 +18,10 @@ export function describeCron(cron: string): string {
   const parts = cron.trim().split(/\s+/);
   if (parts.length === 5) {
     const [min = "*", hour = "*", , , dow = "*"] = parts;
-    if (dow === "*" && hour !== "*" && min !== "*") return `每天 ${hour.padStart(2, "0")}:${min.padStart(2, "0")}`;
-    if (dow === "1-5" && hour !== "*" && min !== "*") return `工作日 ${hour.padStart(2, "0")}:${min.padStart(2, "0")}`;
+    if (dow === "*" && hour !== "*" && min !== "*")
+      return `每天 ${hour.padStart(2, "0")}:${min.padStart(2, "0")}`;
+    if (dow === "1-5" && hour !== "*" && min !== "*")
+      return `工作日 ${hour.padStart(2, "0")}:${min.padStart(2, "0")}`;
     if (min.startsWith("*/")) return `每 ${min.slice(2)} 分钟`;
     if (hour === "*") return "每小时";
   }
@@ -35,7 +37,13 @@ export default function SchedulePanel() {
   const canUpdate = can("PROJECT_SCENARIO:UPDATE");
 
   const [editing, setEditing] = useState<ScenarioScheduleRow | "new" | null>(null);
-  const [form, setForm] = useState<{ name: string; cron: string; scenarioIds: string[]; envId?: string; enabled: boolean }>({ name: "", cron: "0 9 * * *", scenarioIds: [], envId: undefined, enabled: true });
+  const [form, setForm] = useState<{
+    name: string;
+    cron: string;
+    scenarioIds: string[];
+    envId?: string;
+    enabled: boolean;
+  }>({ name: "", cron: "0 9 * * *", scenarioIds: [], envId: undefined, enabled: true });
 
   const listQ = useQuery({
     queryKey: ["schedules", "list", projectId],
@@ -52,14 +60,31 @@ export default function SchedulePanel() {
 
   const openEdit = (r: ScenarioScheduleRow | "new") => {
     setEditing(r);
-    if (r === "new") setForm({ name: "", cron: "0 9 * * *", scenarioIds: [], envId: undefined, enabled: true });
-    else setForm({ name: r.name, cron: r.cron, scenarioIds: r.scenarioIds, envId: r.envId, enabled: r.enabled });
+    if (r === "new")
+      setForm({ name: "", cron: "0 9 * * *", scenarioIds: [], envId: undefined, enabled: true });
+    else
+      setForm({
+        name: r.name,
+        cron: r.cron,
+        scenarioIds: r.scenarioIds,
+        envId: r.envId,
+        enabled: r.enabled,
+      });
   };
 
   const saveM = useMutation({
     mutationFn: async () => {
-      const body = { name: form.name.trim(), cron: form.cron.trim(), scenarioIds: form.scenarioIds, ...(form.envId ? { envId: form.envId } : {}), enabled: form.enabled, notify: false };
-      return editing === "new" ? scheduleApi.create(projectId!, body) : scheduleApi.update(projectId!, (editing as ScenarioScheduleRow).id, body);
+      const body = {
+        name: form.name.trim(),
+        cron: form.cron.trim(),
+        scenarioIds: form.scenarioIds,
+        ...(form.envId ? { envId: form.envId } : {}),
+        enabled: form.enabled,
+        notify: false,
+      };
+      return editing === "new"
+        ? scheduleApi.create(projectId!, body)
+        : scheduleApi.update(projectId!, (editing as ScenarioScheduleRow).id, body);
     },
     onSuccess: () => {
       setEditing(null);
@@ -70,7 +95,8 @@ export default function SchedulePanel() {
   });
 
   const toggleM = useMutation({
-    mutationFn: (v: { id: string; enabled: boolean }) => scheduleApi.toggle(projectId!, v.id, v.enabled),
+    mutationFn: (v: { id: string; enabled: boolean }) =>
+      scheduleApi.toggle(projectId!, v.id, v.enabled),
     onSuccess: (r) => {
       qc.invalidateQueries({ queryKey: ["schedules"] });
       message.success(r.enabled ? "已启用（到点触发）" : "已停用");
@@ -111,11 +137,20 @@ export default function SchedulePanel() {
     <div data-testid="schedule-panel">
       <div className="flex items-center gap-2 border-b border-[#F0F1F3] px-3 py-2">
         {canUpdate && (
-          <Button size="small" type="primary" ghost icon={<Plus size={13} strokeWidth={1.8} />} data-testid="btn-new-schedule" onClick={() => openEdit("new")}>
+          <Button
+            size="small"
+            type="primary"
+            ghost
+            icon={<Plus size={13} strokeWidth={1.8} />}
+            data-testid="btn-new-schedule"
+            onClick={() => openEdit("new")}
+          >
             新建定时任务
           </Button>
         )}
-        <span className="text-[11px] text-[#A8ABB0]">cron 最短间隔 5 分钟 · 单机部署口径（BullMQ repeatable）</span>
+        <span className="text-[11px] text-[#A8ABB0]">
+          cron 最短间隔 5 分钟 · 单机部署口径（BullMQ repeatable）
+        </span>
       </div>
       <Table<ScenarioScheduleRow>
         rowKey="id"
@@ -123,20 +158,79 @@ export default function SchedulePanel() {
         loading={listQ.isLoading}
         dataSource={rows}
         pagination={false}
-        locale={{ emptyText: <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="暂无定时任务——新建后到点自动执行所选场景" /> }}
+        locale={{
+          emptyText: (
+            <Empty
+              image={Empty.PRESENTED_IMAGE_SIMPLE}
+              description="暂无定时任务——新建后到点自动执行所选场景"
+            />
+          ),
+        }}
         columns={[
-          { title: "名称", dataIndex: "name", render: (v: string, r) => <span className="font-medium text-[#1F2329]" data-testid={`schedule-name-${r.id.slice(0, 8)}`}>{v}</span> },
-          { title: "cron", dataIndex: "cron", width: 110, render: (v: string) => <code className="font-mono text-xs text-[#3D4350]">{v}</code> },
-          { title: "说明", key: "desc", width: 110, render: (_: unknown, r) => <span className="text-xs text-[#87888D]">{describeCron(r.cron)}</span> },
-          { title: "场景", dataIndex: "scenarioIds", width: 170, render: (ids: string[]) => (ids.length <= 1 ? <span className="text-xs">{ids.length ? scenName(ids[0]) : "—"}</span> : <span className="text-xs">{scenName(ids[0])} 等 {ids.length} 个</span>) },
-          { title: "状态", dataIndex: "enabled", width: 80, render: (v: boolean, r) => (canUpdate ? <Switch size="small" checked={v} data-testid={`schedule-toggle-${r.id.slice(0, 8)}`} onChange={(en) => toggleM.mutate({ id: r.id, enabled: en })} /> : <span>{v ? "启用" : "停用"}</span>) },
+          {
+            title: "名称",
+            dataIndex: "name",
+            render: (v: string, r) => (
+              <span
+                className="font-medium text-[#1F2329]"
+                data-testid={`schedule-name-${r.id.slice(0, 8)}`}
+              >
+                {v}
+              </span>
+            ),
+          },
+          {
+            title: "cron",
+            dataIndex: "cron",
+            width: 110,
+            render: (v: string) => <code className="font-mono text-xs text-[#3D4350]">{v}</code>,
+          },
+          {
+            title: "说明",
+            key: "desc",
+            width: 110,
+            render: (_: unknown, r) => (
+              <span className="text-xs text-[#87888D]">{describeCron(r.cron)}</span>
+            ),
+          },
+          {
+            title: "场景",
+            dataIndex: "scenarioIds",
+            width: 170,
+            render: (ids: string[]) =>
+              ids.length <= 1 ? (
+                <span className="text-xs">{ids.length ? scenName(ids[0]) : "—"}</span>
+              ) : (
+                <span className="text-xs">
+                  {scenName(ids[0])} 等 {ids.length} 个
+                </span>
+              ),
+          },
+          {
+            title: "状态",
+            dataIndex: "enabled",
+            width: 80,
+            render: (v: boolean, r) =>
+              canUpdate ? (
+                <Switch
+                  size="small"
+                  checked={v}
+                  data-testid={`schedule-toggle-${r.id.slice(0, 8)}`}
+                  onChange={(en) => toggleM.mutate({ id: r.id, enabled: en })}
+                />
+              ) : (
+                <span>{v ? "启用" : "停用"}</span>
+              ),
+          },
           {
             title: "最近触发",
             dataIndex: "lastRunAt",
             width: 140,
             render: (v: string | undefined, r) =>
               r.enabled ? (
-                <span className="text-xs text-[#646A73]">{v ? new Date(v).toLocaleString("zh-CN") : "未触发"}</span>
+                <span className="text-xs text-[#646A73]">
+                  {v ? new Date(v).toLocaleString("zh-CN") : "未触发"}
+                </span>
               ) : (
                 <span className="text-xs text-[#A8ABB0]">已停用 · 不触发</span>
               ),
@@ -152,11 +246,23 @@ export default function SchedulePanel() {
                     编辑
                   </Button>
                   <span className="text-[#E5E6EB]">|</span>
-                  <Button type="link" size="small" className="!px-0" icon={<Zap size={11} strokeWidth={1.8} />} onClick={() => runM.mutate(r.id)} data-testid={`btn-run-schedule-${r.id.slice(0, 8)}`}>
+                  <Button
+                    type="link"
+                    size="small"
+                    className="!px-0"
+                    icon={<Zap size={11} strokeWidth={1.8} />}
+                    onClick={() => runM.mutate(r.id)}
+                    data-testid={`btn-run-schedule-${r.id.slice(0, 8)}`}
+                  >
                     立即执行
                   </Button>
                   <span className="text-[#E5E6EB]">|</span>
-                  <Popconfirm title="删除该定时任务？" okText="删除" okButtonProps={{ danger: true }} onConfirm={() => removeM.mutate(r.id)}>
+                  <Popconfirm
+                    title="删除该定时任务？"
+                    okText="删除"
+                    okButtonProps={{ danger: true }}
+                    onConfirm={() => removeM.mutate(r.id)}
+                  >
                     <Button type="link" size="small" className="!px-0 !text-[#FF4D4F]">
                       删除
                     </Button>
@@ -175,7 +281,13 @@ export default function SchedulePanel() {
         footer={
           <div className="flex justify-end gap-2">
             <Button onClick={() => setEditing(null)}>取消</Button>
-            <Button type="primary" loading={saveM.isPending} disabled={!form.name.trim() || !form.scenarioIds.length} data-testid="btn-save-schedule" onClick={() => saveM.mutate()}>
+            <Button
+              type="primary"
+              loading={saveM.isPending}
+              disabled={!form.name.trim() || !form.scenarioIds.length}
+              data-testid="btn-save-schedule"
+              onClick={() => saveM.mutate()}
+            >
               保存
             </Button>
           </div>
@@ -184,12 +296,25 @@ export default function SchedulePanel() {
         <div className="space-y-4">
           <div>
             <p className="mb-1 text-xs text-[#646A73]">名称</p>
-            <Input placeholder="如：每日冒烟" value={form.name} data-testid="input-schedule-name" onChange={(e) => setForm({ ...form, name: e.target.value })} />
+            <Input
+              placeholder="如：每日冒烟"
+              value={form.name}
+              data-testid="input-schedule-name"
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+            />
           </div>
           <div>
             <p className="mb-1 text-xs text-[#646A73]">cron 表达式（5 段：分 时 日 月 周）</p>
-            <Input className="!font-mono" placeholder="0 9 * * *" value={form.cron} data-testid="input-schedule-cron" onChange={(e) => setForm({ ...form, cron: e.target.value })} />
-            <p className="mt-1 text-[11px] text-[#52C41A]">{describeCron(form.cron)} · 最短间隔 5 分钟（更短会被拒绝 422）</p>
+            <Input
+              className="!font-mono"
+              placeholder="0 9 * * *"
+              value={form.cron}
+              data-testid="input-schedule-cron"
+              onChange={(e) => setForm({ ...form, cron: e.target.value })}
+            />
+            <p className="mt-1 text-[11px] text-[#52C41A]">
+              {describeCron(form.cron)} · 最短间隔 5 分钟（更短会被拒绝 422）
+            </p>
           </div>
           <div>
             <p className="mb-1 text-xs text-[#646A73]">执行场景（多选，上限 50）</p>
@@ -201,7 +326,10 @@ export default function SchedulePanel() {
               optionFilterProp="label"
               value={form.scenarioIds}
               onChange={(v) => setForm({ ...form, scenarioIds: v })}
-              options={(scenQ.data?.items ?? []).map((s) => ({ value: s.id, label: `${s.name} #${s.num}` }))}
+              options={(scenQ.data?.items ?? []).map((s) => ({
+                value: s.id,
+                label: `${s.name} #${s.num}`,
+              }))}
               data-testid="select-schedule-scenarios"
             />
           </div>

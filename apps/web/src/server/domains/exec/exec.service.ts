@@ -20,11 +20,16 @@ import { eventFrameSchema, execCommandSchema } from "@rabbit/shared";
 import { execTaskListQuerySchema, reportListQuerySchema } from "@rabbit/shared";
 import type { z } from "zod";
 import { prisma } from "@rabbit/db";
-import { execQueue, redis } from "@/server/redis";
+import { execQueue, execQueueFor, redis } from "@/server/redis";
+import { assertPoolExecutable } from "@/server/domains/system/pool.service";
 import { buildEnvSnapshot } from "@/server/domains/project/environment.service";
 import { resolveScriptRefs } from "@/server/domains/project/public-script.service";
 import { parseCsv, type CsvSource } from "@rabbit/shared/execution";
-import { matchFalseAlarm, type FalseAlarmRuleLike, type FailedStepInput } from "@rabbit/shared/execution";
+import {
+  matchFalseAlarm,
+  type FalseAlarmRuleLike,
+  type FailedStepInput,
+} from "@rabbit/shared/execution";
 import { buildScenarioTree } from "@rabbit/shared/execution";
 import { readFileObject } from "@/server/storage";
 
@@ -41,7 +46,8 @@ function withProtocol(definitionProtocol: string, spec: RequestSpec): RequestSpe
   };
 }
 
-export interface DebugTaskInput {  request: RequestSpec;
+export interface DebugTaskInput {
+  request: RequestSpec;
   asserts: AssertSpec[];
   pre: Processor[];
   post: Processor[];
@@ -85,11 +91,7 @@ export async function createDebugTask(projectId: string, userId: string, input: 
     });
   } catch (err) {
     // 真并发竞态：查询-插入窗口内同键先落库 → 唯一索引 P2002，回查复用（幂等兜底）
-    if (
-      input.clientTaskId &&
-      err instanceof Error &&
-      (err as { code?: string }).code === "P2002"
-    ) {
+    if (input.clientTaskId && err instanceof Error && (err as { code?: string }).code === "P2002") {
       const winner = await prisma.execTask.findFirst({
         where: { projectId, clientTaskId: input.clientTaskId },
         select: { id: true },
@@ -98,7 +100,7 @@ export async function createDebugTask(projectId: string, userId: string, input: 
     }
     throw err;
   }
-  await execQueue().add(
+  await execQueueFor(config.defaultPoolId).add(
     "exec",
     {
       taskId: task.id,
@@ -130,7 +132,11 @@ export async function buildApiCaseCommands(
 ): Promise<(Omit<ExecItemCommand, "itemId"> & { apiProtocol: string })[]> {
   const cases = await prisma.apiCase.findMany({
     where: { id: { in: caseIds }, projectId, deletedAt: null },
-    include: { api: { select: { id: true, moduleId: true, method: true, path: true, num: true, protocol: true } } },
+    include: {
+      api: {
+        select: { id: true, moduleId: true, method: true, path: true, num: true, protocol: true },
+      },
+    },
   });
   const found = new Set(cases.map((c) => c.id));
   const missing = caseIds.filter((id) => !found.has(id));
@@ -140,7 +146,13 @@ export async function buildApiCaseCommands(
     .map((id) => cases.find((c) => c.id === id))
     .filter((c): c is (typeof cases)[number] => Boolean(c))
     .map((c) => {
-      const bundle = c.request as { spec: RequestSpec; asserts?: AssertSpec[]; pre?: Processor[]; post?: Processor[]; extracts?: Extractor[] };
+      const bundle = c.request as {
+        spec: RequestSpec;
+        asserts?: AssertSpec[];
+        pre?: Processor[];
+        post?: Processor[];
+        extracts?: Extractor[];
+      };
       return {
         caseId: c.id,
         name: c.name,
@@ -164,7 +176,11 @@ export async function buildApiCaseCommands(
 }
 
 /** api_case 批量任务：预建 ExecItem（id 即 engine 侧 itemId）→ 入队（API-003 §2）。 */
-export async function createApiCaseTask(projectId: string, userId: string, input: ApiCaseTaskInput) {
+export async function createApiCaseTask(
+  projectId: string,
+  userId: string,
+  input: ApiCaseTaskInput,
+) {
   const commands = await buildApiCaseCommands(projectId, input.caseIds);
   if (commands.length === 0)
     throw new DomainError(ErrCode.API_CASE_NOT_FOUND, "接口用例不存在或已删除");
@@ -186,7 +202,13 @@ export async function createApiCaseTask(projectId: string, userId: string, input
           items: commands.map((c) => ({
             caseId: c.caseId,
             name: c.name,
-            bundle: { spec: c.request, asserts: c.asserts, pre: c.pre, post: c.post, extracts: c.extracts },
+            bundle: {
+              spec: c.request,
+              asserts: c.asserts,
+              pre: c.pre,
+              post: c.post,
+              extracts: c.extracts,
+            },
           })),
         },
         createdBy: userId,
@@ -214,7 +236,7 @@ export async function createApiCaseTask(projectId: string, userId: string, input
     return task;
   });
 
-  await execQueue().add(
+  await execQueueFor(config.defaultPoolId).add(
     "exec",
     {
       taskId: created.id,
@@ -273,7 +295,7 @@ export async function createAdhocScenarioTask(
     asserts: [],
     steps: input.steps,
   };
-  await execQueue().add(
+  await execQueueFor(config.defaultPoolId).add(
     "exec",
     {
       taskId: created.taskId,
@@ -305,7 +327,11 @@ export interface ScenarioTaskInput {
 async function resolveScenarioSteps(
   projectId: string,
   steps: ScenarioStepNode[],
-  params: { lists: { name: string; values: string[] }[]; csvColumns: string[]; csvRows: string[][] },
+  params: {
+    lists: { name: string; values: string[] }[];
+    csvColumns: string[];
+    csvRows: string[][];
+  },
   depth: number,
 ): Promise<ScenarioStepNode[]> {
   if (depth > 5) throw new DomainError(ErrCode.SCENARIO_CIRCULAR_REF, "场景引用链深度超限（≤5）");
@@ -322,8 +348,20 @@ async function resolveScenarioSteps(
           select: { request: true, moduleId: true },
         });
         if (api) {
-          const r = api.request as { spec: RequestSpec; asserts?: AssertSpec[]; pre?: Processor[]; post?: Processor[]; extracts?: Extractor[] };
-          bundle = { request: r.spec, asserts: r.asserts ?? [], pre: r.pre ?? [], post: r.post ?? [], extracts: r.extracts ?? [] };
+          const r = api.request as {
+            spec: RequestSpec;
+            asserts?: AssertSpec[];
+            pre?: Processor[];
+            post?: Processor[];
+            extracts?: Extractor[];
+          };
+          bundle = {
+            request: r.spec,
+            asserts: r.asserts ?? [],
+            pre: r.pre ?? [],
+            post: r.post ?? [],
+            extracts: r.extracts ?? [],
+          };
           moduleId = api.moduleId;
         }
       } else if (n.stepType === "ref_case" && refId) {
@@ -332,15 +370,30 @@ async function resolveScenarioSteps(
           include: { api: { select: { moduleId: true } } },
         });
         if (c) {
-          const r = c.request as { spec: RequestSpec; asserts?: AssertSpec[]; pre?: Processor[]; post?: Processor[]; extracts?: Extractor[] };
-          bundle = { request: r.spec, asserts: r.asserts ?? [], pre: r.pre ?? [], post: r.post ?? [], extracts: r.extracts ?? [] };
+          const r = c.request as {
+            spec: RequestSpec;
+            asserts?: AssertSpec[];
+            pre?: Processor[];
+            post?: Processor[];
+            extracts?: Extractor[];
+          };
+          bundle = {
+            request: r.spec,
+            asserts: r.asserts ?? [],
+            pre: r.pre ?? [],
+            post: r.post ?? [],
+            extracts: r.extracts ?? [],
+          };
           moduleId = c.api.moduleId;
         }
       }
       if (bundle) {
         node = {
           ...node,
-          config: { ...(n.config as object), bundle, ...(moduleId ? { moduleId } : {}) } as Record<string, unknown>,
+          config: { ...(n.config as object), bundle, ...(moduleId ? { moduleId } : {}) } as Record<
+            string,
+            unknown
+          >,
         };
       } else {
         // 引用目标已删：降级为断言必失败的占位请求（帧可见，报告留痕）
@@ -349,7 +402,14 @@ async function resolveScenarioSteps(
           config: {
             ...(n.config as object),
             bundle: {
-              request: { method: "GET", url: "about:blank", headers: [], query: [], body: { kind: "none" }, auth: { kind: "none" } },
+              request: {
+                method: "GET",
+                url: "about:blank",
+                headers: [],
+                query: [],
+                body: { kind: "none" },
+                auth: { kind: "none" },
+              },
               asserts: [{ kind: "status_code", path: "", op: "eq", expected: "-1" }],
             },
             __unresolvedRef: true,
@@ -365,7 +425,10 @@ async function resolveScenarioSteps(
         });
         if (sub) {
           const childTree = buildStepTree(sub.steps);
-          node = { ...node, children: await resolveScenarioSteps(projectId, childTree, params, depth + 1) };
+          node = {
+            ...node,
+            children: await resolveScenarioSteps(projectId, childTree, params, depth + 1),
+          };
         }
       }
     } else if (n.stepType === "loop") {
@@ -380,29 +443,54 @@ async function resolveScenarioSteps(
           const colIdx = params.csvColumns.indexOf(cfg.source);
           iterations = params.csvRows.map((row) => {
             const rowObj: Record<string, string> = {};
-            params.csvColumns.forEach((c, i) => { rowObj[c] = row[i] ?? ""; });
+            params.csvColumns.forEach((c, i) => {
+              rowObj[c] = row[i] ?? "";
+            });
             return { value: colIdx >= 0 ? (row[colIdx] ?? "") : "", row: rowObj };
           });
         }
-        node = { ...node, config: { ...(n.config as object), iterations } as Record<string, unknown> };
+        node = {
+          ...node,
+          config: { ...(n.config as object), iterations } as Record<string, unknown>,
+        };
       }
-      node = { ...node, children: await resolveScenarioSteps(projectId, n.children, params, depth) };
+      node = {
+        ...node,
+        children: await resolveScenarioSteps(projectId, n.children, params, depth),
+      };
     } else if (n.children.length > 0) {
-      node = { ...node, children: await resolveScenarioSteps(projectId, n.children, params, depth) };
+      node = {
+        ...node,
+        children: await resolveScenarioSteps(projectId, n.children, params, depth),
+      };
     }
     // S5 PROJ-005：步骤级处理器 scriptRef 构建期展开（ref 解析后的 bundle 与 custom 步骤 config 两形态）
     const cfg = node.config as Record<string, unknown>;
     const bundle = cfg.bundle as { pre?: unknown[]; post?: unknown[] } | undefined;
-    if (Array.isArray(bundle?.pre)) bundle.pre = await resolveScriptRefs(projectId, bundle.pre as Processor[]);
-    if (Array.isArray(bundle?.post)) bundle.post = await resolveScriptRefs(projectId, bundle.post as Processor[]);
-    if (Array.isArray(cfg.pre)) cfg.pre = await resolveScriptRefs(projectId, cfg.pre as Processor[]);
-    if (Array.isArray(cfg.post)) cfg.post = await resolveScriptRefs(projectId, cfg.post as Processor[]);
+    if (Array.isArray(bundle?.pre))
+      bundle.pre = await resolveScriptRefs(projectId, bundle.pre as Processor[]);
+    if (Array.isArray(bundle?.post))
+      bundle.post = await resolveScriptRefs(projectId, bundle.post as Processor[]);
+    if (Array.isArray(cfg.pre))
+      cfg.pre = await resolveScriptRefs(projectId, cfg.pre as Processor[]);
+    if (Array.isArray(cfg.post))
+      cfg.post = await resolveScriptRefs(projectId, cfg.post as Processor[]);
     out.push(node);
   }
   return out;
 }
 
-function buildStepTree(rows: { id: string; parentId: string | null; stepType: string; name: string; enabled: boolean; config: unknown; order: number }[]): ScenarioStepNode[] {
+function buildStepTree(
+  rows: {
+    id: string;
+    parentId: string | null;
+    stepType: string;
+    name: string;
+    enabled: boolean;
+    config: unknown;
+    order: number;
+  }[],
+): ScenarioStepNode[] {
   const byParent = new Map<string | null, typeof rows>();
   for (const r of rows) {
     if (!byParent.has(r.parentId)) byParent.set(r.parentId, []);
@@ -429,20 +517,30 @@ export async function buildScenarioCommands(
     where: { id: { in: scenarioIds }, projectId, deletedAt: null },
     include: { steps: { orderBy: { order: "asc" } } },
   });
-  if (scenarios.length === 0) throw new DomainError(ErrCode.SCENARIO_NOT_FOUND, "场景不存在或已删除");
+  if (scenarios.length === 0)
+    throw new DomainError(ErrCode.SCENARIO_NOT_FOUND, "场景不存在或已删除");
   const found = new Set(scenarios.map((s) => s.id));
   const missing = scenarioIds.filter((id) => !found.has(id));
-  if (missing.length > 0) throw new DomainError(ErrCode.SCENARIO_NOT_FOUND, `部分场景不存在：${missing.length} 个`);
+  if (missing.length > 0)
+    throw new DomainError(ErrCode.SCENARIO_NOT_FOUND, `部分场景不存在：${missing.length} 个`);
   const ordered = scenarioIds.map((id) => scenarios.find((s) => s.id === id)!).filter(Boolean);
 
   const commands: Omit<ScenarioItemCommand, "itemId">[] = [];
   const resolvedWarnings: string[] = [];
   for (const s of ordered) {
     const cfg = (s.config ?? {}) as {
-      params?: { constants?: { name: string; value: string }[]; lists?: { name: string; values: string[] }[]; csv?: CsvSource };
+      params?: {
+        constants?: { name: string; value: string }[];
+        lists?: { name: string; values: string[] }[];
+        csv?: CsvSource;
+      };
       prePost?: { pre?: Processor[]; post?: Processor[] };
       asserts?: AssertSpec[];
-      settings?: { cookieMode?: "off" | "keep"; thinkTimeMs?: number; onFailure?: "continue" | "abort" };
+      settings?: {
+        cookieMode?: "off" | "keep";
+        thinkTimeMs?: number;
+        onFailure?: "continue" | "abort";
+      };
     };
     const constants = cfg.params?.constants ?? [];
     const lists = (cfg.params?.lists ?? []).map((l) => ({ name: l.name, values: l.values ?? [] }));
@@ -453,21 +551,32 @@ export async function buildScenarioCommands(
     if (csvSrc) {
       let text = "";
       if (csvSrc.source === "file" && csvSrc.fileId) {
-        const f = await prisma.fileItem.findFirst({ where: { id: csvSrc.fileId, projectId, deletedAt: null } });
+        const f = await prisma.fileItem.findFirst({
+          where: { id: csvSrc.fileId, projectId, deletedAt: null },
+        });
         if (f) text = (await readFileObject(f.storageKey)).toString("utf8");
         else resolvedWarnings.push(`CSV 文件不存在（fileId=${csvSrc.fileId}），CSV 参数按空表处理`);
       } else if (csvSrc.inlineText) {
         text = csvSrc.inlineText;
       }
       if (text) {
-        const parsed = parseCsv(text, { delimiter: csvSrc.delimiter ?? ",", hasHeader: csvSrc.hasHeader ?? true });
-        if (parsed.rows.length >= 10000) throw new DomainError(ErrCode.CSV_TOO_LARGE, "CSV 行数超限（≤10000）");
+        const parsed = parseCsv(text, {
+          delimiter: csvSrc.delimiter ?? ",",
+          hasHeader: csvSrc.hasHeader ?? true,
+        });
+        if (parsed.rows.length >= 10000)
+          throw new DomainError(ErrCode.CSV_TOO_LARGE, "CSV 行数超限（≤10000）");
         csvColumns = parsed.columns;
         csvRows = parsed.rows;
         for (const w of parsed.warnings) resolvedWarnings.push(`CSV「${s.name}」：${w}`);
       }
     }
-    const resolvedSteps = await resolveScenarioSteps(projectId, buildStepTree(s.steps), { lists, csvColumns, csvRows }, 0);
+    const resolvedSteps = await resolveScenarioSteps(
+      projectId,
+      buildStepTree(s.steps),
+      { lists, csvColumns, csvRows },
+      0,
+    );
     commands.push({
       scenarioId: s.id,
       name: s.name,
@@ -491,10 +600,20 @@ export async function buildScenarioCommands(
 }
 
 /** scenario 批量任务（API-006 单条 / API-008 批量共用）：引用解析 + CSV 预解析 → ExecItem 预建 → 入队。 */
-export async function createScenarioTask(projectId: string, userId: string, input: ScenarioTaskInput) {
+export async function createScenarioTask(
+  projectId: string,
+  userId: string,
+  input: ScenarioTaskInput,
+) {
   const { commands, warnings } = await buildScenarioCommands(projectId, input.scenarioIds);
   const envSnapshot = await buildEnvSnapshot(projectId, input.envId);
   const items: ScenarioItemCommand[] = [];
+  // ENTP-006：执行入口池校验（存在/ACTIVE/应用组织）——非默认池任务入 `exec:{poolId}` 隔离队列
+  const project = await prisma.project.findUnique({
+    where: { id: projectId },
+    select: { orgId: true },
+  });
+  const poolId = await assertPoolExecutable(input.poolId ?? null, project?.orgId ?? null);
 
   const created = await prisma.$transaction(async (tx) => {
     const task = await tx.execTask.create({
@@ -503,9 +622,14 @@ export async function createScenarioTask(projectId: string, userId: string, inpu
         type: "scenario",
         status: "PENDING",
         clientTaskId: input.clientTaskId ?? null,
-        poolId: input.poolId ?? config.defaultPoolId,
+        poolId,
         envId: input.envId ?? null,
-        payload: { stopOnFail: input.stopOnFail, mode: input.mode, scenarioIds: commands.map((c) => c.scenarioId), warnings },
+        payload: {
+          stopOnFail: input.stopOnFail,
+          mode: input.mode,
+          scenarioIds: commands.map((c) => c.scenarioId),
+          warnings,
+        },
         createdBy: userId,
       },
       select: { id: true },
@@ -520,7 +644,7 @@ export async function createScenarioTask(projectId: string, userId: string, inpu
     return task;
   });
 
-  await execQueue().add(
+  await execQueueFor(poolId).add(
     "exec",
     {
       taskId: created.id,
@@ -539,7 +663,15 @@ export async function createScenarioTask(projectId: string, userId: string, inpu
 export async function handleCallback(taskId: string, cb: ExecCallback) {
   const task = await prisma.execTask.findFirst({
     where: { id: taskId },
-    select: { id: true, status: true, projectId: true, type: true, payload: true, envId: true, createdBy: true },
+    select: {
+      id: true,
+      status: true,
+      projectId: true,
+      type: true,
+      payload: true,
+      envId: true,
+      createdBy: true,
+    },
   });
   if (!task) throw new DomainError(ErrCode.TASK_NOT_FOUND, "任务不存在");
   if (task.status === "SUCCESS" || task.status === "FAILED" || task.status === "STOPPED") {
@@ -561,7 +693,8 @@ export async function handleCallback(taskId: string, cb: ExecCallback) {
     await tx.execTask.update({
       where: { id: taskId },
       data: {
-        status: cb.outcome === "success" ? "SUCCESS" : cb.outcome === "stopped" ? "STOPPED" : "FAILED",
+        status:
+          cb.outcome === "success" ? "SUCCESS" : cb.outcome === "stopped" ? "STOPPED" : "FAILED",
         failureKind: cb.failureKind ?? null,
         message: cb.message || null,
         startedAt: startedAt ? new Date(startedAt.ts) : null,
@@ -598,7 +731,12 @@ export async function handleCallback(taskId: string, cb: ExecCallback) {
             projectId: task.projectId,
             reportType: task.type,
             name: reportName,
-            summary: JSON.stringify({ total: existingItems.length, passed: 0, failed: 0, fakeError: 0 }),
+            summary: JSON.stringify({
+              total: existingItems.length,
+              passed: 0,
+              failed: 0,
+              fakeError: 0,
+            }),
             createdBy: task.createdBy,
           },
           select: { id: true },
@@ -618,7 +756,9 @@ export async function handleCallback(taskId: string, cb: ExecCallback) {
         let fakeHits: { ruleId: string; ruleName: string; stepPath?: string }[] = [];
         if (status === "FAILED" && faRules.length > 0) {
           const failedSteps: FailedStepInput[] = itemFrames
-            .filter((f): f is Extract<EventFrame, { type: "step-result" }> => f.type === "step-result")
+            .filter(
+              (f): f is Extract<EventFrame, { type: "step-result" }> => f.type === "step-result",
+            )
             .map((f) => ({
               status: f.status,
               bodyText: (f.responseSummary.bodyText ?? "").slice(0, 4096),
@@ -630,7 +770,11 @@ export async function handleCallback(taskId: string, cb: ExecCallback) {
           if (fakeHits.length > 0) {
             status = "FAKE_ERROR";
             fakeErrorCount += 1;
-            resultPayload = { status: "FAKE_ERROR", message: itemFinal?.message ?? "", fakeAlarmHits: fakeHits.map((h) => h.ruleName) };
+            resultPayload = {
+              status: "FAKE_ERROR",
+              message: itemFinal?.message ?? "",
+              fakeAlarmHits: fakeHits.map((h) => h.ruleName),
+            };
           }
         }
         await tx.execItem.update({
@@ -665,10 +809,21 @@ export async function handleCallback(taskId: string, cb: ExecCallback) {
       const failed = after.filter((i) => i.status === "FAILED").length;
       await tx.report.update({
         where: { id: report.id },
-        data: { summary: JSON.stringify({ total: after.length, passed, failed, fakeError: fakeErrorCount, durationMs }) },
+        data: {
+          summary: JSON.stringify({
+            total: after.length,
+            passed,
+            failed,
+            fakeError: fakeErrorCount,
+            durationMs,
+          }),
+        },
       });
       if (failed === 0 && fakeErrorCount > 0 && cb.outcome === "failed") {
-        await tx.execTask.update({ where: { id: taskId }, data: { status: "SUCCESS", failureKind: null } });
+        await tx.execTask.update({
+          where: { id: taskId },
+          data: { status: "SUCCESS", failureKind: null },
+        });
       }
       // v4（PLAN-003）：plan 任务报告挂 planId（计划报告列表/详情关联）
       if (task.type === "plan") {
@@ -732,14 +887,35 @@ export async function handleCallback(taskId: string, cb: ExecCallback) {
       const isScheduleRun = Boolean(payload.scheduleId);
       if (!isScheduleRun || payload.notify !== false) {
         const { dispatch } = await import("@/server/domains/message/notify.service");
-        const after = await prisma.execItem.findMany({ where: { taskId }, select: { status: true } });
+        const after = await prisma.execItem.findMany({
+          where: { taskId },
+          select: { status: true },
+        });
         const passed = after.filter((i) => i.status === "SUCCESS").length;
         const typeName = task.type === "plan" ? "计划执行" : "场景执行";
+        const [user, project] = await Promise.all([
+          prisma.user.findUnique({ where: { id: task.createdBy }, select: { name: true } }),
+          prisma.project.findUnique({ where: { id: task.projectId }, select: { name: true } }),
+        ]);
+        const time = new Date().toLocaleString("zh-CN");
+        const resultText = `${passed}/${after.length} 通过`;
         await dispatch({
           projectId: task.projectId,
           event: task.type === "plan" ? "PLAN_EXEC_COMPLETED" : "SCENARIO_EXEC_COMPLETED",
-          title: `[执行] ${typeName}完成（${finalStatus === "SUCCESS" ? "成功" : finalStatus === "STOPPED" ? "已停止" : "失败"}）`,
-          content: `时间：${new Date().toLocaleString("zh-CN")}\n结果：${passed}/${after.length} 通过${isScheduleRun ? "\n来源：定时任务" : ""}`,
+          vars: {
+            project: project?.name ?? "",
+            actorName: user?.name ?? task.createdBy.slice(0, 8),
+            time,
+            name: (task.payload as { planName?: string } | null)?.planName ?? typeName,
+            result: resultText,
+            passed: String(passed),
+            total: String(after.length),
+            source: isScheduleRun ? "定时任务" : "手动",
+          },
+          defaults: {
+            title: `[执行] ${typeName}完成（${finalStatus === "SUCCESS" ? "成功" : finalStatus === "STOPPED" ? "已停止" : "失败"}）`,
+            content: `时间：${time}\n结果：${resultText}${isScheduleRun ? "\n来源：定时任务" : ""}`,
+          },
           actorId: task.createdBy,
         });
       }
@@ -752,9 +928,17 @@ export async function handleCallback(taskId: string, cb: ExecCallback) {
 
 /** 项目级启用中的误报规则（API-010：回调时读当前规则快照——仅对新执行生效）。 */
 async function loadFalseAlarmRules(projectId: string): Promise<FalseAlarmRuleLike[]> {
-  const rows = await prisma.falseAlarmRule.findMany({ where: { projectId, enabled: true }, select: { id: true, name: true, matcher: true } });
+  const rows = await prisma.falseAlarmRule.findMany({
+    where: { projectId, enabled: true },
+    select: { id: true, name: true, matcher: true },
+  });
   return rows
-    .map((r) => ({ id: r.id, name: r.name, matcher: r.matcher as FalseAlarmRuleLike["matcher"], enabled: true }))
+    .map((r) => ({
+      id: r.id,
+      name: r.name,
+      matcher: r.matcher as FalseAlarmRuleLike["matcher"],
+      enabled: true,
+    }))
     .filter((r) => r.matcher && typeof r.matcher === "object");
 }
 
@@ -979,7 +1163,11 @@ export async function reportDetail(projectId: string, taskId: string) {
       durationMs: true,
       createdAt: true,
       payload: true,
-      reports: { select: { name: true, summary: true, createdAt: true }, orderBy: { createdAt: "desc" }, take: 1 },
+      reports: {
+        select: { name: true, summary: true, createdAt: true },
+        orderBy: { createdAt: "desc" },
+        take: 1,
+      },
     },
   });
   if (!task) throw new DomainError(ErrCode.TASK_NOT_FOUND, "任务不存在或无权访问");
@@ -1006,7 +1194,10 @@ export async function reportDetail(projectId: string, taskId: string) {
   );
   const reportRow = await prisma.report.findFirst({ where: { taskId }, select: { id: true } });
   const hits = reportRow
-    ? await prisma.falseAlarmHit.findMany({ where: { reportId: reportRow.id }, select: { ruleName: true, stepPath: true, taskId: true } })
+    ? await prisma.falseAlarmHit.findMany({
+        where: { reportId: reportRow.id },
+        select: { ruleName: true, stepPath: true, taskId: true },
+      })
     : [];
   const itemViews = orderedItems.map((item) => {
     const frames = stepFrames.filter((s) => s.itemId === item.id).map((s) => s.frame);
@@ -1019,11 +1210,14 @@ export async function reportDetail(projectId: string, taskId: string) {
       refType: item.refType,
       refId: item.refId,
       status: item.status,
-      durationMs: stepResults.reduce((s, f) => s + f.durationMs, 0) || (stepResult?.durationMs ?? null),
+      durationMs:
+        stepResults.reduce((s, f) => s + f.durationMs, 0) || (stepResult?.durationMs ?? null),
       assertTotal: stepResults.reduce((s, f) => s + f.asserts.length, 0),
       assertPassed: stepResults.reduce((s, f) => s + f.asserts.filter((a) => a.passed).length, 0),
       stepCount: stepResults.length,
-      fakeAlarmHits: hits.filter((h) => h.taskId === taskId).map((h) => ({ ruleName: h.ruleName, stepPath: h.stepPath ?? undefined })),
+      fakeAlarmHits: hits
+        .filter((h) => h.taskId === taskId)
+        .map((h) => ({ ruleName: h.ruleName, stepPath: h.stepPath ?? undefined })),
       name: itemName(item, frames),
     };
   });
@@ -1052,8 +1246,7 @@ export async function reportDetail(projectId: string, taskId: string) {
           method: payload.request.method,
           url: payload.request.url,
           headers: payload.request.headers,
-          body:
-            "content" in payload.request.body ? payload.request.body.content : "(非文本请求体)",
+          body: "content" in payload.request.body ? payload.request.body.content : "(非文本请求体)",
         }
       : undefined,
     response: firstStep
@@ -1075,7 +1268,11 @@ export async function reportDetail(projectId: string, taskId: string) {
   };
 }
 
-function parseSummary(raw: string | null | undefined): { total?: number; passed?: number; failed?: number; fakeError?: number; durationMs?: number } | undefined {
+function parseSummary(
+  raw: string | null | undefined,
+):
+  | { total?: number; passed?: number; failed?: number; fakeError?: number; durationMs?: number }
+  | undefined {
   if (!raw) return undefined;
   try {
     return JSON.parse(raw);
@@ -1098,22 +1295,38 @@ function itemName(
 
 /** 场景步骤树视图（RPT-003 §4：帧 → stepPath 树 + 迭代分组 + 变量终值）。 */
 export async function scenarioTree(projectId: string, taskId: string, itemId: string) {
-  const task = await prisma.execTask.findFirst({ where: { id: taskId, projectId }, select: { id: true } });
+  const task = await prisma.execTask.findFirst({
+    where: { id: taskId, projectId },
+    select: { id: true },
+  });
   if (!task) throw new DomainError(ErrCode.TASK_NOT_FOUND, "任务不存在或无权访问");
-  const item = await prisma.execItem.findFirst({ where: { id: itemId, taskId }, select: { id: true, status: true, result: true } });
+  const item = await prisma.execItem.findFirst({
+    where: { id: itemId, taskId },
+    select: { id: true, status: true, result: true },
+  });
   if (!item) throw new DomainError(ErrCode.TASK_NOT_FOUND, "执行项不存在");
   const name = (item.result as { name?: string } | null)?.name ?? item.id;
   const frames = (
-    await prisma.execStepResult.findMany({ where: { itemId }, orderBy: { seq: "asc" }, select: { frame: true } })
+    await prisma.execStepResult.findMany({
+      where: { itemId },
+      orderBy: { seq: "asc" },
+      select: { frame: true },
+    })
   ).map((r) => r.frame as unknown as Record<string, unknown>);
   const live = frames.length
     ? frames
     : (await readStream(taskId)).map((f) => f as unknown as Record<string, unknown>);
-  return buildScenarioTree(item.id, name, item.status, live as unknown as Parameters<typeof buildScenarioTree>[3]);
+  return buildScenarioTree(
+    item.id,
+    name,
+    item.status,
+    live as unknown as Parameters<typeof buildScenarioTree>[3],
+  );
 }
 
 /** item 级帧钻取（RPT-002 §4）。 */
-export async function itemFrames(projectId: string, taskId: string, itemId: string) {  const task = await prisma.execTask.findFirst({
+export async function itemFrames(projectId: string, taskId: string, itemId: string) {
+  const task = await prisma.execTask.findFirst({
     where: { id: taskId, projectId },
     select: { id: true },
   });
@@ -1150,11 +1363,7 @@ export async function deleteReport(projectId: string, taskId: string) {
 
 /** ───────────── 分享（RPT-002） ───────────── */
 
-export async function createShare(
-  projectId: string,
-  taskId: string,
-  expireHours: number,
-) {
+export async function createShare(projectId: string, taskId: string, expireHours: number) {
   const report = await prisma.report.findFirst({
     where: { taskId, projectId },
     select: { id: true },

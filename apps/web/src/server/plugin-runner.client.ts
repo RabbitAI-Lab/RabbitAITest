@@ -86,9 +86,16 @@ async function rpc<T>(body: Record<string, unknown>, timeoutMs = DEFAULT_TIMEOUT
     signal: AbortSignal.timeout(timeoutMs),
   }).catch(() => null);
   if (!res) {
-    throw new DomainError(ErrCode.PLUGIN_RUNNER_UNAVAILABLE, "plugin-runner 不可达（127.0.0.1 命令面）");
+    throw new DomainError(
+      ErrCode.PLUGIN_RUNNER_UNAVAILABLE,
+      "plugin-runner 不可达（127.0.0.1 命令面）",
+    );
   }
-  const json = (await res.json().catch(() => null)) as { code: number; message: string; data: T | null } | null;
+  const json = (await res.json().catch(() => null)) as {
+    code: number;
+    message: string;
+    data: T | null;
+  } | null;
   if (!json) {
     throw new DomainError(ErrCode.PLUGIN_RUNNER_UNAVAILABLE, "plugin-runner 响应非法");
   }

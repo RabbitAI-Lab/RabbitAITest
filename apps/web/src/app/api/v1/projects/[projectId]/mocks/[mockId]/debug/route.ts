@@ -9,7 +9,10 @@ export const runtime = "nodejs";
 const debugSchema = z.object({
   query: z.record(z.string(), z.string()).optional(),
   headers: z.record(z.string(), z.string()).optional(),
-  body: z.string().max(64 * 1024).optional(),
+  body: z
+    .string()
+    .max(64 * 1024)
+    .optional(),
 });
 
 export const POST = withProjectScope(async (ctx, req, seg) => {
@@ -27,9 +30,7 @@ export const POST = withProjectScope(async (ctx, req, seg) => {
         { status: 422 },
       );
     }
-    return NextResponse.json(
-      ok(await debugMock(ctx.projectId, mockId, parsed.data)),
-    );
+    return NextResponse.json(ok(await debugMock(ctx.projectId, mockId, parsed.data)));
   } catch (err) {
     return toResponse(err);
   }

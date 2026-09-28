@@ -82,7 +82,8 @@ async function prepare(spec: RequestSpec, absoluteUrl: string): Promise<Prepared
     body = new URLSearchParams(
       spec.body.rows.filter((r) => r.enabled).map((r) => [r.key, r.value]),
     ).toString();
-    if (headers["Content-Type"] === undefined) headers["Content-Type"] = "application/x-www-form-urlencoded";
+    if (headers["Content-Type"] === undefined)
+      headers["Content-Type"] = "application/x-www-form-urlencoded";
   } else if (kind === "binary" && spec.method !== "GET" && spec.method !== "HEAD") {
     const f = await fetchFile(spec.body.fileId);
     body = new Uint8Array(f.bytes);
@@ -101,7 +102,8 @@ async function prepare(spec: RequestSpec, absoluteUrl: string): Promise<Prepared
   }
   // 认证（NoAuth/Basic/Digest——Digest 在采样循环内 401 挑战后补算）
   if (spec.auth.kind === "basic") {
-    headers["Authorization"] = `Basic ${Buffer.from(`${spec.auth.username}:${spec.auth.password}`).toString("base64")}`;
+    headers["Authorization"] =
+      `Basic ${Buffer.from(`${spec.auth.username}:${spec.auth.password}`).toString("base64")}`;
   }
   return { url: absoluteUrl, method: spec.method, headers, body };
 }
@@ -111,7 +113,12 @@ async function dispatch(
   req: PreparedRequest,
   timeoutMs: number,
   signal?: AbortSignal,
-): Promise<{ status: number; headers: { key: string; value: string }[]; bodyText: string; rawWwwAuth?: string }> {
+): Promise<{
+  status: number;
+  headers: { key: string; value: string }[];
+  bodyText: string;
+  rawWwwAuth?: string;
+}> {
   const res = await undiciRequest(req.url, {
     method: req.method,
     headers: req.headers,

@@ -6,7 +6,10 @@ import { listSchedules, createSchedule } from "@/server/domains/api/schedule.ser
 export const runtime = "nodejs";
 
 const unprocessable = (message?: string) =>
-  NextResponse.json({ code: 20422, message: message ?? "参数校验失败", data: null }, { status: 422 });
+  NextResponse.json(
+    { code: 20422, message: message ?? "参数校验失败", data: null },
+    { status: 422 },
+  );
 
 export const GET = withProjectScope(async (ctx) => {
   try {
@@ -23,7 +26,9 @@ export const POST = withProjectScope(async (ctx, req) => {
     ctx.requireWritable();
     const parsed = scenarioScheduleSaveSchema.safeParse(await req.json());
     if (!parsed.success) return unprocessable(parsed.error.issues[0]?.message);
-    return NextResponse.json(ok(await createSchedule(ctx.projectId, ctx.userId, parsed.data)), { status: 201 });
+    return NextResponse.json(ok(await createSchedule(ctx.projectId, ctx.userId, parsed.data)), {
+      status: 201,
+    });
   } catch (err) {
     return toResponse(err);
   }

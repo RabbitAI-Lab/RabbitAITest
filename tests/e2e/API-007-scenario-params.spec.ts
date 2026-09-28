@@ -1,6 +1,12 @@
 import { test, expect, navFromHome } from "./fixtures";
 import { bundle, createApiDef, createMockRule, getMockUrl } from "./s2-helpers";
-import { createScenario, customStep, executeScenario, loopForeachStep, saveSteps } from "./s3-helpers";
+import {
+  createScenario,
+  customStep,
+  executeScenario,
+  loopForeachStep,
+  saveSteps,
+} from "./s3-helpers";
 
 /**
  * API-007 场景参数化（规格：docs/sprint-3-scenario-automation/API-007-scenario-params-csv.md）。
@@ -24,7 +30,10 @@ test("API-007-01 参数三分区：常量/列表/CSV inline 编辑→保存→�
   // 常量：添加一行
   await page.getByTestId("params-constants").getByText("＋ 添加").click();
   await page.getByTestId("params-constants").getByPlaceholder("变量名").fill("app_id");
-  await page.getByTestId("params-constants").getByPlaceholder(/值（支持/).fill("rabbit-demo");
+  await page
+    .getByTestId("params-constants")
+    .getByPlaceholder(/值（支持/)
+    .fill("rabbit-demo");
 
   // 列表：添加一组
   await page.getByTestId("params-lists").getByText("＋ 添加列表").click();
@@ -93,9 +102,13 @@ test("API-007-02 foreach 列表迭代：3 值→3 迭代帧→报告迭代分组
   const tree = await (async () => {
     for (let i = 0; i < 40; i++) {
       const rep = await request.get(`/api/v1/projects/${pid}/reports/${taskId}`);
-      const detail = (await rep.json()) as { data: { status: string; items: { itemId: string }[] } };
+      const detail = (await rep.json()) as {
+        data: { status: string; items: { itemId: string }[] };
+      };
       if (detail.data.status === "SUCCESS" || detail.data.status === "FAILED") {
-        const res = await request.get(`/api/v1/projects/${pid}/reports/${taskId}/items/${detail.data.items[0]!.itemId}/scenario-tree`);
+        const res = await request.get(
+          `/api/v1/projects/${pid}/reports/${taskId}/items/${detail.data.items[0]!.itemId}/scenario-tree`,
+        );
         return (await res.json()) as {
           data: {
             status: string;

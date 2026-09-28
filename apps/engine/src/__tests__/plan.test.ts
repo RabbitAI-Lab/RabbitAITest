@@ -92,7 +92,10 @@ describe("runPlanItem（PLAN-003 计划内核分派）", () => {
   });
 
   it("scenario：分派 runScenarioItem（含 item 级 tempVars 隔离入参）", async () => {
-    runScenarioMock.mockResolvedValueOnce({ status: "SUCCESS", message: "" } satisfies ScenarioItemOutcome);
+    runScenarioMock.mockResolvedValueOnce({
+      status: "SUCCESS",
+      message: "",
+    } satisfies ScenarioItemOutcome);
     const deps = makeDeps();
     const out = await runPlanItem(deps, undefined, scenarioItem());
     expect(out.status).toBe("SUCCESS");
@@ -103,13 +106,21 @@ describe("runPlanItem（PLAN-003 计划内核分派）", () => {
 
   it("env 优先级：item 级（点配置）覆盖任务级", async () => {
     runScenarioMock.mockReset();
-    runScenarioMock.mockResolvedValue({ status: "SUCCESS", message: "" } satisfies ScenarioItemOutcome);
-    runScenarioMock.mockResolvedValueOnce({ status: "SUCCESS", message: "" } satisfies ScenarioItemOutcome);
+    runScenarioMock.mockResolvedValue({
+      status: "SUCCESS",
+      message: "",
+    } satisfies ScenarioItemOutcome);
+    runScenarioMock.mockResolvedValueOnce({
+      status: "SUCCESS",
+      message: "",
+    } satisfies ScenarioItemOutcome);
     const deps = makeDeps();
     const taskEnv = { name: "task" } as never;
     const itemEnv = { name: "point" } as never;
     await runPlanItem(deps, taskEnv, { ...scenarioItem(), envSnapshot: itemEnv });
-    const scenarioDeps = runScenarioMock.mock.calls.at(-1)![0] as unknown as { env: { name: string } };
+    const scenarioDeps = runScenarioMock.mock.calls.at(-1)![0] as unknown as {
+      env: { name: string };
+    };
     expect(scenarioDeps.env?.name).toBe("point");
     // 缺省回落任务级
     await runPlanItem(deps, taskEnv, scenarioItem());

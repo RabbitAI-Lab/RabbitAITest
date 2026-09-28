@@ -67,7 +67,13 @@ describe("resolvePointChain（PLAN-002 配置继承链）", () => {
 describe("planGroupAggregate（PLAN-004 组聚合）", () => {
   it("空成员聚合为零值", () => {
     const agg = planGroupAggregate([]);
-    expect(agg).toEqual({ memberCount: 0, totalRefs: 0, executed: 0, passRate: null, thresholdMetCount: 0 });
+    expect(agg).toEqual({
+      memberCount: 0,
+      totalRefs: 0,
+      executed: 0,
+      passRate: null,
+      thresholdMetCount: 0,
+    });
   });
 
   it("progress/passRate/阈值 AND 口径", () => {
@@ -126,9 +132,20 @@ describe("buildPlanSummaryDraft / CSV（PLAN-005）", () => {
 
   it("buildPlanReportCsv 输出 BOM 外的 CSV 体（BOM 路由层附加）", () => {
     const csv = buildPlanReportCsv([
-      { point: "扫码", refType: "接口", name: "扫码下单,正向", executor: "张三", status: "通过", actualResult: "", lastRunAt: "t1", reportUrl: "/reports/x" },
+      {
+        point: "扫码",
+        refType: "接口",
+        name: "扫码下单,正向",
+        executor: "张三",
+        status: "通过",
+        actualResult: "",
+        lastRunAt: "t1",
+        reportUrl: "/reports/x",
+      },
     ]);
-    expect(csv.split("\r\n")[0]).toBe("测试点,用例类型,名称,执行人,状态,实际结果,最近执行,执行报告");
+    expect(csv.split("\r\n")[0]).toBe(
+      "测试点,用例类型,名称,执行人,状态,实际结果,最近执行,执行报告",
+    );
     expect(csv).toContain('"扫码下单,正向"');
   });
 });
@@ -136,13 +153,19 @@ describe("buildPlanSummaryDraft / CSV（PLAN-005）", () => {
 describe("S4 契约 schema 校验", () => {
   it("planCasesAddV2Schema：三类至少一非空 + pointId", () => {
     expect(planCasesAddV2Schema.safeParse({ caseIds: [] }).success).toBe(false);
-    const ok = planCasesAddV2Schema.safeParse({ scenarioIds: ["00000000-0000-4000-8000-000000000001"], pointId: null });
+    const ok = planCasesAddV2Schema.safeParse({
+      scenarioIds: ["00000000-0000-4000-8000-000000000001"],
+      pointId: null,
+    });
     expect(ok.success).toBe(true);
   });
 
   it("pointUpsertSchema 校验名称与 config 形状", () => {
     expect(pointUpsertSchema.safeParse({ name: "" }).success).toBe(false);
-    expect(pointUpsertSchema.safeParse({ name: "点", inheritConfig: false, config: { serial: true } }).success).toBe(true);
+    expect(
+      pointUpsertSchema.safeParse({ name: "点", inheritConfig: false, config: { serial: true } })
+        .success,
+    ).toBe(true);
   });
 
   it("mindmapSaveSchema：空提交合法（幂等）；坏 tmpId 拒绝", () => {
@@ -170,7 +193,14 @@ describe("S4 契约 schema 校验", () => {
             caseId: UUID,
             name: "接口用例",
             moduleId: UUID,
-            request: { method: "GET", url: "https://x", headers: [], query: [], body: { kind: "none" }, auth: { kind: "none" } },
+            request: {
+              method: "GET",
+              url: "https://x",
+              headers: [],
+              query: [],
+              body: { kind: "none" },
+              auth: { kind: "none" },
+            },
           },
         },
       ],
@@ -192,7 +222,14 @@ describe("S4 契约 schema 校验", () => {
             caseId: UUID,
             name: "c",
             moduleId: UUID,
-            request: { method: "GET", url: "https://x", headers: [], query: [], body: { kind: "none" }, auth: { kind: "none" } },
+            request: {
+              method: "GET",
+              url: "https://x",
+              headers: [],
+              query: [],
+              body: { kind: "none" },
+              auth: { kind: "none" },
+            },
           },
         ],
       }).success,

@@ -10,7 +10,11 @@ export const FALSE_ALARM_RULES_LIMIT = 50;
 
 function validateMatcher(input: SaveInput) {
   const m = input.matcher;
-  const any = m.status !== undefined || m.bodyContains !== undefined || m.headerContains !== undefined || m.responseTimeGt !== undefined;
+  const any =
+    m.status !== undefined ||
+    m.bodyContains !== undefined ||
+    m.headerContains !== undefined ||
+    m.responseTimeGt !== undefined;
   if (!any) throw new DomainError(ErrCode.MATCHER_EMPTY, "匹配器至少一项条件");
   return m;
 }
@@ -19,7 +23,14 @@ export async function listRules(projectId: string) {
   const rules = await prisma.falseAlarmRule.findMany({
     where: { projectId },
     orderBy: { updatedAt: "desc" },
-    select: { id: true, name: true, matcher: true, enabled: true, createdAt: true, updatedAt: true },
+    select: {
+      id: true,
+      name: true,
+      matcher: true,
+      enabled: true,
+      createdAt: true,
+      updatedAt: true,
+    },
   });
   return {
     total: rules.length,
@@ -37,7 +48,11 @@ export async function listRules(projectId: string) {
 export async function createRule(projectId: string, userId: string, input: SaveInput) {
   const matcher = validateMatcher(input);
   const count = await prisma.falseAlarmRule.count({ where: { projectId } });
-  if (count >= FALSE_ALARM_RULES_LIMIT) throw new DomainError(ErrCode.RULES_LIMIT_EXCEEDED, `误报规则上限 ${FALSE_ALARM_RULES_LIMIT} 条`);
+  if (count >= FALSE_ALARM_RULES_LIMIT)
+    throw new DomainError(
+      ErrCode.RULES_LIMIT_EXCEEDED,
+      `误报规则上限 ${FALSE_ALARM_RULES_LIMIT} 条`,
+    );
   void userId;
   const r = await prisma.falseAlarmRule.create({
     data: { projectId, name: input.name, matcher: matcher as object, enabled: input.enabled },

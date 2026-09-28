@@ -103,13 +103,19 @@ export default function DebugPage() {
         { value: n.id, label: `${"— ".repeat(depth)}${n.name}` },
         ...flatten(n.children as { id: string; name: string; children: unknown[] }[], depth + 1),
       ]);
-    return flatten((apiModulesQ.data?.items ?? []) as { id: string; name: string; children: unknown[] }[]);
+    return flatten(
+      (apiModulesQ.data?.items ?? []) as { id: string; name: string; children: unknown[] }[],
+    );
   })();
 
   const setSpecUrl = (url: string) => setBundle((b) => ({ ...b, spec: { ...b.spec, url } }));
-  const setSpecMethod = (method: HttpMethod) => setBundle((b) => ({ ...b, spec: { ...b.spec, method } }));
+  const setSpecMethod = (method: HttpMethod) =>
+    setBundle((b) => ({ ...b, spec: { ...b.spec, method } }));
   const patchAssert = (i: number, a: Partial<AssertSpec>) =>
-    setBundle((b) => ({ ...b, asserts: b.asserts.map((x, idx) => (idx === i ? { ...x, ...a } : x)) }));
+    setBundle((b) => ({
+      ...b,
+      asserts: b.asserts.map((x, idx) => (idx === i ? { ...x, ...a } : x)),
+    }));
 
   const url = bundle.spec.url.trim();
   // ${var} 开头的 URL 由环境变量渲染（API-004：占位符也算「待渲染相对/绝对」路径，交执行侧判定）
@@ -228,14 +234,21 @@ export default function DebugPage() {
               执 行
             </Button>
             {canSaveApi && (
-              <Button icon={<Save size={14} />} onClick={openSaveModal} data-testid="btn-save-as-api">
+              <Button
+                icon={<Save size={14} />}
+                onClick={openSaveModal}
+                data-testid="btn-save-as-api"
+              >
                 保存为接口
               </Button>
             )}
           </div>
           <p className="text-xs text-[#A8ABB0] mt-2">
-            {"`${var}` 作用域链：临时 > 任务参数 > 环境变量；相对路径按环境域名拼接（路径条件 > 模块 > 默认）"}
-          </p>        </div>
+            {
+              "`${var}` 作用域链：临时 > 任务参数 > 环境变量；相对路径按环境域名拼接（路径条件 > 模块 > 默认）"
+            }
+          </p>{" "}
+        </div>
 
         {/* 统一请求编辑器（七区）；其内部 method/URL 行与本页顶行同源，CSS 隐藏避免重复展示 */}
         <div className="rabbit-card p-3" data-testid="debug-editor">
@@ -259,7 +272,9 @@ export default function DebugPage() {
                   className="w-36"
                   value={a.kind}
                   options={ASSERT_KINDS}
-                  onChange={(kind) => patchAssert(i, { kind, path: NO_PATH_KINDS.includes(kind) ? "" : a.path })}
+                  onChange={(kind) =>
+                    patchAssert(i, { kind, path: NO_PATH_KINDS.includes(kind) ? "" : a.path })
+                  }
                 />
                 <Input
                   className="w-44 font-mono"
@@ -299,7 +314,10 @@ export default function DebugPage() {
               onClick={() =>
                 setBundle((b) => ({
                   ...b,
-                  asserts: [...b.asserts, { kind: "status_code", path: "", op: "eq", expected: "200" }],
+                  asserts: [
+                    ...b.asserts,
+                    { kind: "status_code", path: "", op: "eq", expected: "200" },
+                  ],
                 }))
               }
             >
@@ -366,7 +384,8 @@ export default function DebugPage() {
             />
           </div>
           <p className="text-xs text-[#A8ABB0]">
-            将当前调试载荷（请求 + 断言 + 前后置 + 提取）保存为接口定义；URL 为绝对地址时按原样保存。
+            将当前调试载荷（请求 + 断言 + 前后置 + 提取）保存为接口定义；URL
+            为绝对地址时按原样保存。
           </p>
         </div>
       </Modal>

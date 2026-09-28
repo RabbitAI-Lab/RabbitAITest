@@ -36,6 +36,7 @@ model User {
   changeLogs         ChangeLog[]
   auditLogs          AuditLog[]
   notifications      Notification[]
+  departmentMembers  DepartmentMember[]
 }
 
 model Organization {
@@ -49,9 +50,10 @@ model Organization {
   updatedAt   DateTime  @updatedAt @map("updated_at")
   deletedAt   DateTime? @map("deleted_at")
 
-  members       OrgMember[]
-  projects      Project[]
-  integrations  PlatformIntegration[]
+  members      OrgMember[]
+  projects     Project[]
+  integrations PlatformIntegration[]
+  departments  Department[]
 }
 
 model OrgMember {
@@ -82,26 +84,27 @@ model Project {
   createdAt   DateTime     @default(now()) @map("created_at")
   updatedAt   DateTime     @updatedAt @map("updated_at")
 
-  members         ProjectMember[]
-  moduleNodes     ModuleNode[]
-  cases           FunctionalCase[]
-  apiDefinitions  ApiDefinition[]
-  apiCases        ApiCase[]
-  scenarios       Scenario[]
-  testPlans       TestPlan[]
-  bugs            Bug[]
-  environments    Environment[]
-  envGroups       EnvGroup[]
-  globalParams    GlobalParam[]
-  fileItems       FileItem[]
-  fileRepos       FileRepo[]
-  publicScripts   PublicScript[]
-  falseAlarmRules FalseAlarmRule[]
-  appSettings     AppSetting[]
-  execTasks       ExecTask[]
-  reports         Report[]
-  robots          Robot[]
-  attachments     Attachment[]
+  members          ProjectMember[]
+  moduleNodes      ModuleNode[]
+  cases            FunctionalCase[]
+  apiDefinitions   ApiDefinition[]
+  apiCases         ApiCase[]
+  scenarios        Scenario[]
+  testPlans        TestPlan[]
+  bugs             Bug[]
+  environments     Environment[]
+  envGroups        EnvGroup[]
+  globalParams     GlobalParam[]
+  fileItems        FileItem[]
+  fileRepos        FileRepo[]
+  publicScripts    PublicScript[]
+  falseAlarmRules  FalseAlarmRule[]
+  appSettings      AppSetting[]
+  execTasks        ExecTask[]
+  reports          Report[]
+  robots           Robot[]
+  messageTemplates MessageTemplate[]
+  attachments      Attachment[]
 
   @@unique([orgId, num])
   @@index([deletedAt])
@@ -160,6 +163,8 @@ model ResourcePool {
   maxConcurrency Int       @default(4) @map("max_concurrency")
   /// 心跳与节点信息（P0 单节点：nodeId/version/slots/ts）
   nodes          Json      @default("[]")
+  /// 应用组织：ALL | [orgId]（S9 ENTP-006；门禁 3 例外登记 test-domain-model §6）
+  orgScope       Json      @default("\"ALL\"") @map("org_scope")
   lastBeatAt     DateTime? @map("last_beat_at")
   status         String    @default("ACTIVE") @db.VarChar(32)
   createdAt      DateTime  @default(now()) @map("created_at")
@@ -230,6 +235,65 @@ model Robot {
   @@map("robots")
 }
 
+/// 自定义消息模板（S9 ENTP-005；项目×事件唯一，无模板回退 MSG-001 默认文案。门禁 3 例外登记 test-domain-model §6）
+model MessageTemplate {
+  id        String   @id @default(uuid())
+  projectId String   @map("project_id")
+  project   Project  @relation(fields: [projectId], references: [id])
+  event     String   @db.VarChar(48)
+  title     String   @db.VarChar(128)
+  content   String   @db.VarChar(1024)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([projectId, event])
+  @@map("message_templates")
+}
+
+/// SSO 认证源（S9 ENTP-002/003；config 判别式存各协议字段，secrets 字段 AES-GCM 密文。门禁 3 例外登记 test-domain-model §6）
+model AuthSource {
+  id        String   @id @default(uuid())
+  type      String   @db.VarChar(16) // LDAP | CAS | OIDC | OAUTH2 | SAML | WECOM | DINGTALK | FEISHU
+  name      String   @db.VarChar(128)
+  enabled   Boolean  @default(true)
+  config    Json
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("auth_sources")
+}
+
+/// 组织级部门（S9 ENTP-008；树形（parentId 自引用）。门禁 3 例外登记 test-domain-model §6）
+model Department {
+  id                String             @id @default(uuid())
+  orgId             String             @map("org_id")
+  org               Organization       @relation(fields: [orgId], references: [id])
+  parentId          String?            @map("parent_id")
+  parent            Department?        @relation("DeptTree", fields: [parentId], references: [id])
+  children          Department[]       @relation("DeptTree")
+  name              String             @db.VarChar(64)
+  createdAt         DateTime           @default(now()) @map("created_at")
+  updatedAt         DateTime           @updatedAt @map("updated_at")
+  departmentMembers DepartmentMember[]
+
+  @@index([orgId, parentId])
+  @@map("departments")
+}
+
+/// 部门成员（多对多：一人可属多部门。S9 ENTP-008）
+model DepartmentMember {
+  id           String     @id @default(uuid())
+  departmentId String     @map("department_id")
+  department   Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  userId       String     @map("user_id")
+  user         User       @relation(fields: [userId], references: [id])
+  createdAt    DateTime   @default(now()) @map("created_at")
+
+  @@unique([departmentId, userId])
+  @@index([userId])
+  @@map("department_members")
+}
+
 model ApiKey {
   id         String    @id @default(uuid())
   userId     String    @map("user_id")
@@ -247,18 +311,18 @@ model ApiKey {
 
 /// 组织级三方平台服务集成（INTG-001/002：地址+凭据密文；一组织一平台一条）
 model PlatformIntegration {
-  id          String    @id @default(uuid())
-  orgId       String    @map("org_id")
+  id          String       @id @default(uuid())
+  orgId       String       @map("org_id")
   org         Organization @relation(fields: [orgId], references: [id])
-  platform    String    @db.VarChar(32) // jira | zentao | tapd
-  address     String    @db.VarChar(512)
-  authType    String    @db.VarChar(16) // BASIC | BEARER（jira）；zentao/tapd 固定 BASIC 语义
+  platform    String       @db.VarChar(32) // jira | zentao | tapd
+  address     String       @db.VarChar(512)
+  authType    String       @db.VarChar(16) // BASIC | BEARER（jira）；zentao/tapd 固定 BASIC 语义
   credential  String // AES-256-GCM 密文（env RABBIT_INTEGRATION_SECRET 派生密钥；永不回显）
-  testStatus  String    @default("NONE") @db.VarChar(16) // NONE | OK | FAILED
-  testMessage String?   @map("test_message") @db.VarChar(512)
-  testedAt    DateTime? @map("tested_at")
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
+  testStatus  String       @default("NONE") @db.VarChar(16) // NONE | OK | FAILED
+  testMessage String?      @map("test_message") @db.VarChar(512)
+  testedAt    DateTime?    @map("tested_at")
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
 
   @@unique([orgId, platform])
   @@map("platform_integrations")
@@ -820,24 +884,24 @@ model ApiDefinition {
 }
 
 model ApiCase {
-  id        String        @id @default(uuid())
-  apiId     String        @map("api_id")
-  api       ApiDefinition @relation(fields: [apiId], references: [id])
-  projectId String        @map("project_id")
-  project   Project       @relation(fields: [projectId], references: [id])
-  num       Int
-  name      String        @db.VarChar(512)
-  level     String        @default("P2") @db.VarChar(8)
-  status    String        @default("UNDERWAY") @db.VarChar(32)
-  tags      Json          @default("[]")
-  request   Json // { spec, asserts, pre, post, extracts }（API-004 契约 v2 请求包）
-  version   Int           @default(1)
+  id            String        @id @default(uuid())
+  apiId         String        @map("api_id")
+  api           ApiDefinition @relation(fields: [apiId], references: [id])
+  projectId     String        @map("project_id")
+  project       Project       @relation(fields: [projectId], references: [id])
+  num           Int
+  name          String        @db.VarChar(512)
+  level         String        @default("P2") @db.VarChar(8)
+  status        String        @default("UNDERWAY") @db.VarChar(32)
+  tags          Json          @default("[]")
+  request       Json // { spec, asserts, pre, post, extracts }（API-004 契约 v2 请求包）
+  version       Int           @default(1)
   /// 基线定义 version（API-003 差异同步；定义 bump 超前→「待同步」）
-  syncedVersion Int       @default(0) @map("synced_version")
-  deletedAt DateTime?     @map("deleted_at")
-  createdBy String        @map("created_by")
-  createdAt DateTime      @default(now()) @map("created_at")
-  updatedAt DateTime      @updatedAt @map("updated_at")
+  syncedVersion Int           @default(0) @map("synced_version")
+  deletedAt     DateTime?     @map("deleted_at")
+  createdBy     String        @map("created_by")
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
 
   @@unique([projectId, num])
   @@map("api_cases")
@@ -1012,7 +1076,7 @@ model AiModel {
   id        String   @id @default(uuid())
   name      String   @db.VarChar(64)
   provider  String   @db.VarChar(32) // deepseek | openai | zhipu
-  baseUrl   String   @db.VarChar(255) @map("base_url")
+  baseUrl   String   @map("base_url") @db.VarChar(255)
   model     String   @db.VarChar(128)
   apiKeyEnc String   @map("api_key_enc")
   enabled   Boolean  @default(true)

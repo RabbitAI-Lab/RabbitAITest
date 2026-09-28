@@ -16,3 +16,6 @@ export * from "./ai/schemas";
 export * from "./plugins/spi";
 export * from "./integration/schemas";
 export * from "./message/schemas";
+export * from "./entp/features";
+export * from "./entp/schemas";
+export * from "./entp/scan-providers";

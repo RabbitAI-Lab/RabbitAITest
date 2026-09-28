@@ -78,13 +78,18 @@ export async function saveMindmap(
         tx.functionalCase.count({ where: { moduleId: id, deletedAt: null } }),
       ]);
       if (childCount > 0 || caseCount > 0)
-        throw new DomainError(ErrCode.VALIDATION_FAILED, `模块「${mod?.name ?? id}」非空，不能删除`);
+        throw new DomainError(
+          ErrCode.VALIDATION_FAILED,
+          `模块「${mod?.name ?? id}」非空，不能删除`,
+        );
       await tx.moduleNode.delete({ where: { id } });
     }
     // 4) 用例：建（步骤/等级/前置；模块=tmpId 映射或直接 id；缺省回落默认模块——同 createCaseV2 口径）
     for (const c of input.cases.created) {
       let moduleId = c.moduleId
-        ? (moduleSet.has(c.moduleId) ? c.moduleId : (idMap[c.moduleId] ?? null))
+        ? moduleSet.has(c.moduleId)
+          ? c.moduleId
+          : (idMap[c.moduleId] ?? null)
         : null;
       if (!moduleId) {
         const def = await tx.moduleNode.findFirst({
@@ -116,7 +121,15 @@ export async function saveMindmap(
     for (const c of input.cases.updated) {
       const existing = await tx.functionalCase.findFirst({
         where: { id: c.id, projectId, deletedAt: null },
-        select: { id: true, version: true, name: true, level: true, precondition: true, steps: true, moduleId: true },
+        select: {
+          id: true,
+          version: true,
+          name: true,
+          level: true,
+          precondition: true,
+          steps: true,
+          moduleId: true,
+        },
       });
       if (!existing) throw new DomainError(ErrCode.CASE_NOT_FOUND, `用例不存在：${c.id}`);
       if (existing.version !== c.version) {
@@ -140,7 +153,8 @@ export async function saveMindmap(
         stepsPart = {
           added: afterSteps.filter((s) => !bMap.has(keyOf(s))).length,
           removed: beforeSteps.filter((s) => !aMap.has(keyOf(s))).length,
-          changed: afterSteps.filter((s, i) => bMap.has(keyOf(s)) && bMap.get(keyOf(s)) !== i).length,
+          changed: afterSteps.filter((s, i) => bMap.has(keyOf(s)) && bMap.get(keyOf(s)) !== i)
+            .length,
         };
       }
       const updateData: {
@@ -157,7 +171,11 @@ export async function saveMindmap(
       if (c.steps !== undefined) updateData.steps = c.steps as object;
       if (c.moduleId !== undefined) {
         // moduleId 非空列：null=回落默认模块（同列表移动口径）
-        let target = c.moduleId ? (moduleSet.has(c.moduleId) ? c.moduleId : (idMap[c.moduleId] ?? null)) : null;
+        let target = c.moduleId
+          ? moduleSet.has(c.moduleId)
+            ? c.moduleId
+            : (idMap[c.moduleId] ?? null)
+          : null;
         if (!target) {
           const def = await tx.moduleNode.findFirst({
             where: { projectId, scene: "case", isDefault: true },

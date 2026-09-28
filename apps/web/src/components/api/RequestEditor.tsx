@@ -168,8 +168,7 @@ function ProcessorList({
   onChange: (list: Processor[]) => void;
   compact?: boolean;
 }) {
-  const patch = (i: number, p: Processor) =>
-    onChange(list.map((x, idx) => (idx === i ? p : x)));
+  const patch = (i: number, p: Processor) => onChange(list.map((x, idx) => (idx === i ? p : x)));
   const move = (i: number, dir: -1 | 1) => {
     const j = i + dir;
     if (j < 0 || j >= list.length) return;
@@ -193,7 +192,11 @@ function ProcessorList({
         </div>
       )}
       {list.map((p, i) => (
-        <div key={i} className="border border-[#E5E6EB] rounded-md" data-testid={`processor-row-${i + 1}`}>
+        <div
+          key={i}
+          className="border border-[#E5E6EB] rounded-md"
+          data-testid={`processor-row-${i + 1}`}
+        >
           <div className="flex items-center gap-2 px-2.5 py-1.5 bg-[#F7F8FA] border-b border-[#F0F1F3] rounded-t-md text-[13px]">
             <span className="text-xs text-[#A8ABB0]">{i + 1}</span>
             <Select
@@ -201,7 +204,10 @@ function ProcessorList({
               size="small"
               value={p.kind}
               onChange={(kind) =>
-                patch(i, kind === "script" ? { kind: "script", script: "" } : { kind: "wait", ms: 500 })
+                patch(
+                  i,
+                  kind === "script" ? { kind: "script", script: "" } : { kind: "wait", ms: 500 },
+                )
               }
               options={[
                 { value: "script", label: "脚本" },
@@ -251,7 +257,12 @@ function ProcessorList({
                   <ScriptModeToggle
                     refMode={Boolean(p.scriptRef)}
                     onChange={(refMode) =>
-                      patch(i, refMode ? { kind: "script", script: "", scriptRef: { scriptId: "", params: {} } } : { kind: "script", script: "" })
+                      patch(
+                        i,
+                        refMode
+                          ? { kind: "script", script: "", scriptRef: { scriptId: "", params: {} } }
+                          : { kind: "script", script: "" },
+                      )
                     }
                     testid={`processor-mode-${i + 1}`}
                   />
@@ -260,7 +271,12 @@ function ProcessorList({
                   <ScriptRefPanel
                     value={p.scriptRef.scriptId ? p.scriptRef : undefined}
                     onChange={(v) =>
-                      patch(i, v ? { kind: "script", script: "", scriptRef: v } : { kind: "script", script: "" })
+                      patch(
+                        i,
+                        v
+                          ? { kind: "script", script: "", scriptRef: v }
+                          : { kind: "script", script: "" },
+                      )
                     }
                     testid={`processor-ref-${i + 1}`}
                   />
@@ -269,7 +285,9 @@ function ProcessorList({
                     <Input.TextArea
                       rows={compact ? 3 : 4}
                       className="font-mono text-xs leading-5"
-                      placeholder={'// 脚本（quickjs：log / setVar / getVar / envGet / randomInt / now）'}
+                      placeholder={
+                        "// 脚本（quickjs：log / setVar / getVar / envGet / randomInt / now）"
+                      }
                       value={p.script}
                       onChange={(e) => patch(i, { kind: "script", script: e.target.value })}
                     />
@@ -294,7 +312,9 @@ function ProcessorList({
             )}
             {p.kind === "sql" && (
               <div className="space-y-1.5" title="SQL 处理器随 Sprint 3 开放">
-                <p className="text-xs text-[#FA8C16]">SQL 处理器随 Sprint 3 开放（API-004 勘误 1）</p>
+                <p className="text-xs text-[#FA8C16]">
+                  SQL 处理器随 Sprint 3 开放（API-004 勘误 1）
+                </p>
                 <Input.TextArea
                   rows={2}
                   className="font-mono text-xs"
@@ -371,12 +391,10 @@ export default function RequestEditor({
     else if (kind === "form_data" || kind === "form_urlencoded")
       body = {
         kind,
-        rows:
-          prev.kind === "form_data" || prev.kind === "form_urlencoded"
-            ? prev.rows
-            : [],
+        rows: prev.kind === "form_data" || prev.kind === "form_urlencoded" ? prev.rows : [],
       };
-    else if (kind === "binary") body = { kind: "binary", fileId: prev.kind === "binary" ? prev.fileId : "" };
+    else if (kind === "binary")
+      body = { kind: "binary", fileId: prev.kind === "binary" ? prev.fileId : "" };
     else
       body = {
         kind,
@@ -411,9 +429,7 @@ export default function RequestEditor({
   const tabItems = [
     {
       key: "params",
-      label: (
-        <span data-testid="req-tab-params">参数</span>
-      ),
+      label: <span data-testid="req-tab-params">参数</span>,
       forceRender: true,
       children: (
         <div className="space-y-3" data-testid="req-panel-params">
@@ -433,15 +449,15 @@ export default function RequestEditor({
               rowTestId="req-headers-row"
             />
           </div>
-          <p className="text-xs text-[#A8ABB0]">行首勾选 = 启用/禁用该行（禁用行执行时跳过，编辑暂存不丢失）</p>
+          <p className="text-xs text-[#A8ABB0]">
+            行首勾选 = 启用/禁用该行（禁用行执行时跳过，编辑暂存不丢失）
+          </p>
         </div>
       ),
     },
     {
       key: "auth",
-      label: (
-        <span data-testid="req-tab-auth">认证</span>
-      ),
+      label: <span data-testid="req-tab-auth">认证</span>,
       forceRender: true,
       children: (
         <div className="space-y-2.5" data-testid="req-panel-auth">
@@ -484,9 +500,7 @@ export default function RequestEditor({
     },
     {
       key: "body",
-      label: (
-        <span data-testid="req-tab-body">请求体</span>
-      ),
+      label: <span data-testid="req-tab-body">请求体</span>,
       forceRender: true,
       children: (
         <div className="space-y-2.5" data-testid="req-panel-body">
@@ -570,10 +584,7 @@ export default function RequestEditor({
                   setSpec({
                     body: {
                       ...body,
-                      rows: [
-                        ...body.rows,
-                        { key: "", value: "", type: "text", enabled: true },
-                      ],
+                      rows: [...body.rows, { key: "", value: "", type: "text", enabled: true }],
                     },
                   })
                 }
@@ -614,7 +625,9 @@ export default function RequestEditor({
                 onChange={(fileId) => setSpec({ body: { kind: "binary", fileId: fileId ?? "" } })}
                 allowClear
               />
-              <span className="text-xs text-[#A8ABB0]">文件来自文件管理（PROJ-004），点击下拉选择替换</span>
+              <span className="text-xs text-[#A8ABB0]">
+                文件来自文件管理（PROJ-004），点击下拉选择替换
+              </span>
             </div>
           )}
         </div>
@@ -622,9 +635,7 @@ export default function RequestEditor({
     },
     {
       key: "pre",
-      label: (
-        <span data-testid="req-tab-pre">前置</span>
-      ),
+      label: <span data-testid="req-tab-pre">前置</span>,
       forceRender: true,
       children: (
         <div data-testid="req-panel-pre">
@@ -634,9 +645,7 @@ export default function RequestEditor({
     },
     {
       key: "post",
-      label: (
-        <span data-testid="req-tab-post">后置</span>
-      ),
+      label: <span data-testid="req-tab-post">后置</span>,
       forceRender: true,
       children: (
         <div className="space-y-3" data-testid="req-panel-post">
@@ -650,7 +659,11 @@ export default function RequestEditor({
             )}
             <div className="space-y-1.5">
               {bundle.extracts.map((ex, i) => (
-                <div key={i} className="flex gap-2 items-center flex-wrap" data-testid="extract-row">
+                <div
+                  key={i}
+                  className="flex gap-2 items-center flex-wrap"
+                  data-testid="extract-row"
+                >
                   <Select
                     className="w-24"
                     size="small"
@@ -759,14 +772,13 @@ export default function RequestEditor({
     },
     {
       key: "asserts",
-      label: (
-        <span data-testid="req-tab-asserts">断言</span>
-      ),
+      label: <span data-testid="req-tab-asserts">断言</span>,
       forceRender: true,
       children: (
         <div className="space-y-2" data-testid="req-panel-asserts">
           <p className="text-xs text-[#A8ABB0]">
-            类型 6 种 × 操作符 7 种（eq / contains / lt / le / gt / ge / regex）；失败语义：断言不过=ASSERT_FAILED
+            类型 6 种 × 操作符 7 种（eq / contains / lt / le / gt / ge /
+            regex）；失败语义：断言不过=ASSERT_FAILED
           </p>
           {bundle.asserts.length === 0 && (
             <div className="border border-dashed border-[#E5E6EB] rounded-md py-4 text-center text-xs text-[#A8ABB0]">
@@ -849,9 +861,7 @@ export default function RequestEditor({
     },
     {
       key: "settings",
-      label: (
-        <span data-testid="req-tab-settings">设置</span>
-      ),
+      label: <span data-testid="req-tab-settings">设置</span>,
       forceRender: true,
       children: (
         <div className="divide-y divide-[#F0F1F3] text-[13px]" data-testid="req-panel-settings">
@@ -879,7 +889,11 @@ export default function RequestEditor({
           </div>
           <div className="flex items-center gap-3 py-3">
             <span className="w-32 text-[#646A73]">跳过前置处理器</span>
-            <Switch size="small" checked={spec.skipPre} onChange={(skipPre) => setSpec({ skipPre })} />
+            <Switch
+              size="small"
+              checked={spec.skipPre}
+              onChange={(skipPre) => setSpec({ skipPre })}
+            />
             <span className="text-xs text-[#A8ABB0]">环境全局开关之外的单请求覆写</span>
           </div>
           <div className="flex items-center gap-3 pt-3">
@@ -920,12 +934,7 @@ export default function RequestEditor({
           data-testid="req-url"
         />
       </div>
-      <Tabs
-        size="small"
-        activeKey={activeTab}
-        onChange={setActiveTab}
-        items={tabItems}
-      />
+      <Tabs size="small" activeKey={activeTab} onChange={setActiveTab} items={tabItems} />
     </div>
   );
 }

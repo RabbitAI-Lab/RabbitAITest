@@ -14,7 +14,12 @@ export const FOLLOW_ENTITY_TYPES = [
 ] as const;
 export type FollowEntityType = (typeof FOLLOW_ENTITY_TYPES)[number];
 
-export async function setFollow(userId: string, entityType: FollowEntityType, entityId: string, on: boolean) {
+export async function setFollow(
+  userId: string,
+  entityType: FollowEntityType,
+  entityId: string,
+  on: boolean,
+) {
   if (on) {
     const existing = await prisma.follow.findFirst({
       where: { userId, entityType, entityId },

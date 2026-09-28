@@ -39,7 +39,11 @@ test("PLUG-001-T2 管理员上传→列表→启用→停用→删除全生命�
   expect(p1?.runtimeStatus).toBe("RUNNING");
 
   // 停用（UI）→ 状态回收
-  await page.getByRole("row").filter({ hasText: "tcp-conn" }).getByTestId("plugin-toggle-tcp-conn").click();
+  await page
+    .getByRole("row")
+    .filter({ hasText: "tcp-conn" })
+    .getByTestId("plugin-toggle-tcp-conn")
+    .click();
   await expect(
     page.getByRole("row").filter({ hasText: "tcp-conn" }).getByText("已停用"),
   ).toBeVisible({ timeout: 20000 });
@@ -82,15 +86,17 @@ test("PLUG-001-T3 越权两态：普通用户无菜单/403；未登录 401", asy
   expect(code401).toBe(401);
 });
 
-test("PLUG-001-T4 上传负路径：同名同版本 409 70005（版本递增规则）", async ({
-  playwright,
-}) => {
+test("PLUG-001-T4 上传负路径：同名同版本 409 70005（版本递增规则）", async ({ playwright }) => {
   const admin = await newAdminContext(playwright);
   // jira-platform 由 INTG-001 用例上传（字母序 PLUG 在 INTG 后跑；若未上传则先上传）
   await uploadPlugin(admin, "jira-platform-1.0.2.tgz");
   // 再次上传同版本 → 409
   const dup = await admin.post("/api/v1/system/plugins", {
-    data: { filename: "jira-platform-1.0.2.tgz", contentBase64: readPluginB64("jira-platform-1.0.2.tgz"), orgScope: "ALL" },
+    data: {
+      filename: "jira-platform-1.0.2.tgz",
+      contentBase64: readPluginB64("jira-platform-1.0.2.tgz"),
+      orgScope: "ALL",
+    },
   });
   expect(dup.status()).toBe(409);
   const body = (await dup.json()) as { code: number; message: string };

@@ -50,7 +50,10 @@ export const DELETE = withOrgScope(async (ctx, req) => {
     ctx.requirePerm("ORG_INTEGRATION:UPDATE");
     const platform = new URL(req.url).searchParams.get("platform") ?? "";
     if (!(PLATFORMS as readonly string[]).includes(platform)) {
-      return NextResponse.json({ code: 70012, message: "platform 非法", data: null }, { status: 422 });
+      return NextResponse.json(
+        { code: 70012, message: "platform 非法", data: null },
+        { status: 422 },
+      );
     }
     await svc.deleteIntegration(ctx.orgId, platform);
     recordAudit({

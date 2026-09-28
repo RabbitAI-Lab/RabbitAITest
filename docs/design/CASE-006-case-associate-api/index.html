@@ -16,8 +16,12 @@
         <p class="px-4 pb-1 text-xs text-slate-400">工作区</p>
         <p class="mx-2 px-3 py-[7px] rounded-md">工作台</p>
         <p class="px-4 pt-3 pb-1 text-xs text-slate-400">测试管理</p>
-        <p class="mx-2 px-3 py-[7px] rounded-md bg-[#574BFF]/10 text-[#574BFF] font-medium relative">
-          <span class="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 rounded-r bg-[#574BFF]"></span>
+        <p
+          class="mx-2 px-3 py-[7px] rounded-md bg-[#574BFF]/10 text-[#574BFF] font-medium relative"
+        >
+          <span
+            class="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 rounded-r bg-[#574BFF]"
+          ></span>
           测试用例
         </p>
         <p class="mx-2 px-3 py-[7px] rounded-md">用例评审</p>
@@ -61,18 +65,41 @@
           </div>
           <!-- Tab 栏：新增「关联」Tab，位于 依赖 与 评审 之间 -->
           <div class="bg-white border rounded-t-md px-4 flex items-center gap-6 h-11 text-[13px]">
-            <span class="h-full flex items-center border-b-2 border-transparent text-slate-500">详情</span>
-            <span class="h-full flex items-center border-b-2 border-transparent text-slate-500">依赖</span>
-            <span class="h-full flex items-center border-b-2 border-[#574BFF] text-[#574BFF] font-medium" data-testid="proto-tab-assoc">关联</span>
-            <span class="h-full flex items-center border-b-2 border-transparent text-slate-500">评审</span>
-            <span class="h-full flex items-center border-b-2 border-transparent text-slate-500">计划</span>
-            <span class="h-full flex items-center border-b-2 border-transparent text-slate-500">缺陷</span>
-            <span class="h-full flex items-center border-b-2 border-transparent text-slate-500">评论</span>
-            <span class="h-full flex items-center border-b-2 border-transparent text-slate-500">变更历史</span>
+            <span class="h-full flex items-center border-b-2 border-transparent text-slate-500"
+              >详情</span
+            >
+            <span class="h-full flex items-center border-b-2 border-transparent text-slate-500"
+              >依赖</span
+            >
+            <span
+              class="h-full flex items-center border-b-2 border-[#574BFF] text-[#574BFF] font-medium"
+              data-testid="proto-tab-assoc"
+              >关联</span
+            >
+            <span class="h-full flex items-center border-b-2 border-transparent text-slate-500"
+              >评审</span
+            >
+            <span class="h-full flex items-center border-b-2 border-transparent text-slate-500"
+              >计划</span
+            >
+            <span class="h-full flex items-center border-b-2 border-transparent text-slate-500"
+              >缺陷</span
+            >
+            <span class="h-full flex items-center border-b-2 border-transparent text-slate-500"
+              >评论</span
+            >
+            <span class="h-full flex items-center border-b-2 border-transparent text-slate-500"
+              >变更历史</span
+            >
           </div>
           <div class="bg-white border border-t-0 rounded-b-md">
             <div class="flex items-center gap-2 px-3 py-2.5 border-b">
-              <button class="bg-[#574BFF] text-white rounded-md px-3 py-1.5" data-testid="proto-btn-associate">＋ 关联接口用例</button>
+              <button
+                class="bg-[#574BFF] text-white rounded-md px-3 py-1.5"
+                data-testid="proto-btn-associate"
+              >
+                ＋ 关联接口用例
+              </button>
               <span class="text-xs text-slate-400">
                 关联后供追溯与 S4 计划内执行；场景用例关联为 S3 能力（refType 预留 scenario）
               </span>
@@ -99,15 +126,21 @@
                     <span class="font-mono text-xs">/pets/{id}</span>
                     <span class="text-slate-400">· 查询宠物</span>
                   </td>
-                  <td class="px-3 py-2.5"><span class="text-orange-500 text-xs font-medium">P1</span></td>
+                  <td class="px-3 py-2.5">
+                    <span class="text-orange-500 text-xs font-medium">P1</span>
+                  </td>
                   <td class="px-3 py-2.5"><span class="text-[#1677FF]">进行中</span></td>
-                  <td class="px-3 py-2.5"><span class="text-[#FF4D4F] cursor-pointer">移除</span></td>
+                  <td class="px-3 py-2.5">
+                    <span class="text-[#FF4D4F] cursor-pointer">移除</span>
+                  </td>
                 </tr>
                 <!-- 二态：关联的接口用例被软删 → 关联行保留但灰显 + 「已删除」徽标（Provider summary.deleted） -->
                 <tr class="border-b text-slate-400 bg-slate-50/50" data-testid="proto-row-deleted">
                   <td class="px-3 py-2.5">
                     查询宠物-猫 <span class="text-xs">AC-1002</span>
-                    <span class="bg-slate-200 text-slate-500 rounded px-1.5 py-0.5 text-xs ml-1">已删除</span>
+                    <span class="bg-slate-200 text-slate-500 rounded px-1.5 py-0.5 text-xs ml-1"
+                      >已删除</span
+                    >
                   </td>
                   <td class="px-3 py-2.5">
                     <span class="text-slate-400 font-bold text-xs">GET</span>
@@ -121,7 +154,10 @@
               </tbody>
             </table>
             <!-- 空态引导（未关联任何接口用例时替换上方表格，二态并列示意） -->
-            <div class="m-3 border-2 border-dashed border-slate-200 rounded-md py-10 grid place-items-center gap-2 text-slate-400" data-testid="proto-empty-assoc">
+            <div
+              class="m-3 border-2 border-dashed border-slate-200 rounded-md py-10 grid place-items-center gap-2 text-slate-400"
+              data-testid="proto-empty-assoc"
+            >
               <p class="text-[13px]">暂未关联接口用例，点击「关联接口用例」开始关联</p>
               <p class="text-xs">支持按接口模块树筛选，勾选 CASE 级批量关联</p>
             </div>
@@ -141,7 +177,10 @@
         <!-- ================================================================
              段② 关联选择器弹窗：左接口模块树 + 右定义列表→CASE 级勾选
         ================================================================= -->
-        <section class="max-w-4xl bg-white border rounded-md shadow-lg" data-testid="proto-assoc-picker">
+        <section
+          class="max-w-4xl bg-white border rounded-md shadow-lg"
+          data-testid="proto-assoc-picker"
+        >
           <p class="px-4 py-3 border-b font-medium flex justify-between">
             关联接口用例
             <span class="text-slate-400">✕</span>
@@ -161,13 +200,17 @@
                   <div class="px-2 py-1.5 rounded hover:bg-slate-50 flex items-center gap-1">
                     <span class="text-slate-400">▾</span><span>🐾 宠物店</span>
                   </div>
-                  <div class="pl-6 pr-2 py-1.5 rounded bg-[#574BFF]/10 text-[#574BFF] flex justify-between">
+                  <div
+                    class="pl-6 pr-2 py-1.5 rounded bg-[#574BFF]/10 text-[#574BFF] flex justify-between"
+                  >
                     <span>宠物模块 <span class="text-xs text-slate-400">12</span></span>
                   </div>
                   <div class="pl-6 pr-2 py-1.5 rounded hover:bg-slate-50 flex justify-between">
                     <span>订单模块 <span class="text-xs text-slate-400">5</span></span>
                   </div>
-                  <div class="px-2 py-1.5 rounded hover:bg-slate-50 flex justify-between text-slate-500">
+                  <div
+                    class="px-2 py-1.5 rounded hover:bg-slate-50 flex justify-between text-slate-500"
+                  >
                     <span>未规划接口 <span class="text-xs text-slate-400">2</span></span>
                   </div>
                 </div>
@@ -176,7 +219,9 @@
               <div class="flex-1 min-w-0 border rounded-md" data-testid="proto-picker-defs">
                 <!-- 定义行①：展开态（▾），展开显示 3 条 CASE 勾选（已勾 2） -->
                 <div class="border-b">
-                  <div class="flex items-center gap-2 px-3 py-2.5 text-[13px] hover:bg-slate-50 cursor-pointer">
+                  <div
+                    class="flex items-center gap-2 px-3 py-2.5 text-[13px] hover:bg-slate-50 cursor-pointer"
+                  >
                     <span class="text-slate-400">▾</span>
                     <span class="text-green-600 font-bold text-xs">GET</span>
                     <span class="font-mono text-xs">/pets/{id}</span>
@@ -185,17 +230,23 @@
                     <span class="ml-auto text-xs text-slate-400">3 条 CASE</span>
                   </div>
                   <div class="bg-slate-50/60 px-3 pb-2 space-y-1">
-                    <label class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-white text-[13px] cursor-pointer">
+                    <label
+                      class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-white text-[13px] cursor-pointer"
+                    >
                       <input type="checkbox" checked />
                       <span>查询宠物-狗 <span class="text-slate-400 text-xs">AC-1001</span></span>
                       <span class="text-xs text-slate-400">P1 · 进行中</span>
                     </label>
-                    <label class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-white text-[13px] cursor-pointer">
+                    <label
+                      class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-white text-[13px] cursor-pointer"
+                    >
                       <input type="checkbox" checked />
                       <span>查询宠物-猫 <span class="text-slate-400 text-xs">AC-1002</span></span>
                       <span class="text-xs text-slate-400">P2 · 已发布</span>
                     </label>
-                    <label class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-white text-[13px] cursor-pointer">
+                    <label
+                      class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-white text-[13px] cursor-pointer"
+                    >
                       <input type="checkbox" />
                       <span>查询宠物-鱼 <span class="text-slate-400 text-xs">AC-1003</span></span>
                       <span class="text-xs text-slate-400">P2 · 调试中</span>
@@ -204,7 +255,9 @@
                 </div>
                 <!-- 定义行②：收起态（▸） -->
                 <div class="border-b">
-                  <div class="flex items-center gap-2 px-3 py-2.5 text-[13px] hover:bg-slate-50 cursor-pointer">
+                  <div
+                    class="flex items-center gap-2 px-3 py-2.5 text-[13px] hover:bg-slate-50 cursor-pointer"
+                  >
                     <span class="text-slate-400">▸</span>
                     <span class="text-amber-600 font-bold text-xs">POST</span>
                     <span class="font-mono text-xs">/pets</span>
@@ -215,7 +268,9 @@
                 </div>
                 <!-- 定义行③：收起态（▸） -->
                 <div>
-                  <div class="flex items-center gap-2 px-3 py-2.5 text-[13px] hover:bg-slate-50 cursor-pointer">
+                  <div
+                    class="flex items-center gap-2 px-3 py-2.5 text-[13px] hover:bg-slate-50 cursor-pointer"
+                  >
                     <span class="text-slate-400">▸</span>
                     <span class="text-red-600 font-bold text-xs">DELETE</span>
                     <span class="font-mono text-xs">/orders/{id}</span>
@@ -231,11 +286,18 @@
           <div class="flex items-center justify-between px-4 py-3 border-t text-[13px]">
             <span class="text-slate-500">
               已选 <b class="text-[#574BFF]">2</b> 条
-              <span class="text-xs text-slate-400">（已关联条目置灰不可再选；重复提交 422 code 10009）</span>
+              <span class="text-xs text-slate-400"
+                >（已关联条目置灰不可再选；重复提交 422 code 10009）</span
+              >
             </span>
             <span class="flex gap-2">
               <button class="border rounded-md px-3 py-1.5">取 消</button>
-              <button class="bg-[#574BFF] text-white rounded-md px-3 py-1.5" data-testid="proto-picker-confirm">确定关联</button>
+              <button
+                class="bg-[#574BFF] text-white rounded-md px-3 py-1.5"
+                data-testid="proto-picker-confirm"
+              >
+                确定关联
+              </button>
             </span>
           </div>
         </section>
@@ -249,15 +311,24 @@
         <!-- ================================================================
              段③ 测试计划关联弹窗（接口用例 Tab，扩展 PLAN-001 弹窗）
         ================================================================= -->
-        <section class="max-w-4xl bg-white border rounded-md shadow-lg" data-testid="proto-plan-picker">
+        <section
+          class="max-w-4xl bg-white border rounded-md shadow-lg"
+          data-testid="proto-plan-picker"
+        >
           <p class="px-4 py-3 border-b font-medium flex justify-between">
             关联用例
             <span class="text-slate-400">✕</span>
           </p>
           <!-- Tabs：功能用例 ｜ 接口用例（当前） -->
           <div class="px-4 flex items-center gap-6 h-11 border-b text-[13px]">
-            <span class="h-full flex items-center border-b-2 border-transparent text-slate-500">功能用例</span>
-            <span class="h-full flex items-center border-b-2 border-[#574BFF] text-[#574BFF] font-medium" data-testid="proto-plan-tab-api">接口用例</span>
+            <span class="h-full flex items-center border-b-2 border-transparent text-slate-500"
+              >功能用例</span
+            >
+            <span
+              class="h-full flex items-center border-b-2 border-[#574BFF] text-[#574BFF] font-medium"
+              data-testid="proto-plan-tab-api"
+              >接口用例</span
+            >
           </div>
           <div class="p-3 flex gap-3 min-h-[260px]">
             <!-- 左：接口模块树（与功能用例 Tab 的模块树同构） -->
@@ -267,9 +338,15 @@
                 <div class="px-2 py-1.5 rounded hover:bg-slate-50 flex items-center gap-1">
                   <span class="text-slate-400">▾</span><span>🐾 宠物店</span>
                 </div>
-                <div class="pl-6 pr-2 py-1.5 rounded bg-[#574BFF]/10 text-[#574BFF]">宠物模块 <span class="text-xs text-slate-400">12</span></div>
-                <div class="pl-6 pr-2 py-1.5 rounded hover:bg-slate-50">订单模块 <span class="text-xs text-slate-400">5</span></div>
-                <div class="px-2 py-1.5 rounded hover:bg-slate-50 text-slate-500">未规划接口 <span class="text-xs text-slate-400">2</span></div>
+                <div class="pl-6 pr-2 py-1.5 rounded bg-[#574BFF]/10 text-[#574BFF]">
+                  宠物模块 <span class="text-xs text-slate-400">12</span>
+                </div>
+                <div class="pl-6 pr-2 py-1.5 rounded hover:bg-slate-50">
+                  订单模块 <span class="text-xs text-slate-400">5</span>
+                </div>
+                <div class="px-2 py-1.5 rounded hover:bg-slate-50 text-slate-500">
+                  未规划接口 <span class="text-xs text-slate-400">2</span>
+                </div>
               </div>
             </div>
             <!-- 右：接口用例选择表（名称/所属接口/等级/状态/复选框，勾选 2 行） -->
@@ -287,32 +364,44 @@
                 <tbody>
                   <tr class="border-b hover:bg-slate-50">
                     <td class="px-3 py-2.5"><input type="checkbox" checked /></td>
-                    <td class="px-3 py-2.5">查询宠物-狗 <span class="text-slate-400 text-xs">AC-1001</span></td>
+                    <td class="px-3 py-2.5">
+                      查询宠物-狗 <span class="text-slate-400 text-xs">AC-1001</span>
+                    </td>
                     <td class="px-3 py-2.5">
                       <span class="text-green-600 font-bold text-xs">GET</span>
                       <span class="font-mono text-xs">/pets/{id}</span>
                     </td>
-                    <td class="px-3 py-2.5"><span class="text-orange-500 text-xs font-medium">P1</span></td>
+                    <td class="px-3 py-2.5">
+                      <span class="text-orange-500 text-xs font-medium">P1</span>
+                    </td>
                     <td class="px-3 py-2.5"><span class="text-[#1677FF]">进行中</span></td>
                   </tr>
                   <tr class="border-b hover:bg-slate-50">
                     <td class="px-3 py-2.5"><input type="checkbox" checked /></td>
-                    <td class="px-3 py-2.5">查询宠物-猫 <span class="text-slate-400 text-xs">AC-1002</span></td>
+                    <td class="px-3 py-2.5">
+                      查询宠物-猫 <span class="text-slate-400 text-xs">AC-1002</span>
+                    </td>
                     <td class="px-3 py-2.5">
                       <span class="text-green-600 font-bold text-xs">GET</span>
                       <span class="font-mono text-xs">/pets/{id}</span>
                     </td>
-                    <td class="px-3 py-2.5"><span class="text-orange-500 text-xs font-medium">P2</span></td>
+                    <td class="px-3 py-2.5">
+                      <span class="text-orange-500 text-xs font-medium">P2</span>
+                    </td>
                     <td class="px-3 py-2.5">已发布</td>
                   </tr>
                   <tr class="hover:bg-slate-50">
                     <td class="px-3 py-2.5"><input type="checkbox" /></td>
-                    <td class="px-3 py-2.5">新建订单 <span class="text-slate-400 text-xs">AC-1007</span></td>
+                    <td class="px-3 py-2.5">
+                      新建订单 <span class="text-slate-400 text-xs">AC-1007</span>
+                    </td>
                     <td class="px-3 py-2.5">
                       <span class="text-amber-600 font-bold text-xs">POST</span>
                       <span class="font-mono text-xs">/orders</span>
                     </td>
-                    <td class="px-3 py-2.5"><span class="text-orange-500 text-xs font-medium">P1</span></td>
+                    <td class="px-3 py-2.5">
+                      <span class="text-orange-500 text-xs font-medium">P1</span>
+                    </td>
                     <td class="px-3 py-2.5"><span class="text-[#1677FF]">进行中</span></td>
                   </tr>
                 </tbody>
@@ -322,7 +411,12 @@
           <div class="flex items-center justify-end gap-2 px-4 py-3 border-t text-[13px]">
             <span class="mr-auto text-slate-500">已选 <b class="text-[#574BFF]">2</b> 条</span>
             <button class="border rounded-md px-3 py-1.5">取 消</button>
-            <button class="bg-[#574BFF] text-white rounded-md px-3 py-1.5" data-testid="proto-plan-confirm">确 定</button>
+            <button
+              class="bg-[#574BFF] text-white rounded-md px-3 py-1.5"
+              data-testid="proto-plan-confirm"
+            >
+              确 定
+            </button>
           </div>
         </section>
 
@@ -330,7 +424,9 @@
         <section class="max-w-4xl bg-white border rounded-md" data-testid="proto-plan-mixed-list">
           <p class="px-3 py-2.5 border-b font-medium">
             计划详情 · 用例清单（混合列表示意）
-            <span class="text-xs text-slate-400 font-normal">冒烟回归-Sprint 2 · 共 13 条（功能 12 + 接口 1，此处节选）</span>
+            <span class="text-xs text-slate-400 font-normal"
+              >冒烟回归-Sprint 2 · 共 13 条（功能 12 + 接口 1，此处节选）</span
+            >
           </p>
           <table class="w-full text-[13px]">
             <thead class="text-slate-500 bg-slate-50 border-b">
@@ -346,24 +442,38 @@
             <tbody>
               <!-- 功能用例行：类型徽标「功能」 -->
               <tr class="border-b hover:bg-slate-50">
-                <td class="px-3 py-2.5"><span class="bg-blue-50 text-[#1677FF] rounded px-1.5 py-0.5 text-xs">功能</span></td>
+                <td class="px-3 py-2.5">
+                  <span class="bg-blue-50 text-[#1677FF] rounded px-1.5 py-0.5 text-xs">功能</span>
+                </td>
                 <td class="px-3 py-2.5 text-slate-500">C-0001</td>
-                <td class="px-3 py-2.5"><span class="text-[#574BFF] cursor-pointer">登录成功场景</span></td>
-                <td class="px-3 py-2.5"><span class="text-red-500 text-xs font-medium">P0</span></td>
+                <td class="px-3 py-2.5">
+                  <span class="text-[#574BFF] cursor-pointer">登录成功场景</span>
+                </td>
+                <td class="px-3 py-2.5">
+                  <span class="text-red-500 text-xs font-medium">P0</span>
+                </td>
                 <td class="px-3 py-2.5"><span class="text-[#52C41A]">通过</span></td>
                 <td class="px-3 py-2.5 text-slate-500 text-xs">标记结果 ▾ · 缺陷 · 评论</td>
               </tr>
               <!-- 接口用例行：类型徽标「接口」+ 状态 NOT_RUN 灰 + 执行(S4) 禁用 Tooltip -->
               <tr class="border-b hover:bg-slate-50" data-testid="proto-plan-api-row">
-                <td class="px-3 py-2.5"><span class="bg-[#574BFF]/10 text-[#574BFF] rounded px-1.5 py-0.5 text-xs">接口</span></td>
+                <td class="px-3 py-2.5">
+                  <span class="bg-[#574BFF]/10 text-[#574BFF] rounded px-1.5 py-0.5 text-xs"
+                    >接口</span
+                  >
+                </td>
                 <td class="px-3 py-2.5 text-slate-500">AC-1001</td>
                 <td class="px-3 py-2.5">
                   查询宠物-狗
                   <span class="text-slate-400 text-xs">GET /pets/{id}</span>
                 </td>
-                <td class="px-3 py-2.5"><span class="text-orange-500 text-xs font-medium">P1</span></td>
                 <td class="px-3 py-2.5">
-                  <span class="bg-slate-100 text-slate-500 rounded px-1.5 py-0.5 text-xs">NOT_RUN</span>
+                  <span class="text-orange-500 text-xs font-medium">P1</span>
+                </td>
+                <td class="px-3 py-2.5">
+                  <span class="bg-slate-100 text-slate-500 rounded px-1.5 py-0.5 text-xs"
+                    >NOT_RUN</span
+                  >
                 </td>
                 <td class="px-3 py-2.5">
                   <span class="relative inline-block">
@@ -375,19 +485,29 @@
                       执行(S4)
                     </button>
                     <!-- Tooltip 悬停浮层（静态示意常显） -->
-                    <span class="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 whitespace-nowrap rounded bg-slate-800 text-white text-xs px-2 py-1">
+                    <span
+                      class="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 whitespace-nowrap rounded bg-slate-800 text-white text-xs px-2 py-1"
+                    >
                       计划内执行随 Sprint 4 PLAN-003 开放
-                      <span class="absolute left-1/2 -translate-x-1/2 top-full border-4 border-transparent border-t-slate-800"></span>
+                      <span
+                        class="absolute left-1/2 -translate-x-1/2 top-full border-4 border-transparent border-t-slate-800"
+                      ></span>
                     </span>
                   </span>
                   <span class="text-slate-400 text-xs ml-2">移除</span>
                 </td>
               </tr>
               <tr class="hover:bg-slate-50">
-                <td class="px-3 py-2.5"><span class="bg-blue-50 text-[#1677FF] rounded px-1.5 py-0.5 text-xs">功能</span></td>
+                <td class="px-3 py-2.5">
+                  <span class="bg-blue-50 text-[#1677FF] rounded px-1.5 py-0.5 text-xs">功能</span>
+                </td>
                 <td class="px-3 py-2.5 text-slate-500">C-0005</td>
-                <td class="px-3 py-2.5"><span class="text-[#574BFF] cursor-pointer">密码错误提示</span></td>
-                <td class="px-3 py-2.5"><span class="text-red-500 text-xs font-medium">P0</span></td>
+                <td class="px-3 py-2.5">
+                  <span class="text-[#574BFF] cursor-pointer">密码错误提示</span>
+                </td>
+                <td class="px-3 py-2.5">
+                  <span class="text-red-500 text-xs font-medium">P0</span>
+                </td>
                 <td class="px-3 py-2.5"><span class="text-[#FF4D4F]">失败</span></td>
                 <td class="px-3 py-2.5 text-slate-500 text-xs">标记结果 ▾ · 缺陷(1) · 评论</td>
               </tr>
@@ -406,7 +526,9 @@
              附：用例列表「关联」列徽标（规格 §3 第 2 条）
         ================================================================= -->
         <section class="max-w-4xl bg-white border rounded-md" data-testid="proto-case-list-badge">
-          <p class="px-3 py-2.5 border-b font-medium">测试用例 列表（节选：名称 / 等级 / 关联 列）</p>
+          <p class="px-3 py-2.5 border-b font-medium">
+            测试用例 列表（节选：名称 / 等级 / 关联 列）
+          </p>
           <table class="w-full text-[13px]">
             <thead class="text-slate-500 bg-slate-50 border-b">
               <tr>
@@ -417,13 +539,22 @@
             </thead>
             <tbody>
               <tr class="border-b">
-                <td class="px-3 py-2.5"><span class="text-[#574BFF] cursor-pointer">宠物详情页查询</span></td>
-                <td class="px-3 py-2.5"><span class="text-orange-500 text-xs font-medium">P1</span></td>
+                <td class="px-3 py-2.5">
+                  <span class="text-[#574BFF] cursor-pointer">宠物详情页查询</span>
+                </td>
+                <td class="px-3 py-2.5">
+                  <span class="text-orange-500 text-xs font-medium">P1</span>
+                </td>
                 <td class="px-3 py-2.5">
                   <!-- 徽标 + 悬停浮层（静态常显示意） -->
                   <span class="relative inline-block">
-                    <span class="bg-[#574BFF]/10 text-[#574BFF] rounded-full px-2 py-0.5 text-xs font-medium cursor-pointer">2</span>
-                    <span class="absolute bottom-full left-0 mb-1.5 w-52 rounded bg-slate-800 text-white text-xs px-2.5 py-2 space-y-1 normal-case">
+                    <span
+                      class="bg-[#574BFF]/10 text-[#574BFF] rounded-full px-2 py-0.5 text-xs font-medium cursor-pointer"
+                      >2</span
+                    >
+                    <span
+                      class="absolute bottom-full left-0 mb-1.5 w-52 rounded bg-slate-800 text-white text-xs px-2.5 py-2 space-y-1 normal-case"
+                    >
                       <span class="block">查询宠物-狗（AC-1001）</span>
                       <span class="block">查询宠物-猫（AC-1002 · 已删除）</span>
                       <span class="block text-slate-400">共 2 条（浮层最多列前 5 条）</span>
@@ -433,7 +564,9 @@
               </tr>
               <tr>
                 <td class="px-3 py-2.5"><span class="cursor-pointer">宠物搜索联想</span></td>
-                <td class="px-3 py-2.5"><span class="text-blue-500 text-xs font-medium">P2</span></td>
+                <td class="px-3 py-2.5">
+                  <span class="text-blue-500 text-xs font-medium">P2</span>
+                </td>
                 <td class="px-3 py-2.5 text-slate-300 text-xs">未关联</td>
               </tr>
             </tbody>

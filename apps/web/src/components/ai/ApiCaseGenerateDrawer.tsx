@@ -12,7 +12,13 @@ import {
 } from "@rabbit/api-client";
 import { aiDraftToAsserts } from "@rabbit/shared";
 
-const METHOD_COLOR: Record<string, string> = { GET: "blue", POST: "green", PUT: "orange", DELETE: "red", PATCH: "purple" };
+const METHOD_COLOR: Record<string, string> = {
+  GET: "blue",
+  POST: "green",
+  PUT: "orange",
+  DELETE: "red",
+  PATCH: "purple",
+};
 
 /** 草稿 → 接口用例创建 body 的 request 包（断言映射 aiDraftToAsserts；spec 由目标定义补齐） */
 function draftToBundle(draft: AiApiCaseDraft, base: { method: string; url: string }) {
@@ -22,7 +28,9 @@ function draftToBundle(draft: AiApiCaseDraft, base: { method: string; url: strin
       url: base.url,
       headers: draft.request.headers ?? [],
       query: draft.request.query ?? [],
-      body: draft.request.bodyJson ? { kind: "raw_json" as const, content: draft.request.bodyJson } : { kind: "raw_json" as const, content: "" },
+      body: draft.request.bodyJson
+        ? { kind: "raw_json" as const, content: draft.request.bodyJson }
+        : { kind: "raw_json" as const, content: "" },
       auth: { kind: "none" as const },
       timeoutMs: 60000,
       followRedirects: false,
@@ -50,7 +58,9 @@ export function ApiCaseGenerateDrawer({
   /** 单条模式目标：选中的接口定义（apis 页行操作传入） */
   target: { id: string; method: string; path: string; name: string } | null;
   /** 导入回调：（bundle, name）→ 调用方决定落库目标定义 */
-  onImported: (items: { name: string; request: ReturnType<typeof draftToBundle> }[]) => Promise<number>;
+  onImported: (
+    items: { name: string; request: ReturnType<typeof draftToBundle> }[],
+  ) => Promise<number>;
 }) {
   const [tab, setTab] = useState<"single" | "batch">("single");
   const [templateId, setTemplateId] = useState<string | undefined>(undefined);
@@ -66,8 +76,16 @@ export function ApiCaseGenerateDrawer({
   const [batchChecked, setBatchChecked] = useState<Record<number, boolean>>({});
   const [importing, setImporting] = useState(false);
 
-  const prompts = useQuery({ queryKey: ["ai-prompts", projectId], queryFn: () => listAiPrompts(projectId), enabled: open });
-  const models = useQuery({ queryKey: ["ai-model-picker"], queryFn: listEnabledAiModels, enabled: open });
+  const prompts = useQuery({
+    queryKey: ["ai-prompts", projectId],
+    queryFn: () => listAiPrompts(projectId),
+    enabled: open,
+  });
+  const models = useQuery({
+    queryKey: ["ai-model-picker"],
+    queryFn: listEnabledAiModels,
+    enabled: open,
+  });
   const apiPrompts = (prompts.data?.list ?? []).filter((p) => p.scene === "api_gen" && p.enabled);
   const defaultPrompt = apiPrompts.find((p) => p.isDefault);
 
@@ -104,7 +122,12 @@ export function ApiCaseGenerateDrawer({
   const importSingle = async () => {
     if (!draft || !target) return;
     setImporting(true);
-    const ok = await onImported([{ name: draft.name, request: draftToBundle(draft, { method: target.method, url: target.path }) }]);
+    const ok = await onImported([
+      {
+        name: draft.name,
+        request: draftToBundle(draft, { method: target.method, url: target.path }),
+      },
+    ]);
     setImporting(false);
     if (ok > 0) {
       message.success("已导入 1 条接口用例");
@@ -117,7 +140,12 @@ export function ApiCaseGenerateDrawer({
     const picked = batch.drafts.filter((_, i) => batchChecked[i]);
     if (picked.length === 0) return;
     setImporting(true);
-    const ok = await onImported(picked.map((p) => ({ name: p.draft.name, request: draftToBundle(p.draft, { method: p.method, url: p.path }) })));
+    const ok = await onImported(
+      picked.map((p) => ({
+        name: p.draft.name,
+        request: draftToBundle(p.draft, { method: p.method, url: p.path }),
+      })),
+    );
     setImporting(false);
     if (ok > 0) {
       message.success(`成功导入 ${ok} 条`);
@@ -126,7 +154,13 @@ export function ApiCaseGenerateDrawer({
   };
 
   return (
-    <Drawer title="✦ AI 生成接口用例" open={open} onClose={onClose} width={720} data-testid="ai-apicase-drawer">
+    <Drawer
+      title="✦ AI 生成接口用例"
+      open={open}
+      onClose={onClose}
+      width={720}
+      data-testid="ai-apicase-drawer"
+    >
       <Tabs
         activeKey={tab}
         onChange={(k) => setTab(k as "single" | "batch")}
@@ -138,7 +172,9 @@ export function ApiCaseGenerateDrawer({
               <div className="space-y-3">
                 {target ? (
                   <div className="flex items-center gap-2 text-[13px]">
-                    <Tag color={METHOD_COLOR[target.method] ?? "default"} className="font-mono">{target.method}</Tag>
+                    <Tag color={METHOD_COLOR[target.method] ?? "default"} className="font-mono">
+                      {target.method}
+                    </Tag>
                     <span className="font-mono text-xs">{target.path}</span>
                     <span className="text-slate-400 text-xs">{target.name}</span>
                   </div>
@@ -152,7 +188,13 @@ export function ApiCaseGenerateDrawer({
                       className="w-full"
                       value={templateId ?? defaultPrompt?.id ?? ""}
                       onChange={setTemplateId}
-                      options={[{ value: "", label: "内置默认" }, ...apiPrompts.map((p) => ({ value: p.id, label: `${p.isDefault ? "★ " : ""}${p.name}` }))]}
+                      options={[
+                        { value: "", label: "内置默认" },
+                        ...apiPrompts.map((p) => ({
+                          value: p.id,
+                          label: `${p.isDefault ? "★ " : ""}${p.name}`,
+                        })),
+                      ]}
                       data-testid="ai-apicase-template"
                     />
                   </div>
@@ -164,12 +206,21 @@ export function ApiCaseGenerateDrawer({
                       onChange={setModelId}
                       placeholder="默认模型"
                       allowClear
-                      options={(models.data?.list ?? []).map((m) => ({ value: m.id, label: `${m.isDefault ? "★ " : ""}${m.model}` }))}
+                      options={(models.data?.list ?? []).map((m) => ({
+                        value: m.id,
+                        label: `${m.isDefault ? "★ " : ""}${m.model}`,
+                      }))}
                       data-testid="ai-apicase-model"
                     />
                   </div>
                 </div>
-                <Button type="primary" loading={generating} onClick={generateSingle} disabled={!target} data-testid="ai-apicase-generate">
+                <Button
+                  type="primary"
+                  loading={generating}
+                  onClick={generateSingle}
+                  disabled={!target}
+                  data-testid="ai-apicase-generate"
+                >
                   生成草稿
                 </Button>
                 {generating && <Skeleton active paragraph={{ rows: 3 }} />}
@@ -177,7 +228,9 @@ export function ApiCaseGenerateDrawer({
                   <div className="border rounded-lg p-3 space-y-2" data-testid="ai-apicase-draft">
                     <p className="font-medium text-[13px]">{draft.name}</p>
                     {draft.request.bodyJson && (
-                      <p className="font-mono text-xs text-slate-500 break-all">body: {draft.request.bodyJson}</p>
+                      <p className="font-mono text-xs text-slate-500 break-all">
+                        body: {draft.request.bodyJson}
+                      </p>
                     )}
                     <table className="w-full text-xs">
                       <thead className="text-slate-500 text-left">
@@ -190,14 +243,21 @@ export function ApiCaseGenerateDrawer({
                       <tbody className="text-slate-600">
                         {draft.assertions.map((a, i) => (
                           <tr key={i}>
-                            <td className="py-0.5">{a.source === "status" ? "status" : `${a.source} ${a.expression}`}</td>
+                            <td className="py-0.5">
+                              {a.source === "status" ? "status" : `${a.source} ${a.expression}`}
+                            </td>
                             <td className="font-mono">{a.operator}</td>
                             <td className="font-mono">{a.expected || "—"}</td>
                           </tr>
                         ))}
                       </tbody>
                     </table>
-                    <Button type="primary" loading={importing} onClick={importSingle} data-testid="ai-apicase-import">
+                    <Button
+                      type="primary"
+                      loading={importing}
+                      onClick={importSingle}
+                      data-testid="ai-apicase-import"
+                    >
                       导入该用例
                     </Button>
                   </div>
@@ -210,7 +270,10 @@ export function ApiCaseGenerateDrawer({
             label: "批量（OpenAPI）",
             children: (
               <div className="space-y-3">
-                <p className="text-xs text-slate-400">粘贴 OpenAPI 3.x JSON；单批 ≤20 接口；仅生成用例草稿，导入绑定目标接口定义（不自动新建定义）</p>
+                <p className="text-xs text-slate-400">
+                  粘贴 OpenAPI 3.x JSON；单批 ≤20
+                  接口；仅生成用例草稿，导入绑定目标接口定义（不自动新建定义）
+                </p>
                 <Input.TextArea
                   rows={8}
                   value={openapiDoc}
@@ -219,24 +282,51 @@ export function ApiCaseGenerateDrawer({
                   className="font-mono text-xs"
                   data-testid="ai-apicase-openapi"
                 />
-                <Button type="primary" loading={generating} onClick={parseAndGenerateBatch} disabled={!openapiDoc.trim()} data-testid="ai-apicase-batch-generate">
+                <Button
+                  type="primary"
+                  loading={generating}
+                  onClick={parseAndGenerateBatch}
+                  disabled={!openapiDoc.trim()}
+                  data-testid="ai-apicase-batch-generate"
+                >
                   解析并批量生成
                 </Button>
                 {batch && (
                   <div className="space-y-2" data-testid="ai-apicase-batch-result">
-                    <p className="text-xs text-slate-500">接口 {batch.apis.length} 个 · 草稿 {batch.drafts.length} 条{batch.skipped.length ? ` · 失败 ${batch.skipped.length}` : ""}</p>
+                    <p className="text-xs text-slate-500">
+                      接口 {batch.apis.length} 个 · 草稿 {batch.drafts.length} 条
+                      {batch.skipped.length ? ` · 失败 ${batch.skipped.length}` : ""}
+                    </p>
                     {batch.drafts.map((d, i) => (
-                      <label key={i} className="block border rounded-lg p-2.5 space-y-1 cursor-pointer" data-testid={`ai-apicase-batch-draft-${i}`}>
+                      <label
+                        key={i}
+                        className="block border rounded-lg p-2.5 space-y-1 cursor-pointer"
+                        data-testid={`ai-apicase-batch-draft-${i}`}
+                      >
                         <div className="flex items-center gap-2">
-                          <Checkbox checked={!!batchChecked[i]} onChange={(e) => setBatchChecked((p) => ({ ...p, [i]: e.target.checked }))} />
-                          <Tag color={METHOD_COLOR[d.method] ?? "default"} className="font-mono">{d.method}</Tag>
+                          <Checkbox
+                            checked={!!batchChecked[i]}
+                            onChange={(e) =>
+                              setBatchChecked((p) => ({ ...p, [i]: e.target.checked }))
+                            }
+                          />
+                          <Tag color={METHOD_COLOR[d.method] ?? "default"} className="font-mono">
+                            {d.method}
+                          </Tag>
                           <span className="font-mono text-xs">{d.path}</span>
                           <span className="text-xs text-slate-500 truncate">{d.draft.name}</span>
-                          <span className="ml-auto text-[10px] text-slate-400">{d.draft.assertions.length} 断言</span>
+                          <span className="ml-auto text-[10px] text-slate-400">
+                            {d.draft.assertions.length} 断言
+                          </span>
                         </div>
                       </label>
                     ))}
-                    <Button type="primary" loading={importing} onClick={importBatch} data-testid="ai-apicase-batch-import">
+                    <Button
+                      type="primary"
+                      loading={importing}
+                      onClick={importBatch}
+                      data-testid="ai-apicase-batch-import"
+                    >
                       导入所选 ({batch.drafts.filter((_, i) => batchChecked[i]).length})
                     </Button>
                   </div>

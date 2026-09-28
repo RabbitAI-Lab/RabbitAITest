@@ -28,7 +28,12 @@ export const pointsReorderSchema = z.object({
 /** 配置继承链（PLAN-002 §2）：inheritConfig=true → 沿 parent 链取最近显式配置；链尾回退计划默认。
  * 环防御：祖先链去重 + 深度上限 20。 */
 export function resolvePointChain(
-  points: { id: string; parentId: string | null; inheritConfig: boolean; config: PointConfig | null }[],
+  points: {
+    id: string;
+    parentId: string | null;
+    inheritConfig: boolean;
+    config: PointConfig | null;
+  }[],
   planDefault: PointConfig,
 ): Map<string, PointConfig> {
   const byId = new Map(points.map((p) => [p.id, p]));
@@ -218,7 +223,16 @@ export function buildPlanReportCsv(
     reportUrl: string;
   }[],
 ): string {
-  const header = ["测试点", "用例类型", "名称", "执行人", "状态", "实际结果", "最近执行", "执行报告"];
+  const header = [
+    "测试点",
+    "用例类型",
+    "名称",
+    "执行人",
+    "状态",
+    "实际结果",
+    "最近执行",
+    "执行报告",
+  ];
   const body = rows.map((r) =>
     [r.point, r.refType, r.name, r.executor, r.status, r.actualResult, r.lastRunAt, r.reportUrl]
       .map(csvEscape)
@@ -237,9 +251,7 @@ export const dashFollowedQuerySchema = z.object({
 });
 
 export const dashCreatedQuerySchema = z.object({
-  kind: z
-    .enum(["case", "review", "plan", "bug", "api_case", "scenario"])
-    .optional(),
+  kind: z.enum(["case", "review", "plan", "bug", "api_case", "scenario"]).optional(),
   page: z.coerce.number().int().min(1).default(1),
   pageSize: z.coerce.number().int().min(1).max(100).default(20),
 });
@@ -252,8 +264,20 @@ export const mindmapSaveSchema = z.object({
   modules: z
     .object({
       /** created：tmpId 由前端生成（非 uuid），服务端建实体后回传 idMap */
-      created: z.array(z.object({ tmpId: z.string().min(1).max(64), name: mindmapNodeName, parentId: z.string().uuid().nullable() })).max(200).default([]),
-      renamed: z.array(z.object({ id: z.string().uuid(), name: mindmapNodeName })).max(200).default([]),
+      created: z
+        .array(
+          z.object({
+            tmpId: z.string().min(1).max(64),
+            name: mindmapNodeName,
+            parentId: z.string().uuid().nullable(),
+          }),
+        )
+        .max(200)
+        .default([]),
+      renamed: z
+        .array(z.object({ id: z.string().uuid(), name: mindmapNodeName }))
+        .max(200)
+        .default([]),
       deleted: z.array(z.string().uuid()).max(200).default([]),
     })
     .default({ created: [], renamed: [], deleted: [] }),
@@ -268,7 +292,10 @@ export const mindmapSaveSchema = z.object({
             moduleId: z.string().min(1).max(64).nullable(),
             level: z.enum(["P0", "P1", "P2", "P3"]).default("P1"),
             precondition: z.string().max(2000).default(""),
-            steps: z.array(z.object({ desc: z.string().max(2000), expect: z.string().max(2000) })).max(100).default([]),
+            steps: z
+              .array(z.object({ desc: z.string().max(2000), expect: z.string().max(2000) }))
+              .max(100)
+              .default([]),
           }),
         )
         .max(200)
@@ -281,7 +308,10 @@ export const mindmapSaveSchema = z.object({
             name: mindmapNodeName,
             level: z.enum(["P0", "P1", "P2", "P3"]).optional(),
             precondition: z.string().max(2000).optional(),
-            steps: z.array(z.object({ desc: z.string().max(2000), expect: z.string().max(2000) })).max(100).optional(),
+            steps: z
+              .array(z.object({ desc: z.string().max(2000), expect: z.string().max(2000) }))
+              .max(100)
+              .optional(),
             moduleId: z.string().uuid().nullable().optional(),
           }),
         )

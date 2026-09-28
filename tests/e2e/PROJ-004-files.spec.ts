@@ -34,43 +34,62 @@ test("PROJ-004-01 文件主链路：上传 CSV/JAR→JAR 开关二态→下载�
   const uploadPost = () =>
     page.waitForResponse((r) => /\/files(\?|$)/.test(r.url()) && r.request().method() === "POST");
   const csvUploadP = uploadPost();
-  await page.getByTestId("file-upload").locator("input[type=file]").setInputFiles({
-    name: csvName,
-    mimeType: "text/csv",
-    buffer: Buffer.from(CSV_CONTENT, "utf8"),
-  });
+  await page
+    .getByTestId("file-upload")
+    .locator("input[type=file]")
+    .setInputFiles({
+      name: csvName,
+      mimeType: "text/csv",
+      buffer: Buffer.from(CSV_CONTENT, "utf8"),
+    });
   const uploadedCsv = await csvUploadP;
   expect(uploadedCsv.status()).toBe(201);
   await expect(page.getByText(`${csvName} 上传成功`)).toBeVisible();
 
-  const csvRow = page.getByTestId("file-list-table").getByRole("row", { name: new RegExp(csvName) });
+  const csvRow = page
+    .getByTestId("file-list-table")
+    .getByRole("row", { name: new RegExp(csvName) });
   await expect(csvRow).toBeVisible();
   await expect(csvRow).toContainText("B"); // 大小列展示（字节文本）
 
   // ── 上传 JAR（伪 zip 头）→ jar 行开关可切 ──
   const jarUploadP = uploadPost();
-  await page.getByTestId("file-upload").locator("input[type=file]").setInputFiles({
-    name: jarName,
-    mimeType: "application/java-archive",
-    buffer: Buffer.concat([Buffer.from("PK\x03\x04", "binary"), Buffer.from("fake-jar-payload-" + uniq)]),
-  });
+  await page
+    .getByTestId("file-upload")
+    .locator("input[type=file]")
+    .setInputFiles({
+      name: jarName,
+      mimeType: "application/java-archive",
+      buffer: Buffer.concat([
+        Buffer.from("PK\x03\x04", "binary"),
+        Buffer.from("fake-jar-payload-" + uniq),
+      ]),
+    });
   await jarUploadP;
   await expect(page.getByText(`${jarName} 上传成功`)).toBeVisible();
 
-  const listRes = await page.request.get(`/api/v1/projects/${projectId}/files?keyword=${encodeURIComponent(uniq)}`);
-  const files = (await ok<{ items: { id: string; name: string; isJar: boolean; size: number }[] }>(listRes)).items;
+  const listRes = await page.request.get(
+    `/api/v1/projects/${projectId}/files?keyword=${encodeURIComponent(uniq)}`,
+  );
+  const files = (
+    await ok<{ items: { id: string; name: string; isJar: boolean; size: number }[] }>(listRes)
+  ).items;
   const csv = files.find((f) => f.name === csvName)!;
   const jar = files.find((f) => f.name === jarName)!;
   expect(jar.isJar).toBe(true);
   expect(csv.isJar).toBe(false);
 
   // 二态：jar 行有开关、csv 行无开关
-  const jarRow = page.getByTestId("file-list-table").getByRole("row", { name: new RegExp(jarName) });
+  const jarRow = page
+    .getByTestId("file-list-table")
+    .getByRole("row", { name: new RegExp(jarName) });
   await expect(page.getByTestId(`jar-switch-${jar.id}`)).toBeVisible();
   await expect(csvRow.locator(".ant-switch")).toHaveCount(0);
 
   // JAR 开关切换（默认禁用 → 启用）：PUT payload jarEnabled=true
-  const jarPut = page.waitForResponse((r) => r.url().endsWith(`/files/${jar.id}`) && r.request().method() === "PUT");
+  const jarPut = page.waitForResponse(
+    (r) => r.url().endsWith(`/files/${jar.id}`) && r.request().method() === "PUT",
+  );
   await page.getByTestId(`jar-switch-${jar.id}`).click();
   const jarPutRes = await jarPut;
   expect(jarPutRes.status()).toBe(200);
@@ -83,10 +102,15 @@ test("PROJ-004-01 文件主链路：上传 CSV/JAR→JAR 开关二态→下载�
   expect(await dl.text()).toBe(CSV_CONTENT);
 
   // ── 移动模块（CSV → 子模块）──
-  const movePut = page.waitForResponse((r) => r.url().endsWith(`/files/${csv.id}`) && r.request().method() === "PUT");
+  const movePut = page.waitForResponse(
+    (r) => r.url().endsWith(`/files/${csv.id}`) && r.request().method() === "PUT",
+  );
   await csvRow.getByRole("button", { name: /移\s*动/ }).click();
   await page.getByTestId("select-move-module").click();
-  await page.locator(".ant-select-dropdown:not(.ant-select-dropdown-hidden)").getByText(moduleName).click();
+  await page
+    .locator(".ant-select-dropdown:not(.ant-select-dropdown-hidden)")
+    .getByText(moduleName)
+    .click();
   await page.getByRole("button", { name: /确\s*定/ }).click();
   const moveRes = await movePut;
   expect(moveRes.status()).toBe(200);
@@ -96,15 +120,23 @@ test("PROJ-004-01 文件主链路：上传 CSV/JAR→JAR 开关二态→下载�
 
   // ── 按模块过滤（模块树选子模块 → 仅 CSV 行）──
   await page.getByTestId(`module-node-${moduleName}`).click();
-  await expect(page.getByTestId("file-list-table").getByRole("row", { name: new RegExp(csvName) })).toBeVisible();
-  await expect(page.getByTestId("file-list-table").getByRole("row", { name: new RegExp(jarName) })).toHaveCount(0);
+  await expect(
+    page.getByTestId("file-list-table").getByRole("row", { name: new RegExp(csvName) }),
+  ).toBeVisible();
+  await expect(
+    page.getByTestId("file-list-table").getByRole("row", { name: new RegExp(jarName) }),
+  ).toHaveCount(0);
 
   // ── 关键字过滤（再点同节点取消选中回全部 → 搜 jar 名只剩 jar 行）──
   await page.getByTestId(`module-node-${moduleName}`).click();
   await page.getByTestId("file-filter-keyword").fill(jarName);
   await page.getByTestId("file-filter-keyword").press("Enter");
-  await expect(page.getByTestId("file-list-table").getByRole("row", { name: new RegExp(jarName) })).toBeVisible();
-  await expect(page.getByTestId("file-list-table").getByRole("row", { name: new RegExp(csvName) })).toHaveCount(0);
+  await expect(
+    page.getByTestId("file-list-table").getByRole("row", { name: new RegExp(jarName) }),
+  ).toBeVisible();
+  await expect(
+    page.getByTestId("file-list-table").getByRole("row", { name: new RegExp(csvName) }),
+  ).toHaveCount(0);
 
   await expectNoConsoleErrors();
 });
@@ -123,11 +155,14 @@ test("PROJ-004-02 拒收二态：.exe 上传 422 + 错误文案透出", async ({
   const blockedP = page.waitForResponse(
     (r) => /\/files(\?|$)/.test(r.url()) && r.request().method() === "POST",
   );
-  await page.getByTestId("file-upload").locator("input[type=file]").setInputFiles({
-    name: exeName,
-    mimeType: "application/x-msdownload",
-    buffer: Buffer.from("MZ fake exe", "utf8"),
-  });
+  await page
+    .getByTestId("file-upload")
+    .locator("input[type=file]")
+    .setInputFiles({
+      name: exeName,
+      mimeType: "application/x-msdownload",
+      buffer: Buffer.from("MZ fake exe", "utf8"),
+    });
   const blocked = await blockedP;
   expect(blocked.status()).toBe(422);
   await expect(page.getByText("不支持的文件类型")).toBeVisible();
@@ -257,7 +292,9 @@ test("PROJ-004-03 form_data 引用文件执行：mock 按内容标记命中二�
   await page.goto(`/reports/${missId}`);
   await expect(page.getByTestId("report-status")).toHaveText("FAILED");
   await expect(page.getByTestId("assert-fail").first()).toBeVisible();
-  await expect(page.getByTestId("report-response-body").or(page.getByTestId("drill-response"))).toContainText("40401");
+  await expect(
+    page.getByTestId("report-response-body").or(page.getByTestId("drill-response")),
+  ).toContainText("40401");
 
   await expectNoConsoleErrors();
 });
