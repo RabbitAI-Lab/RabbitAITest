@@ -121,4 +121,4 @@
 - [x] docs/README.md 迭代表 sprint-future-p4 行更新
 - [x] CHANGELOG v0.8.0
 - [x] 架构文档同步（engine-execution-architecture EXEC-004 兑现标注；test-domain-model §6 门禁 3 例外登记）
-- [ ] commit + push 分支 + PR + 远端 CI 全绿（交付中）
+- [x] commit + push 分支 + PR #7 + 远端 CI 全绿（PR run 36461411109 七作业全绿：quality 1m28s/build 2m29s/audit/perf/迁移重放/**e2e 8m47s**/**jmx 18m45s**；PR 已合入 main，main push run 36464377799 六作业全绿 + perf 36464377613 绿，2026-09-28 18:19 合并、main 保持绿）
