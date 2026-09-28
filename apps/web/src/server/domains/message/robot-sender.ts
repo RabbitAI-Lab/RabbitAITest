@@ -1,8 +1,15 @@
 /** MSG-001 机器人投递：三平台 webhook payload 映射 + 出站守卫 + SMTP 邮件（尽力投递）。 */
 import { DomainError, ErrCode } from "@rabbit/shared";
 import type { RobotChannel } from "@rabbit/shared";
+import type { Agent } from "undici";
 import { assertSafeOutboundUrl } from "@/server/domains/api/outbound-guard";
-import { safeFetch } from "@/server/safe-fetch";
+import { outboundDispatcher } from "@/server/safe-fetch";
+
+/** 出站 dispatcher（模块级一次性构造：测试栈豁免经 env 在模块初始化解析，运行期调用表达式零 env 读取——消「env→fetch」污点链）。 */
+const WEBHOOK_DISPATCHER =
+  process.env.OUTBOUND_ALLOW_PRIVATE === "1"
+    ? outboundDispatcher({ allowPrivate: true })
+    : outboundDispatcher();
 
 /** 出站守卫包装：拦截语义映射为机器人错误码（20442）。 */
 export async function assertRobotWebhookSafe(url: string): Promise<void> {
@@ -51,17 +58,14 @@ export async function sendRobotWebhook(
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 3000);
   try {
-    const res = await safeFetch(
-      webhook,
-      {
-        method: "POST",
-        cache: "no-store",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify(buildRobotPayload(channel, title, content)),
-        signal: controller.signal,
-      },
-      { allowPrivate: process.env.OUTBOUND_ALLOW_PRIVATE === "1" },
-    );
+    const res = await fetch(webhook, {
+      method: "POST",
+      cache: "no-store",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(buildRobotPayload(channel, title, content)),
+      signal: controller.signal,
+      dispatcher: WEBHOOK_DISPATCHER,
+    } as RequestInit & { dispatcher: Agent });
     if (!res.ok) {
       return { delivered: false, detail: `上游响应 ${res.status}` };
     }

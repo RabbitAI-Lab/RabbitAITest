@@ -20,24 +20,23 @@ vi.mock("@/server/redis", () => {
 });
 
 // safeFetch stub（按 URL 匹配路由响应；__addRoute 追加、__resetRoutes 清空）
-vi.mock("@/server/safe-fetch", () => {
-  const routes: { match: (url: string, init?: RequestInit) => boolean; respond: () => Response }[] =
-    [];
-  return {
-    safeFetch: vi.fn(async (url: string | URL, init: RequestInit = {}) => {
-      const u = String(url);
-      const route = routes.find((r) => r.match(u, init));
-      if (route) return route.respond();
-      return new Response("{}", { status: 404 });
-    }),
-    __addRoute: (match: (url: string, init?: RequestInit) => boolean, respond: () => Response) => {
-      routes.push({ match, respond });
-    },
-    __resetRoutes: () => {
-      routes.length = 0;
-    },
-  };
-});
+vi.mock("@/server/safe-fetch", () => ({
+  // v0.7.1 根治形态：outboundDispatcher 工厂（单测哑实例；真实出站拦截走全局 fetch stub）
+  outboundDispatcher: () => ({}),
+}));
+
+// 全局 fetch stub：按 URL 路由响应（替代原 safeFetch mock 的路由职责）
+const routes: { match: (url: string, init?: RequestInit) => boolean; respond: () => Response }[] =
+  [];
+vi.stubGlobal(
+  "fetch",
+  vi.fn(async (url: string | URL, init: RequestInit = {}) => {
+    const u = String(url);
+    const route = routes.find((r) => r.match(u, init));
+    if (route) return route.respond();
+    return new Response("{}", { status: 404 });
+  }),
+);
 
 // param.service：callbackUrl 用 siteUrl —— stub
 vi.mock("@/server/domains/system/param.service", () => ({
@@ -82,17 +81,13 @@ import {
   findOrCreateSsoUser,
 } from "../sso-flow.service";
 import { setLdapAdapter, ldapAuthenticate, type LdapAdapter } from "../ldap-client";
-import * as safeFetchModule from "@/server/safe-fetch";
-
-// mock 挂载的测试辅助（真实模块无此导出——vi.mock 工厂提供）
-const { __addRoute, __resetRoutes } = safeFetchModule as unknown as {
-  __addRoute: (
-    match: (url: string, init?: RequestInit) => boolean,
-    respond: () => Response,
-  ) => void;
-  __resetRoutes: () => void;
+// 路由辅助（全局 fetch stub 挂载，见上方 stubGlobal）
+const addRoute = (match: (url: string, init?: RequestInit) => boolean, respond: () => Response) => {
+  routes.push({ match, respond });
 };
-const addRoute = __addRoute;
+const __resetRoutes = () => {
+  routes.length = 0;
+};
 
 beforeEach(() => {
   __resetRoutes();

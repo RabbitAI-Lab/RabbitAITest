@@ -69,13 +69,13 @@
 
 ## 5. 规格清单与状态
 
-| 编号   | 名称             | 状态        | 原型                                     |
-| ------ | ---------------- | ----------- | ---------------------------------------- |
-| AI-001 | 模型网关         | Implemented | docs/design/AI-001-model-gateway/        |
-| AI-002 | 功能用例 AI 生成 | Implemented | docs/design/AI-002-case-generation/      |
-| AI-003 | 接口用例 AI 生成 | Implemented | docs/design/AI-003-api-case-generation/  |
-| AI-004 | AI 智能助手      | Implemented | docs/design/AI-004-ai-assistant/         |
-| AI-005 | 提示词自定义     | Implemented | docs/design/AI-005-prompt-customization/ |
+| 编号   | 名称             | 状态                                                                                     | 原型                                       |
+| ------ | ---------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------ |
+| AI-001 | 模型网关         | Implemented                                                                              | docs/design/AI-001-model-gateway/          |
+| AI-002 | 功能用例 AI 生成 | Implemented                                                                              | docs/design/AI-002-case-generation/        |
+| AI-003 | 接口用例 AI 生成 | Implemented                                                                              | docs/design/AI-003-api-case-generation/    |
+| AI-004 | AI 智能助手      | Implemented（2026-09-28 UI v2：Ant Design X 重构 + SSE 帧断言单测化，规格 §8 勘误 2/§9） | docs/design/AI-004-ai-assistant/v2-antd-x/ |
+| AI-005 | 提示词自定义     | Implemented                                                                              | docs/design/AI-005-prompt-customization/   |
 
 ## 6. 并行启动决策记录（2026-09-27）
 

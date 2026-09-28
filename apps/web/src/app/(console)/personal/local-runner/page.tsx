@@ -2,7 +2,7 @@
 
 import { Alert, Button, Input, Switch, message } from "antd";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { personalApi } from "@rabbit/api-client";
 
 /** SYS-007：本地执行配置（环回地址 + 连通检测 + 优先本地开关）。 */
@@ -11,8 +11,8 @@ export default function LocalRunnerPage() {
   const [address, setAddress] = useState<string | null>(null);
   const [preferLocal, setPreferLocal] = useState(false);
   const [loaded, setLoaded] = useState(false);
-  /** 用户已编辑（S9 勘误：查询首达若晚于用户输入，服务端 null 会清空已填地址——CI 慢机暴露的存量竞态） */
-  const [dirty, setDirty] = useState(false);
+  // 用户一旦编辑，迟到的初始查询回填不得覆盖（慢网下曾抹掉已填地址致检测钮永久禁用——2026-09-28 竞态修复）
+  const dirtyRef = useRef(false);
   const [checkResult, setCheckResult] = useState<{ reachable: boolean; detail: string } | null>(
     null,
   );
@@ -23,7 +23,7 @@ export default function LocalRunnerPage() {
   });
   if (q.data && !loaded) {
     setLoaded(true);
-    if (!dirty) {
+    if (!dirtyRef.current) {
       setAddress(q.data.address);
       setPreferLocal(q.data.preferLocal);
     }
@@ -60,7 +60,7 @@ export default function LocalRunnerPage() {
               placeholder="http://127.0.0.1:7001"
               value={address ?? ""}
               onChange={(e) => {
-                setDirty(true);
+                dirtyRef.current = true;
                 setAddress(e.target.value);
               }}
               data-testid="local-runner-address"
@@ -94,7 +94,7 @@ export default function LocalRunnerPage() {
             size="small"
             checked={preferLocal}
             onChange={(v) => {
-              setDirty(true);
+              dirtyRef.current = true;
               setPreferLocal(v);
             }}
             data-testid="local-runner-prefer"

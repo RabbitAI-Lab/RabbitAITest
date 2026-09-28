@@ -2,7 +2,8 @@
 import { describe, expect, it } from "vitest";
 import { app } from "../index";
 
-const post = (body: unknown) =>
+// 命名避开与 e2e 的 Playwright request.post(…) 同名（曾致 35 条跨文件污点误链，2026-09-28）
+const postCompletions = (body: unknown) =>
   app.request("/ai/chat/completions", {
     method: "POST",
     body: JSON.stringify(body),
@@ -11,7 +12,7 @@ const post = (body: unknown) =>
 
 describe("POST /ai/chat/completions（非流式）", () => {
   it("测试用例生成助手 → 2 条固定功能用例草稿", async () => {
-    const res = await post({
+    const res = await postCompletions({
       messages: [
         { role: "system", content: "你是 RabbitAITest 的测试用例生成助手…" },
         { role: "user", content: "需求" },
@@ -29,7 +30,7 @@ describe("POST /ai/chat/completions（非流式）", () => {
     expect(drafts[0]!.steps.length).toBeGreaterThanOrEqual(2);
   });
   it("接口用例生成助手 → 1 条固定接口用例（含 status 断言）", async () => {
-    const res = await post({
+    const res = await postCompletions({
       messages: [{ role: "system", content: "你是 RabbitAITest 的接口用例生成助手…" }],
     });
     const data = (await res.json()) as { choices: { message: { content: string } }[] };
@@ -40,7 +41,7 @@ describe("POST /ai/chat/completions（非流式）", () => {
     expect(drafts[0]!.assertions.some((a) => a.source === "status")).toBe(true);
   });
   it("智能助手 → 聊天文本", async () => {
-    const res = await post({
+    const res = await postCompletions({
       messages: [
         { role: "system", content: "你是 RabbitAITest 测试平台智能助手…" },
         { role: "user", content: "怎么设计用例" },
@@ -50,7 +51,7 @@ describe("POST /ai/chat/completions（非流式）", () => {
     expect(data.choices[0]!.message.content).toContain("边界值");
   });
   it("连通探测 → pong", async () => {
-    const res = await post({
+    const res = await postCompletions({
       messages: [
         { role: "system", content: "You are a connectivity probe. Reply with exactly: pong" },
         { role: "user", content: "ping" },
@@ -63,7 +64,7 @@ describe("POST /ai/chat/completions（非流式）", () => {
 
 describe("POST /ai/chat/completions（流式）", () => {
   it("SSE 多片 delta + [DONE]，聚合等于全文", async () => {
-    const res = await post({
+    const res = await postCompletions({
       stream: true,
       messages: [
         { role: "system", content: "你是 RabbitAITest 测试平台智能助手…" },

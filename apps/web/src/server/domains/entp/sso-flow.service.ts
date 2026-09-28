@@ -7,10 +7,13 @@ import { DomainError, ErrCode, type PropMapping } from "@rabbit/shared";
 import { prisma } from "@rabbit/db";
 import { redis } from "@/server/redis";
 import { hashPassword } from "@/server/domains/system/auth.service";
-import { safeFetch, type SafeFetchOpts } from "@/server/safe-fetch";
+import { outboundDispatcher } from "@/server/safe-fetch";
 
-/** 测试栈指向 mock IdP（环回）时放行（与 webhook/swagger 同口径 OUTBOUND_ALLOW_PRIVATE）。 */
-const SSO_FETCH_OPTS: SafeFetchOpts = { allowPrivate: process.env.OUTBOUND_ALLOW_PRIVATE === "1" };
+/** 模块级出站 dispatcher（连接期 IP 校验；测试栈指向 mock IdP 环回时放行——OUTBOUND_ALLOW_PRIVATE 同口径）。
+ *  v0.7.1 Mimosa 根治形态：调用方持实例直连 fetch，不做 safeFetch 薄包装。 */
+const SSO_DISPATCHER = outboundDispatcher({
+  allowPrivate: process.env.OUTBOUND_ALLOW_PRIVATE === "1",
+});
 import { loadSource, type LoadedSource } from "./sso.service";
 import { buildScanAuthorizeUrl, SCAN_PROVIDER_META, type ScanProvider } from "@rabbit/shared";
 
@@ -109,9 +112,8 @@ export async function exchangeOidc(
 ): Promise<SsoIdentity> {
   const cfg = src.config;
   const redirectUri = callbackUrl(origin, src.type.toLowerCase(), src.id);
-  const tokenRes = await safeFetch(
-    S(cfg.tokenEndpoint),
-    {
+  const tokenRes = await fetch(S(cfg.tokenEndpoint), {
+    ...{
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded", Accept: "application/json" },
       body: new URLSearchParams({
@@ -122,20 +124,19 @@ export async function exchangeOidc(
         redirect_uri: redirectUri,
       }),
     },
-    SSO_FETCH_OPTS,
-  );
+    dispatcher: SSO_DISPATCHER,
+  } as RequestInit & { dispatcher: unknown });
   if (!tokenRes.ok)
     throw new DomainError(ErrCode.SSO_PROVIDER_ERROR, `IdP Token 端点响应 ${tokenRes.status}`);
   const token = (await tokenRes.json()) as { access_token?: string };
   if (!token.access_token)
     throw new DomainError(ErrCode.SSO_PROVIDER_ERROR, "IdP 未返回 access_token");
-  const userRes = await safeFetch(
-    S(cfg.userinfoEndpoint),
-    {
+  const userRes = await fetch(S(cfg.userinfoEndpoint), {
+    ...{
       headers: { Authorization: `Bearer ${token.access_token}`, Accept: "application/json" },
     },
-    SSO_FETCH_OPTS,
-  );
+    dispatcher: SSO_DISPATCHER,
+  } as RequestInit & { dispatcher: unknown });
   if (!userRes.ok)
     throw new DomainError(ErrCode.SSO_PROVIDER_ERROR, `IdP 用户信息端点响应 ${userRes.status}`);
   return mapIdentity(src.config, await userRes.json());
@@ -148,11 +149,10 @@ export async function exchangeCas(
 ): Promise<SsoIdentity> {
   const cfg = src.config;
   const validateUrl = `${S(cfg.serverUrl).replace(/\/$/, "")}/serviceValidate?service=${encodeURIComponent(service)}&ticket=${encodeURIComponent(ticket)}`;
-  const res = await safeFetch(
-    validateUrl,
-    { headers: { Accept: "application/xml" } },
-    SSO_FETCH_OPTS,
-  );
+  const res = await fetch(validateUrl, {
+    ...{ headers: { Accept: "application/xml" } },
+    dispatcher: SSO_DISPATCHER,
+  } as RequestInit & { dispatcher: unknown });
   if (!res.ok)
     throw new DomainError(ErrCode.SSO_PROVIDER_ERROR, `CAS serviceValidate 响应 ${res.status}`);
   const xml = await res.text();
@@ -182,10 +182,9 @@ export async function exchangeWecom(src: LoadedSource, code: string): Promise<Ss
   const cfg = src.config;
   // apiBase：测试栈注入 mock 平台（缺省真实企微）
   const base = cfg.apiBase ? String(cfg.apiBase).replace(/\/$/, "") : "https://qyapi.weixin.qq.com";
-  const tokenRes = await safeFetch(
+  const tokenRes = await fetch(
     `${base}/gettoken?corpid=${encodeURIComponent(S(cfg.corpId))}&corpsecret=${encodeURIComponent(S(cfg.secret))}`,
-    {},
-    SSO_FETCH_OPTS,
+    { ...{}, dispatcher: SSO_DISPATCHER } as RequestInit & { dispatcher: unknown },
   );
   const token = (await tokenRes.json()) as { access_token?: string; errcode?: number };
   if (!token.access_token)
@@ -193,10 +192,9 @@ export async function exchangeWecom(src: LoadedSource, code: string): Promise<Ss
       ErrCode.SSO_PROVIDER_ERROR,
       `企微 gettoken 失败（errcode ${token.errcode}）`,
     );
-  const userRes = await safeFetch(
+  const userRes = await fetch(
     `https://qyapi.weixin.qq.com/cgi-bin/auth/getuserinfo?access_token=${token.access_token}&code=${encodeURIComponent(code)}`,
-    {},
-    SSO_FETCH_OPTS,
+    { ...{}, dispatcher: SSO_DISPATCHER } as RequestInit & { dispatcher: unknown },
   );
   const user = (await userRes.json()) as { userid?: string };
   if (!user.userid) throw new DomainError(ErrCode.SSO_PROVIDER_ERROR, "企微未返回 userid");
@@ -208,9 +206,8 @@ export async function exchangeDingtalk(src: LoadedSource, authCode: string): Pro
   const base = cfg.apiBase
     ? String(cfg.apiBase).replace(/\/$/, "")
     : "https://api.dingtalk.com/v1.0";
-  const tokenRes = await safeFetch(
-    `${base}/oauth2/userAccessToken`,
-    {
+  const tokenRes = await fetch(`${base}/oauth2/userAccessToken`, {
+    ...{
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -220,18 +217,17 @@ export async function exchangeDingtalk(src: LoadedSource, authCode: string): Pro
         grantType: "authorization_code",
       }),
     },
-    SSO_FETCH_OPTS,
-  );
+    dispatcher: SSO_DISPATCHER,
+  } as RequestInit & { dispatcher: unknown });
   const token = (await tokenRes.json()) as { accessToken?: string };
   if (!token.accessToken)
     throw new DomainError(ErrCode.SSO_PROVIDER_ERROR, "钉钉 userAccessToken 获取失败");
-  const userRes = await safeFetch(
-    `${base}/contact/users/me`,
-    {
+  const userRes = await fetch(`${base}/contact/users/me`, {
+    ...{
       headers: { "x-acs-dingtalk-access-token": token.accessToken },
     },
-    SSO_FETCH_OPTS,
-  );
+    dispatcher: SSO_DISPATCHER,
+  } as RequestInit & { dispatcher: unknown });
   const user = (await userRes.json()) as { openId?: string; nick?: string; email?: string };
   if (!user.openId) throw new DomainError(ErrCode.SSO_PROVIDER_ERROR, "钉钉未返回 openId");
   return { providerUserId: user.openId, name: user.nick, email: user.email };
@@ -242,24 +238,22 @@ export async function exchangeFeishu(src: LoadedSource, code: string): Promise<S
   const base = cfg.apiBase
     ? String(cfg.apiBase).replace(/\/$/, "")
     : "https://open.feishu.cn/open-apis";
-  const tokenRes = await safeFetch(
-    `${base}/auth/v3/app_access_token/internal`,
-    {
+  const tokenRes = await fetch(`${base}/auth/v3/app_access_token/internal`, {
+    ...{
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ app_id: S(cfg.appId), app_secret: S(cfg.appSecret) }),
     },
-    SSO_FETCH_OPTS,
-  );
+    dispatcher: SSO_DISPATCHER,
+  } as RequestInit & { dispatcher: unknown });
   const appToken = (await tokenRes.json()) as { app_access_token?: string; code?: number };
   if (!appToken.app_access_token)
     throw new DomainError(
       ErrCode.SSO_PROVIDER_ERROR,
       `飞书 app_access_token 获取失败（code ${appToken.code}）`,
     );
-  const userAccessTokenRes = await safeFetch(
-    `${base}/authen/v1/oidc/access_token`,
-    {
+  const userAccessTokenRes = await fetch(`${base}/authen/v1/oidc/access_token`, {
+    ...{
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -267,18 +261,17 @@ export async function exchangeFeishu(src: LoadedSource, code: string): Promise<S
       },
       body: JSON.stringify({ grant_type: "authorization_code", code }),
     },
-    SSO_FETCH_OPTS,
-  );
+    dispatcher: SSO_DISPATCHER,
+  } as RequestInit & { dispatcher: unknown });
   const uat = ((await userAccessTokenRes.json()) as { data?: { access_token?: string } }).data;
   if (!uat?.access_token)
     throw new DomainError(ErrCode.SSO_PROVIDER_ERROR, "飞书 user access_token 获取失败");
-  const userRes = await safeFetch(
-    `${base}/authen/v1/user_info`,
-    {
+  const userRes = await fetch(`${base}/authen/v1/user_info`, {
+    ...{
       headers: { Authorization: `Bearer ${uat.access_token}` },
     },
-    SSO_FETCH_OPTS,
-  );
+    dispatcher: SSO_DISPATCHER,
+  } as RequestInit & { dispatcher: unknown });
   const user = (
     (await userRes.json()) as { data?: { open_id?: string; name?: string; email?: string } }
   ).data;

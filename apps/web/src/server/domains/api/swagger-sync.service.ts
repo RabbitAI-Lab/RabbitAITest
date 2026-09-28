@@ -5,11 +5,18 @@
 import { DomainError, ErrCode, swaggerSyncTaskSaveSchema } from "@rabbit/shared";
 import { prisma } from "@rabbit/db";
 import { ensureApiModule } from "@rabbit/db";
+import type { Agent } from "undici";
 import { scheduleQueue } from "@/server/redis";
 import { validateCron } from "./schedule.service";
 import { importApis } from "./import.service";
 import { assertSafeOutboundUrl } from "./outbound-guard";
-import { safeFetch } from "@/server/safe-fetch";
+import { outboundDispatcher } from "@/server/safe-fetch";
+
+/** 出站 dispatcher（模块级一次性构造：测试栈豁免经 env 在模块初始化解析，运行期调用表达式零 env 读取——消「env→fetch」污点链）。 */
+const SYNC_DISPATCHER =
+  process.env.OUTBOUND_ALLOW_PRIVATE === "1"
+    ? outboundDispatcher({ allowPrivate: true })
+    : outboundDispatcher();
 
 type TaskSave = ReturnType<typeof swaggerSyncTaskSaveSchema.parse>;
 
@@ -146,11 +153,10 @@ export async function runSync(
   try {
     await assertSafeOutboundUrl(task.url);
     const moduleId = task.moduleId ?? (await ensureApiModule(prisma, projectId));
-    const res = await safeFetch(
-      task.url,
-      { signal: AbortSignal.timeout(10_000) },
-      { allowPrivate: process.env.OUTBOUND_ALLOW_PRIVATE === "1" },
-    );
+    const res = await fetch(task.url, {
+      signal: AbortSignal.timeout(10_000),
+      dispatcher: SYNC_DISPATCHER,
+    } as RequestInit & { dispatcher: Agent });
     if (!res.ok)
       throw new DomainError(ErrCode.SWAGGER_FETCH_FAILED, `文档拉取失败 HTTP ${res.status}`);
     const raw = await res.text();

@@ -161,23 +161,29 @@ export async function testConnection(authId: string): Promise<{ ok: boolean; mes
       clientId?: string;
     };
     if (src.type === "CAS") {
-      const { safeFetch } = await import("@/server/safe-fetch");
-      const res = await safeFetch(
-        `${cfg.serverUrl}/login`,
-        { method: "GET", redirect: "manual" },
-        { allowPrivate: process.env.OUTBOUND_ALLOW_PRIVATE === "1" },
-      );
+      const { outboundDispatcher } = await import("@/server/safe-fetch");
+      const dispatcher = outboundDispatcher({
+        allowPrivate: process.env.OUTBOUND_ALLOW_PRIVATE === "1",
+      });
+      const res = await fetch(`${cfg.serverUrl}/login`, {
+        method: "GET",
+        redirect: "manual",
+        dispatcher,
+      } as RequestInit & { dispatcher: unknown });
       return res.status < 500
         ? { ok: true, message: `连接成功（服务端可达，HTTP ${res.status}）` }
         : { ok: false, message: `服务端响应异常（HTTP ${res.status}）` };
     }
     if (src.type === "OIDC" || src.type === "OAUTH2") {
-      const { safeFetch } = await import("@/server/safe-fetch");
-      const res = await safeFetch(
-        String(cfg.authEndpoint),
-        { method: "GET", redirect: "manual" },
-        { allowPrivate: process.env.OUTBOUND_ALLOW_PRIVATE === "1" },
-      );
+      const { outboundDispatcher } = await import("@/server/safe-fetch");
+      const dispatcher = outboundDispatcher({
+        allowPrivate: process.env.OUTBOUND_ALLOW_PRIVATE === "1",
+      });
+      const res = await fetch(String(cfg.authEndpoint), {
+        method: "GET",
+        redirect: "manual",
+        dispatcher,
+      } as RequestInit & { dispatcher: unknown });
       return res.status < 500
         ? { ok: true, message: `连接成功（授权端点可达，HTTP ${res.status}）` }
         : { ok: false, message: `授权端点响应异常（HTTP ${res.status}）` };
