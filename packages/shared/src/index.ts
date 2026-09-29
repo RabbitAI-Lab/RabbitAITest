@@ -14,6 +14,8 @@ export * from "./api/schemas";
 export * from "./execution/schemas";
 export * from "./ai/schemas";
 export * from "./plugins/spi";
+export * from "./plugins/sql-guard";
+export * from "./plugins/driver-kit";
 export * from "./integration/schemas";
 export * from "./message/schemas";
 export * from "./entp/features";

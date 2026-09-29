@@ -5,8 +5,9 @@ import { ScriptRefPanel, ScriptModeToggle } from "./ScriptRefPanel";
 import { ArrowDown, ArrowUp, X } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { fileApi } from "@rabbit/api-client";
+import { fileApi, envApi } from "@rabbit/api-client";
 import { ProtocolSelect } from "./ProtocolSelect";
+import { DRIVER_META } from "@rabbit/shared";
 import type {
   AssertSpec,
   AssertKind,
@@ -160,7 +161,7 @@ function KvRows({
   );
 }
 
-/** 有序处理器列表（前置/后置同构）：脚本 / SQL（Sprint 3 前禁用态）/ 等待 */
+/** 有序处理器列表（前置/后置同构）：脚本 / SQL（PLUG-004 解禁）/ 等待 */
 function ProcessorList({
   list,
   onChange,
@@ -170,6 +171,29 @@ function ProcessorList({
   onChange: (list: Processor[]) => void;
   compact?: boolean;
 }) {
+  const { currentProjectId } = useProjectStore();
+  const hasSql = list.some((p) => p.kind === "sql");
+  // PLUG-004：数据源下拉=全部环境的数据源（按环境分组；datasourceId 为 uid 跨环境唯一，
+  // 执行时按所选环境解析——未选环境/所选环境无该数据源 → 引擎 CONFIG_ERROR）
+  const envsQ = useQuery({
+    queryKey: ["environments", currentProjectId],
+    queryFn: () => envApi.list(currentProjectId!),
+    enabled: Boolean(currentProjectId) && hasSql,
+    staleTime: 60_000,
+  });
+  const dsOptions = (envsQ.data?.items ?? []).flatMap((e) =>
+    e.config.database.length > 0
+      ? [
+          {
+            label: e.name,
+            options: e.config.database.map((d) => ({
+              value: d.id,
+              label: `${d.name}（${DRIVER_META[d.driver]?.label ?? d.driver}）`,
+            })),
+          },
+        ]
+      : [],
+  );
   const patch = (i: number, p: Processor) => onChange(list.map((x, idx) => (idx === i ? p : x)));
   const move = (i: number, dir: -1 | 1) => {
     const j = i + dir;
@@ -208,12 +232,16 @@ function ProcessorList({
               onChange={(kind) =>
                 patch(
                   i,
-                  kind === "script" ? { kind: "script", script: "" } : { kind: "wait", ms: 500 },
+                  kind === "script"
+                    ? { kind: "script", script: "" }
+                    : kind === "sql"
+                      ? { kind: "sql", sql: "", datasourceId: "", params: [], varMapping: {} }
+                      : { kind: "wait", ms: 500 },
                 )
               }
               options={[
                 { value: "script", label: "脚本" },
-                { value: "sql", label: "SQL", disabled: true },
+                { value: "sql", label: "SQL" },
                 { value: "wait", label: "等待" },
               ]}
             />
@@ -313,17 +341,164 @@ function ProcessorList({
               </>
             )}
             {p.kind === "sql" && (
-              <div className="space-y-1.5" title="SQL 处理器随 Sprint 3 开放">
-                <p className="text-xs text-[#FA8C16]">
-                  SQL 处理器随 Sprint 3 开放（API-004 勘误 1）
+              <div className="space-y-1.5" data-testid={`sql-form-${i + 1}`}>
+                <div className="flex items-center gap-2">
+                  <span className="w-16 shrink-0 text-xs text-[#646A73]">数据源</span>
+                  <Select
+                    className="flex-1"
+                    size="small"
+                    virtual={false}
+                    loading={envsQ.isLoading}
+                    value={p.datasourceId || undefined}
+                    placeholder="选择环境数据源（按环境分组）"
+                    onChange={(v) => patch(i, { ...p, datasourceId: v })}
+                    options={dsOptions}
+                    data-testid={`sql-datasource-${i + 1}`}
+                  />
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="w-16 shrink-0 pt-1.5 text-xs text-[#646A73]">SQL 语句</span>
+                  <Input.TextArea
+                    rows={compact ? 2 : 3}
+                    className="font-mono text-xs"
+                    value={p.sql}
+                    placeholder="SELECT id, status FROM orders WHERE tenant_id = ?"
+                    onChange={(e) => patch(i, { ...p, sql: e.target.value })}
+                    data-testid={`sql-text-${i + 1}`}
+                  />
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="w-16 shrink-0 pt-1.5 text-xs text-[#646A73]">绑定参数</span>
+                  <div className="flex-1 space-y-1">
+                    {p.params.map((prm, j) => (
+                      <div key={j} className="flex gap-1.5 items-center">
+                        <Input
+                          className="flex-1 font-mono text-xs"
+                          value={prm.var ?? prm.value ?? ""}
+                          placeholder={prm.var !== undefined ? "变量名" : "字面值"}
+                          onChange={(e) =>
+                            patch(i, {
+                              ...p,
+                              params: p.params.map((x, idx) =>
+                                idx === j
+                                  ? x.var !== undefined
+                                    ? { var: e.target.value }
+                                    : { value: e.target.value }
+                                  : x,
+                              ),
+                            })
+                          }
+                          data-testid={`sql-param-${i + 1}-${j + 1}`}
+                        />
+                        <Select
+                          className="w-24"
+                          size="small"
+                          value={prm.var !== undefined ? "var" : "value"}
+                          onChange={(mode) =>
+                            patch(i, {
+                              ...p,
+                              params: p.params.map((x, idx) =>
+                                idx === j
+                                  ? mode === "var"
+                                    ? { var: String(x.value ?? "") }
+                                    : { value: String(x.var ?? "") }
+                                  : x,
+                              ),
+                            })
+                          }
+                          options={[
+                            { value: "var", label: "变量" },
+                            { value: "value", label: "字面值" },
+                          ]}
+                        />
+                        <Button
+                          type="text"
+                          size="small"
+                          className="!px-1 !text-[#A8ABB0]"
+                          aria-label={`sql-param-del-${i + 1}-${j + 1}`}
+                          onClick={() =>
+                            patch(i, {
+                              ...p,
+                              params: p.params.filter((_, idx) => idx !== j),
+                            })
+                          }
+                        >
+                          <X size={12} />
+                        </Button>
+                      </div>
+                    ))}
+                    <Button
+                      type="link"
+                      size="small"
+                      className="!px-0 !h-6 !text-xs"
+                      onClick={() => patch(i, { ...p, params: [...p.params, { value: "" }] })}
+                    >
+                      ＋ 添加参数
+                    </Button>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="w-16 shrink-0 pt-1.5 text-xs text-[#646A73]">变量提取</span>
+                  <div className="flex-1 space-y-1">
+                    {Object.entries(p.varMapping).map(([col, v], j) => (
+                      <div key={`${col}-${j}`} className="flex gap-1.5 items-center">
+                        <Input
+                          className="w-40 font-mono text-xs"
+                          value={col}
+                          placeholder="列名"
+                          onChange={(e) => {
+                            const next = { ...p.varMapping };
+                            delete next[col];
+                            next[e.target.value] = v;
+                            patch(i, { ...p, varMapping: next });
+                          }}
+                        />
+                        <span className="text-xs text-[#A8ABB0]">→</span>
+                        <Input
+                          className="w-40 font-mono text-xs"
+                          value={v}
+                          placeholder="变量名（后续 ${} 引用）"
+                          onChange={(e) =>
+                            patch(i, {
+                              ...p,
+                              varMapping: { ...p.varMapping, [col]: e.target.value },
+                            })
+                          }
+                        />
+                        <Button
+                          type="text"
+                          size="small"
+                          className="!px-1 !text-[#A8ABB0]"
+                          aria-label={`sql-map-del-${i + 1}-${j + 1}`}
+                          onClick={() => {
+                            const next = { ...p.varMapping };
+                            delete next[col];
+                            patch(i, { ...p, varMapping: next });
+                          }}
+                        >
+                          <X size={12} />
+                        </Button>
+                      </div>
+                    ))}
+                    <Button
+                      type="link"
+                      size="small"
+                      className="!px-0 !h-6 !text-xs"
+                      onClick={() =>
+                        patch(i, {
+                          ...p,
+                          varMapping: { ...p.varMapping, "": "" },
+                        })
+                      }
+                    >
+                      ＋ 添加提取
+                    </Button>
+                  </div>
+                </div>
+                <p className="text-xs text-[#FA8C16]" data-testid={`sql-guard-hint-${i + 1}`}>
+                  只读防线：单条 SELECT/WITH（禁 INTO · FOR UPDATE）+ READ ONLY 事务；变量值只经绑定参数传入（不拼入
+                  SQL 文本）
                 </p>
-                <Input.TextArea
-                  rows={2}
-                  className="font-mono text-xs"
-                  disabled
-                  value={p.sql}
-                  placeholder="SELECT ..."
-                />
               </div>
             )}
             {p.kind === "wait" && (

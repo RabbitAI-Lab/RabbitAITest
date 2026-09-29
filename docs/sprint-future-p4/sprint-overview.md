@@ -42,6 +42,7 @@
 | 6   | 浏览器插件契约   | open/api-capture 抓包导入（敏感头脱敏+重复跳过）                                                        | `TOOL-002` |
 | 7   | 报告高级分析     | reports/stats 趋势/分布/TOP5 聚合端点+统计页（SVG 自绘）                                                | `RPT-004`  |
 | 8   | K8S 型资源池     | 池 type 切换+k8s 四项配置+token 掩码+试连+task-runner 清单模板（ResourcePool.config 新列，门禁 3 登记） | `EXEC-004` |
+| 9   | 数据库驱动五家   | 五家厂商官方 Node 驱动插件包+引擎驱动注册表+SQL 前后置处理器解禁（白名单+READ ONLY+参数绑定）+环境数据源 driver 泛化+连接测试泛化 | `PLUG-004` |
 
 ## 3. 范围排除（防蔓延红线）
 
@@ -72,6 +73,7 @@
 | TOOL-002 | 浏览器插件采集契约  | Implemented（2026-09-28）               | 接口契约评审（纯后端类替代高保真）                      |
 | RPT-004  | 报告高级分析        | Implemented（2026-09-28）               | 原型 docs/design/RPT-004-report-analytics/（三态）      |
 | EXEC-004 | K8S 型资源池        | Implemented（2026-09-28）               | 原型 docs/design/EXEC-004-k8s-resource-pool/（四态）    |
+| PLUG-004 | 数据库驱动五家+SQL 解禁 | Implemented（2026-09-30）           | 原型 docs/design/PLUG-004-database-drivers/（三画板）   |
 
 ## 6. 迭代主线（浏览器可演示端到端）
 
@@ -118,6 +120,7 @@
 | TOOL-002 | 脱敏/跳过/边界                 | TOOL-002-open-capture.jmx     | 豁免（登记）                 |
 | RPT-004  | 聚合+SVG 路径                  | RPT-004-stats.jmx             | RPT-004-stats.spec.ts        |
 | EXEC-004 | zod 矩阵+服务+守卫             | EXEC-004-k8s-pool.jmx         | EXEC-004-k8s-pool.spec.ts    |
+| PLUG-004 | sql-guard/driver-kit/处理器    | PLUG-004-database-drivers.jmx | PLUG-004-database-drivers.spec.ts |
 
 ## 9. 收尾清单
 

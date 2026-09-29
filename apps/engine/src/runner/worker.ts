@@ -11,6 +11,7 @@ import { postCallback } from "../callback.js";
 import { runScenarioItem, type ScenarioItemOutcome } from "../kernel/scenario.js";
 import { runPlanItem } from "../kernel/plan.js";
 import { startProtocolSync } from "../kernel/samplers/registry.js";
+import { startDriverSync } from "../kernel/drivers/registry.js";
 import { runStep } from "./step.js";
 
 const NODE_ID = `node-${process.pid}`;
@@ -402,6 +403,8 @@ export function startWorker(): void {
   process.on("SIGTERM", () => void shutdown());
   // S6 PLUG-002：协议插件注册表周期同步（30s 轮询 web internal 清单；版本变更才拉包）
   startProtocolSync();
+  // PLUG-004：驱动插件注册表同模式同步（SQL 前后置执行面）
+  startDriverSync();
   logFor("engine").info(
     { version: VERSION, nodeId: NODE_ID, queue: queueName, poolId: config.enginePoolId },
     "worker started",

@@ -46,6 +46,12 @@ const PLUGIN_TGZ_WHITELIST = new Set([
   // S-future PLUG-003：协议插件（e2e 调试页协议选择器链路）
   "websocket-1.0.0.tgz",
   "mqtt-1.0.0.tgz",
+  // PLUG-004：五家数据库驱动（官方 Node 驱动内联 tarball）
+  "postgresql-1.0.0.tgz",
+  "mysql-1.0.0.tgz",
+  "oracle-1.0.0.tgz",
+  "sqlserver-1.0.0.tgz",
+  "dm-1.0.0.tgz",
 ]);
 
 /** 白名单内读插件包 base64（防路径穿越：basename 严格匹配 + 根边界校验） */

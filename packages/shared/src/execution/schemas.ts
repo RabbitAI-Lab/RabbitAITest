@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { DRIVERS, DRIVER_META } from "../plugins/driver-kit";
 
 /**
  * 执行契约 v3（API-006 冻结，web ↔ engine 双方不得私改；engine-execution-architecture §3）。
@@ -142,6 +143,19 @@ export const processorSchema = z.discriminatedUnion("kind", [
       .min(1)
       .max(16 * 1024),
     datasourceId: z.string().min(1).max(128),
+    /** 绑定参数（PLUG-004：{var} 引用运行时变量 / {value} 字面值，二选一；
+     * 值仅经驱动绑定通道传入，仓库不提供变量→SQL 文本的插值能力） */
+    params: z
+      .array(
+        z
+          .object({
+            var: z.string().min(1).max(128).optional(),
+            value: z.string().max(2048).optional(),
+          })
+          .refine((p) => (p.var !== undefined) !== (p.value !== undefined), "var 与 value 二选一"),
+      )
+      .max(32)
+      .default([]),
     /** 首行结果列 → 变量名映射（{colName: varName}），仅前置/后置 SQL 提取用 */
     varMapping: z.record(z.string().min(1).max(128), z.string().min(1).max(128)).default({}),
   }),
@@ -207,12 +221,24 @@ export const envHostMappingSchema = z.object({
   address: z.string().min(1).max(256),
 });
 
-export const envDatasourceSchema = z.object({
-  id: z.string().min(1).max(128),
-  name: z.string().min(1).max(128),
-  driver: z.literal("postgresql"),
-  url: z.string().min(1).max(512),
-});
+export const envDatasourceSchema = z
+  .object({
+    id: z.string().min(1).max(128),
+    name: z.string().min(1).max(128),
+    /** PLUG-004：driver 自 PostgreSQL 锁定放开为五家（白名单=shared DRIVERS） */
+    driver: z.enum(DRIVERS),
+    url: z.string().min(1).max(512),
+  })
+  .superRefine((d, ctx) => {
+    const meta = DRIVER_META[d.driver];
+    if (!meta.urlRegex.test(d.url)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["url"],
+        message: `URL 须以 ${d.driver}:// 开头（示例 ${meta.urlPlaceholder}）`,
+      });
+    }
+  });
 
 export const envSnapshotSchema = z.object({
   vars: z.record(z.string().min(1).max(128), z.string().max(8192)).default({}),

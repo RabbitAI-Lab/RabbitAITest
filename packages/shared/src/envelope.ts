@@ -131,6 +131,8 @@ export const ErrCode = {
   SCHEDULE_NOT_FOUND: 50414,
   POOL_CONFIG_INVALID: 50422, // S-future EXEC-004：池配置非法（type/k8s 四项）
   POOL_K8S_UNREACHABLE: 50423, // S-future EXEC-004：K8S apiServer 连通性测试失败
+  SQL_NOT_SELECT: 50031, // PLUG-004：SQL 处理器语句未过只读白名单（API-006 §2 预留码首次兑现）
+  DRIVER_PLUGIN_MISSING: 50032, // PLUG-004：SQL 处理器执行时数据源驱动插件未启用
   // 60xxx 报告与分享
   REPORT_NOT_FOUND: 60404,
   SHARE_NOT_FOUND: 60414,
@@ -277,6 +279,8 @@ export const ErrMsg: Record<number, string> = {
   [ErrCode.APIKEY_LIMIT_EXCEEDED]: "APIKEY 数量超出上限（5 条）",
   [ErrCode.OPEN_RATE_LIMITED]: "请求过于频繁（每 key 10 次/秒）",
   [ErrCode.PROTOCOL_NOT_SUPPORTED]: "该协议未启用或协议插件不可用",
+  [ErrCode.SQL_NOT_SELECT]: "SQL 语句必须为单条 SELECT/WITH（只读白名单，禁写）",
+  [ErrCode.DRIVER_PLUGIN_MISSING]: "数据源驱动插件未启用（请先在系统设置-插件中启用）",
   [ErrCode.PROTOCOL_PLUGIN_LOAD_FAILED]: "协议插件加载失败",
   [ErrCode.SWAGGER_SYNC_TASK_NOT_FOUND]: "同步任务不存在",
   [ErrCode.SWAGGER_SYNC_URL_BLOCKED]: "文档 URL 不允许（内网/元数据地址被守卫拦截）",

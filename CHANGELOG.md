@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+### 新增
+
+- **数据库驱动五家 + SQL 前后置处理器解禁（PLUG-004）**：五家驱动插件包（postgresql=pg / mysql=mysql2 / oracle=oracledb thin / sqlserver=mssql / dm=dmdb）——**驱动一律取自数据库厂商官方渠道（npm registry，pnpm-lock 锁定），零飞致云工件**（纯 TS 无 JVM，JDBC jar 不装载；官方 Node 驱动=等价实现）；`DriverPlugin` SPI 扩展参数绑定通道（`query(config, {sqlText, params, readOnly})`）；引擎驱动注册表（30s 轮询 internal/plugins/drivers，与协议注册表同模式）；**SQL 前后置处理器解禁**（S2/S3 两轮诚实延后清偿：单条 SELECT/WITH 词法白名单 `assertReadOnlySelect` + 各驱动 READ ONLY 事务 + 连接即关 + 变量值仅经绑定参数传入（仓库零 SQL 拼接）+ varMapping 首行提取；`SQL_NOT_SELECT 50031` 首次兑现、新增 `DRIVER_PLUGIN_MISSING 50032`）；环境数据源 driver 自仅 PostgreSQL 扩展为五家（URL 按驱动 scheme 校验 + 占位跟随）；连接测试泛化（PG 内置直连保留、其余四家走已启用驱动插件）；RequestEditor SQL 处理器表单启用（数据源选择/绑定参数 变量↔字面值/变量提取）
+
 ### 修复
 
 - 修复插件管理页 UI 上传按钮恒失败（S6 潜伏两连缺陷，S-future 验收演示录制首次暴露）：① api-client `post()` 会 JSON.stringify FormData 并强设 application/json → 服务端落 JSON 分支 422「缺少 file 字段」，`pluginApi.upload` 改直连 `request()` 保留浏览器 multipart 边界；② orgScope 以带引号 JSON（`JSON.stringify("ALL")`）发出时 `parseScope` 落单 orgId 分支裸抛 ZodError 500 → 剥引号解析 + 非法值统一 422（70002）；补 UI 直传回归用例 PLUG-001-T5（此前 e2e/jmx 皆走 base64 形态，浏览器 multipart 出口零覆盖）

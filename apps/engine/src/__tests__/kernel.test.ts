@@ -279,14 +279,20 @@ describe("processors", () => {
       }),
     ).rejects.toBeInstanceOf(ProcessorError);
   }, 15000);
-  it("SQL 处理器显式未启用（勘误 1：不静默假实现）", async () => {
+  it("SQL 处理器（PLUG-004 解禁）：未选环境时数据源不存在显式失败", async () => {
     await expect(
-      runProcessors([{ kind: "sql", sql: "SELECT 1", datasourceId: "x", varMapping: {} }], {
-        vars: {},
-        env: undefined,
-        logs: [],
-      }),
-    ).rejects.toMatchObject({ kind: "CONFIG_ERROR", message: expect.stringContaining("SQL") });
+      runProcessors(
+        [{ kind: "sql", sql: "SELECT 1", datasourceId: "x", params: [], varMapping: {} }],
+        {
+          vars: {},
+          env: undefined,
+          logs: [],
+        },
+      ),
+    ).rejects.toMatchObject({
+      kind: "CONFIG_ERROR",
+      message: expect.stringContaining("SQL 数据源不存在"),
+    });
   });
 });
 
