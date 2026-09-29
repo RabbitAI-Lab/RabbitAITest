@@ -6,7 +6,19 @@ import { PrismaClient } from "@prisma/client";
  * 一个连接池，111 路由规模下连接数爆掉 embedded PG 的 max_connections（P2037）。
  */
 const g = globalThis as unknown as { __rabbitPrisma?: PrismaClient };
-export const prisma = g.__rabbitPrisma ?? new PrismaClient();
+/**
+ * INFRA-007：启用 query 事件（apps/web metrics-db 慢查询计量订阅；warn/error 保持 stdout 不变；
+ * 订阅侧可用 RABBIT_SLOW_QUERY_MS=0 关闭——事件仅在有订阅消费时产生开销）。
+ */
+export const prisma =
+  g.__rabbitPrisma ??
+  new PrismaClient({
+    log: [
+      { level: "query", emit: "event" },
+      { level: "warn", emit: "stdout" },
+      { level: "error", emit: "stdout" },
+    ],
+  });
 g.__rabbitPrisma = prisma;
 
 /**

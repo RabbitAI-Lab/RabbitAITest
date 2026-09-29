@@ -6,10 +6,14 @@ import { getActiveUserId } from "@/server/current-user";
 import { prisma } from "@rabbit/db";
 import { permissionSetFor } from "@/server/rbac";
 import { ensureBoot } from "@/server/boot";
-import { httpIncr } from "@/server/metrics-counter";
+import { httpIncr, httpObserve } from "@/server/metrics-counter";
+import { initSlowQueryMeter } from "@/server/metrics-db";
 
-/** INFRA-004：访问日志 + reqId 上下文（middleware 零改写直通——reqId 此处兜底生成，出口回写 X-Request-Id）。 */
-function accessLog(req: unknown, run: () => Promise<NextResponse>): Promise<NextResponse> {
+initSlowQueryMeter();
+
+/** INFRA-004：访问日志 + reqId 上下文（middleware 零改写直通——reqId 此处兜底生成，出口回写 X-Request-Id）。
+ * INFRA-007：导出供 /system/metrics 路由复用（鉴权矩阵不走 withSystemPerm）；出口补 httpObserve 时延埋点。 */
+export function accessLog(req: unknown, run: () => Promise<NextResponse>): Promise<NextResponse> {
   if (!(req instanceof Request)) return run();
   const reqId =
     req.headers.get("x-request-id")?.slice(0, 64) ??
@@ -25,6 +29,7 @@ function accessLog(req: unknown, run: () => Promise<NextResponse>): Promise<Next
     const res = await run();
     if (!res.headers.has("x-request-id")) res.headers.set("x-request-id", reqId);
     httpIncr(path, res.status);
+    httpObserve(path, Date.now() - start);
     logFor("http").info(
       { method: req.method, path, status: res.status, ms: Date.now() - start },
       "http request",
