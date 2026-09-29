@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>RabbitAITest — 一站式开源测试工作台 · 测试管理 + 接口测试 + AI</title>
+<meta name="description" content="RabbitAITest：复刻 MeterSphere v3.x 社区版功能面的开源一站式测试工作台。测试管理、接口测试、场景自动化、测试计划、AI 能力，全栈 TypeScript Monorepo，内嵌 PostgreSQL 零依赖起步。" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          brand: { 50:'#eef4ff',100:'#dbe6fe',200:'#bfd3fe',300:'#93b4fd',400:'#608afa',500:'#3b63f6',600:'#2545eb',700:'#1d34d8',800:'#1e2fae',900:'#1e2c8a' },
+        },
+        fontFamily: { sans: ['-apple-system','BlinkMacSystemFont','PingFang SC','Hiragino Sans GB','Microsoft YaHei','Segoe UI','sans-serif'] },
+      },
+    },
+  };
+</script>
+<style>
+  html { scroll-behavior: smooth; }
+  body { background: #f8fafc; }
+  .hero-grid {
+    background-image: linear-gradient(to right, rgba(37,69,235,.06) 1px, transparent 1px),
+                      linear-gradient(to bottom, rgba(37,69,235,.06) 1px, transparent 1px);
+    background-size: 44px 44px;
+    mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, black 55%, transparent 100%);
+    -webkit-mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, black 55%, transparent 100%);
+  }
+  .reveal { opacity: 0; transform: translateY(24px); transition: opacity .7s ease, transform .7s ease; }
+  .reveal.in { opacity: 1; transform: none; }
+  .shot { cursor: zoom-in; transition: transform .3s ease, box-shadow .3s ease; }
+  .shot:hover { transform: translateY(-4px); box-shadow: 0 20px 40px -16px rgba(30,44,138,.25); }
+  #lightbox { backdrop-filter: blur(6px); }
+  pre.codeblock { tab-size: 2; }
+  ::selection { background: #2545eb; color: #fff; }
+</style>
+</head>
+<body class="font-sans text-slate-800 antialiased">
+
+<!-- ══════════ 导航 ══════════ -->
+<header class="sticky top-0 z-40 border-b border-slate-200/70 bg-white/80 backdrop-blur">
+  <nav class="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
+    <a href="#top" class="flex items-center gap-2 font-bold text-slate-900">
+      <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-600 text-base text-white">🐇</span>
+      RabbitAITest
+    </a>
+    <div class="hidden items-center gap-6 text-sm text-slate-600 md:flex">
+      <a href="#features" class="hover:text-brand-600">功能</a>
+      <a href="#screenshots" class="hover:text-brand-600">界面</a>
+      <a href="#stack" class="hover:text-brand-600">技术栈</a>
+      <a href="#demo" class="hover:text-brand-600">演示</a>
+      <a href="#help" class="hover:text-brand-600">文档与帮助</a>
+      <a href="#roadmap" class="hover:text-brand-600">路线图</a>
+    </div>
+    <div class="flex items-center gap-3 text-sm">
+      <a href="./en/" class="rounded-md border border-slate-300 px-2.5 py-1 text-slate-600 hover:border-brand-400 hover:text-brand-600">EN</a>
+      <a href="https://github.com/RabbitAI-Lab/RabbitAITest" target="_blank" rel="noopener"
+         class="inline-flex items-center gap-1.5 rounded-md bg-slate-900 px-3 py-1.5 text-white hover:bg-slate-700">
+        <svg class="h-4 w-4" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+        <span class="hidden sm:inline">GitHub</span>
+      </a>
+    </div>
+  </nav>
+</header>
+
+<!-- ══════════ Hero ══════════ -->
+<section id="top" class="relative overflow-hidden">
+  <div class="hero-grid absolute inset-0"></div>
+  <div class="relative mx-auto max-w-6xl px-4 pb-16 pt-20 text-center">
+    <div class="mb-5 inline-flex max-w-[92vw] items-center gap-2 rounded-full border border-brand-200 bg-brand-50 px-3 py-1 text-xs font-medium text-brand-700">
+      复刻 MeterSphere v3.x 社区版功能面 · v1.0 验收目标：社区版功能覆盖率 100%
+    </div>
+    <h1 class="mx-auto max-w-3xl text-4xl font-extrabold leading-tight tracking-tight text-slate-900 md:text-6xl">
+      一站式开源<br class="md:hidden" />测试工作台
+    </h1>
+    <p class="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-slate-600">
+      RabbitAITest 把<strong class="text-slate-900">测试管理、接口测试、场景自动化、测试计划与 AI 能力</strong>装进一个
+      全栈 TypeScript Monorepo——内嵌 PostgreSQL 开箱即用，自研执行引擎不依赖 JMeter，
+      本页所有功能、数据与截图均来自真实仓库与运行中的系统。
+    </p>
+    <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
+      <a href="#help" class="rounded-lg bg-brand-600 px-6 py-3 font-medium text-white shadow-lg shadow-brand-600/25 hover:bg-brand-700">快速开始</a>
+      <a href="https://github.com/RabbitAI-Lab/RabbitAITest" target="_blank" rel="noopener" class="rounded-lg border border-slate-300 bg-white px-6 py-3 font-medium text-slate-700 hover:border-brand-400 hover:text-brand-600">GitHub 仓库</a>
+      <a href="#screenshots" class="rounded-lg px-6 py-3 font-medium text-slate-600 hover:text-brand-600">查看真实界面 ↓</a>
+    </div>
+    <div class="mt-6 flex justify-center gap-2">
+      <a href="https://github.com/RabbitAI-Lab/RabbitAITest/actions/workflows/ci.yml" target="_blank" rel="noopener"><img alt="CI" src="https://github.com/RabbitAI-Lab/RabbitAITest/actions/workflows/ci.yml/badge.svg" /></a>
+      <a href="https://github.com/RabbitAI-Lab/RabbitAITest/actions/workflows/perf.yml" target="_blank" rel="noopener"><img alt="性能基线" src="https://github.com/RabbitAI-Lab/RabbitAITest/actions/workflows/perf.yml/badge.svg" /></a>
+    </div>
+    <div class="mt-12 reveal">
+      <img src="./assets/shots/dashboard.png" alt="RabbitAITest 工作台真实截图"
+           class="shot mx-auto w-full max-w-5xl rounded-xl border border-slate-200 shadow-2xl shadow-brand-900/10"
+           onclick="openLightbox(this.src)" />
+      <p class="mt-3 text-xs text-slate-400">▲ 运行中系统的真实截图（工作台首页），点击放大</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 数据条 ══════════ -->
+<section class="border-y border-slate-200 bg-white">
+  <div class="mx-auto grid max-w-6xl grid-cols-2 gap-6 px-4 py-10 text-center md:grid-cols-3 lg:grid-cols-6">
+    <div><div class="text-3xl font-extrabold text-brand-600">82</div><div class="mt-1 text-xs text-slate-500">功能规格文档</div></div>
+    <div><div class="text-3xl font-extrabold text-brand-600">279</div><div class="mt-1 text-xs text-slate-500">OpenAPI 端点</div></div>
+    <div><div class="text-3xl font-extrabold text-brand-600">244</div><div class="mt-1 text-xs text-slate-500">Vitest 单元测试</div></div>
+    <div><div class="text-3xl font-extrabold text-brand-600">55</div><div class="mt-1 text-xs text-slate-500">JMeter 接口测试计划</div></div>
+    <div><div class="text-3xl font-extrabold text-brand-600">160+</div><div class="mt-1 text-xs text-slate-500">Playwright E2E 用例</div></div>
+    <div><div class="text-3xl font-extrabold text-brand-600">11<span class="text-lg">ms</span></div><div class="mt-1 text-xs text-slate-500">万级数据列表 P95（本机实测）</div></div>
+  </div>
+</section>
+
+<!-- ══════════ 功能 ══════════ -->
+<section id="features" class="mx-auto max-w-6xl scroll-mt-16 px-4 py-20">
+  <h2 class="text-center text-3xl font-bold text-slate-900">九大功能域，全部已交付</h2>
+  <p class="mx-auto mt-3 max-w-2xl text-center text-slate-500">
+    覆盖系统设置、项目管理、测试用例、测试计划、缺陷管理、接口测试、工作台、消息协作、AI 九大模块。
+    以下每条能力都可追溯到仓库内的功能规格与变更日志。
+  </p>
+  <div class="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+
+    <div class="reveal rounded-xl border border-slate-200 bg-white p-6">
+      <div class="text-2xl">📋</div>
+      <h3 class="mt-3 font-semibold text-slate-900">测试管理</h3>
+      <ul class="mt-3 space-y-1.5 text-sm leading-relaxed text-slate-600">
+        <li>· 用例 CRUD、模块树拖拽、回收站与变更历史 diff</li>
+        <li>· Excel（5000 行）/ Xmind 双向导入导出，兼容 MeterSphere 列名</li>
+        <li>· 用例评审（单人/多人聚合、通过率统计）</li>
+        <li>· 自研零依赖脑图：完整快捷键，与列表双向同步</li>
+        <li>· 用例依赖循环检测与执行联动 blockedBy</li>
+      </ul>
+    </div>
+
+    <div class="reveal rounded-xl border border-slate-200 bg-white p-6">
+      <div class="text-2xl">🗂️</div>
+      <h3 class="mt-3 font-semibold text-slate-900">测试计划与执行</h3>
+      <ul class="mt-3 space-y-1.5 text-sm leading-relaxed text-slate-600">
+        <li>· 测试点树 + 配置继承链（点 &gt; 祖先 &gt; 计划默认）</li>
+        <li>· 执行契约 v4：串/并行、失败停止、点级环境覆盖</li>
+        <li>· 执行结果自动回写功能用例状态</li>
+        <li>· 计划组聚合报告、批量归档/恢复</li>
+        <li>· 报告导出 PDF / CSV，免登录分享链接</li>
+      </ul>
+    </div>
+
+    <div class="reveal rounded-xl border border-slate-200 bg-white p-6">
+      <div class="text-2xl">🔌</div>
+      <h3 class="mt-3 font-semibold text-slate-900">接口测试</h3>
+      <ul class="mt-3 space-y-1.5 text-sm leading-relaxed text-slate-600">
+        <li>· HTTP 调试 8 方法，接口定义 API / CASE / MOCK 三页签</li>
+        <li>· 导入 OpenAPI 3 / Postman / cURL / Rabbit 格式</li>
+        <li>· 7 类请求体、JSONPath/正则提取、6 种断言</li>
+        <li>· quickjs 沙箱前后置脚本（5s 超时强杀）</li>
+        <li>· Mock 独立进程，规则热更新（Redis 快照 + 版本号）</li>
+      </ul>
+    </div>
+
+    <div class="reveal rounded-xl border border-slate-200 bg-white p-6">
+      <div class="text-2xl">🧩</div>
+      <h3 class="mt-3 font-semibold text-slate-900">场景自动化</h3>
+      <ul class="mt-3 space-y-1.5 text-sm leading-relaxed text-slate-600">
+        <li>· 9 类步骤编排：引用/自定义请求/循环×3/条件/脚本/等待</li>
+        <li>· 参数化：常量/列表/CSV、foreach 数据源、四级变量视图</li>
+        <li>· 22 个内置函数（引擎函数 + @mock 数据函数 + 管道）</li>
+        <li>· 批量执行与 cron 定时任务</li>
+        <li>· 导入导出：Rabbit JSON / JMeter jmx / MeterSphere v3 JSON</li>
+        <li>· 误报规则：FAKE_ERROR 改判留痕</li>
+      </ul>
+    </div>
+
+    <div class="reveal rounded-xl border border-slate-200 bg-white p-6">
+      <div class="text-2xl">📊</div>
+      <h3 class="mt-3 font-semibold text-slate-900">报告与实时事件流</h3>
+      <ul class="mt-3 space-y-1.5 text-sm leading-relaxed text-slate-600">
+        <li>· 步骤级钻取：接口/场景/计划三级报告</li>
+        <li>· SSE 实时事件流 + Last-Event-ID 断线续传</li>
+        <li>· 计划报告六卡 + 通过率阈值横幅</li>
+        <li>· 失败任务一键导出排障包（快照+事件流末 50 帧）</li>
+      </ul>
+    </div>
+
+    <div class="reveal rounded-xl border border-slate-200 bg-white p-6">
+      <div class="text-2xl">🔔</div>
+      <h3 class="mt-3 font-semibold text-slate-900">协作与通知</h3>
+      <ul class="mt-3 space-y-1.5 text-sm leading-relaxed text-slate-600">
+        <li>· 5 渠道机器人：站内信/邮件/企微/钉钉/飞书</li>
+        <li>· 11 类事件目录，接收人∪@提及∪关注者去重分发</li>
+        <li>· 缺陷回收站、评论 @提及三域横切</li>
+        <li>· 公共脚本在线调试、环境组与全局参数</li>
+        <li>· Git 仓库文件：gitea/github/gitlab/gitee 四平台</li>
+      </ul>
+    </div>
+
+    <div class="reveal rounded-xl border border-slate-200 bg-white p-6">
+      <div class="text-2xl">🔗</div>
+      <h3 class="mt-3 font-semibold text-slate-900">集成与插件</h3>
+      <ul class="mt-3 space-y-1.5 text-sm leading-relaxed text-slate-600">
+        <li>· Jira / 禅道 / TAPD 对接：凭据 AES-256-GCM 加密、状态回写</li>
+        <li>· Jenkins CI：个人 APIKEY + 开放 API + 10 QPS 限流</li>
+        <li>· 插件框架：worker_threads 每插件一线程、崩溃退避重启</li>
+        <li>· 协议插件 SPI 冻结 + tcp-conn 示例</li>
+        <li>· Swagger 定时同步（SSRF 出站守卫）</li>
+        <li>· 审计日志三级查询 + 保留期自动清理</li>
+      </ul>
+    </div>
+
+    <div class="reveal rounded-xl border border-slate-200 bg-white p-6">
+      <div class="text-2xl">🤖</div>
+      <h3 class="mt-3 font-semibold text-slate-900">AI 能力</h3>
+      <ul class="mt-3 space-y-1.5 text-sm leading-relaxed text-slate-600">
+        <li>· 模型网关：DeepSeek / OpenAI / 智谱统一协议</li>
+        <li>· API Key AES-256-GCM 加密 + baseUrl SSRF 守卫</li>
+        <li>· 功能用例 / 接口用例 AI 生成（容错解析 + 留痕）</li>
+        <li>· 流式智能助手：SSE 打字机，Ant Design X 组件</li>
+        <li>· 项目级提示词模板（占位符校验 + 内置回退）</li>
+      </ul>
+    </div>
+
+    <div class="reveal rounded-xl border border-slate-200 bg-white p-6">
+      <div class="text-2xl">🛡️</div>
+      <h3 class="mt-3 font-semibold text-slate-900">企业级底座</h3>
+      <ul class="mt-3 space-y-1.5 text-sm leading-relaxed text-slate-600">
+        <li>· 三级 RBAC：系统-组织-项目自定义用户组</li>
+        <li>· 性能基线进 CI：万级列表 P95 11ms、100 并发 772ms</li>
+        <li>· 安全加固：CSRF 校验、登录限流、安全响应头五枚</li>
+        <li>· pino 统一日志 + reqId 链路 + Prometheus 指标</li>
+        <li>· 备份/恢复脚本 roundtrip 验证</li>
+      </ul>
+    </div>
+
+  </div>
+</section>
+
+<!-- ══════════ 真实界面 ══════════ -->
+<section id="screenshots" class="scroll-mt-16 border-y border-slate-200 bg-white py-20">
+  <div class="mx-auto max-w-6xl px-4">
+    <h2 class="text-center text-3xl font-bold text-slate-900">真实界面，不是效果图</h2>
+    <p class="mx-auto mt-3 max-w-2xl text-center text-slate-500">
+      以下截图由 Playwright 对运行中的系统实拍（1440×900），与仓库 CI 视觉快照同一条流水线。
+    </p>
+    <div class="mt-12 grid gap-6 md:grid-cols-2">
+      <figure class="reveal">
+        <img src="./assets/shots/case-list.png" alt="测试用例列表" class="shot w-full rounded-lg border border-slate-200 shadow-md" onclick="openLightbox(this.src)" />
+        <figcaption class="mt-2 text-center text-sm text-slate-500">测试用例 · 模块树 + 列表</figcaption>
+      </figure>
+      <figure class="reveal">
+        <img src="./assets/shots/case-mindmap.png" alt="脑图模式" class="shot w-full rounded-lg border border-slate-200 shadow-md" onclick="openLightbox(this.src)" />
+        <figcaption class="mt-2 text-center text-sm text-slate-500">测试用例 · 自研脑图模式</figcaption>
+      </figure>
+      <figure class="reveal">
+        <img src="./assets/shots/apis-detail.png" alt="接口定义详情" class="shot w-full rounded-lg border border-slate-200 shadow-md" onclick="openLightbox(this.src)" />
+        <figcaption class="mt-2 text-center text-sm text-slate-500">接口定义 · 请求/断言/提取七区编辑器</figcaption>
+      </figure>
+      <figure class="reveal">
+        <img src="./assets/shots/scenario-editor.png" alt="场景编排" class="shot w-full rounded-lg border border-slate-200 shadow-md" onclick="openLightbox(this.src)" />
+        <figcaption class="mt-2 text-center text-sm text-slate-500">场景自动化 · 步骤树编排（循环/请求/等待）</figcaption>
+      </figure>
+      <figure class="reveal">
+        <img src="./assets/shots/report.png" alt="执行报告" class="shot w-full rounded-lg border border-slate-200 shadow-md" onclick="openLightbox(this.src)" />
+        <figcaption class="mt-2 text-center text-sm text-slate-500">执行报告 · 断言明细钻取</figcaption>
+      </figure>
+      <figure class="reveal">
+        <img src="./assets/shots/ai-assistant.png" alt="AI 智能助手" class="shot w-full rounded-lg border border-slate-200 shadow-md" onclick="openLightbox(this.src)" />
+        <figcaption class="mt-2 text-center text-sm text-slate-500">AI 智能助手 · SSE 流式对话（Ant Design X）</figcaption>
+      </figure>
+      <figure class="reveal">
+        <img src="./assets/shots/plans.png" alt="测试计划" class="shot w-full rounded-lg border border-slate-200 shadow-md" onclick="openLightbox(this.src)" />
+        <figcaption class="mt-2 text-center text-sm text-slate-500">测试计划 · 阈值与归档管理</figcaption>
+      </figure>
+      <figure class="reveal">
+        <img src="./assets/shots/tasks.png" alt="任务中心" class="shot w-full rounded-lg border border-slate-200 shadow-md" onclick="openLightbox(this.src)" />
+        <figcaption class="mt-2 text-center text-sm text-slate-500">任务中心 · 实时执行状态</figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 技术栈 ══════════ -->
+<section id="stack" class="mx-auto max-w-6xl scroll-mt-16 px-4 py-20">
+  <h2 class="text-center text-3xl font-bold text-slate-900">技术栈</h2>
+  <p class="mx-auto mt-3 max-w-2xl text-center text-slate-500">纯 TypeScript 单一 Monorepo，中间件仅 PostgreSQL + Redis + MinIO 三个。</p>
+  <div class="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
+    <div class="reveal rounded-xl border border-slate-200 bg-white p-5">
+      <h3 class="text-sm font-semibold uppercase tracking-wide text-brand-600">工程</h3>
+      <p class="mt-2 text-sm text-slate-600">pnpm workspace + Turborepo<br />apps 四服务（web / engine / mock / plugin-runner）+ packages 四包</p>
+    </div>
+    <div class="reveal rounded-xl border border-slate-200 bg-white p-5">
+      <h3 class="text-sm font-semibold uppercase tracking-wide text-brand-600">全栈框架</h3>
+      <p class="mt-2 text-sm text-slate-600">Next.js App Router + React 19<br />API 走 Route Handlers（REST /api/v1），OpenAPI 快照进 CI</p>
+    </div>
+    <div class="reveal rounded-xl border border-slate-200 bg-white p-5">
+      <h3 class="text-sm font-semibold uppercase tracking-wide text-brand-600">前端</h3>
+      <p class="mt-2 text-sm text-slate-600">Ant Design + Tailwind + TanStack Query + Zustand<br />@antv/x6 脑图 · Monaco · @ant-design/x 智能助手</p>
+    </div>
+    <div class="reveal rounded-xl border border-slate-200 bg-white p-5">
+      <h3 class="text-sm font-semibold uppercase tracking-wide text-brand-600">数据层</h3>
+      <p class="mt-2 text-sm text-slate-600">embedded-postgres 内嵌免外部 DB（可切 PostgreSQL 16）<br />Prisma 唯一出口，八域 45 实体一次建齐</p>
+    </div>
+    <div class="reveal rounded-xl border border-slate-200 bg-white p-5">
+      <h3 class="text-sm font-semibold uppercase tracking-wide text-brand-600">执行引擎</h3>
+      <p class="mt-2 text-sm text-slate-600">自研 Node.js worker：undici 采样 + p-limit 并发槽 + quickjs 沙箱<br />不用 JMeter（仅兼容 jmx 导入），引擎零数据库依赖</p>
+    </div>
+    <div class="reveal rounded-xl border border-slate-200 bg-white p-5">
+      <h3 class="text-sm font-semibold uppercase tracking-wide text-brand-600">异步与实时</h3>
+      <p class="mt-2 text-sm text-slate-600">BullMQ + Redis（repeatable job 定时）<br />SSE 事件流 + Redis Stream 断线续传</p>
+    </div>
+    <div class="reveal rounded-xl border border-slate-200 bg-white p-5">
+      <h3 class="text-sm font-semibold uppercase tracking-wide text-brand-600">质量门禁</h3>
+      <p class="mt-2 text-sm text-slate-600">单测 + JMeter 接口 + Playwright UI 三层测试为「完成」定义<br />CI 六作业全绿才可合并</p>
+    </div>
+    <div class="reveal rounded-xl border border-slate-200 bg-white p-5">
+      <h3 class="text-sm font-semibold uppercase tracking-wide text-brand-600">部署</h3>
+      <p class="mt-2 text-sm text-slate-600">Docker Compose 一键（标准版）/ Helm（企业版资源池）<br />默认 4 进程：web（含内嵌 PG）+ engine + mock + redis</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 演示视频 ══════════ -->
+<section id="demo" class="scroll-mt-16 border-y border-slate-200 bg-white py-20">
+  <div class="mx-auto max-w-4xl px-4 text-center">
+    <h2 class="text-3xl font-bold text-slate-900">验收演示实录</h2>
+    <p class="mx-auto mt-3 max-w-2xl text-slate-500">
+      Sprint 5「协作通知」里程碑的验收录屏（未经剪辑，归档于
+      <a class="text-brand-600 hover:underline" target="_blank" rel="noopener" href="https://github.com/RabbitAI-Lab/RabbitAITest/blob/main/docs/sprint-5-collaboration/demo/s5-acceptance-demo.webm">仓库 docs/</a>）。
+    </p>
+    <video class="mt-8 w-full rounded-xl border border-slate-200 shadow-xl" controls preload="metadata" poster="./assets/shots/dashboard.png">
+      <source src="./assets/demo-s5.webm" type="video/webm" />
+      您的浏览器不支持视频播放，可到 GitHub 仓库下载 demo 视频。
+    </video>
+  </div>
+</section>
+
+<!-- ══════════ 帮助 / 快速开始 ══════════ -->
+<section id="help" class="mx-auto max-w-6xl scroll-mt-16 px-4 py-20">
+  <h2 class="text-center text-3xl font-bold text-slate-900">文档与帮助</h2>
+  <p class="mx-auto mt-3 max-w-2xl text-center text-slate-500">三条命令起全套服务；所有设计文档随仓库开源，可逐份追溯。</p>
+
+  <div class="mt-12 grid gap-8 lg:grid-cols-2">
+    <div class="reveal min-w-0">
+      <h3 class="font-semibold text-slate-900">快速开始（本地零外部依赖）</h3>
+      <pre class="codeblock mt-4 overflow-x-auto rounded-xl bg-slate-900 p-5 text-sm leading-relaxed text-slate-100"><code># 克隆并启动（web 含内嵌 PostgreSQL 自动初始化 + engine + mock）
+git clone https://github.com/RabbitAI-Lab/RabbitAITest.git
+cd RabbitAITest
+pnpm install && pnpm dev
+
+# 质量验证（与 CI 同口径）
+pnpm test        # Vitest 单测
+pnpm test:api    # JMeter 接口自动化（55 计划）
+pnpm test:e2e    # Playwright UI 自动化（自动起全套服务）
+
+# Docker Compose 一键部署（标准版）
+docker compose -f deploy/docker-compose.yml up -d</code></pre>
+      <p class="mt-3 text-xs text-slate-400">要求：Node.js ≥ 20、pnpm 10；数据库默认内嵌，DATABASE_URL 可切外部 PostgreSQL 16。</p>
+    </div>
+
+    <div class="reveal min-w-0">
+      <h3 class="font-semibold text-slate-900">文档导航（仓库内真实文档）</h3>
+      <ul class="mt-4 space-y-2.5 text-sm">
+        <li class="flex gap-2"><span class="text-brand-500">▸</span><a class="text-slate-700 hover:text-brand-600" target="_blank" rel="noopener" href="https://github.com/RabbitAI-Lab/RabbitAITest/blob/main/docs/README.md">docs/README.md — 设计文档体系总索引（三层结构）</a></li>
+        <li class="flex gap-2"><span class="text-brand-500">▸</span><a class="text-slate-700 hover:text-brand-600" target="_blank" rel="noopener" href="https://github.com/RabbitAI-Lab/RabbitAITest/blob/main/docs/需求文档.md">需求文档.md — 产品需求总纲（P0–P4 分级与验收维度）</a></li>
+        <li class="flex gap-2"><span class="text-brand-500">▸</span><a class="text-slate-700 hover:text-brand-600" target="_blank" rel="noopener" href="https://github.com/RabbitAI-Lab/RabbitAITest/blob/main/docs/MeterSphere功能清单.md">MeterSphere功能清单.md — 对标基线（v1.0 覆盖率核对依据）</a></li>
+        <li class="flex gap-2"><span class="text-brand-500">▸</span><a class="text-slate-700 hover:text-brand-600" target="_blank" rel="noopener" href="https://github.com/RabbitAI-Lab/RabbitAITest/tree/main/docs/architecture">architecture/ — 架构文档 9 份（技术栈/数据模型/RBAC/引擎/插件体系…）</a></li>
+        <li class="flex gap-2"><span class="text-brand-500">▸</span><a class="text-slate-700 hover:text-brand-600" target="_blank" rel="noopener" href="https://github.com/RabbitAI-Lab/RabbitAITest/blob/main/docs/sprint-0-poc/INFRA-002-docker-compose.md">INFRA-002 — Docker Compose 部署与本地零依赖开发规格</a></li>
+        <li class="flex gap-2"><span class="text-brand-500">▸</span><a class="text-slate-700 hover:text-brand-600" target="_blank" rel="noopener" href="https://github.com/RabbitAI-Lab/RabbitAITest/tree/main/rules">rules/ — 研发规范 9 份（测试/安全/数据库/引擎/Git 工作流…）</a></li>
+        <li class="flex gap-2"><span class="text-brand-500">▸</span><a class="text-slate-700 hover:text-brand-600" target="_blank" rel="noopener" href="https://github.com/RabbitAI-Lab/RabbitAITest/blob/main/CHANGELOG.md">CHANGELOG.md — 版本变更记录（Keep a Changelog 格式）</a></li>
+        <li class="flex gap-2"><span class="text-brand-500">▸</span><a class="text-slate-700 hover:text-brand-600" target="_blank" rel="noopener" href="https://github.com/RabbitAI-Lab/RabbitAITest/tree/main/docs/design">design/ — 56 组高保真原型（浏览器可直接打开走查）</a></li>
+      </ul>
+      <h3 class="mt-8 font-semibold text-slate-900">遇到问题？</h3>
+      <p class="mt-2 text-sm leading-relaxed text-slate-600">
+        到 <a class="text-brand-600 hover:underline" target="_blank" rel="noopener" href="https://github.com/RabbitAI-Lab/RabbitAITest/issues">GitHub Issues</a> 提交问题；
+        失败任务可在产品内一键导出「排障包」（任务快照 + 事件流末 50 帧 + 日志检索说明）随 issue 附上。
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ Roadmap ══════════ -->
+<section id="roadmap" class="scroll-mt-16 border-t border-slate-200 bg-white py-20">
+  <div class="mx-auto max-w-4xl px-4">
+    <h2 class="text-center text-3xl font-bold text-slate-900">路线图</h2>
+    <p class="mx-auto mt-3 max-w-2xl text-center text-slate-500">
+      里程碑 M1–M9 已全部交付（每个 Sprint 三层测试 + CI 六作业全绿），当前版本 v0.7.2。
+    </p>
+    <ol class="mt-12 space-y-0">
+      <li class="reveal flex gap-4 border-l-2 border-brand-500 pb-8 pl-6"><div>
+        <div class="text-xs font-semibold text-brand-600">M1–M2 · 已交付 ✅</div>
+        <div class="mt-1 font-medium text-slate-900">POC 技术验证 + 测试管理 MVP</div>
+        <div class="mt-1 text-sm text-slate-500">Monorepo 脚手架、注册登录、用例/评审/缺陷/计划基础、工作台</div>
+      </div></li>
+      <li class="reveal flex gap-4 border-l-2 border-brand-500 pb-8 pl-6"><div>
+        <div class="text-xs font-semibold text-brand-600">M3–M5 · 已交付 ✅</div>
+        <div class="mt-1 font-medium text-slate-900">接口测试核心 → 场景自动化 → 计划完整与脑图</div>
+        <div class="mt-1 text-sm text-slate-500">接口定义/环境/Mock、9 类步骤编排、执行契约 v4、计划组与报告导出、自研脑图</div>
+      </div></li>
+      <li class="reveal flex gap-4 border-l-2 border-brand-500 pb-8 pl-6"><div>
+        <div class="text-xs font-semibold text-brand-600">M6–M8 · 已交付 ✅</div>
+        <div class="mt-1 font-medium text-slate-900">协作通知 → 集成与插件 → AI 能力</div>
+        <div class="mt-1 text-sm text-slate-500">5 渠道机器人、Jira/禅道/TAPD、Jenkins 开放 API、插件框架、模型网关与 AI 用例生成、流式智能助手</div>
+      </div></li>
+      <li class="reveal flex gap-4 border-l-2 border-brand-500 pb-8 pl-6"><div>
+        <div class="text-xs font-semibold text-brand-600">M9 · 已交付 ✅</div>
+        <div class="mt-1 font-medium text-slate-900">稳定化 → 标准版 v1.0 GA</div>
+        <div class="mt-1 text-sm text-slate-500">性能基线（万级 P95 11ms）、安全加固、可观测（pino + Prometheus）、备份恢复、失败排障包</div>
+      </div></li>
+      <li class="reveal flex gap-4 border-l-2 border-dashed border-slate-300 pl-6"><div>
+        <div class="text-xs font-semibold text-slate-400">M10+ · 规划中</div>
+        <div class="mt-1 font-medium text-slate-700">企业版核心（v2.0）与远期 P4</div>
+        <div class="mt-1 text-sm text-slate-500">SSO / 多组织 / 多资源池 / License 门控；性能测试、UI 测试、更多协议插件</div>
+      </div></li>
+    </ol>
+  </div>
+</section>
+
+<!-- ══════════ Footer ══════════ -->
+<footer class="border-t border-slate-200 bg-slate-50 py-10">
+  <div class="mx-auto flex max-w-6xl flex-col items-center gap-4 px-4 text-center text-sm text-slate-500">
+    <div class="flex items-center gap-2 font-semibold text-slate-700">
+      <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-600 text-sm text-white">🐇</span>
+      RabbitAITest
+    </div>
+    <p>一站式开源测试工作台 · 测试管理 + 接口测试 + AI · 对标 MeterSphere v3.x 社区版</p>
+    <div class="flex flex-wrap justify-center gap-x-6 gap-y-2">
+      <a class="hover:text-brand-600" target="_blank" rel="noopener" href="https://github.com/RabbitAI-Lab/RabbitAITest">GitHub</a>
+      <a class="hover:text-brand-600" target="_blank" rel="noopener" href="https://github.com/RabbitAI-Lab/RabbitAITest/blob/main/CHANGELOG.md">更新日志</a>
+      <a class="hover:text-brand-600" target="_blank" rel="noopener" href="https://github.com/RabbitAI-Lab/RabbitAITest/issues">问题反馈</a>
+      <a class="hover:text-brand-600" href="./en/">English</a>
+    </div>
+    <p class="text-xs text-slate-400">本页全部内容（功能描述 / 测试数据 / 界面截图 / 演示视频）均来自仓库文档与运行中的真实系统。</p>
+  </div>
+</footer>
+
+<!-- 灯箱 -->
+<div id="lightbox" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/80 p-6" onclick="closeLightbox()">
+  <img id="lightbox-img" class="max-h-full max-w-full rounded-lg shadow-2xl" alt="截图放大" />
+</div>
+
+<script>
+  // 滚动渐入
+  const io = new IntersectionObserver((es) => {
+    es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
+
+  // 截图灯箱
+  function openLightbox(src) {
+    const lb = document.getElementById('lightbox');
+    document.getElementById('lightbox-img').src = src;
+    lb.classList.remove('hidden'); lb.classList.add('flex');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeLightbox() {
+    const lb = document.getElementById('lightbox');
+    lb.classList.add('hidden'); lb.classList.remove('flex');
+    document.body.style.overflow = '';
+  }
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeLightbox(); });
+</script>
+</body>
+</html>

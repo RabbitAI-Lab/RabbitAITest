@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>RabbitAITest — Open-Source All-in-One Test Platform · Test Management + API Testing + AI</title>
+<meta name="description" content="RabbitAITest: an open-source all-in-one test platform replicating the MeterSphere v3.x community edition feature set. Test management, API testing, scenario automation, test plans and AI — a full-stack TypeScript monorepo with embedded PostgreSQL." />
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          brand: { 50:'#eef4ff',100:'#dbe6fe',200:'#bfd3fe',300:'#93b4fd',400:'#608afa',500:'#3b63f6',600:'#2545eb',700:'#1d34d8',800:'#1e2fae',900:'#1e2c8a' },
+        },
+        fontFamily: { sans: ['-apple-system','BlinkMacSystemFont','Segoe UI','Roboto','Helvetica Neue','sans-serif'] },
+      },
+    },
+  };
+</script>
+<style>
+  html { scroll-behavior: smooth; }
+  body { background: #f8fafc; }
+  .hero-grid {
+    background-image: linear-gradient(to right, rgba(37,69,235,.06) 1px, transparent 1px),
+                      linear-gradient(to bottom, rgba(37,69,235,.06) 1px, transparent 1px);
+    background-size: 44px 44px;
+    mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, black 55%, transparent 100%);
+    -webkit-mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, black 55%, transparent 100%);
+  }
+  .reveal { opacity: 0; transform: translateY(24px); transition: opacity .7s ease, transform .7s ease; }
+  .reveal.in { opacity: 1; transform: none; }
+  .shot { cursor: zoom-in; transition: transform .3s ease, box-shadow .3s ease; }
+  .shot:hover { transform: translateY(-4px); box-shadow: 0 20px 40px -16px rgba(30,44,138,.25); }
+  #lightbox { backdrop-filter: blur(6px); }
+  pre.codeblock { tab-size: 2; }
+  ::selection { background: #2545eb; color: #fff; }
+</style>
+</head>
+<body class="font-sans text-slate-800 antialiased">
+
+<!-- ══════════ Nav ══════════ -->
+<header class="sticky top-0 z-40 border-b border-slate-200/70 bg-white/80 backdrop-blur">
+  <nav class="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
+    <a href="#top" class="flex items-center gap-2 font-bold text-slate-900">
+      <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-600 text-base text-white">🐇</span>
+      RabbitAITest
+    </a>
+    <div class="hidden items-center gap-6 text-sm text-slate-600 md:flex">
+      <a href="#features" class="hover:text-brand-600">Features</a>
+      <a href="#screenshots" class="hover:text-brand-600">Screenshots</a>
+      <a href="#stack" class="hover:text-brand-600">Stack</a>
+      <a href="#demo" class="hover:text-brand-600">Demo</a>
+      <a href="#help" class="hover:text-brand-600">Docs</a>
+      <a href="#roadmap" class="hover:text-brand-600">Roadmap</a>
+    </div>
+    <div class="flex items-center gap-3 text-sm">
+      <a href="../" class="rounded-md border border-slate-300 px-2.5 py-1 text-slate-600 hover:border-brand-400 hover:text-brand-600">中文</a>
+      <a href="https://github.com/RabbitAI-Lab/RabbitAITest" target="_blank" rel="noopener"
+         class="inline-flex items-center gap-1.5 rounded-md bg-slate-900 px-3 py-1.5 text-white hover:bg-slate-700">
+        <svg class="h-4 w-4" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+        <span class="hidden sm:inline">GitHub</span>
+      </a>
+    </div>
+  </nav>
+</header>
+
+<!-- ══════════ Hero ══════════ -->
+<section id="top" class="relative overflow-hidden">
+  <div class="hero-grid absolute inset-0"></div>
+  <div class="relative mx-auto max-w-6xl px-4 pb-16 pt-20 text-center">
+    <div class="mb-5 inline-flex max-w-[92vw] items-center gap-2 rounded-full border border-brand-200 bg-brand-50 px-3 py-1 text-xs font-medium text-brand-700">
+      Replicating the MeterSphere v3.x community edition feature set — v1.0 goal: 100% feature coverage
+    </div>
+    <h1 class="mx-auto max-w-3xl text-4xl font-extrabold leading-tight tracking-tight text-slate-900 md:text-6xl">
+      The open-source all-in-one<br class="md:hidden" /> test platform
+    </h1>
+    <p class="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-slate-600">
+      RabbitAITest packs <strong class="text-slate-900">test management, API testing, scenario automation, test plans and AI</strong>
+      into a single full-stack TypeScript monorepo — embedded PostgreSQL for zero-dependency onboarding,
+      a self-built execution engine with no JMeter dependency.
+      Every feature, metric and screenshot on this page comes from the real repository and a running system.
+    </p>
+    <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
+      <a href="#help" class="rounded-lg bg-brand-600 px-6 py-3 font-medium text-white shadow-lg shadow-brand-600/25 hover:bg-brand-700">Get Started</a>
+      <a href="https://github.com/RabbitAI-Lab/RabbitAITest" target="_blank" rel="noopener" class="rounded-lg border border-slate-300 bg-white px-6 py-3 font-medium text-slate-700 hover:border-brand-400 hover:text-brand-600">GitHub Repo</a>
+      <a href="#screenshots" class="rounded-lg px-6 py-3 font-medium text-slate-600 hover:text-brand-600">Real screenshots ↓</a>
+    </div>
+    <div class="mt-6 flex justify-center gap-2">
+      <a href="https://github.com/RabbitAI-Lab/RabbitAITest/actions/workflows/ci.yml" target="_blank" rel="noopener"><img alt="CI" src="https://github.com/RabbitAI-Lab/RabbitAITest/actions/workflows/ci.yml/badge.svg" /></a>
+      <a href="https://github.com/RabbitAI-Lab/RabbitAITest/actions/workflows/perf.yml" target="_blank" rel="noopener"><img alt="Performance baseline" src="https://github.com/RabbitAI-Lab/RabbitAITest/actions/workflows/perf.yml/badge.svg" /></a>
+    </div>
+    <div class="mt-12 reveal">
+      <img src="../assets/shots/dashboard.png" alt="Real screenshot of the RabbitAITest workbench"
+           class="shot mx-auto w-full max-w-5xl rounded-xl border border-slate-200 shadow-2xl shadow-brand-900/10"
+           onclick="openLightbox(this.src)" />
+      <p class="mt-3 text-xs text-slate-400">▲ Real screenshot of a running system (workbench home) — click to zoom</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ Stats ══════════ -->
+<section class="border-y border-slate-200 bg-white">
+  <div class="mx-auto grid max-w-6xl grid-cols-2 gap-6 px-4 py-10 text-center md:grid-cols-3 lg:grid-cols-6">
+    <div><div class="text-3xl font-extrabold text-brand-600">82</div><div class="mt-1 text-xs text-slate-500">Feature specs</div></div>
+    <div><div class="text-3xl font-extrabold text-brand-600">279</div><div class="mt-1 text-xs text-slate-500">OpenAPI endpoints</div></div>
+    <div><div class="text-3xl font-extrabold text-brand-600">244</div><div class="mt-1 text-xs text-slate-500">Vitest unit tests</div></div>
+    <div><div class="text-3xl font-extrabold text-brand-600">55</div><div class="mt-1 text-xs text-slate-500">JMeter API test plans</div></div>
+    <div><div class="text-3xl font-extrabold text-brand-600">160+</div><div class="mt-1 text-xs text-slate-500">Playwright E2E tests</div></div>
+    <div><div class="text-3xl font-extrabold text-brand-600">11<span class="text-lg">ms</span></div><div class="mt-1 text-xs text-slate-500">List P95 on 10k rows (measured)</div></div>
+  </div>
+</section>
+
+<!-- ══════════ Features ══════════ -->
+<section id="features" class="mx-auto max-w-6xl scroll-mt-16 px-4 py-20">
+  <h2 class="text-center text-3xl font-bold text-slate-900">Nine capability areas, all delivered</h2>
+  <p class="mx-auto mt-3 max-w-2xl text-center text-slate-500">
+    System settings, project management, test cases, test plans, defects, API testing, workbench, messaging and AI.
+    Every capability below is traceable to a feature spec and changelog entry in the repository.
+  </p>
+  <div class="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+
+    <div class="reveal rounded-xl border border-slate-200 bg-white p-6">
+      <div class="text-2xl">📋</div>
+      <h3 class="mt-3 font-semibold text-slate-900">Test Management</h3>
+      <ul class="mt-3 space-y-1.5 text-sm leading-relaxed text-slate-600">
+        <li>· Case CRUD, draggable module tree, recycle bin &amp; change-history diff</li>
+        <li>· Two-way Excel (5,000 rows) / Xmind import-export, MeterSphere column aliases</li>
+        <li>· Case reviews (single / multi-reviewer aggregation, pass-rate stats)</li>
+        <li>· Self-built zero-dependency mindmap with full keyboard shortcuts, two-way list sync</li>
+        <li>· Dependency cycle detection &amp; blockedBy execution chaining</li>
+      </ul>
+    </div>
+
+    <div class="reveal rounded-xl border border-slate-200 bg-white p-6">
+      <div class="text-2xl">🗂️</div>
+      <h3 class="mt-3 font-semibold text-slate-900">Test Plans &amp; Execution</h3>
+      <ul class="mt-3 space-y-1.5 text-sm leading-relaxed text-slate-600">
+        <li>· Test-point tree with config inheritance (point &gt; ancestor &gt; plan default)</li>
+        <li>· Execution contract v4: serial/parallel, stop-on-failure, per-point env override</li>
+        <li>· Results auto-write-back to functional case status</li>
+        <li>· Plan groups with aggregated reports, batch archive/restore</li>
+        <li>· Report export to PDF / CSV, login-free share links</li>
+      </ul>
+    </div>
+
+    <div class="reveal rounded-xl border border-slate-200 bg-white p-6">
+      <div class="text-2xl">🔌</div>
+      <h3 class="mt-3 font-semibold text-slate-900">API Testing</h3>
+      <ul class="mt-3 space-y-1.5 text-sm leading-relaxed text-slate-600">
+        <li>· HTTP debugging with 8 methods; API / CASE / MOCK tabs per definition</li>
+        <li>· Import OpenAPI 3 / Postman / cURL / Rabbit formats</li>
+        <li>· 7 body types, JSONPath/regex extraction, 6 assertion kinds</li>
+        <li>· quickjs-sandboxed pre/post scripts (5s hard kill)</li>
+        <li>· Standalone mock process with hot-reloaded rules (Redis snapshot + version)</li>
+      </ul>
+    </div>
+
+    <div class="reveal rounded-xl border border-slate-200 bg-white p-6">
+      <div class="text-2xl">🧩</div>
+      <h3 class="mt-3 font-semibold text-slate-900">Scenario Automation</h3>
+      <ul class="mt-3 space-y-1.5 text-sm leading-relaxed text-slate-600">
+        <li>· 9 step types: reference/custom request/loops×3/condition/script/wait</li>
+        <li>· Parameterization: constants/lists/CSV, foreach data sources, 4-level variable view</li>
+        <li>· 22 built-in functions (engine + @mock data + pipelines)</li>
+        <li>· Batch execution and cron scheduling</li>
+        <li>· Import/export: Rabbit JSON / JMeter jmx / MeterSphere v3 JSON</li>
+        <li>· False-alarm rules with audited FAKE_ERROR reclassification</li>
+      </ul>
+    </div>
+
+    <div class="reveal rounded-xl border border-slate-200 bg-white p-6">
+      <div class="text-2xl">📊</div>
+      <h3 class="mt-3 font-semibold text-slate-900">Reports &amp; Live Event Stream</h3>
+      <ul class="mt-3 space-y-1.5 text-sm leading-relaxed text-slate-600">
+        <li>· Step-level drill-down across API / scenario / plan reports</li>
+        <li>· SSE live event stream with Last-Event-ID resume</li>
+        <li>· Plan report: six stat cards + pass-rate threshold banner</li>
+        <li>· One-click troubleshoot pack for failed tasks (snapshot + last 50 event frames)</li>
+      </ul>
+    </div>
+
+    <div class="reveal rounded-xl border border-slate-200 bg-white p-6">
+      <div class="text-2xl">🔔</div>
+      <h3 class="mt-3 font-semibold text-slate-900">Collaboration &amp; Notifications</h3>
+      <ul class="mt-3 space-y-1.5 text-sm leading-relaxed text-slate-600">
+        <li>· 5-channel bots: in-app / email / WeCom / DingTalk / Feishu</li>
+        <li>· 11-event catalog, deduped dispatch (recipients ∪ @mentions ∪ followers − actor)</li>
+        <li>· Defect recycle bin, @mentions across three domains</li>
+        <li>· Shared scripts with online debugging, env groups &amp; global params</li>
+        <li>· Git repository files: gitea / github / gitlab / gitee</li>
+      </ul>
+    </div>
+
+    <div class="reveal rounded-xl border border-slate-200 bg-white p-6">
+      <div class="text-2xl">🔗</div>
+      <h3 class="mt-3 font-semibold text-slate-900">Integrations &amp; Plugins</h3>
+      <ul class="mt-3 space-y-1.5 text-sm leading-relaxed text-slate-600">
+        <li>· Jira / ZenTao / TAPD: AES-256-GCM encrypted credentials, status write-back</li>
+        <li>· Jenkins CI: personal APIKEYs + open API + 10 QPS rate limit</li>
+        <li>· Plugin framework: one worker_thread per plugin, backoff restart</li>
+        <li>· Frozen protocol-plugin SPI + tcp-conn sample</li>
+        <li>· Scheduled Swagger sync (SSRF-guarded outbound)</li>
+        <li>· Audit logs: three-level query + retention-based purge</li>
+      </ul>
+    </div>
+
+    <div class="reveal rounded-xl border border-slate-200 bg-white p-6">
+      <div class="text-2xl">🤖</div>
+      <h3 class="mt-3 font-semibold text-slate-900">AI Capabilities</h3>
+      <ul class="mt-3 space-y-1.5 text-sm leading-relaxed text-slate-600">
+        <li>· Model gateway: DeepSeek / OpenAI / Zhipu over one protocol</li>
+        <li>· AES-256-GCM encrypted keys + SSRF-guarded base URLs</li>
+        <li>· AI generation for functional &amp; API cases (fault-tolerant parsing, audited)</li>
+        <li>· Streaming assistant: SSE typewriter, Ant Design X components</li>
+        <li>· Project-level prompt templates (placeholder validation + built-in fallback)</li>
+      </ul>
+    </div>
+
+    <div class="reveal rounded-xl border border-slate-200 bg-white p-6">
+      <div class="text-2xl">🛡️</div>
+      <h3 class="mt-3 font-semibold text-slate-900">Enterprise-grade Foundation</h3>
+      <ul class="mt-3 space-y-1.5 text-sm leading-relaxed text-slate-600">
+        <li>· Three-level RBAC: system / org / project custom user groups</li>
+        <li>· Perf baseline in CI: 10k-row list P95 11ms, 100 concurrent runs in 772ms</li>
+        <li>· Hardening: CSRF checks, login rate limiting, five security headers</li>
+        <li>· Unified pino logs + reqId tracing + Prometheus metrics</li>
+        <li>· Backup/restore scripts with verified round-trip</li>
+      </ul>
+    </div>
+
+  </div>
+</section>
+
+<!-- ══════════ Screenshots ══════════ -->
+<section id="screenshots" class="scroll-mt-16 border-y border-slate-200 bg-white py-20">
+  <div class="mx-auto max-w-6xl px-4">
+    <h2 class="text-center text-3xl font-bold text-slate-900">Real screenshots, not mockups</h2>
+    <p class="mx-auto mt-3 max-w-2xl text-center text-slate-500">
+      Captured by Playwright against a live system (1440×900) — the same pipeline that powers the repo's CI visual snapshots.
+    </p>
+    <div class="mt-12 grid gap-6 md:grid-cols-2">
+      <figure class="reveal">
+        <img src="../assets/shots/case-list.png" alt="Test case list" class="shot w-full rounded-lg border border-slate-200 shadow-md" onclick="openLightbox(this.src)" />
+        <figcaption class="mt-2 text-center text-sm text-slate-500">Test cases · module tree + list</figcaption>
+      </figure>
+      <figure class="reveal">
+        <img src="../assets/shots/case-mindmap.png" alt="Mindmap mode" class="shot w-full rounded-lg border border-slate-200 shadow-md" onclick="openLightbox(this.src)" />
+        <figcaption class="mt-2 text-center text-sm text-slate-500">Test cases · self-built mindmap mode</figcaption>
+      </figure>
+      <figure class="reveal">
+        <img src="../assets/shots/apis-detail.png" alt="API definition detail" class="shot w-full rounded-lg border border-slate-200 shadow-md" onclick="openLightbox(this.src)" />
+        <figcaption class="mt-2 text-center text-sm text-slate-500">API definition · seven-section request/assertion editor</figcaption>
+      </figure>
+      <figure class="reveal">
+        <img src="../assets/shots/scenario-editor.png" alt="Scenario orchestration" class="shot w-full rounded-lg border border-slate-200 shadow-md" onclick="openLightbox(this.src)" />
+        <figcaption class="mt-2 text-center text-sm text-slate-500">Scenario automation · step-tree orchestration (loop/request/wait)</figcaption>
+      </figure>
+      <figure class="reveal">
+        <img src="../assets/shots/report.png" alt="Execution report" class="shot w-full rounded-lg border border-slate-200 shadow-md" onclick="openLightbox(this.src)" />
+        <figcaption class="mt-2 text-center text-sm text-slate-500">Execution report · assertion drill-down</figcaption>
+      </figure>
+      <figure class="reveal">
+        <img src="../assets/shots/ai-assistant.png" alt="AI assistant" class="shot w-full rounded-lg border border-slate-200 shadow-md" onclick="openLightbox(this.src)" />
+        <figcaption class="mt-2 text-center text-sm text-slate-500">AI assistant · SSE streaming chat (Ant Design X)</figcaption>
+      </figure>
+      <figure class="reveal">
+        <img src="../assets/shots/plans.png" alt="Test plans" class="shot w-full rounded-lg border border-slate-200 shadow-md" onclick="openLightbox(this.src)" />
+        <figcaption class="mt-2 text-center text-sm text-slate-500">Test plans · thresholds &amp; archive management</figcaption>
+      </figure>
+      <figure class="reveal">
+        <img src="../assets/shots/tasks.png" alt="Task center" class="shot w-full rounded-lg border border-slate-200 shadow-md" onclick="openLightbox(this.src)" />
+        <figcaption class="mt-2 text-center text-sm text-slate-500">Task center · live execution status</figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ Tech stack ══════════ -->
+<section id="stack" class="mx-auto max-w-6xl scroll-mt-16 px-4 py-20">
+  <h2 class="text-center text-3xl font-bold text-slate-900">Tech Stack</h2>
+  <p class="mx-auto mt-3 max-w-2xl text-center text-slate-500">A pure-TypeScript monorepo with only three middlewares: PostgreSQL + Redis + MinIO.</p>
+  <div class="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
+    <div class="reveal rounded-xl border border-slate-200 bg-white p-5">
+      <h3 class="text-sm font-semibold uppercase tracking-wide text-brand-600">Engineering</h3>
+      <p class="mt-2 text-sm text-slate-600">pnpm workspace + Turborepo<br />4 apps (web / engine / mock / plugin-runner) + 4 packages</p>
+    </div>
+    <div class="reveal rounded-xl border border-slate-200 bg-white p-5">
+      <h3 class="text-sm font-semibold uppercase tracking-wide text-brand-600">Full-stack Framework</h3>
+      <p class="mt-2 text-sm text-slate-600">Next.js App Router + React 19<br />APIs as Route Handlers (REST /api/v1), OpenAPI snapshot gated in CI</p>
+    </div>
+    <div class="reveal rounded-xl border border-slate-200 bg-white p-5">
+      <h3 class="text-sm font-semibold uppercase tracking-wide text-brand-600">Frontend</h3>
+      <p class="mt-2 text-sm text-slate-600">Ant Design + Tailwind + TanStack Query + Zustand<br />@antv/x6 mindmap · Monaco · @ant-design/x assistant</p>
+    </div>
+    <div class="reveal rounded-xl border border-slate-200 bg-white p-5">
+      <h3 class="text-sm font-semibold uppercase tracking-wide text-brand-600">Data</h3>
+      <p class="mt-2 text-sm text-slate-600">embedded-postgres built-in (switchable to PostgreSQL 16)<br />Prisma as the single exit, 45 entities across 8 domains</p>
+    </div>
+    <div class="reveal rounded-xl border border-slate-200 bg-white p-5">
+      <h3 class="text-sm font-semibold uppercase tracking-wide text-brand-600">Execution Engine</h3>
+      <p class="mt-2 text-sm text-slate-600">Self-built Node.js worker: undici sampling + p-limit slots + quickjs sandbox<br />No JMeter (jmx import only), zero DB dependency</p>
+    </div>
+    <div class="reveal rounded-xl border border-slate-200 bg-white p-5">
+      <h3 class="text-sm font-semibold uppercase tracking-wide text-brand-600">Async &amp; Realtime</h3>
+      <p class="mt-2 text-sm text-slate-600">BullMQ + Redis (repeatable-job scheduling)<br />SSE event stream + Redis Stream resume</p>
+    </div>
+    <div class="reveal rounded-xl border border-slate-200 bg-white p-5">
+      <h3 class="text-sm font-semibold uppercase tracking-wide text-brand-600">Quality Gates</h3>
+      <p class="mt-2 text-sm text-slate-600">"Done" = unit + JMeter API + Playwright UI tests, all green<br />Six CI jobs must pass before merge</p>
+    </div>
+    <div class="reveal rounded-xl border border-slate-200 bg-white p-5">
+      <h3 class="text-sm font-semibold uppercase tracking-wide text-brand-600">Deployment</h3>
+      <p class="mt-2 text-sm text-slate-600">One-command Docker Compose (standard) / Helm (enterprise pools)<br />4 processes: web (embedded PG) + engine + mock + redis</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ Demo video ══════════ -->
+<section id="demo" class="scroll-mt-16 border-y border-slate-200 bg-white py-20">
+  <div class="mx-auto max-w-4xl px-4 text-center">
+    <h2 class="text-3xl font-bold text-slate-900">Acceptance Demo Recording</h2>
+    <p class="mx-auto mt-3 max-w-2xl text-slate-500">
+      Unedited acceptance recording of the Sprint 5 "Collaboration &amp; Notifications" milestone, archived in the
+      <a class="text-brand-600 hover:underline" target="_blank" rel="noopener" href="https://github.com/RabbitAI-Lab/RabbitAITest/blob/main/docs/sprint-5-collaboration/demo/s5-acceptance-demo.webm">repository docs/</a>.
+    </p>
+    <video class="mt-8 w-full rounded-xl border border-slate-200 shadow-xl" controls preload="metadata" poster="../assets/shots/dashboard.png">
+      <source src="../assets/demo-s5.webm" type="video/webm" />
+      Your browser cannot play this video — download it from the GitHub repository instead.
+    </video>
+  </div>
+</section>
+
+<!-- ══════════ Help / Quick start ══════════ -->
+<section id="help" class="mx-auto max-w-6xl scroll-mt-16 px-4 py-20">
+  <h2 class="text-center text-3xl font-bold text-slate-900">Docs &amp; Help</h2>
+  <p class="mx-auto mt-3 max-w-2xl text-center text-slate-500">Three commands to boot the full stack; every design doc ships in the open repository.</p>
+
+  <div class="mt-12 grid gap-8 lg:grid-cols-2">
+    <div class="reveal min-w-0">
+      <h3 class="font-semibold text-slate-900">Quick start (zero external dependencies)</h3>
+      <pre class="codeblock mt-4 overflow-x-auto rounded-xl bg-slate-900 p-5 text-sm leading-relaxed text-slate-100"><code># Clone &amp; start (web with embedded PostgreSQL + engine + mock)
+git clone https://github.com/RabbitAI-Lab/RabbitAITest.git
+cd RabbitAITest
+pnpm install && pnpm dev
+
+# Quality verification (same as CI)
+pnpm test        # Vitest unit tests
+pnpm test:api    # JMeter API automation (55 plans)
+pnpm test:e2e    # Playwright UI automation (boots the full stack)
+
+# One-command Docker Compose deployment (standard edition)
+docker compose -f deploy/docker-compose.yml up -d</code></pre>
+      <p class="mt-3 text-xs text-slate-400">Requires Node.js ≥ 20 and pnpm 10. Embedded DB by default; set DATABASE_URL for an external PostgreSQL 16.</p>
+    </div>
+
+    <div class="reveal min-w-0">
+      <h3 class="font-semibold text-slate-900">Documentation (all real files in the repo)</h3>
+      <ul class="mt-4 space-y-2.5 text-sm">
+        <li class="flex gap-2"><span class="text-brand-500">▸</span><a class="text-slate-700 hover:text-brand-600" target="_blank" rel="noopener" href="https://github.com/RabbitAI-Lab/RabbitAITest/blob/main/docs/README.md">docs/README.md — master index of the three-layer design doc system</a></li>
+        <li class="flex gap-2"><span class="text-brand-500">▸</span><a class="text-slate-700 hover:text-brand-600" target="_blank" rel="noopener" href="https://github.com/RabbitAI-Lab/RabbitAITest/blob/main/docs/需求文档.md">Requirements (需求文档.md) — product requirements with P0–P4 priorities</a></li>
+        <li class="flex gap-2"><span class="text-brand-500">▸</span><a class="text-slate-700 hover:text-brand-600" target="_blank" rel="noopener" href="https://github.com/RabbitAI-Lab/RabbitAITest/blob/main/docs/MeterSphere功能清单.md">MeterSphere feature list — the v1.0 coverage baseline</a></li>
+        <li class="flex gap-2"><span class="text-brand-500">▸</span><a class="text-slate-700 hover:text-brand-600" target="_blank" rel="noopener" href="https://github.com/RabbitAI-Lab/RabbitAITest/tree/main/docs/architecture">architecture/ — 9 architecture docs (stack / data model / RBAC / engine / plugins…)</a></li>
+        <li class="flex gap-2"><span class="text-brand-500">▸</span><a class="text-slate-700 hover:text-brand-600" target="_blank" rel="noopener" href="https://github.com/RabbitAI-Lab/RabbitAITest/blob/main/docs/sprint-0-poc/INFRA-002-docker-compose.md">INFRA-002 — Docker Compose deployment &amp; zero-dependency local dev spec</a></li>
+        <li class="flex gap-2"><span class="text-brand-500">▸</span><a class="text-slate-700 hover:text-brand-600" target="_blank" rel="noopener" href="https://github.com/RabbitAI-Lab/RabbitAITest/tree/main/rules">rules/ — 9 engineering rulebooks (testing / security / database / engine / git workflow…)</a></li>
+        <li class="flex gap-2"><span class="text-brand-500">▸</span><a class="text-slate-700 hover:text-brand-600" target="_blank" rel="noopener" href="https://github.com/RabbitAI-Lab/RabbitAITest/blob/main/CHANGELOG.md">CHANGELOG.md — release notes (Keep a Changelog format)</a></li>
+        <li class="flex gap-2"><span class="text-brand-500">▸</span><a class="text-slate-700 hover:text-brand-600" target="_blank" rel="noopener" href="https://github.com/RabbitAI-Lab/RabbitAITest/tree/main/docs/design">design/ — 56 hi-fi prototype sets, openable directly in a browser</a></li>
+      </ul>
+      <h3 class="mt-8 font-semibold text-slate-900">Need help?</h3>
+      <p class="mt-2 text-sm leading-relaxed text-slate-600">
+        File an issue on <a class="text-brand-600 hover:underline" target="_blank" rel="noopener" href="https://github.com/RabbitAI-Lab/RabbitAITest/issues">GitHub Issues</a>.
+        For failed tasks, attach the in-product "troubleshoot pack" (task snapshot + last 50 event frames + log lookup guide).
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ Roadmap ══════════ -->
+<section id="roadmap" class="scroll-mt-16 border-t border-slate-200 bg-white py-20">
+  <div class="mx-auto max-w-4xl px-4">
+    <h2 class="text-center text-3xl font-bold text-slate-900">Roadmap</h2>
+    <p class="mx-auto mt-3 max-w-2xl text-center text-slate-500">
+      Milestones M1–M9 are all delivered (each sprint shipped with three test layers + six green CI jobs). Current version: v0.7.2.
+    </p>
+    <ol class="mt-12 space-y-0">
+      <li class="reveal flex gap-4 border-l-2 border-brand-500 pb-8 pl-6"><div>
+        <div class="text-xs font-semibold text-brand-600">M1–M2 · Delivered ✅</div>
+        <div class="mt-1 font-medium text-slate-900">POC + Test Management MVP</div>
+        <div class="mt-1 text-sm text-slate-500">Monorepo scaffold, auth, cases/reviews/defects/plan basics, workbench</div>
+      </div></li>
+      <li class="reveal flex gap-4 border-l-2 border-brand-500 pb-8 pl-6"><div>
+        <div class="text-xs font-semibold text-brand-600">M3–M5 · Delivered ✅</div>
+        <div class="mt-1 font-medium text-slate-900">API Testing Core → Scenario Automation → Plans &amp; Mindmap</div>
+        <div class="mt-1 text-sm text-slate-500">API definitions/env/Mock, 9 step types, execution contract v4, plan groups &amp; report export, self-built mindmap</div>
+      </div></li>
+      <li class="reveal flex gap-4 border-l-2 border-brand-500 pb-8 pl-6"><div>
+        <div class="text-xs font-semibold text-brand-600">M6–M8 · Delivered ✅</div>
+        <div class="mt-1 font-medium text-slate-900">Collaboration → Integrations &amp; Plugins → AI</div>
+        <div class="mt-1 text-sm text-slate-500">5-channel bots, Jira/ZenTao/TAPD, Jenkins open API, plugin framework, model gateway &amp; AI case generation, streaming assistant</div>
+      </div></li>
+      <li class="reveal flex gap-4 border-l-2 border-brand-500 pb-8 pl-6"><div>
+        <div class="text-xs font-semibold text-brand-600">M9 · Delivered ✅</div>
+        <div class="mt-1 font-medium text-slate-900">Stabilization → Standard Edition v1.0 GA</div>
+        <div class="mt-1 text-sm text-slate-500">Perf baseline (10k-row P95 11ms), security hardening, observability (pino + Prometheus), backup/restore, troubleshoot packs</div>
+      </div></li>
+      <li class="reveal flex gap-4 border-l-2 border-dashed border-slate-300 pl-6"><div>
+        <div class="text-xs font-semibold text-slate-400">M10+ · Planned</div>
+        <div class="mt-1 font-medium text-slate-700">Enterprise core (v2.0) &amp; P4 backlog</div>
+        <div class="mt-1 text-sm text-slate-500">SSO / multi-org / multi-resource-pool / License gating; load testing, UI testing, more protocol plugins</div>
+      </div></li>
+    </ol>
+  </div>
+</section>
+
+<!-- ══════════ Footer ══════════ -->
+<footer class="border-t border-slate-200 bg-slate-50 py-10">
+  <div class="mx-auto flex max-w-6xl flex-col items-center gap-4 px-4 text-center text-sm text-slate-500">
+    <div class="flex items-center gap-2 font-semibold text-slate-700">
+      <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-600 text-sm text-white">🐇</span>
+      RabbitAITest
+    </div>
+    <p>Open-source all-in-one test platform · Test management + API testing + AI · Mirroring MeterSphere v3.x community edition</p>
+    <div class="flex flex-wrap justify-center gap-x-6 gap-y-2">
+      <a class="hover:text-brand-600" target="_blank" rel="noopener" href="https://github.com/RabbitAI-Lab/RabbitAITest">GitHub</a>
+      <a class="hover:text-brand-600" target="_blank" rel="noopener" href="https://github.com/RabbitAI-Lab/RabbitAITest/blob/main/CHANGELOG.md">Changelog</a>
+      <a class="hover:text-brand-600" target="_blank" rel="noopener" href="https://github.com/RabbitAI-Lab/RabbitAITest/issues">Issues</a>
+      <a class="hover:text-brand-600" href="../">中文</a>
+    </div>
+    <p class="text-xs text-slate-400">Everything on this page — features, metrics, screenshots, the demo video — comes from repository docs and a live system.</p>
+  </div>
+</footer>
+
+<!-- Lightbox -->
+<div id="lightbox" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/80 p-6" onclick="closeLightbox()">
+  <img id="lightbox-img" class="max-h-full max-w-full rounded-lg shadow-2xl" alt="Screenshot zoom" />
+</div>
+
+<script>
+  const io = new IntersectionObserver((es) => {
+    es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
+
+  function openLightbox(src) {
+    const lb = document.getElementById('lightbox');
+    document.getElementById('lightbox-img').src = src;
+    lb.classList.remove('hidden'); lb.classList.add('flex');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeLightbox() {
+    const lb = document.getElementById('lightbox');
+    lb.classList.add('hidden'); lb.classList.remove('flex');
+    document.body.style.overflow = '';
+  }
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeLightbox(); });
+</script>
+</body>
+</html>
