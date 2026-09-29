@@ -50,6 +50,6 @@
 
 - [x] 规格 + 概览（接口契约评审口径，目标式授权）
 - [x] 迁移 + 实现 + 三层测试
-- [x] rules/database.md §7 纪律登记
-- [ ] 远端 CI 全绿（PR 合并前置）
+- [x] rules/database.md §6.6/§7.5 纪律登记
+- [x] 远端 CI 全绿（2026-09-30 run 36611028399 九作业：lint/build/依赖审计/性能基线/迁移重放含 rls-verify/e2e 双分片/JMeter 双分片；rebase main c806fdc 后）
 - [ ] 用户走查 → Verified
