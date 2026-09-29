@@ -4,7 +4,7 @@
  * 占位符归一化 `?` → `:1,:2…`（oracledb 位置绑定）；行=数组+metaData → zipRows（列名小写）。
  * 只读防线：词法白名单 + SET TRANSACTION READ ONLY + 连接即关。
  */
-import type { DriverPlugin } from "@rabbit/shared";
+import type { DriverPlugin } from "../../packages/shared/src/plugins/spi";
 import {
   parseDbUrl,
   replaceQuestionPlaceholders,

@@ -4,7 +4,7 @@
  * API 与 oracledb 同构；占位符原生 `?`（dmdb d.ts 示例实证）；行=数组+metaData → zipRows。
  * 只读防线：词法白名单 + SET TRANSACTION READ ONLY + 连接即关。
  */
-import type { DriverPlugin } from "@rabbit/shared";
+import type { DriverPlugin } from "../../packages/shared/src/plugins/spi";
 import {
   parseDbUrl,
   zipRows,
@@ -21,25 +21,26 @@ interface DmResult {
   metaData?: Array<{ name: string }>;
 }
 
+interface DmConn {
+  execute: (sql: string, params?: unknown[]) => Promise<DmResult>;
+  close: () => Promise<void>;
+}
+
 async function withConnection<T>(
   url: string,
-  fn: (conn: { execute: (sql: string, params?: unknown[]) => Promise<DmResult>; close: () => Promise<void> }) => Promise<T>,
+  fn: (conn: DmConn) => Promise<T>,
   timeoutMs: number,
   label: string,
 ): Promise<T> {
   const parsed = parseDbUrl(url, "dm");
-  let conn: Awaited<ReturnType<typeof dmdb.getConnection>> | null = null;
+  let conn: DmConn | null = null;
   try {
-    conn = await dmdb.getConnection({
+    conn = (await dmdb.getConnection({
       user: parsed.user,
       password: parsed.password,
       connectString: `${parsed.host}:${parsed.port}`,
-    });
-    return await raceTimeout(
-      fn(conn as unknown as Parameters<typeof fn>[0]),
-      timeoutMs,
-      label,
-    );
+    })) as unknown as DmConn;
+    return await raceTimeout(fn(conn), timeoutMs, label);
   } catch (e) {
     throw new Error(friendlyDbError(e, parsed.redacted));
   } finally {

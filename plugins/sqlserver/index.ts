@@ -4,7 +4,7 @@
  * 占位符归一化 `?` → `@p0,@p1…`（request.input 绑定，SQL Server 无 READ ONLY 事务——
  * 词法白名单+连接即关兜底，PLUG-004 §2.2 登记）。
  */
-import type { DriverPlugin } from "@rabbit/shared";
+import type { DriverPlugin } from "../../packages/shared/src/plugins/spi";
 import {
   parseDbUrl,
   replaceQuestionPlaceholders,

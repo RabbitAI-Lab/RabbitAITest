@@ -4,7 +4,7 @@
  * 执行面 engine in-process / 管理面 plugin-runner testConnection。
  * 只读防线：调用方词法白名单（assertReadOnlySelect）+ 本插件 BEGIN READ ONLY 事务 + 连接即关。
  */
-import type { DriverPlugin } from "@rabbit/shared";
+import type { DriverPlugin } from "../../packages/shared/src/plugins/spi";
 import {
   parseDbUrl,
   replaceQuestionPlaceholders,

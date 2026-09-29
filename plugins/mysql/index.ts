@@ -3,7 +3,7 @@
  * mysql2 为生态事实标准，登记于 PLUG-004 §0）。占位符原生 `?`（无需归一化）。
  * 只读防线：词法白名单 + START TRANSACTION READ ONLY + 连接即关。
  */
-import type { DriverPlugin } from "@rabbit/shared";
+import type { DriverPlugin } from "../../packages/shared/src/plugins/spi";
 import {
   parseDbUrl,
   normalizeRows,

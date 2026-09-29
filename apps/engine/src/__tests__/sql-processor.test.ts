@@ -2,9 +2,9 @@
 import { describe, expect, it, beforeEach } from "vitest";
 import { runProcessors, ProcessorError } from "../kernel/processors";
 import { __setDriverForTests } from "../kernel/drivers/registry";
-import type { DriverPlugin } from "@rabbit/shared";
+import type { DriverPlugin, EnvSnapshot } from "@rabbit/shared";
 
-const env = {
+const env: EnvSnapshot = {
   vars: {},
   http: [],
   hosts: [],
