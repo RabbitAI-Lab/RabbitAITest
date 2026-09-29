@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+### 新增
+
+- **指标面 v2：Prometheus 企业级监控对接（INFRA-007，S10）**：`GET /api/v1/system/metrics` 在 v1 最小集（队列/槽位/任务时延/HTTP 计数）上新增 6 组指标——HTTP 时延分位（按路由组，512 样本滑动窗口）、DB 慢查询计数（Prisma query 事件 ≥200ms，`RABBIT_SLOW_QUERY_MS` 可调，0 关闭）、24h 任务分布/失败率、失败分类计数（FailureKind 四类+UNCLASSIFIED）、误报命中数/命中率；队列与引擎槽位指标按池展开（label=BullMQ 队列名，覆盖 S9 多池）；新增 APIKEY 直连抓取通道（`Authorization: Bearer ak.sk`/Basic，权限仍收敛 SYSTEM_METRICS:READ，30 次/分限流），Prometheus 无需会话 Cookie 即可抓取；随仓库交付监控部署资产 `docs/deployment/`（抓取配置示例 prometheus.yml、Grafana 总览看板 JSON、告警建议与安全注意）；指标段独立降级，任一数据源故障端点仍 200
+
 ### 修复
 
 - 修复插件管理页 UI 上传按钮恒失败（S6 潜伏两连缺陷，S-future 验收演示录制首次暴露）：① api-client `post()` 会 JSON.stringify FormData 并强设 application/json → 服务端落 JSON 分支 422「缺少 file 字段」，`pluginApi.upload` 改直连 `request()` 保留浏览器 multipart 边界；② orgScope 以带引号 JSON（`JSON.stringify("ALL")`）发出时 `parseScope` 落单 orgId 分支裸抛 ZodError 500 → 剥引号解析 + 非法值统一 422（70002）；补 UI 直传回归用例 PLUG-001-T5（此前 e2e/jmx 皆走 base64 形态，浏览器 multipart 出口零覆盖）
