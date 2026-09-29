@@ -95,6 +95,13 @@ jobs:
     name: Playwright E2E（三类断言）
     runs-on: ubuntu-latest
     needs: build
+    # 聚合并发 8 = 2 分片 × 4 workers：单 runner 直上 8 workers 两轮实测过载（4 核 runner
+    # 上 UI 响应滞后击穿 10s actionTimeout，flaky 6→8 波动不可稳定）；分片后每 runner 回到
+    # 已验证的 4 并发稳定口径，墙钟约减半（12m → ~6m）
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2]
     services:
       postgres:
         image: postgres:16-alpine
@@ -126,20 +133,20 @@ jobs:
       - run: pnpm --filter web build
       - run: pnpm build:plugins
       - run: pnpm exec playwright install --with-deps chromium
-      - name: run e2e（含每用例截屏）
-        run: pnpm test:e2e
+      - name: run e2e（含每用例截屏；分片 ${{ matrix.shard }}/2 × 4 workers）
+        run: pnpm test:e2e -- --shard=${{ matrix.shard }}/2
       - name: 视觉快照 + GLM-5.3-Flash 还原度比对（配置 GLM_API_KEY 时启用并强制阈值）
-        if: env.GLM_API_KEY != ''
+        if: env.GLM_API_KEY != '' && matrix.shard == 1
         run: |
           pnpm test:visual
           pnpm visual:diff
       - name: 还原度比对跳过提示（未配置 GLM_API_KEY）
-        if: env.GLM_API_KEY == ''
+        if: env.GLM_API_KEY == '' && matrix.shard == 1
         run: echo 'GLM_API_KEY 未配置，跳过视觉还原度比对（rules/testing §3.7.2）'
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: always()
         with:
-          name: playwright-report
+          name: playwright-report-shard${{ matrix.shard }}
           path: |
             playwright-report/
             test-results/
