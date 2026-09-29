@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
+import { DomainError, ErrCode, pluginListQuerySchema, pluginScopeSchema } from "@rabbit/shared";
 import { toResponse, okResponse, withSystemPerm } from "@/server/guard";
-import { pluginListQuerySchema, pluginScopeSchema } from "@rabbit/shared";
 import * as svc from "@/server/domains/api/plugin.service";
 
 export const runtime = "nodejs";
@@ -22,13 +22,31 @@ export const GET = withSystemPerm("SYSTEM_PLUGIN:READ")(async (_ctx, req) => {
   }
 });
 
-/** orgScope 解析：ALL | JSON 数组 | 单 orgId（multipart 表单值与 JSON 字段共用） */
+/** orgScope 解析：ALL | JSON 数组 | 带引号 JSON 串 | 单 orgId（multipart 表单值与 JSON 字段共用）。
+ * 非法值 → DomainError 70002（422）而非 ZodError 裸抛 500（rules §4.5；S-future 演示录制暴露：
+ * 前端 FormData 发 JSON.stringify("ALL")='"ALL"' 曾落 uuid 分支 500——UI 上传两处潜伏缺陷之一） */
 function parseScope(raw: FormDataEntryValue | string | undefined | null): "ALL" | string[] {
   if (typeof raw !== "string" || !raw.trim()) return "ALL";
   const t = raw.trim();
-  if (t === "ALL") return "ALL";
-  if (t.startsWith("[")) return pluginScopeSchema.parse(JSON.parse(t));
-  return pluginScopeSchema.parse([t]); // 单 orgId 直传形态
+  let v: unknown = t;
+  if (t.startsWith("[") || t.startsWith('"')) {
+    try {
+      v = JSON.parse(t);
+    } catch {
+      v = t; // 按原文落入下方校验（统一 422 出口）
+    }
+  }
+  const result =
+    v === "ALL"
+      ? { success: true as const, data: "ALL" as const }
+      : pluginScopeSchema.safeParse(Array.isArray(v) ? v : [v]);
+  if (!result.success) {
+    throw new DomainError(
+      ErrCode.PLUGIN_PACKAGE_INVALID,
+      "orgScope 非法（ALL / orgId 数组 / 单 orgId）",
+    );
+  }
+  return result.data;
 }
 
 /**

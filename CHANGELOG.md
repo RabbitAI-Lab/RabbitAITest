@@ -2,6 +2,12 @@
 
 本项目的所有显著变更记录于此。格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本遵循语义化版本。
 
+## [Unreleased]
+
+### 修复
+
+- 修复插件管理页 UI 上传按钮恒失败（S6 潜伏两连缺陷，S-future 验收演示录制首次暴露）：① api-client `post()` 会 JSON.stringify FormData 并强设 application/json → 服务端落 JSON 分支 422「缺少 file 字段」，`pluginApi.upload` 改直连 `request()` 保留浏览器 multipart 边界；② orgScope 以带引号 JSON（`JSON.stringify("ALL")`）发出时 `parseScope` 落单 orgId 分支裸抛 ZodError 500 → 剥引号解析 + 非法值统一 422（70002）；补 UI 直传回归用例 PLUG-001-T5（此前 e2e/jmx 皆走 base64 形态，浏览器 multipart 出口零覆盖）
+
 ## [v0.9.0] - 2026-09-28 — Sprint 9 企业版核心（M10 里程碑）
 
 ### 新增（全量交付：三层测试 + CI 全绿）

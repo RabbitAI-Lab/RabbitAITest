@@ -90,6 +90,8 @@
 | 7. 三层测试齐备                                       | ✅   | 单测 348（新增 116：engine 19+shared 13+web 84）；JMeter 新增 7 计划（LOAD-002 豁免登记）四类×四断言；Playwright 新增 5 spec 8 用例三类断言（TOOL 两规格 UI 豁免登记）                                          |
 | 8. 快照与审计                                         | ✅   | OpenAPI 277→284 paths（+stats/+api-sync/+api-definitions/+api-capture/+plugins/protocols/+pools PUT 扩展…）--check 过；typecheck 13/13；format 全绿（顺手修 S6 原型 INTG-003 `<uuid>` 未转义致 oxfmt 解析失败） |
 
+- **验收演示视频（2026-09-29 回填）**：`demo/fp-acceptance-demo.webm`（2:40 · 1280×720 · 7.8MB）——演示主线六段：①模块开关占位（/load · /ui-test 企业版 License 门控页）→ ②K8S 池型（表单保存/掩码回显/NODE 往返）→ ③插件上传启用（websocket/mqtt tarball · 弹窗直传）→ ④WS 协议调试执行（ws://mock /ws/echo 回显 `hello-rabbit-fp-demo`，重试后 SUCCESS · 断言 2/2）→ ⑤报告统计（Σtotal 1 · passRate 100% · 14 天趋势 SVG）→ ⑥APIKEY 开放接口同步（Basic 鉴权 /api-sync → /apis 3 条）；录制脚本 `tests/demo/fp-demo-record.mjs`（可复跑，步骤浮层标注）；抽帧 7 处验证画面（8s/35s/100s/112s/120s/128s/150s，六段全覆盖）。录制过程暴露 S6 潜伏缺陷两处（§7.2-10）已修复并补 UI 直传回归用例（PLUG-001-T5）。
+
 ### 7.2 实现过程缺陷与教训（首红/返工记录）
 
 1. **S6 潜伏缺陷三处，因引擎执行链路首次被 e2e 覆盖而暴露**（PLUG-003 勘误 4）：引擎协议轮询 URL 恒回退 :3000（不回退 WEB_URL）、鉴权头 Bearer vs x-internal-token 恒 401、step.ts 在协议分派前 resolveUrl 把占位 url 误判「相对路径未选环境」——三处均为 S6 死码路径（tcp-conn 从未真执行），修复后注册表与执行首次打通。教训：**「上传/启用成功」≠「执行链路可用」，门禁 7 的执行深度以 e2e 真执行为准**。
@@ -101,6 +103,8 @@
 7. **k8s 休眠回显**：k8s 摘要若仅 K8S 态输出，NODE 往返后表单清空与「免重填」语义矛盾——摘要恒回显、type 表征激活态（EXEC-004 勘误 3）；e2e 抓获。
 8. **e2e 并行互扰两案（全量复跑三轮抓出）**：①EXEC-004 与 EXEC-002 并行共写全局默认池——池页保存载荷恒带表单内并发值，把 EXEC-002 刚下调的 2 覆盖回 4；产品级修正=**仅携带用户真改动的字段**（并发/类型分别 dirty 判定，多管理员并发编辑同理），EXEC-002 载荷断言移至真变更（4→2）处。②池页「测试连接（试连不保存）」按钮文案含「保存」二字，EXEC-002 的保存按钮正则 /保\s*存/ 双命中 strict violation——文案改「测试连接（不落库）」。另：SYS-007-T4 补 toBeEnabled 等待（React 状态滞后竞态）、EXEC-002 槽位断言从 busy=0 放宽为 x÷2（并行下引擎无空闲窗口，意图=验证下发生效）。
 9. **本机多会话高载下的轮换型伪红**：全量 4 轮复跑中 AI-004/CASE-003/API-008/MAINFLOW-s4/FILE-001 等轮换挂（load avg 7-8、83 个 node 进程来自并行会话遗留栈）——逐一串行复跑全绿，测试代码无缺陷；与 S9 会话同境（全新口径以远端 CI 专属 runner 为准，AGENTS 门禁 9）。
+10. **S6 潜伏缺陷再两处（UI 上传按钮路径零覆盖所致，验收演示录制首次暴露）**：① api-client `post()` 会 JSON.stringify FormData 并强设 application/json，服务端落 JSON 分支 422「缺少 file 字段」——`upload()` 改直连 `request()` 保留浏览器 multipart 边界；② 前端 FormData 以 `JSON.stringify("ALL")`（带引号）发出 orgScope，`parseScope` 落单 orgId 分支 safeParse 失败裸抛 ZodError 500——解析改「带引号 JSON 串先剥引号 + 非法值统一 DomainError 422（70002）」。潜伏根因同型：e2e/jmx 皆走 base64 JSON 形态，浏览器 multipart 出口从未被任何用例走过——补 **PLUG-001-T5**（UI 弹窗直传真实 tarball：multipart content-type 头断言 + 201/409 分支响应体断言 + 409 幂等 console 白名单显式登记 + beforeUpload 状态落定等待）。教训：**「API 形态已覆盖」≠「UI 控件路径已覆盖」，客户端序列化层缺陷只有真实浏览器出口能暴露**。
+11. **旧进程占口第三形态（回归验证期假红）**：e2e webServer `reuseExistingServer` 复用了上一会话遗留的 next-server（:3100 含旧构建），rebuild 与重跑恒 422 掩盖修复——与 §7.2-5 /tmp 陈旧副本同型的「活进程」变体，处置=清残留监听（`lsof -ti :3100`）后复跑即绿；另：基线前移（PR #9 合入 main）后本地 worktree 须 `prisma generate` + `pnpm install` 同步，否则 typecheck 假红（department 模型缺类型 / ldapts 模块缺失），与代码缺陷无关。
 
 ## 8. 测试资产映射
 
@@ -122,3 +126,4 @@
 - [x] CHANGELOG v0.8.0
 - [x] 架构文档同步（engine-execution-architecture EXEC-004 兑现标注；test-domain-model §6 门禁 3 例外登记）
 - [x] commit + push 分支 + PR #7 + 远端 CI 全绿（PR run 36461411109 七作业全绿：quality 1m28s/build 2m29s/audit/perf/迁移重放/**e2e 8m47s**/**jmx 18m45s**；PR 已合入 main，main push run 36464377799 六作业全绿 + perf 36464377613 绿，2026-09-28 18:19 合并、main 保持绿）
+- [x] 验收演示视频归档（2026-09-29）：`demo/fp-acceptance-demo.webm` + 可复跑录制脚本 `tests/demo/fp-demo-record.mjs`；演示期暴露的 S6 两处上传潜伏缺陷修复 + UI 直传回归 PLUG-001-T5 随同 PR 交付（§7 视频条目 / §7.2-10·11）

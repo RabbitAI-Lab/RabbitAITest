@@ -1,5 +1,5 @@
 /** Sprint 6 域客户端（PLUG-001/002、INTG-001/002/003、API-011、SYS-008）。路径唯一出口（门禁 4）。 */
-import { get, post, put, del } from "./client";
+import { get, post, put, del, request } from "./client";
 import type { PageOf } from "./s1";
 
 // ── PLUG-001 插件管理 ──
@@ -38,7 +38,13 @@ export const pluginApi = {
     const form = new FormData();
     form.append("file", file);
     form.append("orgScope", JSON.stringify(orgScope));
-    return post<{ id: string; manifest: unknown }>(`/api/v1/system/plugins`, form);
+    // 直连 request（FormData 须保留浏览器 multipart 边界头）——post() 会 JSON.stringify 把
+    // FormData 变字符串并强设 application/json，服务端落 JSON 分支 422「缺少 file 字段」
+    // （S6 潜伏缺陷：UI 上传按钮从未被 e2e/jmx 走过——两者皆走 base64 形态；S-future 演示录制首次暴露）
+    return request<{ id: string; manifest: unknown }>(`/api/v1/system/plugins`, {
+      method: "POST",
+      body: form,
+    });
   },
   update: (id: string, body: { enabled?: boolean; orgScope?: "ALL" | string[] }) =>
     put<{ ok: true }>(`/api/v1/system/plugins/${id}`, body),
