@@ -90,6 +90,10 @@ jobs:
           pnpm --filter @rabbit/db exec prisma migrate diff --from-schema-datamodel prisma/schema.prisma --to-url $DATABASE_URL --exit-code && echo "schema in sync"
           pnpm --filter @rabbit/db seed
           pnpm --filter @rabbit/db seed  # 幂等重跑（rules/database §6.5）
+      - name: INFRA-006 RLS 租户隔离验证
+        run: |
+          export DATABASE_URL=postgresql://postgres:postgres@localhost:5432/rabbit_ci
+          node scripts/rls-verify.mjs
 
   e2e:
     name: Playwright E2E（三类断言）

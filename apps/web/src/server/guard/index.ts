@@ -3,7 +3,7 @@ import { DomainError, ErrCode, ErrMsg, fail, ok } from "@rabbit/shared";
 import { logFor, runWithLogContext } from "@rabbit/shared/logger";
 import { getSession } from "@/lib/session";
 import { getActiveUserId } from "@/server/current-user";
-import { prisma } from "@rabbit/db";
+import { prisma, runWithTenantContext } from "@rabbit/db";
 import { permissionSetFor } from "@/server/rbac";
 import { ensureBoot } from "@/server/boot";
 import { httpIncr, httpObserve } from "@/server/metrics-counter";
@@ -317,8 +317,9 @@ export function withProjectScope<Args extends unknown[]>(
               throw new DomainError(ErrCode.PROJECT_ENDED, ErrMsg[ErrCode.PROJECT_ENDED]!);
           },
         };
+        // INFRA-006：项目作用域请求进入 RLS 租户事务（漏过滤的跨组织查询/写入由数据库层兜底）
         return await runWithLogContext({ userId, orgId: project.orgId, projectId }, () =>
-          handler(ctx, req, ...args),
+          runWithTenantContext(project.orgId, () => handler(ctx, req, ...args)),
         );
       } catch (err) {
         return toResponse(err);
@@ -401,20 +402,23 @@ export function withOrgScope<Args extends unknown[]>(
         }
         const permissions = await permissionSetFor(userId, { orgId });
         const session = await getSession();
+        // INFRA-006：组织作用域请求进入 RLS 租户事务
         return await runWithLogContext({ userId, orgId }, () =>
-          handler(
-            {
-              userId,
-              email: session.email,
-              orgId,
-              permissions,
-              requirePerm(point: string) {
-                if (!permissions.has(point))
-                  throw new DomainError(ErrCode.FORBIDDEN, `缺少权限点 ${point}`);
+          runWithTenantContext(orgId, () =>
+            handler(
+              {
+                userId,
+                email: session.email,
+                orgId,
+                permissions,
+                requirePerm(point: string) {
+                  if (!permissions.has(point))
+                    throw new DomainError(ErrCode.FORBIDDEN, `缺少权限点 ${point}`);
+                },
               },
-            },
-            req,
-            ...args,
+              req,
+              ...args,
+            ),
           ),
         );
       } catch (err) {

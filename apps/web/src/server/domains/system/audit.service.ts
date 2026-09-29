@@ -4,7 +4,7 @@
  */
 import { NextResponse } from "next/server";
 import { DomainError, ErrCode, ok, auditLogQuerySchema } from "@rabbit/shared";
-import { prisma } from "@rabbit/db";
+import { prisma, runAsAdmin } from "@rabbit/db";
 import { scheduleQueue } from "@/server/redis";
 
 type Query = ReturnType<typeof auditLogQuerySchema.parse>;
@@ -48,18 +48,21 @@ export async function flushAudit(): Promise<void> {
 }
 
 export async function directWrite(events: AuditEvent[]): Promise<void> {
-  await prisma.auditLog.createMany({
-    data: events.map((e) => ({
-      userId: e.userId,
-      scope: e.scope,
-      projectId: e.projectId ?? null,
-      action: e.action.slice(0, 64),
-      objectType: e.objectType.slice(0, 64),
-      objectId: e.objectId?.slice(0, 64) ?? null,
-      detail: (e.detail ?? undefined) as never,
-      ip: e.ip?.slice(0, 64) ?? null,
-    })),
-  });
+  // INFRA-006：审计为系统级簿记，显式走 admin 通道（免于租户事务关闭后回落/RLS 语义）
+  await runAsAdmin(() =>
+    prisma.auditLog.createMany({
+      data: events.map((e) => ({
+        userId: e.userId,
+        scope: e.scope,
+        projectId: e.projectId ?? null,
+        action: e.action.slice(0, 64),
+        objectType: e.objectType.slice(0, 64),
+        objectId: e.objectId?.slice(0, 64) ?? null,
+        detail: (e.detail ?? undefined) as never,
+        ip: e.ip?.slice(0, 64) ?? null,
+      })),
+    }),
+  );
 }
 
 // ── withAudit 包装器（声明式挂载于写路由）──
