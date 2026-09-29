@@ -1,12 +1,30 @@
 #!/usr/bin/env bash
 # rules/testing.md §2：JMeter 接口自动化执行器（CI/本地对已启动的全栈服务执行）
-# 用法：bash scripts/run-api-tests.sh [BASE_URL]   例：http://localhost:3200（jm 栈，随 worktree 槽位）
+# 用法：bash scripts/run-api-tests.sh [BASE_URL] [--shard=N/M]   例：http://localhost:3200（jm 栈，随 worktree 槽位）
+#   --shard=N/M：CI 分片并行（round-robin 取模选计划，M=2 即两 job 各跑一半）。
+#   分片安全边界：各分片必须跑在独立栈/独立 DB 上——计划间存在全局单例（license/系统参数/AI 模型
+#   默认标记）与共用种子 admin@rabbit.test，共享栈并发会互踩（审计 2026-09-29）。
 # 默认值按槽位推导（INFRA-005：RABBIT_SLOT > 目录名 RabbitAITest-s{N} > 0）；显式 env/参数仍可覆盖
 set -uo pipefail
 
 eval "$(node scripts/rabbit-env.mjs --shell)"
 
-BASE_URL="${1:-${BASE_URL:-$RABBIT_JM_WEB_URL}}"
+BASE_URL="${BASE_URL:-$RABBIT_JM_WEB_URL}"
+SHARD_N=1
+SHARD_M=1
+for arg in "$@"; do
+  case "$arg" in
+    --shard=*)
+      IFS=/ read -r SHARD_N SHARD_M <<< "${arg#--shard=}"
+      ;;
+    --*) ;;
+    *) BASE_URL="$arg" ;;
+  esac
+done
+if ! [ "$SHARD_M" -ge 1 ] 2>/dev/null || ! [ "$SHARD_N" -ge 1 ] 2>/dev/null || [ "$SHARD_N" -gt "$SHARD_M" ]; then
+  echo "invalid --shard=N/M (got N=$SHARD_N M=$SHARD_M)" >&2
+  exit 2
+fi
 HOST="$(printf '%s' "$BASE_URL" | sed -E 's|https?://||' | cut -d: -f1)"
 PORT="$(printf '%s' "$BASE_URL" | sed -nE 's|.*:([0-9]+)$|\1|p')"
 PORT="${PORT:-80}"
@@ -23,9 +41,25 @@ FAIL=0
 MOCK_BASE="${MOCK_BASE:-http://127.0.0.1:${RABBIT_JM_MOCK_PORT}/ai}" # S7 AI：jmx 内 ${__P(MOCK_BASE)} 的 mock 供应商基地址（含 /ai 前缀——mock 路由 /ai/chat/completions）
 MOCKHOST="${MOCKHOST:-127.0.0.1}"              # API-005 直打 mock 的主机/端口（多栈并存端口漂移时注入）
 MOCKPORT="${MOCKPORT:-$RABBIT_JM_MOCK_PORT}"
-for plan in tests/api/*.jmx; do
+PLANS=()
+while IFS= read -r p; do PLANS+=("$p"); done < <(ls tests/api/*.jmx | sort)
+TOTAL_PLANS="${#PLANS[@]}"
+[ "$TOTAL_PLANS" -gt 0 ] || { echo "no .jmx plans under tests/api/" >&2; exit 2; }
+SELECTED=0
+i=0
+for plan in "${PLANS[@]}"; do
+  i=$((i + 1))
+  # 分片 round-robin（1 基取模）：字母序前缀（AI/API/BUG…）均匀打散到各分片
+  if [ "$SHARD_M" -gt 1 ] && [ $(((i - 1) % SHARD_M)) -ne $((SHARD_N - 1)) ]; then
+    continue
+  fi
+  SELECTED=$((SELECTED + 1))
   name="$(basename "$plan" .jmx)"
-  echo "> $name"
+  if [ "$SHARD_M" -gt 1 ]; then
+    echo "> $name [shard $SHARD_N/$SHARD_M]"
+  else
+    echo "> $name"
+  fi
   jtl="$OUT_DIR/$name.jtl"
   rm -f "$jtl" # jtl 追加式：清场避免上一轮失败行混入本轮计数
   jmeter -n -t "$plan" \
@@ -50,9 +84,14 @@ for plan in tests/api/*.jmx; do
   fi
 done
 
+if [ "$SELECTED" -eq 0 ]; then
+  echo "shard $SHARD_N/$SHARD_M selected 0/$TOTAL_PLANS plans — 配置错误" >&2
+  exit 2
+fi
+
 if [ "$FAIL" -ne 0 ]; then
-  echo "jmeter: FAILED ($BASE_URL)"
+  echo "jmeter: FAILED ($BASE_URL, shard $SHARD_N/$SHARD_M, $SELECTED/$TOTAL_PLANS plans)"
   exit 1
 fi
-echo "jmeter: ALL PASSED ($BASE_URL)"
+echo "jmeter: ALL PASSED ($BASE_URL, shard $SHARD_N/$SHARD_M, $SELECTED/$TOTAL_PLANS plans)"
 exit 0

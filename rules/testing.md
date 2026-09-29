@@ -40,6 +40,7 @@ tests/
    - `${BASE_URL}` 与 `${TOKEN}` 全局参数化；Token 由 setup 线程组登录获取
    - 用例**自建数据、自清理**（tearDown 删除），或使用种子测试项目，禁止依赖执行顺序
 4. **执行**：`pnpm test:api`（封装 `jmeter -n -t … -l results.jtl`，CI 对本地 baseline 服务执行）；jtl 由脚本校验失败数 = 0，输出进 CI 报告。
+5. **CI 分片并行（2026-09-29 增补）**：ci.yml 的 api-test job 以 `--shard=N/2` round-robin 取模分两片并行（各分片独立栈/独立 DB），计划串行 ~6min → 各 ~3min。**分片安全边界：只准独立栈分片，禁止同栈共享并发**——计划间存在全局单例（license/系统参数/AI 模型默认标记）与共用种子 `admin@rabbit.test`，共享 DB 会互踩；计划自身仍须遵守第 3 条「禁止依赖执行顺序」（分片改变字母序执行集合）。本地默认不分片（全量计划单栈串行）。
 
 ## 3. Playwright UI 测试规范（tests/e2e/）
 

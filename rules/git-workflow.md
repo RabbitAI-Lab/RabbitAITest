@@ -45,7 +45,7 @@
 ```
 lint(oxlint) → typecheck(tsc) → unit(vitest, 含覆盖率阈值)
 → build(turbo) → migrate-replay(空库全量迁移重放 + prisma diff)
-→ api-test(JMeter, 对本地服务) → e2e(Playwright, 冒烟集)
+→ api-test(JMeter ×2 分片, 各自独立栈/独立 DB) → e2e(Playwright ×2 分片, 4 workers/片)
 → audit(pnpm audit --prod) → bundle-size(变更阈值)
 ```
 

@@ -158,6 +158,13 @@ jobs:
     name: JMeter 接口自动化
     runs-on: ubuntu-latest
     needs: build
+    # 2 分片并行（各分片独立栈/独立 DB）：70 计划串行 ~6min → 各分片 ~3min。
+    # 禁止同栈共享并发——计划间存在全局单例（license/系统参数/AI 模型默认标记）与共用种子
+    # admin@rabbit.test，共享 DB 会互踩（2026-09-29 审计）；分片内仍串行=既有口径不变
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2]
     services:
       postgres:
         image: postgres:16-alpine
@@ -232,12 +239,12 @@ jobs:
               [ "$code" = "200" ] && break; sleep 1
             done
             [ "$code" = "200" ] || { cat /tmp/web.log; exit 1; }
-            bash scripts/run-api-tests.sh $RABBIT_JM_WEB_URL
+            bash scripts/run-api-tests.sh $RABBIT_JM_WEB_URL --shard=${{ matrix.shard }}/2
           '
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: always()
         with:
-          name: jmeter-results
+          name: jmeter-results-shard${{ matrix.shard }}
           path: |
             test-results/api/
             /tmp/web.log
