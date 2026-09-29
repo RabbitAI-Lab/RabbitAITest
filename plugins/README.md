@@ -13,6 +13,11 @@
 | oracle          | driver   | DriverPlugin   | oracledb 7 thin（Oracle 官方；`:n` 绑定 + SET TRANSACTION READ ONLY）|
 | sqlserver       | driver   | DriverPlugin   | mssql 12（Microsoft 指定；@pn 绑定；无 READ ONLY 事务→白名单兜底）   |
 | dm              | driver   | DriverPlugin   | dmdb（达梦官方，纯 JS；原生 `?` 绑定 + SET TRANSACTION READ ONLY）   |
+| ssh             | protocol | SamplerPlugin  | ssh2（MIT；exec 单命令往返，exit-status 先行判定；PLUG-005）          |
+| redis           | protocol | SamplerPlugin  | ioredis（MIT；单命令+危险命令黑名单 FLUSHALL/EVAL 等；PLUG-005）      |
+| mongodb         | protocol | SamplerPlugin  | mongodb 官方驱动（Apache-2.0；ping/count/find 只读三操作；PLUG-005）   |
+| grpc            | protocol | SamplerPlugin  | grpc-js+proto-loader（Google 官方；unary 单调用，proto 动态加载；PLUG-005）|
+| amqp            | protocol | SamplerPlugin  | amqplib（MIT；临时队列自发自收往返；PLUG-005）                        |
 
 > 协议插件约定：**插件 name 必须等于协议标识**（引擎以 request.protocol 字面量查表）；默认导出工厂之外请同时导出具名 `createPlugin`（CJS bundle 经 import() 的命名空间适配，双侧加载器双层解包）。驱动插件同理：**name 必须等于 driver 标识**（engine 驱动注册表/环境数据源按 driver 字面量查表）。
 

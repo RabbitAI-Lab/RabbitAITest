@@ -52,6 +52,12 @@ const PLUGIN_TGZ_WHITELIST = new Set([
   "oracle-1.0.0.tgz",
   "sqlserver-1.0.0.tgz",
   "dm-1.0.0.tgz",
+  // PLUG-005：五家协议插件（ssh/redis/mongodb/grpc/amqp）
+  "ssh-1.0.0.tgz",
+  "redis-1.0.0.tgz",
+  "mongodb-1.0.0.tgz",
+  "grpc-1.0.0.tgz",
+  "amqp-1.0.0.tgz",
 ]);
 
 /** 白名单内读插件包 base64（防路径穿越：basename 严格匹配 + 根边界校验） */

@@ -97,10 +97,15 @@ export interface Sampler {
   run(): Promise<SamplerResult>;
 }
 
+/** 协议配置校验器（PLUG-005 放宽：zod schema 与自写守卫同构——消费面仅 safeParse().success） */
+export interface ConfigValidator {
+  safeParse(v: unknown): { success: boolean };
+}
+
 export interface SamplerPlugin {
   protocol: string; // "tcp" / "websocket" / ...
-  /** 协议配置 schema（前端动态表单与执行前校验共用） */
-  configSchema: z.ZodType<Record<string, unknown>>;
+  /** 协议配置 schema（前端动态表单与执行前校验共用；zod 与自写守卫同构——PLUG-005 §2.1） */
+  configSchema: ConfigValidator;
   buildSampler(config: unknown): Sampler;
 }
 
