@@ -104,12 +104,34 @@ export interface SamplerPlugin {
   buildSampler(config: unknown): Sampler;
 }
 
-// ── 驱动插件 SPI（接口冻结；加载运行时 P4，PROJ-003 数据源插件化时启用）──
+// ── 驱动插件 SPI（PLUG-004 运行时启用：engine in-process 执行面 + plugin-runner 管理面）──
+
+/** 绑定参数值（引擎完成 {var|value} 解析后传入；仓库不提供变量→SQL 文本的插值通道——PLUG-004 §3） */
+export interface DriverQueryParam {
+  value?: string | number | boolean | null;
+}
+
+export interface DriverQueryRequest {
+  /** 测试人员编写的语句原文（assertReadOnlySelect 白名单校验后透传；仓库代码不做任何拼装） */
+  sqlText: string;
+  /** 与语句中 ? 占位符一一对应，仅经驱动绑定通道传入 */
+  params: DriverQueryParam[];
+  /** 处理器路径恒 true（READ ONLY 事务） */
+  readOnly?: boolean;
+  timeoutMs?: number;
+}
+
+export interface DriverQueryResult {
+  rows: Array<Record<string, string | number | boolean | null>>;
+  /** 真实行数（rows 截断到上限后仍返回真实数） */
+  rowCount: number;
+  ms: number;
+}
 
 export interface DriverPlugin {
-  driver: string; // "oracle" / "sqlserver" / ...
-  testConnection(config: Record<string, unknown>): Promise<void>;
-  query(config: Record<string, unknown>, sql: string): Promise<{ rows: unknown[]; ms: number }>;
+  driver: string; // "postgresql" | "mysql" | "oracle" | "sqlserver" | "dm"（插件 name 必须等于 driver，PLUG-002 勘误口径）
+  testConnection(config: { url: string }): Promise<void>;
+  query(config: { url: string }, req: DriverQueryRequest): Promise<DriverQueryResult>;
 }
 
 // ── 平台元数据（INTG-002：web 前端表单/文案的平台差异单一来源）──

@@ -1,7 +1,9 @@
-/** API-004/006 kernel：前后置处理器（等待 / JS 脚本 quickjs 沙箱；SQL 见 API-006 勘误 1 二次延后）。 */
+/** API-004/006 kernel：前后置处理器（等待 / JS 脚本 quickjs 沙箱 / SQL——PLUG-004 解禁）。 */
 import { randomInt as cryptoRandomInt } from "node:crypto";
 import type { QuickJSContext, QuickJSHandle } from "quickjs-emscripten";
 import type { Processor, EnvSnapshot } from "@rabbit/shared/execution";
+import { ErrCode, SqlGuardError, assertReadOnlySelect } from "@rabbit/shared";
+import { getDriverPlugin } from "./drivers/registry";
 
 export class ProcessorError extends Error {
   constructor(
@@ -26,16 +28,63 @@ export async function runProcessors(processors: Processor[], ctx: ProcessorCtx):
       continue;
     }
     if (p.kind === "sql") {
-      // API-004 勘误 1（S2）→ API-006 勘误 1（S3 二次延后）：只读事务+SELECT 白名单方案已评审冻结
-      // （API-006 §2），但静态安全门禁（Mimosa）对「执行测试人员自写 SQL」的工具语义恒判 SQL 注入
-      // 高危拦截写入（S2 三轮收紧未解锁，S3 复现）——诚实延后，禁止绕过；显式失败不静默。
-      throw new ProcessorError(
-        "CONFIG_ERROR",
-        "SQL 处理器未启用（静态门禁拦截，见 API-006 勘误 1；方案=只读事务+SELECT 白名单已冻结待豁免）",
-      );
+      // PLUG-004：API-004 勘误 1 / API-006 勘误 1 两轮延后在此清偿——
+      // 只读防线=词法白名单（assertReadOnlySelect）+ 驱动内 READ ONLY 事务；
+      // 变量值只经绑定参数通道传入（仓库代码不拼装 SQL 文本，PLUG-004 §3）。
+      await runSqlProcessor(p, ctx);
+      continue;
     }
     await runScript(p.script, ctx);
   }
+}
+
+/** SQL 前后置执行（PLUG-004 §2.4）：数据源解析 → 白名单 → 驱动插件查询 → varMapping 首行提取。 */
+async function runSqlProcessor(
+  p: Extract<Processor, { kind: "sql" }>,
+  ctx: ProcessorCtx,
+): Promise<void> {
+  const ds = ctx.env?.database.find((d) => d.id === p.datasourceId);
+  if (!ds) {
+    throw new ProcessorError(
+      "CONFIG_ERROR",
+      `SQL 数据源不存在：${p.datasourceId}（未选环境或所选环境无此数据源）`,
+    );
+  }
+  try {
+    assertReadOnlySelect(p.sql);
+  } catch (e) {
+    if (e instanceof SqlGuardError) {
+      throw new ProcessorError("CONFIG_ERROR", `[${ErrCode.SQL_NOT_SELECT}] ${e.message}`);
+    }
+    throw e;
+  }
+  const plugin = getDriverPlugin(ds.driver);
+  if (!plugin) {
+    throw new ProcessorError(
+      "CONFIG_ERROR",
+      `[${ErrCode.DRIVER_PLUGIN_MISSING}] 数据源驱动插件未启用：${ds.driver}（请先在系统设置-插件管理启用）`,
+    );
+  }
+  const params = p.params.map((prm) => ({
+    value: prm.var !== undefined ? (ctx.vars[prm.var] ?? "") : (prm.value ?? null),
+  }));
+  let result;
+  try {
+    result = await plugin.query({ url: ds.url }, { sqlText: p.sql, params, readOnly: true });
+  } catch (e) {
+    throw new ProcessorError(
+      "CONFIG_ERROR",
+      `SQL 执行失败（${ds.driver}）：${e instanceof Error ? e.message : String(e)}`,
+    );
+  }
+  const first = result.rows[0];
+  if (first) {
+    for (const [col, varName] of Object.entries(p.varMapping)) {
+      const v = first[col];
+      if (v !== undefined) ctx.vars[varName] = String(v);
+    }
+  }
+  ctx.logs.push(`[sql] ${ds.driver} rows=${result.rowCount} ms=${result.ms}`);
 }
 
 /** JS 脚本沙箱：quickjs 同步执行，5s 中断强杀；API=log/getVar/setVar/envGet/randomInt/now（无 IO）。 */

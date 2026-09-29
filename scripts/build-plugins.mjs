@@ -48,6 +48,15 @@ const PLUGINS = [
     format: "cjs",
   },
   { name: "mqtt", kind: "protocol", version: "1.0.0", spiVersion: "1.0", entry: "index.js" },
+  // PLUG-004 五家数据库驱动（name=driver 标识——引擎/运行时按 driver 字面量查插件）。
+  // 驱动依赖=根 devDependencies（厂商官方 Node 驱动，npm 官方 registry——来源铁律 PLUG-004 §0）。
+  // 全部 format=cjs：五家驱动均为 CJS 包（pg/mysql2/oracledb/mssql(tedious)/dmdb），
+  // ESM bundle 的 dynamic-require 垫片不支持 require("events") 等内建——PLUG-003 勘误 5 同 pathology。
+  { name: "postgresql", kind: "driver", version: "1.0.0", spiVersion: "1.0", entry: "index.js", format: "cjs" },
+  { name: "mysql", kind: "driver", version: "1.0.0", spiVersion: "1.0", entry: "index.js", format: "cjs" },
+  { name: "oracle", kind: "driver", version: "1.0.0", spiVersion: "1.0", entry: "index.js", format: "cjs" },
+  { name: "sqlserver", kind: "driver", version: "1.0.0", spiVersion: "1.0", entry: "index.js", format: "cjs" },
+  { name: "dm", kind: "driver", version: "1.0.0", spiVersion: "1.0", entry: "index.js", format: "cjs" },
 ];
 
 const DIST = path.join(ROOT, "plugins", "dist");

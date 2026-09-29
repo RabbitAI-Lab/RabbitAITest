@@ -18,7 +18,7 @@ export const POST = withProjectScope(async (ctx, req) => {
     const parsed = datasourceTestSchema.safeParse(await req.json());
     if (!parsed.success) return unprocessable(parsed.error.issues[0]?.message);
     try {
-      const r = await testDatasource(parsed.data.url);
+      const r = await testDatasource(parsed.data.driver, parsed.data.url);
       return NextResponse.json(ok(r));
     } catch (e) {
       return NextResponse.json(

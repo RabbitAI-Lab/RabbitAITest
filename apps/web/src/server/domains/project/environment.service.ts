@@ -5,6 +5,7 @@ import { environmentConfigSchema } from "@rabbit/shared";
 import type { z } from "zod";
 import { prisma } from "@rabbit/db";
 import type { Prisma, Environment } from "@prisma/client";
+import { runnerCall } from "@/server/plugin-runner.client";
 
 type EnvConfig = z.infer<typeof environmentConfigSchema>;
 
@@ -145,18 +146,34 @@ export async function importEnvironments(
   return report;
 }
 
-/** PostgreSQL 连接测试（超时 3s；仅校验连通，不落任何数据）。 */
-export async function testDatasource(url: string): Promise<{ ok: boolean; message: string }> {
-  const pg = await import("pg").then(
-    (m) => new m.default.Client({ connectionString: url, connectionTimeoutMillis: 3000 }),
-  );
-  try {
-    await pg.connect();
-    await pg.query("SELECT 1");
-    return { ok: true, message: "连接成功" };
-  } finally {
-    await pg.end().catch(() => {});
+/** 数据源连接测试（PLUG-004：PG 内置直连；其余四家经已启用驱动插件走 plugin-runner call）。
+ *  连接失败不是 500：统一由调用方 catch 后转 {ok:false,message}。 */
+export async function testDatasource(
+  driver: "postgresql" | "mysql" | "oracle" | "sqlserver" | "dm",
+  url: string,
+): Promise<{ ok: boolean; message: string }> {
+  if (driver === "postgresql") {
+    const pg = await import("pg").then(
+      (m) => new m.default.Client({ connectionString: url, connectionTimeoutMillis: 3000 }),
+    );
+    try {
+      await pg.connect();
+      await pg.query("SELECT 1");
+      return { ok: true, message: "连接成功" };
+    } finally {
+      await pg.end().catch(() => {});
+    }
   }
+  const plugin = await prisma.plugin.findFirst({
+    where: { kind: "driver", name: driver, enabled: true },
+  });
+  if (!plugin) {
+    throw new Error(
+      `驱动插件未启用：请先在 系统设置 → 插件管理 上传并启用 ${driver} 驱动（PLUG-004）`,
+    );
+  }
+  await runnerCall(plugin.id, "testConnection", [{ url }]);
+  return { ok: true, message: "连接成功" };
 }
 
 /** 执行快照构建（任务下发时调用；engine 无 DB，全部运行时配置经此注入，API-004 §4）。 */

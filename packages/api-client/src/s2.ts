@@ -291,10 +291,10 @@ export const envApi = {
       `/api/v1/projects/${projectId}/environments/import`,
       body,
     ),
-  testDatasource: (projectId: string, url: string) =>
+  testDatasource: (projectId: string, driver: string, url: string) =>
     post<{ ok: boolean; message: string }>(
       `/api/v1/projects/${projectId}/environments/test-datasource`,
-      { url },
+      { driver, url },
     ),
 };
 

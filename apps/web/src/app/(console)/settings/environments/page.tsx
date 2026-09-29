@@ -19,6 +19,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { envApi, moduleApi, ApiError, type EnvironmentRow } from "@rabbit/api-client";
 import type { AssertSpec, AssertKind, Extractor, Processor } from "@rabbit/shared";
+import { DRIVER_META, DRIVERS } from "@rabbit/shared";
 import { PageHeader } from "@/components/PageHeader";
 import { ScriptRefPanel } from "@/components/api/ScriptRefPanel";
 import { useApp } from "@/hooks/useApp";
@@ -31,6 +32,12 @@ const uid = () =>
   typeof crypto !== "undefined" && "randomUUID" in crypto
     ? crypto.randomUUID()
     : `id-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+/** PLUG-004：五家驱动的表单元数据（label/URL 占位随 driver 切换） */
+const DRIVER_OPTIONS = DRIVERS.map((d) => ({ value: d, label: DRIVER_META[d].label }));
+const driverPlaceholder = (driver: string) =>
+  DRIVER_META[driver as (typeof DRIVERS)[number]]?.urlPlaceholder ??
+  DRIVER_META.postgresql.urlPlaceholder;
 
 const emptyConfig = (): EnvironmentRow["config"] => ({
   vars: [],
@@ -470,18 +477,16 @@ function EnvironmentsView() {
     onError: (e) => message.error(e instanceof Error ? e.message : "保存失败"),
   });
   const testDb = useMutation({
-    mutationFn: (url: string) => envApi.testDatasource(projectId!, url),
-    onSuccess: (r, url) => {
-      const ds = config.database.find((d) => d.url === url);
-      if (ds) setDbTest((prev) => ({ ...prev, [ds.id]: { ok: r.ok, message: r.message } }));
+    mutationFn: (ds: { id: string; driver: string; url: string }) =>
+      envApi.testDatasource(projectId!, ds.driver, ds.url),
+    onSuccess: (r, ds) => {
+      setDbTest((prev) => ({ ...prev, [ds.id]: { ok: r.ok, message: r.message } }));
     },
-    onError: (e, url) => {
-      const ds = config.database.find((d) => d.url === url);
-      if (ds)
-        setDbTest((prev) => ({
-          ...prev,
-          [ds.id]: { ok: false, message: e instanceof Error ? e.message : "连接失败" },
-        }));
+    onError: (e, ds) => {
+      setDbTest((prev) => ({
+        ...prev,
+        [ds.id]: { ok: false, message: e instanceof Error ? e.message : "连接失败" },
+      }));
     },
   });
 
@@ -813,19 +818,25 @@ function EnvironmentsView() {
                       value={d.name}
                       onChange={(e) => patchDb({ name: e.target.value })}
                     />
-                    <Tag color="geekblue" bordered={false}>
-                      PostgreSQL
-                    </Tag>
+                    <Select
+                      className="w-32"
+                      value={d.driver}
+                      onChange={(v) => patchDb({ driver: v })}
+                      options={DRIVER_OPTIONS}
+                      data-testid={`db-driver-select-${i + 1}`}
+                    />
                     <Input
                       className="flex-1 min-w-[260px] font-mono text-xs"
-                      placeholder="postgresql://user:pass@host:5432/db"
+                      placeholder={driverPlaceholder(d.driver)}
                       value={d.url}
                       onChange={(e) => patchDb({ url: e.target.value })}
                     />
                     <Button
                       size="small"
                       loading={testDb.isPending}
-                      onClick={() => d.url && testDb.mutate(d.url)}
+                      onClick={() =>
+                        d.url && testDb.mutate({ id: d.id, driver: d.driver, url: d.url })
+                      }
                       data-testid={`btn-db-test-${i + 1}`}
                     >
                       连接测试
@@ -870,7 +881,8 @@ function EnvironmentsView() {
               ＋ 添加数据源
             </Button>
             <p className="text-xs text-[#A8ABB0]">
-              仅支持 PostgreSQL（驱动插件化口径）；MySQL / Oracle 等驱动随插件体系支持
+              支持 PostgreSQL / MySQL / Oracle / SQL Server / 达梦 DM（PLUG-004 五家驱动；非 PG
+              须先在系统设置-插件管理启用对应驱动插件）
             </p>
           </div>
         ),

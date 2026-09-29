@@ -30,7 +30,7 @@
 | 环境变量：KV（启用勾选）、`${var}` 渲染消费；提取写回（API-004）                                | ✅    | 值加密存储（敏感变量 S6 QA-002 评估）            |
 | HTTP 域名：多条 `{名称,协议,主机,端口,路径前缀,条件(模块/路径前缀)}`；匹配优先级 路径>模块>默认 | ✅    | 域名健康检查（基线无，超出不做）                 |
 | HOST 映射：host→address 列表，执行时连接地址重定向                                              | ✅    | —                                                |
-| 数据源：PostgreSQL（名称+连接串）；SQL 前后置消费（API-004）；连接测试按钮                      | ✅    | MySQL/Oracle/SQLServer（驱动插件化 PLUG-002 后） |
+| 数据源：五家（PostgreSQL/MySQL/Oracle/SQL Server/达梦 DM）；SQL 前后置消费（API-004）；连接测试按钮 | ✅ 勘误 | 连接池化/凭据加密存储（登记）                  |
 | 全局前置/后置（脚本/SQL/等待）与全局断言：追加到该环境下每次请求                                | ✅    | 场景级前后置（S3 API-006）                       |
 | 复制环境（副本「xxx_copy」）                                                                    | ✅    | —                                                |
 | 导出（JSON 下载）/导入（同名覆盖开关，校验报告）                                                | ✅    | —                                                |
@@ -77,7 +77,7 @@
 
 ## 6. 竞品深度对标
 
-基线 §8.6 主体全覆盖；差异：①数据库四驱动→仅 PostgreSQL（驱动插件化口径）；②环境变量加密存储延后（登记）；③环境组/项目级全局参数=S5 PROJ-006（plan 目录树既定拆分）；④执行时快照注入（基线引擎直读环境表——本项目 engine 无 DB 架构决策，engine-execution-architecture §1）。
+基线 §8.6 主体全覆盖；差异：①数据库四驱动→S2 仅 PostgreSQL，**PLUG-004（2026-09-30）扩展为五家**（driver 枚举+每驱动 URL 校验+占位跟随；管理面连接测试 PG 内置直连保留、其余四家走已启用驱动插件）；②环境变量加密存储延后（登记）；③环境组/项目级全局参数=S5 PROJ-006（plan 目录树既定拆分）；④执行时快照注入（基线引擎直读环境表——本项目 engine 无 DB 架构决策，engine-execution-architecture §1）。
 
 ## 7. 里程碑与验收
 
@@ -86,3 +86,4 @@ DoD 前置：高保真人工确认。config schema 冻结（第 3 天）是 API-
 ## 8. 勘误登记
 
 - 勘误 1（2026-09-27）：环境「描述」字段未随 INFRA-003 建列（environments 表无 description），按门禁 3 不加列，S2 以名称承载辨识度；config schema 实际落位 `packages/shared/src/api/schemas.ts`（与 envSnapshot 同源，barrel 统一导出）。
+- 勘误 2（2026-09-30，PLUG-004 数据源五家）：数据源 driver 自 `literal("postgresql")` 放开为五家枚举（`DRIVERS` 单一来源），URL 按驱动 scheme 校验（superRefine）、表单占位随 driver 切换；连接测试泛化——PG 保留 web 内置 pg 直连（本规格交付语义延续、零上传可用），MySQL/Oracle/SQL Server/达梦走已启用驱动插件（plugin-runner call）；数据源凭据加密存储仍延后（本规格登记口径不变）。
