@@ -10,6 +10,7 @@ import type {
 } from "@rabbit/shared/execution";
 import type { EventWriter } from "../events.js";
 import { evaluateAsserts, classifyFailure } from "../kernel/asserts.js";
+import { classifySamplerError } from "../kernel/errors.js";
 import { runExtractors } from "../kernel/extract.js";
 import { ProcessorError, runProcessors } from "../kernel/processors.js";
 import { hostsMap, mergeGlobals, renderRequest, resolveUrl } from "../kernel/render.js";
@@ -86,11 +87,12 @@ export async function runStep(
     ...(step.iteration !== undefined ? { iteration: step.iteration } : {}),
     stepName: step.stepName ?? "",
   };
-  const log = async (level: "info" | "warn" | "error", message: string) => {
+  const log = async (level: "info" | "warn" | "error", message: string, code?: string) => {
     await writer.emit({
       type: "log",
       level,
       message,
+      ...(code ? { code } : {}), // INFRA-008：错误分类码（帧 additive 字段）
       ...(step.itemId ? { itemId: step.itemId } : {}),
       ...(step.stepPath ? { stepPath: step.stepPath } : {}),
     });
@@ -239,11 +241,17 @@ export async function runStep(
     };
   } catch (err) {
     if (err instanceof ProcessorError) {
-      await log("error", `${err.kind}：${err.message}`);
+      // INFRA-008：处理器失败映射分类码（config/script），与 failureKind 同义但可聚合
+      await log(
+        "error",
+        `${err.kind}：${err.message}`,
+        err.kind === "CONFIG_ERROR" ? "config" : "script",
+      );
       return { status: "FAILED", failureKind: err.kind, message: err.message };
     }
     const message = err instanceof Error ? err.message : String(err);
-    await log("error", `网络/配置错误：${message}`);
+    const code = classifySamplerError(err); // INFRA-008：网络类错误结构化分类（枚举=规格 §2.1）
+    await log("error", `网络错误（${code}）：${message}`, code);
     return { status: "FAILED", failureKind: "NETWORK_ERROR", message };
   }
 }

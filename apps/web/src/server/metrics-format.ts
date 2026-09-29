@@ -32,6 +32,11 @@ export function taskStatusRows(rows: Array<{ status: string; n: number }>): stri
   return rows.map((r) => `rabbit_tasks_24h{status="${escapeLabelValue(r.status)}"} ${r.n}`);
 }
 
+/** INFRA-008 采样器错误分类行：exec_items.result.errorCode 分组（枚举见规格 §2.1）。 */
+export function samplerErrorRows(rows: Array<{ code: string; n: number }>): string[] {
+  return rows.map((r) => `rabbit_sampler_errors_24h{code="${escapeLabelValue(r.code)}"} ${r.n}`);
+}
+
 /** HTTP 时延 summary 行：quantile 0.5/0.95 + 窗口 sum/count（空组跳过——不虚造 0 值）。 */
 export function httpDurationRows(
   snap: Array<{ routeGroup: string; samples: number[]; sum: number }>,

@@ -567,6 +567,8 @@ export const logFrame = z.object({
   message: z.string().max(4000),
   /** v3：log 子类（"vars-final"=场景变量终值 JSON 于 message；引擎/报告约定，additive） */
   kind: z.string().max(32).optional(),
+  /** INFRA-008：错误分类码（dns/connect/reset/tls/timeout/url/aborted/other_net/config/script——仅 level=error 步骤失败时携带；additive） */
+  code: z.string().max(32).optional(),
   stepPath: z.string().max(64).optional(),
 });
 /** v3：步骤跳过帧（disabled/condition/once/abort）——报告树灰色节点依据（API-006/RPT-003）。 */

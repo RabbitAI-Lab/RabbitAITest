@@ -59,6 +59,15 @@ Grafana：导入 `assets/rabbit-overview.grafana.json`（8 面板总览：队列
 | `rabbit_task_failures_24h` | `kind`（NETWORK_ERROR/ASSERT_FAILED/CONFIG_ERROR/SCRIPT_ERROR/UNCLASSIFIED） | 失败任务按引擎失败分类 |
 | `rabbit_false_alarm_hits_24h` | — | 误报命中数（false_alarm_hits） |
 | `rabbit_false_alarm_hit_rate_24h` | — | 误报命中率 = 命中数/失败执行项（可 >1：一项可命中多规则） |
+| `rabbit_sampler_errors_24h` | `code`（dns/connect/reset/tls/timeout/url/aborted/other_net/config/script） | 步骤/采样器执行错误按结构化分类码（INFRA-008；多条目任务的任务级 failureKind 恒 ASSERT_FAILED，步骤级网络失败原因由此可见） |
+
+### Web 进程运行时面（INFRA-008，Node 内建零依赖）
+
+| 指标 | 说明 |
+| --- | --- |
+| `rabbit_process_uptime_seconds` / `rabbit_process_cpu_seconds_total` | 进程存活时长 / 累计 CPU（user+system，重启归零） |
+| `rabbit_process_resident_memory_bytes` / `rabbit_process_heap_used_bytes` | 常驻内存 / V8 堆使用 |
+| `rabbit_process_eventloop_lag_ms` | 事件循环平均延迟（直方图读后 reset——窗口=抓取间隔） |
 
 ## 3. 告警建议（起步值）
 
@@ -71,6 +80,8 @@ Grafana：导入 `assets/rabbit-overview.grafana.json`（8 面板总览：队列
 | API P95 劣化 | `rabbit_http_request_duration_ms{quantile="0.95"} > 2000` 持续 10m | 按基线调整 |
 | 失败率异常 | `rabbit_task_failure_rate_24h > 0.3` 持续 30m | 结合业务基线 |
 | 慢查询增长 | `rate(rabbit_db_slow_queries_total[10m]) > 0.1` | DB 侧排查索引 |
+| DNS/网络故障面 | `rabbit_sampler_errors_24h{code="dns"} > 10` 持续 10m | 检查解析器/网络出口 |
+| 事件循环阻塞 | `rabbit_process_eventloop_lag_ms > 100` 持续 5m | 定位同步阻塞/事件堆积 |
 
 ## 4. 安全注意
 
@@ -79,8 +90,20 @@ Grafana：导入 `assets/rabbit-overview.grafana.json`（8 面板总览：队列
 - 抓取不落审计日志（15s 间隔高频；审计面以 key 的建立/吊销事件为准）；
 - 指标输出不含任何业务数据明细与凭据（慢查询只计数不记 SQL 文本——rules/observability §3 脱敏口径）。
 
-## 5. 已知边界（Backlog，见 INFRA-007 规格 §2.4）
+## 5. 平台组件指标（外部 exporter）
+
+应用指标之外，PostgreSQL / Redis / 宿主机指标由各自官方 exporter 提供（`docs/deployment/assets/prometheus.yml` 内附注释化抓取段，按需启用并替换 target）：
+
+| 组件 | exporter | 关注面 |
+| --- | --- | --- |
+| PostgreSQL | `prometheuscommunity/postgres_exporter` | 连接数饱和、慢查询（pg_stat_statements）、死元组、复制延迟 |
+| Redis | `oliver006/redis_exporter` | 内存碎片率、驱逐键、阻塞客户端、主从延迟 |
+| 宿主机 | `prometheus/node_exporter` | CPU/内存/磁盘/网络；与 `rabbit_process_*` 互补（进程 vs 机器） |
+
+engine / mock / plugin-runner 进程自身暂无独立指标端点（engine 状态经 web 侧池心跳与队列间接可见）——登记 Backlog。
+
+## 6. 已知边界（Backlog，见 INFRA-007/008 规格）
 
 - 租户通道（RLS tenant 客户端）查询不进慢查询计数（仅 admin 通道）；
-- 采样器级细粒度网络错误码（DNS/CONNECT/TLS/TIMEOUT）未结构化，失败分类当前到 `FailureKind` 粒度；
-- 多 web 副本部署时进程内指标（`_total`/时延/慢查询）为单副本口径，需在 Prometheus 侧按 `instance` 聚合。
+- 多 web 副本部署时进程内指标（`_total`/时延/慢查询/分位 summary）为单副本口径，且 summary 分位不可跨实例聚合——多副本前需 histogram 化；
+- engine / mock / plugin-runner 进程级指标端点未提供。

@@ -6,6 +6,7 @@
 
 ### 新增
 
+- **采样器错误码与运行时指标（INFRA-008，S10 指标面 v2.1）**：引擎新增 `classifySamplerError` 结构化分类器（十枚举：dns/connect/reset/tls/timeout/url/aborted/other_net/config/script，遍历 cause 链，任务级 failureKind 语义不变），错误 log 帧携带 additive `code` 字段，web 回调终局冗余进 `exec_items.result.errorCode`（api_debug 条目同时补齐 result 摘要）；`/system/metrics` 新增 `rabbit_sampler_errors_24h{code}`（24h 窗口）与 web 进程运行时五指标（uptime/cpu/rss/heap/eventloop_lag，Node 内建零依赖，命名对齐 client_golang 惯例）；监控文档新增平台组件 exporter 章节（postgres/redis/node exporter 抓取示例）
 - **指标面 v2：Prometheus 企业级监控对接（INFRA-007，S10）**：`GET /api/v1/system/metrics` 在 v1 最小集（队列/槽位/任务时延/HTTP 计数）上新增 6 组指标——HTTP 时延分位（按路由组，512 样本滑动窗口）、DB 慢查询计数（Prisma query 事件 ≥200ms，`RABBIT_SLOW_QUERY_MS` 可调，0 关闭）、24h 任务分布/失败率、失败分类计数（FailureKind 四类+UNCLASSIFIED）、误报命中数/命中率；队列与引擎槽位指标按池展开（label=BullMQ 队列名，覆盖 S9 多池）；新增 APIKEY 直连抓取通道（`Authorization: Bearer ak.sk`/Basic，权限仍收敛 SYSTEM_METRICS:READ，30 次/分限流），Prometheus 无需会话 Cookie 即可抓取；随仓库交付监控部署资产 `docs/deployment/`（抓取配置示例 prometheus.yml、Grafana 总览看板 JSON、告警建议与安全注意）；指标段独立降级，任一数据源故障端点仍 200
 
 ### 修复

@@ -22,3 +22,14 @@ scrape_configs:
       - targets: ["rabbit-web:3000"]
         labels:
           env: production
+
+  # ── 平台组件 exporter（按需启用：替换 target 后去注释；说明见 monitoring.md §5）──
+  # - job_name: postgres            # docker run -d -p 9187:9187 -e DATA_SOURCE_NAME=... prometheuscommunity/postgres_exporter
+  #   static_configs:
+  #     - targets: ["postgres-exporter:9187"]
+  # - job_name: redis               # docker run -d -p 9121:9121 -e REDIS_ADDR=redis://redis:6379 oliver006/redis_exporter
+  #   static_configs:
+  #     - targets: ["redis-exporter:9121"]
+  # - job_name: node                # 宿主机（与 rabbit_process_* 互补：机器 vs 进程）
+  #   static_configs:
+  #     - targets: ["node-exporter:9100"]

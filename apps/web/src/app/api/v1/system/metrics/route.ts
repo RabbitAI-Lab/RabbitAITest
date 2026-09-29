@@ -22,8 +22,10 @@ import {
   httpDurationRows,
   percentile,
   ratio,
+  samplerErrorRows,
   taskStatusRows,
 } from "@/server/metrics-format";
+import { runtimeBlock, runtimeSnapshot } from "@/server/metrics-runtime";
 import { slowQueryCount } from "@/server/metrics-db";
 
 export const runtime = "nodejs";
@@ -213,6 +215,18 @@ async function dbSection(lines: string[]): Promise<void> {
     "# TYPE rabbit_false_alarm_hit_rate_24h gauge",
     `rabbit_false_alarm_hit_rate_24h ${ratio(h, fi)}`,
   );
+
+  // INFRA-008：采样器/步骤错误分类（exec_items.result.errorCode，engine classifySamplerError）
+  const samplerErrs = await prisma
+    .$queryRawUnsafe<Array<{ code: string; n: number }>>(
+      "SELECT i.result->>'errorCode' AS code, count(*)::int AS n FROM exec_items i JOIN exec_tasks t ON t.id = i.task_id WHERE i.status = 'FAILED' AND i.result->>'errorCode' IS NOT NULL AND t.created_at > now() - interval '24 hours' GROUP BY 1",
+    )
+    .catch(() => [] as Array<{ code: string; n: number }>);
+  lines.push(
+    "# HELP rabbit_sampler_errors_24h Step/sampler execution errors in the last 24h by structured code (dns/connect/reset/tls/timeout/url/aborted/other_net/config/script; engine classifySamplerError, INFRA-008).",
+    "# TYPE rabbit_sampler_errors_24h gauge",
+    ...samplerErrorRows(samplerErrs),
+  );
 }
 
 /** 进程段：HTTP 计数（v1 不变）+ 时延分位（环形缓冲窗口）+ 慢查询计数。 */
@@ -236,6 +250,8 @@ function processSection(lines: string[]): void {
     "# TYPE rabbit_db_slow_queries_total counter",
     `rabbit_db_slow_queries_total ${slowQueryCount()}`,
   );
+  // INFRA-008：web 进程运行时（Node 内建；命名对齐 client_golang 惯例）
+  lines.push(...runtimeBlock(runtimeSnapshot()));
 }
 
 export const GET = (req: Request): Promise<NextResponse> =>
