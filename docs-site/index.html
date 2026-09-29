@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="RabbitAITest 产品文档 —— 开源一站式测试工作台（测试管理 + 接口测试 + AI）" />
+  <meta name="keywords" content="RabbitAITest,测试管理,接口测试,测试平台,开源,测试工作台" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>RabbitAITest 文档</title>
+  <link rel="icon" href="_media/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="vendor/themes/vue.css" />
+  <style>
+    /* 截图统一呈现：宽度受限 + 轻描边，可点击放大 */
+    .markdown-section img:not(.emoji) {
+      max-width: 100%;
+      border: 1px solid #e2e2e2;
+      border-radius: 6px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+  </style>
+</head>
+<body>
+  <div id="app">文档加载中，请稍候……</div>
+
+  <script>
+    window.$docsify = {
+      name: 'RabbitAITest',
+      nameLink: '/',
+      repo: 'https://github.com/RabbitAI-Lab/RabbitAITest',
+      loadSidebar: true,
+      loadNavbar: true,
+      coverpage: true,
+      maxLevel: 3,
+      subMaxLevel: 3,
+      auto2top: true,
+
+      // 嵌套路由统一使用根级 sidebar / navbar（避免逐目录 404 探测）
+      alias: {
+        '/.*/_sidebar.md': '/_sidebar.md',
+        '/.*/_navbar.md': '/_navbar.md'
+      },
+
+      // 全文搜索（中文按连续子串匹配）
+      search: {
+        placeholder: '搜索文档',
+        noData: '没有找到结果',
+        depth: 3,
+        hideOtherSidebarContent: false
+      },
+
+      // 上一页 / 下一页
+      pagination: {
+        previousText: '上一页',
+        nextText: '下一页',
+        crossChapter: true
+      },
+
+      // 代码块复制按钮
+      copyCode: {
+        buttonText: '复制',
+        errorText: '复制失败',
+        successText: '已复制'
+      },
+
+      // 图片点击放大
+      zoomImage: {
+        background: '#fff'
+      }
+    };
+  </script>
+
+  <!-- 本地内依赖（docs-site/vendor/），离线 / 内网均可访问 -->
+  <script src="vendor/docsify.min.js"></script>
+  <script src="vendor/plugins/search.min.js"></script>
+  <script src="vendor/plugins/copy-code.min.js"></script>
+  <script src="vendor/plugins/zoom-image.min.js"></script>
+  <script src="vendor/plugins/pagination.min.js"></script>
+  <script src="vendor/plugins/emoji.min.js"></script>
+
+  <!-- 语法高亮扩展语言（docsify 内建 markup/css/clike/javascript） -->
+  <script src="vendor/prism/prism-bash.min.js"></script>
+  <script src="vendor/prism/prism-json.min.js"></script>
+  <script src="vendor/prism/prism-yaml.min.js"></script>
+  <script src="vendor/prism/prism-typescript.min.js"></script>
+  <script src="vendor/prism/prism-sql.min.js"></script>
+  <script src="vendor/prism/prism-http.min.js"></script>
+  <script src="vendor/prism/prism-ini.min.js"></script>
+</body>
+</html>
