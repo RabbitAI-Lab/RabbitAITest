@@ -22,6 +22,7 @@ export const test = base.extend<{
   expectNoConsoleErrors: (whitelist?: ConsoleNoise[]) => Promise<void>;
   expectApi: (
     urlGlob: string,
+    method?: string,
   ) => Promise<{ status: number; code: number; data: unknown; body: unknown }>;
 }>({
   page: async ({ page: basePage }, use, testInfo) => {
@@ -81,9 +82,14 @@ export const test = base.extend<{
     });
   },
   expectApi: async ({ page }, use) => {
-    await use(async (urlGlob: string) => {
-      // waitForResponse 匹配本用例触发的接口（断言作用域化 rules/testing §3.5.1）
-      const res = await page.waitForResponse(urlGlob);
+    await use(async (urlGlob: string, method?: string) => {
+      // waitForResponse 匹配本用例触发的接口（断言作用域化 rules/testing §3.5.1）。
+      // method：集合 URL（同路径 GET 列表刷新与 POST 创建并存）必须钉住方法——8 workers 高压下
+      // 模块树 GET 刷新曾抢先进队被误捕（200 冒充 201，CASE-002-01/MAINFLOW-s1 CI 实证）
+      let res = await page.waitForResponse(urlGlob);
+      while (method && res.request().method() !== method) {
+        res = await page.waitForResponse(urlGlob);
+      }
       const body = (await res.json().catch(() => ({}))) as { code?: number; data?: unknown };
       return { status: res.status(), code: body.code ?? -1, data: body.data ?? null, body };
     });
