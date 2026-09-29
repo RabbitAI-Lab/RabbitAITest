@@ -6,7 +6,7 @@
 | 所属迭代     | Sprint 11 — AI CLI 与 Token 通道                                                                                                                   |
 | 优先级       | P1（迭代内）                                                                                                                                       |
 | 所属模块     | apps/cli（Go，技术栈新增——AGENTS §2 变更，同 PR 登记 tech-stack.md）                                                                               |
-| 文档状态     | Approved（2026-09-30 会话确认：脚手架选型 RabbitCLI-Bootstrap + 六处扩展清单 + 命令面；人工确认与走查按 S0 §8.1 目标授权先例后置）                  |
+| 文档状态     | Implemented（2026-09-30 交付：六处扩展+services P1+apidef 代码生成+CI Go 作业；go test 全绿（含扩展 5 例）；对生产栈冒烟（login→project use→env ls→登出吊销）全通；接口契约评审物已产出 docs/design/CLI-001-rabbit-cli/，确认后置）|
 | 最后更新日期 | 2026-09-30                                                                                                                                         |
 | 上游依赖     | SYS-009（Token 通道——auth login/refresh/revoke 对端）；packages/api-client/src/generated/openapi.json（apidef 代码生成输入）                          |
 | 下游消费     | AI Agent 会话（skills install 分发 RabbitAITest 技能）；P4 AI 深度集成                                                                               |

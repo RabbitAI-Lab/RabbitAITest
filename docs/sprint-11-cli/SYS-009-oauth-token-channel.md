@@ -6,7 +6,7 @@
 | 所属迭代     | Sprint 11 — AI CLI 与 Token 通道                                                                                                                          |
 | 优先级       | P1（迭代内）                                                                                                                                              |
 | 所属模块     | 认证（auth）+ 个人中心（personal）+ 守卫（guard）                                                                                                         |
-| 文档状态     | Approved（2026-09-30 会话设计逐项确认；按 S0 §8.1 目标授权先例，人工确认与走查后置至验收）                                                                 |
+| 文档状态     | Implemented（2026-09-30 交付：代码+单测（shared 147/web 204）+JMeter 27 采样器 0 错误+e2e 4 用例全绿；生产构建链路验证 27/27；高保真已产出，确认与走查随验收）|
 | 最后更新日期 | 2026-09-30                                                                                                                                                |
 | 上游依赖     | SYS-002 认证守卫、SYS-004 RBAC 权限集、INTG-003（APIKEY 通道先例：session 优先协商/Bearer 解析/哈希库存/审计口径）、S10 INFRA-006（RLS 租户上下文）           |
 | 下游消费     | CLI-001（rabbit CLI——auth login/refresh/revoke 的服务端对端）                                                                                             |
