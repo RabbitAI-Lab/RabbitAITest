@@ -36,8 +36,12 @@
         <p class="mx-2 px-3 py-[7px] rounded-md">成员管理</p>
         <p class="mx-2 px-3 py-[7px] rounded-md">用户组</p>
         <p class="mx-2 px-3 py-[7px] rounded-md">模板管理</p>
-        <p class="mx-2 px-3 py-[7px] rounded-md bg-[#574BFF]/10 text-[#574BFF] font-medium relative">
-          <span class="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 rounded-r bg-[#574BFF]"></span>
+        <p
+          class="mx-2 px-3 py-[7px] rounded-md bg-[#574BFF]/10 text-[#574BFF] font-medium relative"
+        >
+          <span
+            class="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 rounded-r bg-[#574BFF]"
+          ></span>
           环境管理
         </p>
         <p class="px-4 pt-3 pb-1 text-xs text-slate-400">系统设置</p>
@@ -56,12 +60,20 @@
           <span>测试环境</span>
           <span class="ml-auto flex gap-2">
             <button class="border rounded-md px-3 py-1.5">取 消</button>
-            <button class="bg-[#574BFF] text-white rounded-md px-4 py-1.5" data-testid="proto-env-save">保 存</button>
+            <button
+              class="bg-[#574BFF] text-white rounded-md px-4 py-1.5"
+              data-testid="proto-env-save"
+            >
+              保 存
+            </button>
           </span>
         </div>
         <div class="flex gap-3 items-start">
           <!-- 左：环境信息 -->
-          <div class="w-72 shrink-0 bg-white border rounded-md p-3 space-y-3" data-testid="proto-env-info">
+          <div
+            class="w-72 shrink-0 bg-white border rounded-md p-3 space-y-3"
+            data-testid="proto-env-info"
+          >
             <p class="font-medium">环境信息</p>
             <label class="block space-y-1">
               <span class="text-slate-500">名称 <span class="text-[#FF4D4F]">*</span></span>
@@ -69,48 +81,66 @@
             </label>
             <label class="block space-y-1">
               <span class="text-slate-500">描述</span>
-              <textarea class="border rounded px-2 py-1.5 w-full h-16">S2 联调环境：本地 web + mock</textarea>
+              <textarea class="border rounded px-2 py-1.5 w-full h-16">
+S2 联调环境：本地 web + mock</textarea>
             </label>
             <p class="text-xs text-slate-400 leading-5">
-              环境在任务下发时解析为<b>快照</b>注入执行命令（engine 不读环境定义）；调试 / 用例执行处经环境选择器消费（API-002/003/004）。
+              环境在任务下发时解析为<b>快照</b>注入执行命令（engine 不读环境定义）；调试 /
+              用例执行处经环境选择器消费（API-002/003/004）。
             </p>
           </div>
           <!-- 右：五区 Tab -->
           <div class="flex-1 min-w-0 bg-white border rounded-md">
             <div class="border-b px-3 flex gap-4 text-[13px] flex-wrap">
-              <span class="py-2.5 border-b-2 border-[#574BFF] text-[#574BFF] font-medium">① 变量（3）</span>
+              <span class="py-2.5 border-b-2 border-[#574BFF] text-[#574BFF] font-medium"
+                >① 变量（3）</span
+              >
               <span class="py-2.5 text-slate-500">② 域名(HTTP)（2）</span>
               <span class="py-2.5 text-slate-500">③ HOST（1）</span>
               <span class="py-2.5 text-slate-500">④ 数据源（1）</span>
               <span class="py-2.5 text-slate-500">⑤ 全局前后置与断言</span>
             </div>
-            <p class="px-3 pt-2 text-xs text-slate-400">静态原型：五个 Tab 区块依次平铺展示（实现为 Tab 切换）；五区空态均为「+ 添加」引导。</p>
+            <p class="px-3 pt-2 text-xs text-slate-400">
+              静态原型：五个 Tab 区块依次平铺展示（实现为 Tab 切换）；五区空态均为「+ 添加」引导。
+            </p>
             <div class="p-3 space-y-4">
               <!-- ① 变量 -->
               <div class="border rounded-md p-3" data-testid="proto-env-zone-vars">
                 <div class="flex items-center gap-2 mb-2">
                   <span class="font-medium text-[13px]">① 变量</span>
-                  <span class="text-xs text-slate-400">`${var}` 渲染消费 · 作用域链：临时(API-004 提取) &gt; 环境变量 &gt; 项目全局参数</span>
+                  <span class="text-xs text-slate-400"
+                    >`${var}` 渲染消费 · 作用域链：临时(API-004 提取) &gt; 环境变量 &gt;
+                    项目全局参数</span
+                  >
                   <span class="ml-auto text-xs text-[#574BFF] cursor-pointer">+ 添加</span>
                 </div>
                 <div class="space-y-1.5 text-[13px]">
                   <div class="flex gap-2 items-center">
                     <input type="checkbox" checked title="启用：执行时参与渲染" />
                     <input class="border rounded px-2 py-1 w-40" value="base" />
-                    <input class="border rounded px-2 py-1 flex-1 font-mono text-xs" value="http://127.0.0.1:4000" />
+                    <input
+                      class="border rounded px-2 py-1 flex-1 font-mono text-xs"
+                      value="http://127.0.0.1:4000"
+                    />
                     <span class="text-slate-300">✕</span>
                   </div>
                   <div class="flex gap-2 items-center">
                     <input type="checkbox" checked />
                     <input class="border rounded px-2 py-1 w-40" value="token" />
-                    <input class="border rounded px-2 py-1 flex-1 font-mono text-xs" value="eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiJ9.x8Q…" />
+                    <input
+                      class="border rounded px-2 py-1 flex-1 font-mono text-xs"
+                      value="eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiJ9.x8Q…"
+                    />
                     <span class="text-slate-300">✕</span>
                   </div>
                   <!-- 未启用态（二态示例：勾掉后不参与渲染） -->
                   <div class="flex gap-2 items-center opacity-60">
                     <input type="checkbox" />
                     <input class="border rounded px-2 py-1 w-40" value="debug" />
-                    <input class="border rounded px-2 py-1 flex-1 font-mono text-xs" value="false" />
+                    <input
+                      class="border rounded px-2 py-1 flex-1 font-mono text-xs"
+                      value="false"
+                    />
                     <span class="text-slate-300">✕</span>
                   </div>
                 </div>
@@ -120,7 +150,9 @@
               <div class="border rounded-md p-3" data-testid="proto-env-zone-http">
                 <div class="flex items-center gap-2 mb-2 flex-wrap">
                   <span class="font-medium text-[13px]">② 域名(HTTP)</span>
-                  <span class="text-xs rounded bg-slate-100 px-1.5 py-0.5 text-slate-500">相对路径匹配优先级：路径条件 &gt; 模块条件 &gt; 默认（无条件）</span>
+                  <span class="text-xs rounded bg-slate-100 px-1.5 py-0.5 text-slate-500"
+                    >相对路径匹配优先级：路径条件 &gt; 模块条件 &gt; 默认（无条件）</span
+                  >
                   <span class="ml-auto text-xs text-[#574BFF] cursor-pointer">+ 添加域名</span>
                 </div>
                 <div class="space-y-2">
@@ -128,26 +160,46 @@
                   <div class="border rounded-md p-2.5 text-[13px]">
                     <div class="flex gap-2 items-center flex-wrap">
                       <input class="border rounded px-2 py-1 w-32" value="宠物服务" />
-                      <select class="border rounded px-2 py-1 w-[88px]"><option>http</option><option>https</option></select>
-                      <input class="border rounded px-2 py-1 w-44 font-mono text-xs" value="pet-shop.internal" />
+                      <select class="border rounded px-2 py-1 w-[88px]">
+                        <option>http</option>
+                        <option>https</option>
+                      </select>
+                      <input
+                        class="border rounded px-2 py-1 w-44 font-mono text-xs"
+                        value="pet-shop.internal"
+                      />
                       <input class="border rounded px-2 py-1 w-16" value="8080" />
                       <span class="text-xs text-slate-400">路径前缀</span>
-                      <input class="border rounded px-2 py-1 w-20 font-mono text-xs" placeholder="无" />
+                      <input
+                        class="border rounded px-2 py-1 w-20 font-mono text-xs"
+                        placeholder="无"
+                      />
                       <span class="ml-auto text-slate-300">✕</span>
                     </div>
                     <div class="flex gap-2 items-center mt-1.5 text-xs flex-wrap">
                       <span class="text-slate-500">条件</span>
-                      <select class="border rounded px-2 py-1"><option>路径前缀</option><option>模块</option></select>
+                      <select class="border rounded px-2 py-1">
+                        <option>路径前缀</option>
+                        <option>模块</option>
+                      </select>
                       <input class="border rounded px-2 py-1 w-44 font-mono" value="/pets" />
-                      <span class="rounded bg-[#574BFF]/10 text-[#574BFF] px-1.5 py-0.5">条件：路径前缀 /pets</span>
+                      <span class="rounded bg-[#574BFF]/10 text-[#574BFF] px-1.5 py-0.5"
+                        >条件：路径前缀 /pets</span
+                      >
                     </div>
                   </div>
                   <!-- 卡 2：无条件默认兜底 -->
                   <div class="border rounded-md p-2.5 text-[13px]">
                     <div class="flex gap-2 items-center flex-wrap">
                       <input class="border rounded px-2 py-1 w-32" value="默认域名" />
-                      <select class="border rounded px-2 py-1 w-[88px]"><option selected>https</option><option>http</option></select>
-                      <input class="border rounded px-2 py-1 w-44 font-mono text-xs" value="api.example.com" />
+                      <select class="border rounded px-2 py-1 w-[88px]">
+                        <option selected>https</option>
+                        <option>http</option>
+                      </select>
+                      <input
+                        class="border rounded px-2 py-1 w-44 font-mono text-xs"
+                        value="api.example.com"
+                      />
                       <input class="border rounded px-2 py-1 w-16" value="443" />
                       <span class="text-xs text-slate-400">路径前缀</span>
                       <input class="border rounded px-2 py-1 w-20 font-mono text-xs" value="/" />
@@ -155,9 +207,17 @@
                     </div>
                     <div class="flex gap-2 items-center mt-1.5 text-xs flex-wrap">
                       <span class="text-slate-500">条件</span>
-                      <select class="border rounded px-2 py-1 bg-slate-50 text-slate-400"><option>无（默认）</option></select>
-                      <input class="border rounded px-2 py-1 w-44 font-mono bg-slate-50" disabled placeholder="—" />
-                      <span class="rounded bg-slate-100 text-slate-500 px-1.5 py-0.5">无条件 · 默认兜底</span>
+                      <select class="border rounded px-2 py-1 bg-slate-50 text-slate-400">
+                        <option>无（默认）</option>
+                      </select>
+                      <input
+                        class="border rounded px-2 py-1 w-44 font-mono bg-slate-50"
+                        disabled
+                        placeholder="—"
+                      />
+                      <span class="rounded bg-slate-100 text-slate-500 px-1.5 py-0.5"
+                        >无条件 · 默认兜底</span
+                      >
                     </div>
                   </div>
                 </div>
@@ -167,7 +227,9 @@
               <div class="border rounded-md p-3" data-testid="proto-env-zone-hosts">
                 <div class="flex items-center gap-2 mb-2">
                   <span class="font-medium text-[13px]">③ HOST</span>
-                  <span class="text-xs text-slate-400">host → address 映射，执行时连接地址重定向</span>
+                  <span class="text-xs text-slate-400"
+                    >host → address 映射，执行时连接地址重定向</span
+                  >
                   <span class="ml-auto text-xs text-[#574BFF] cursor-pointer">+ 添加</span>
                 </div>
                 <table class="w-full text-[13px]">
@@ -181,15 +243,35 @@
                   </thead>
                   <tbody>
                     <tr class="border-b">
-                      <td class="px-3 py-1.5"><input class="border rounded px-2 py-1 w-52 font-mono text-xs" value="127.0.0.1" /></td>
+                      <td class="px-3 py-1.5">
+                        <input
+                          class="border rounded px-2 py-1 w-52 font-mono text-xs"
+                          value="127.0.0.1"
+                        />
+                      </td>
                       <td class="text-center text-slate-400">→</td>
-                      <td class="px-3 py-1.5"><input class="border rounded px-2 py-1 w-52 font-mono text-xs" value="10.0.0.5" /></td>
+                      <td class="px-3 py-1.5">
+                        <input
+                          class="border rounded px-2 py-1 w-52 font-mono text-xs"
+                          value="10.0.0.5"
+                        />
+                      </td>
                       <td class="px-3 py-1.5 text-slate-300 text-center">✕</td>
                     </tr>
                     <tr>
-                      <td class="px-3 py-1.5"><input class="border rounded px-2 py-1 w-52 font-mono text-xs" value="pet-shop.internal" /></td>
+                      <td class="px-3 py-1.5">
+                        <input
+                          class="border rounded px-2 py-1 w-52 font-mono text-xs"
+                          value="pet-shop.internal"
+                        />
+                      </td>
                       <td class="text-center text-slate-400">→</td>
-                      <td class="px-3 py-1.5"><input class="border rounded px-2 py-1 w-52 font-mono text-xs" value="127.0.0.1" /></td>
+                      <td class="px-3 py-1.5">
+                        <input
+                          class="border rounded px-2 py-1 w-52 font-mono text-xs"
+                          value="127.0.0.1"
+                        />
+                      </td>
                       <td class="px-3 py-1.5 text-slate-300 text-center">✕</td>
                     </tr>
                   </tbody>
@@ -200,50 +282,85 @@
               <div class="border rounded-md p-3" data-testid="proto-env-zone-db">
                 <div class="flex items-center gap-2 mb-2">
                   <span class="font-medium text-[13px]">④ 数据源</span>
-                  <span class="text-xs text-slate-400">SQL 前后置消费（API-004）· url 白名单 scheme：postgresql://</span>
+                  <span class="text-xs text-slate-400"
+                    >SQL 前后置消费（API-004）· url 白名单 scheme：postgresql://</span
+                  >
                   <span class="ml-auto text-xs text-[#574BFF] cursor-pointer">+ 添加数据源</span>
                 </div>
                 <div class="border rounded-md p-2.5 text-[13px]">
                   <div class="flex gap-2 items-center flex-wrap">
                     <input class="border rounded px-2 py-1 w-32" value="pet-db" />
-                    <span class="border rounded px-2 py-0.5 text-xs text-sky-700 bg-sky-50">🐘 PostgreSQL</span>
-                    <input class="border rounded px-2 py-1 flex-1 min-w-[260px] font-mono text-xs" value="postgresql://rabbit:••••@127.0.0.1:5432/petshop" />
-                    <button class="border rounded-md px-3 py-1" data-testid="proto-env-db-test">连接测试</button>
+                    <span class="border rounded px-2 py-0.5 text-xs text-sky-700 bg-sky-50"
+                      >🐘 PostgreSQL</span
+                    >
+                    <input
+                      class="border rounded px-2 py-1 flex-1 min-w-[260px] font-mono text-xs"
+                      value="postgresql://rabbit:••••@127.0.0.1:5432/petshop"
+                    />
+                    <button class="border rounded-md px-3 py-1" data-testid="proto-env-db-test">
+                      连接测试
+                    </button>
                     <span class="text-slate-300">✕</span>
                   </div>
                   <!-- 连接测试成功态（二态示例：失败态为红字 ✕ 连接失败 · 原因） -->
-                  <p class="text-xs text-green-600 mt-1.5" data-testid="proto-env-db-ok">✓ 连接成功 · 38ms · 2026-09-27 10:12（仅测试连通性，不落库）</p>
+                  <p class="text-xs text-green-600 mt-1.5" data-testid="proto-env-db-ok">
+                    ✓ 连接成功 · 38ms · 2026-09-27 10:12（仅测试连通性，不落库）
+                  </p>
                 </div>
-                <p class="text-xs text-slate-400 mt-1.5">MySQL / Oracle / SQLServer 等驱动随插件体系支持（PLUG-002 后接入）</p>
+                <p class="text-xs text-slate-400 mt-1.5">
+                  MySQL / Oracle / SQLServer 等驱动随插件体系支持（PLUG-002 后接入）
+                </p>
               </div>
 
               <!-- ⑤ 全局前后置与断言 -->
               <div class="border rounded-md p-3 space-y-3" data-testid="proto-env-zone-global">
                 <div class="flex items-center gap-2 flex-wrap">
                   <span class="font-medium text-[13px]">⑤ 全局前后置与断言</span>
-                  <span class="text-xs text-slate-400">追加到该环境下每次请求 · 处理器编辑器复用 API-004 组件</span>
-                  <span class="ml-auto flex gap-3 text-xs text-[#574BFF]"><span class="cursor-pointer">+ 前置处理器</span><span class="cursor-pointer">+ 断言</span><span class="cursor-pointer">+ 提取</span></span>
+                  <span class="text-xs text-slate-400"
+                    >追加到该环境下每次请求 · 处理器编辑器复用 API-004 组件</span
+                  >
+                  <span class="ml-auto flex gap-3 text-xs text-[#574BFF]"
+                    ><span class="cursor-pointer">+ 前置处理器</span
+                    ><span class="cursor-pointer">+ 断言</span
+                    ><span class="cursor-pointer">+ 提取</span></span
+                  >
                 </div>
                 <div>
                   <p class="text-slate-500 mb-1">前置处理器（按序执行，可拖拽排序）</p>
                   <div class="border rounded divide-y text-[13px]">
                     <div class="flex items-center gap-2 px-2.5 py-1.5">
                       <span class="text-slate-300">⋮⋮</span>
-                      <span class="border rounded px-1.5 py-0.5 text-xs bg-indigo-50 text-indigo-600">脚本</span>
+                      <span
+                        class="border rounded px-1.5 py-0.5 text-xs bg-indigo-50 text-indigo-600"
+                        >脚本</span
+                      >
                       <span>鉴权脚本（生成 token 写临时变量）</span>
-                      <span class="ml-auto text-slate-400 text-xs space-x-2"><span class="cursor-pointer">编辑</span><span class="cursor-pointer text-[#FF4D4F]">删除</span></span>
+                      <span class="ml-auto text-slate-400 text-xs space-x-2"
+                        ><span class="cursor-pointer">编辑</span
+                        ><span class="cursor-pointer text-[#FF4D4F]">删除</span></span
+                      >
                     </div>
                     <div class="flex items-center gap-2 px-2.5 py-1.5">
                       <span class="text-slate-300">⋮⋮</span>
-                      <span class="border rounded px-1.5 py-0.5 text-xs bg-sky-50 text-sky-600">SQL</span>
+                      <span class="border rounded px-1.5 py-0.5 text-xs bg-sky-50 text-sky-600"
+                        >SQL</span
+                      >
                       <span>预热订单数据（数据源 pet-db）</span>
-                      <span class="ml-auto text-slate-400 text-xs space-x-2"><span class="cursor-pointer">编辑</span><span class="cursor-pointer text-[#FF4D4F]">删除</span></span>
+                      <span class="ml-auto text-slate-400 text-xs space-x-2"
+                        ><span class="cursor-pointer">编辑</span
+                        ><span class="cursor-pointer text-[#FF4D4F]">删除</span></span
+                      >
                     </div>
                     <div class="flex items-center gap-2 px-2.5 py-1.5">
                       <span class="text-slate-300">⋮⋮</span>
-                      <span class="border rounded px-1.5 py-0.5 text-xs bg-amber-50 text-amber-600">等待</span>
+                      <span class="border rounded px-1.5 py-0.5 text-xs bg-amber-50 text-amber-600"
+                        >等待</span
+                      >
                       <span>等待 500ms（服务预热）</span>
-                      <span class="ml-auto text-slate-400 text-xs space-x-2"><span class="cursor-pointer">编辑</span><span class="cursor-pointer text-[#FF4D4F]">删除</span></span>
+                      <span class="ml-auto text-slate-400 text-xs space-x-2"
+                        ><span class="cursor-pointer">编辑</span
+                        ><span class="cursor-pointer text-[#FF4D4F]">删除</span></span
+                      >
                     </div>
                   </div>
                 </div>
@@ -260,15 +377,46 @@
                     </thead>
                     <tbody>
                       <tr class="border-b">
-                        <td class="px-3 py-1.5"><select class="border rounded px-2 py-1 w-40"><option>状态码</option></select></td>
-                        <td class="px-3 py-1.5"><select class="border rounded px-2 py-1 w-full"><option>eq</option><option>ne</option><option>gt</option></select></td>
-                        <td class="px-3 py-1.5"><input class="border rounded px-2 py-1 w-32 font-mono text-xs" value="200" /></td>
+                        <td class="px-3 py-1.5">
+                          <select class="border rounded px-2 py-1 w-40">
+                            <option>状态码</option>
+                          </select>
+                        </td>
+                        <td class="px-3 py-1.5">
+                          <select class="border rounded px-2 py-1 w-full">
+                            <option>eq</option>
+                            <option>ne</option>
+                            <option>gt</option>
+                          </select>
+                        </td>
+                        <td class="px-3 py-1.5">
+                          <input
+                            class="border rounded px-2 py-1 w-32 font-mono text-xs"
+                            value="200"
+                          />
+                        </td>
                         <td class="px-3 py-1.5 text-slate-300 text-center">✕</td>
                       </tr>
                       <tr>
-                        <td class="px-3 py-1.5"><select class="border rounded px-2 py-1 w-40"><option>JSONPath</option></select></td>
-                        <td class="px-3 py-1.5"><select class="border rounded px-2 py-1 w-full"><option selected>eq</option></select></td>
-                        <td class="px-3 py-1.5 flex gap-2 items-center"><input class="border rounded px-2 py-1 w-32 font-mono text-xs" value="$.code" /><input class="border rounded px-2 py-1 w-20 font-mono text-xs" value="0" /></td>
+                        <td class="px-3 py-1.5">
+                          <select class="border rounded px-2 py-1 w-40">
+                            <option>JSONPath</option>
+                          </select>
+                        </td>
+                        <td class="px-3 py-1.5">
+                          <select class="border rounded px-2 py-1 w-full">
+                            <option selected>eq</option>
+                          </select>
+                        </td>
+                        <td class="px-3 py-1.5 flex gap-2 items-center">
+                          <input
+                            class="border rounded px-2 py-1 w-32 font-mono text-xs"
+                            value="$.code"
+                          /><input
+                            class="border rounded px-2 py-1 w-20 font-mono text-xs"
+                            value="0"
+                          />
+                        </td>
                         <td class="px-3 py-1.5 text-slate-300 text-center">✕</td>
                       </tr>
                     </tbody>
@@ -278,9 +426,18 @@
                   <p class="text-slate-500 mb-1">全局提取（写回变量，供后续请求 `${var}` 消费）</p>
                   <div class="flex gap-2 items-center text-[13px] flex-wrap">
                     <input class="border rounded px-2 py-1 w-28" value="traceId" />
-                    <select class="border rounded px-2 py-1"><option>JSONPath</option><option>正则</option><option>Header</option></select>
-                    <input class="border rounded px-2 py-1 flex-1 min-w-[220px] font-mono text-xs" value="$.data.traceId" />
-                    <span class="text-xs text-slate-400">作用域：临时（环境变量写回在 API-004 提取口径）</span>
+                    <select class="border rounded px-2 py-1">
+                      <option>JSONPath</option>
+                      <option>正则</option>
+                      <option>Header</option>
+                    </select>
+                    <input
+                      class="border rounded px-2 py-1 flex-1 min-w-[220px] font-mono text-xs"
+                      value="$.data.traceId"
+                    />
+                    <span class="text-xs text-slate-400"
+                      >作用域：临时（环境变量写回在 API-004 提取口径）</span
+                    >
                     <span class="text-slate-300">✕</span>
                   </div>
                 </div>

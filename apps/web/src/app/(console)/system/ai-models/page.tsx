@@ -1,13 +1,21 @@
 "use client";
 
-import { Button, Empty, Form, Input, Modal, Popconfirm, Select, Skeleton, Switch, Tag, message } from "antd";
+import {
+  Button,
+  Empty,
+  Form,
+  Input,
+  Modal,
+  Popconfirm,
+  Select,
+  Skeleton,
+  Switch,
+  Tag,
+  message,
+} from "antd";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import {
-  AI_PROVIDER_DEFAULT_BASEURL,
-  AI_PROVIDERS,
-  type AiProvider,
-} from "@rabbit/shared";
+import { AI_PROVIDER_DEFAULT_BASEURL, AI_PROVIDERS, type AiProvider } from "@rabbit/shared";
 import {
   createAiModel,
   deleteAiModel,
@@ -20,8 +28,16 @@ import {
 import { PageHeader } from "@/components/PageHeader";
 import { usePermissions } from "@/hooks/usePermissions";
 
-const PROVIDER_LABEL: Record<string, string> = { deepseek: "DeepSeek", openai: "OpenAI", zhipu: "智谱 AI" };
-const PROVIDER_COLOR: Record<string, string> = { deepseek: "purple", openai: "emerald", zhipu: "blue" };
+const PROVIDER_LABEL: Record<string, string> = {
+  deepseek: "DeepSeek",
+  openai: "OpenAI",
+  zhipu: "智谱 AI",
+};
+const PROVIDER_COLOR: Record<string, string> = {
+  deepseek: "purple",
+  openai: "emerald",
+  zhipu: "blue",
+};
 
 interface FormValues {
   name: string;
@@ -49,13 +65,23 @@ export default function AiModelsPage() {
   const openCreate = () => {
     setEditing(null);
     form.resetFields();
-    form.setFieldsValue({ provider: "zhipu", baseUrl: AI_PROVIDER_DEFAULT_BASEURL.zhipu, enabled: true });
+    form.setFieldsValue({
+      provider: "zhipu",
+      baseUrl: AI_PROVIDER_DEFAULT_BASEURL.zhipu,
+      enabled: true,
+    });
     setOpen(true);
   };
   const openEdit = (row: AiModelRow) => {
     setEditing(row);
     form.resetFields();
-    form.setFieldsValue({ name: row.name, provider: row.provider as AiProvider, baseUrl: row.baseUrl, model: row.model, enabled: row.enabled });
+    form.setFieldsValue({
+      name: row.name,
+      provider: row.provider as AiProvider,
+      baseUrl: row.baseUrl,
+      model: row.model,
+      enabled: row.enabled,
+    });
     setOpen(true);
   };
 
@@ -114,13 +140,22 @@ export default function AiModelsPage() {
       {isLoading ? (
         <Skeleton active paragraph={{ rows: 6 }} />
       ) : !data || data.list.length === 0 ? (
-        <Empty description="尚无模型——用例生成与 AI 助手需至少一台启用模型" data-testid="ai-model-empty" />
+        <Empty
+          description="尚无模型——用例生成与 AI 助手需至少一台启用模型"
+          data-testid="ai-model-empty"
+        />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3" data-testid="ai-model-list">
           {data.list.map((m) => (
-            <div key={m.id} data-testid={`ai-model-card-${m.name}`} className="border rounded-lg p-4 space-y-2">
+            <div
+              key={m.id}
+              data-testid={`ai-model-card-${m.name}`}
+              className="border rounded-lg p-4 space-y-2"
+            >
               <div className="flex items-center gap-2">
-                <Tag color={PROVIDER_COLOR[m.provider]}>{PROVIDER_LABEL[m.provider] ?? m.provider}</Tag>
+                <Tag color={PROVIDER_COLOR[m.provider]}>
+                  {PROVIDER_LABEL[m.provider] ?? m.provider}
+                </Tag>
                 <span className="font-medium">{m.name}</span>
                 {m.isDefault && (
                   <span className="text-amber-500 text-xs" title="默认模型">
@@ -132,16 +167,23 @@ export default function AiModelsPage() {
                     size="small"
                     checked={m.enabled}
                     disabled={!canUpdate}
-                    onChange={(checked) => save.mutate({ name: m.name, provider: m.provider as AiProvider, baseUrl: m.baseUrl, model: m.model, apiKey: undefined, enabled: checked })}
+                    onChange={(checked) =>
+                      save.mutate({
+                        name: m.name,
+                        provider: m.provider as AiProvider,
+                        baseUrl: m.baseUrl,
+                        model: m.model,
+                        apiKey: undefined,
+                        enabled: checked,
+                      })
+                    }
                   />
                 </span>
               </div>
               <p className="font-mono text-xs text-slate-500 break-all">
                 {m.model} · {m.baseUrl}
               </p>
-              <p className="text-xs text-slate-400">
-                API Key：{m.apiKeyMasked}（AES-GCM 加密）
-              </p>
+              <p className="text-xs text-slate-400">API Key：{m.apiKeyMasked}（AES-GCM 加密）</p>
               <div className="flex items-center gap-3 text-xs pt-1">
                 {canUpdate && (
                   <>
@@ -149,7 +191,10 @@ export default function AiModelsPage() {
                       {testingId === m.id ? "测试中…" : "测试"}
                     </a>
                     {!m.isDefault && (
-                      <a onClick={() => setDefault.mutate(m.id)} data-testid={`ai-model-default-${m.name}`}>
+                      <a
+                        onClick={() => setDefault.mutate(m.id)}
+                        data-testid={`ai-model-default-${m.name}`}
+                      >
                         设为默认
                       </a>
                     )}
@@ -157,7 +202,12 @@ export default function AiModelsPage() {
                   </>
                 )}
                 {canDelete && (
-                  <Popconfirm title="确认删除该模型？" okText="删除" okButtonProps={{ danger: true }} onConfirm={() => remove.mutate(m.id)}>
+                  <Popconfirm
+                    title="确认删除该模型？"
+                    okText="删除"
+                    okButtonProps={{ danger: true }}
+                    onConfirm={() => remove.mutate(m.id)}
+                  >
                     <a className="text-red-500">删除</a>
                   </Popconfirm>
                 )}
@@ -175,29 +225,55 @@ export default function AiModelsPage() {
         destroyOnClose
       >
         <Form form={form} layout="vertical" className="pt-2">
-          <Form.Item name="name" label="名称" rules={[{ required: true, message: "名称必填" }, { max: 64 }]}>
+          <Form.Item
+            name="name"
+            label="名称"
+            rules={[{ required: true, message: "名称必填" }, { max: 64 }]}
+          >
             <Input placeholder="如：主力生成模型" data-testid="ai-model-form-name" />
           </Form.Item>
           <Form.Item name="provider" label="供应商" rules={[{ required: true }]}>
             <Select
               options={AI_PROVIDERS.map((p) => ({ value: p, label: PROVIDER_LABEL[p] }))}
-              onChange={(p: AiProvider) => form.setFieldValue("baseUrl", AI_PROVIDER_DEFAULT_BASEURL[p])}
+              onChange={(p: AiProvider) =>
+                form.setFieldValue("baseUrl", AI_PROVIDER_DEFAULT_BASEURL[p])
+              }
               data-testid="ai-model-form-provider"
             />
           </Form.Item>
-          <Form.Item name="baseUrl" label="BaseUrl" rules={[{ required: true, message: "BaseUrl 必填" }, { type: "url", message: "合法 URL" }]}>
+          <Form.Item
+            name="baseUrl"
+            label="BaseUrl"
+            rules={[
+              { required: true, message: "BaseUrl 必填" },
+              { type: "url", message: "合法 URL" },
+            ]}
+          >
             <Input placeholder="https://…" data-testid="ai-model-form-baseurl" />
           </Form.Item>
-          <Form.Item name="model" label="模型名" rules={[{ required: true, message: "模型名必填" }]}>
-            <Input placeholder="glm-4.6 / deepseek-chat / gpt-4o" data-testid="ai-model-form-model" />
+          <Form.Item
+            name="model"
+            label="模型名"
+            rules={[{ required: true, message: "模型名必填" }]}
+          >
+            <Input
+              placeholder="glm-4.6 / deepseek-chat / gpt-4o"
+              data-testid="ai-model-form-model"
+            />
           </Form.Item>
           <Form.Item
             name="apiKey"
             label="API Key"
             rules={editing ? [] : [{ required: true, message: "API Key 必填" }]}
-            extra={editing ? "留空=不修改（密文不回显）" : "AES-256-GCM 加密存储；任何响应只回显掩码"}
+            extra={
+              editing ? "留空=不修改（密文不回显）" : "AES-256-GCM 加密存储；任何响应只回显掩码"
+            }
           >
-            <Input.Password placeholder={editing ? "sk-****（留空不改）" : "sk-…"} autoComplete="new-password" data-testid="ai-model-form-apikey" />
+            <Input.Password
+              placeholder={editing ? "sk-****（留空不改）" : "sk-…"}
+              autoComplete="new-password"
+              data-testid="ai-model-form-apikey"
+            />
           </Form.Item>
           <Form.Item name="enabled" label="启用" valuePropName="checked">
             <Switch />

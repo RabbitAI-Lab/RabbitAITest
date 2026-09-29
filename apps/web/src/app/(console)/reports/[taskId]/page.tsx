@@ -4,17 +4,17 @@ import { Button, Input, Modal, Popconfirm, Radio, Tag, Tooltip } from "antd";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import {
-  ApiError,
-  reportV2Api,
-  streamExecFrames,
-  taskApi,
-} from "@rabbit/api-client";
+import { ApiError, reportV2Api, streamExecFrames, taskApi } from "@rabbit/api-client";
 import type { EventFrame } from "@rabbit/shared";
 import { useApp } from "@/hooks/useApp";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useProjectStore } from "@/stores/project";
-import { DebugSingleView, REPORT_STATUS_META, ReportItemsTable, ReportSummaryCards } from "@/components/report/ReportViewPanels";
+import {
+  DebugSingleView,
+  REPORT_STATUS_META,
+  ReportItemsTable,
+  ReportSummaryCards,
+} from "@/components/report/ReportViewPanels";
 import { ScenarioReportView, ScenarioSummaryCards } from "@/components/report/ScenarioReportPanels";
 
 /** RPT-002/RPT-003：报告详情——api_case（统计三卡 + item 表 + 步骤钻取）/ scenario（五卡含误报 + 步骤树 + 变量）/ api_debug（S0 单请求布局保留）。
@@ -90,6 +90,21 @@ export default function ReportPage() {
     onError: (e) => message.error(e instanceof Error ? e.message : "删除失败"),
   });
 
+  // INFRA-004：失败任务排障包直下（成功任务不渲染按钮——规格 §3 三态）
+  const pack = useMutation({
+    mutationFn: () => reportV2Api.troubleshootPack(projectId!, taskId),
+    onSuccess: ({ blob, filename }) => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+      message.success(`排障包已生成（${filename}）`);
+    },
+    onError: (e) => message.error(e instanceof Error ? e.message : "排障包生成失败"),
+  });
+
   if (!projectId) {
     return <div className="rabbit-card p-16 text-center text-[#A8ABB0]">请先选择项目</div>;
   }
@@ -102,10 +117,7 @@ export default function ReportPage() {
       {/* 头部：返回链接 + 名称 + 状态徽标 + 类型 + 操作（重跑/分享/返回列表/删除） */}
       <div className="rabbit-card p-3 flex items-center gap-3 flex-wrap">
         {data.type === "api_debug" ? (
-          <a
-            className="text-[13px] text-[#87888D] hover:text-[#574BFF] no-underline"
-            href="/debug"
-          >
+          <a className="text-[13px] text-[#87888D] hover:text-[#574BFF] no-underline" href="/debug">
             ‹ 返回调试
           </a>
         ) : (
@@ -141,7 +153,13 @@ export default function ReportPage() {
         )}
         <span className="ml-auto flex items-center gap-2">
           {rerunnable && (
-            <Tooltip title={canRerun ? "复用原任务配置发起新执行，跳转新报告" : "缺少 PROJECT_EXEC_TASK:UPDATE 权限"}>
+            <Tooltip
+              title={
+                canRerun
+                  ? "复用原任务配置发起新执行，跳转新报告"
+                  : "缺少 PROJECT_EXEC_TASK:UPDATE 权限"
+              }
+            >
               <Button
                 loading={rerun.isPending}
                 disabled={!canRerun}
@@ -156,6 +174,17 @@ export default function ReportPage() {
             <Button onClick={() => setShareOpen(true)} data-testid="btn-share-report">
               分 享
             </Button>
+          )}
+          {status === "FAILED" && (
+            <Tooltip title="聚合任务定义与事件流末 50 帧的排障快照（JSON 直下）">
+              <Button
+                loading={pack.isPending}
+                onClick={() => pack.mutate()}
+                data-testid="btn-troubleshoot-pack"
+              >
+                排障包
+              </Button>
+            </Tooltip>
           )}
           <Button onClick={() => router.push("/reports")} data-testid="btn-back-reports">
             返回列表
@@ -183,7 +212,10 @@ export default function ReportPage() {
           {/* item 表 + 步骤钻取 */}
           <ReportItemsTable projectId={projectId} taskId={taskId} items={data.items} />
           {data.message && status === "FAILED" && (
-            <div className="rabbit-card p-3 text-[13px] text-[#FF4D4F]" data-testid="report-failure-message">
+            <div
+              className="rabbit-card p-3 text-[13px] text-[#FF4D4F]"
+              data-testid="report-failure-message"
+            >
               失败信息：{data.message}
             </div>
           )}
@@ -194,7 +226,10 @@ export default function ReportPage() {
           <ScenarioSummaryCards summary={data.summary} durationMs={data.durationMs} />
           <ScenarioReportView projectId={projectId} detail={data} />
           {data.message && status === "FAILED" && (
-            <div className="rabbit-card p-3 text-[13px] text-[#FF4D4F]" data-testid="report-failure-message">
+            <div
+              className="rabbit-card p-3 text-[13px] text-[#FF4D4F]"
+              data-testid="report-failure-message"
+            >
               失败信息：{data.message}
             </div>
           )}
@@ -278,7 +313,14 @@ function ShareModal({
   };
 
   return (
-    <Modal title="分享报告" open={open} onCancel={onClose} footer={null} width={680} destroyOnHidden>
+    <Modal
+      title="分享报告"
+      open={open}
+      onCancel={onClose}
+      footer={null}
+      width={680}
+      destroyOnHidden
+    >
       <div className="space-y-3" data-testid="share-report-modal">
         <div className="flex items-center gap-3">
           <span className="text-[13px] text-[#646A73]">有效期</span>
@@ -352,7 +394,8 @@ function ShareModal({
           )}
         </div>
         <p className="text-xs text-[#A8ABB0] m-0">
-          撤销 / 过期 / 不存在的 token 访问免登页统一呈现「分享链接已过期或不存在」空态；密码保护与可导出为 S3 RPT-003 范围。
+          撤销 / 过期 / 不存在的 token
+          访问免登页统一呈现「分享链接已过期或不存在」空态；密码保护与可导出为 S3 RPT-003 范围。
         </p>
       </div>
     </Modal>

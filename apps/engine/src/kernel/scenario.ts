@@ -51,7 +51,10 @@ function stepBundleOf(node: ScenarioStepNode): StepBundle {
   const raw = (node.config as { bundle?: unknown }).bundle;
   const parsed = stepBundleSchema.safeParse(raw ?? {});
   if (!parsed.success) {
-    throw new ProcessorError("CONFIG_ERROR", `步骤「${node.name}」请求配置无效（${node.stepType}）`);
+    throw new ProcessorError(
+      "CONFIG_ERROR",
+      `步骤「${node.name}」请求配置无效（${node.stepType}）`,
+    );
   }
   return parsed.data;
 }
@@ -61,7 +64,10 @@ interface StepOverride {
   pre: Processor[];
   post: Processor[];
   extracts: Extractor[];
-  params: { constants: { name: string; value: string }[]; lists: { name: string; values: string[] }[] };
+  params: {
+    constants: { name: string; value: string }[];
+    lists: { name: string; values: string[] }[];
+  };
   onFailure?: "continue" | "abort";
 }
 
@@ -73,7 +79,10 @@ function overrideOf(node: ScenarioStepNode): StepOverride | null {
     pre?: Processor[];
     post?: Processor[];
     extracts?: Extractor[];
-    params?: { constants?: { name: string; value: string }[]; lists?: { name: string; values: string[] }[] };
+    params?: {
+      constants?: { name: string; value: string }[];
+      lists?: { name: string; values: string[] }[];
+    };
     onFailure?: "continue" | "abort";
   };
   return {
@@ -95,7 +104,14 @@ function loopConfigOf(node: ScenarioStepNode): LoopConfig {
 }
 
 /** 作用域链合并（渲染单表）：temp > 步骤参数 > 场景参数（常量+列表当前值+CSV 当前 row）> 环境变量。 */
-function mergedVars(deps: ScenarioDeps, item: ScenarioItemCommand, stepParams?: { constants: { name: string; value: string }[]; lists: { name: string; values: string[] }[] }): Record<string, string> {
+function mergedVars(
+  deps: ScenarioDeps,
+  item: ScenarioItemCommand,
+  stepParams?: {
+    constants: { name: string; value: string }[];
+    lists: { name: string; values: string[] }[];
+  },
+): Record<string, string> {
   const vars: Record<string, string> = { ...(deps.env?.vars ?? {}) };
   for (const c of item.params.constants) vars[c.name] = c.value;
   for (const l of item.params.lists) if (l.values.length > 0) vars[l.name] = l.values[0] ?? "";
@@ -108,7 +124,10 @@ function mergedVars(deps: ScenarioDeps, item: ScenarioItemCommand, stepParams?: 
 }
 
 /** 场景 item 执行：item-start → 场景前置 → 步骤树 → 场景变量断言 → 场景后置 → vars-final → item-final。 */
-export async function runScenarioItem(deps: ScenarioDeps, item: ScenarioItemCommand): Promise<ScenarioItemOutcome> {
+export async function runScenarioItem(
+  deps: ScenarioDeps,
+  item: ScenarioItemCommand,
+): Promise<ScenarioItemOutcome> {
   const { redis, writer } = deps;
   const cookieJar = item.settings.cookieMode === "keep" ? new Map<string, string>() : undefined;
   const state: WalkState = { aborted: false, stopped: false, failed: false, onceDone: new Set() };
@@ -122,18 +141,26 @@ export async function runScenarioItem(deps: ScenarioDeps, item: ScenarioItemComm
     const preCtx = { vars: mergedVars(deps, item), env: deps.env, logs: [] as string[] };
     await runProcessors(item.pre, preCtx);
     Object.assign(deps.tempVars, preCtx.vars);
-    for (const l of preCtx.logs) await writer.emit({ type: "log", level: "info", message: l, itemId: item.itemId });
+    for (const l of preCtx.logs)
+      await writer.emit({ type: "log", level: "info", message: l, itemId: item.itemId });
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
-    await writer.emit({ type: "log", level: "error", message: `场景前置失败：${message}`, itemId: item.itemId });
+    await writer.emit({
+      type: "log",
+      level: "error",
+      message: `场景前置失败：${message}`,
+      itemId: item.itemId,
+    });
     failure = { kind: e instanceof ProcessorError ? e.kind : "CONFIG_ERROR", message };
   }
 
   if (!failure) {
     await walkNodes(item.steps, "0", item, deps, state, cookieJar, undefined);
     if (state.stopped) failure = { message: "任务被停止" };
-    else if (state.aborted) failure = { kind: "ASSERT_FAILED", message: "步骤失败（失败规则=停止）" };
-    else if (state.failed) failure = { kind: "ASSERT_FAILED", message: "存在失败步骤（失败规则=忽略继续）" };
+    else if (state.aborted)
+      failure = { kind: "ASSERT_FAILED", message: "步骤失败（失败规则=停止）" };
+    else if (state.failed)
+      failure = { kind: "ASSERT_FAILED", message: "存在失败步骤（失败规则=忽略继续）" };
   }
 
   // 场景变量断言（kind=variable 对 tempVars 终值）
@@ -165,11 +192,18 @@ export async function runScenarioItem(deps: ScenarioDeps, item: ScenarioItemComm
     const postCtx = { vars: mergedVars(deps, item), env: deps.env, logs: [] as string[] };
     await runProcessors(item.post, postCtx);
     Object.assign(deps.tempVars, postCtx.vars);
-    for (const l of postCtx.logs) await writer.emit({ type: "log", level: "info", message: l, itemId: item.itemId });
+    for (const l of postCtx.logs)
+      await writer.emit({ type: "log", level: "info", message: l, itemId: item.itemId });
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
-    await writer.emit({ type: "log", level: "error", message: `场景后置失败：${message}`, itemId: item.itemId });
-    if (!failure) failure = { kind: e instanceof ProcessorError ? e.kind : "CONFIG_ERROR", message };
+    await writer.emit({
+      type: "log",
+      level: "error",
+      message: `场景后置失败：${message}`,
+      itemId: item.itemId,
+    });
+    if (!failure)
+      failure = { kind: e instanceof ProcessorError ? e.kind : "CONFIG_ERROR", message };
   }
 
   // vars-final：变量终值（temp 终值 + 场景参数来源合并视图，RPT-003 变量 Tab）
@@ -182,14 +216,22 @@ export async function runScenarioItem(deps: ScenarioDeps, item: ScenarioItemComm
     message: JSON.stringify(varsFinal),
   });
 
-  const status: ScenarioItemOutcome["status"] = state.stopped ? "STOPPED" : failure ? "FAILED" : "SUCCESS";
+  const status: ScenarioItemOutcome["status"] = state.stopped
+    ? "STOPPED"
+    : failure
+      ? "FAILED"
+      : "SUCCESS";
   await writer.emit({
     type: "item-final",
     itemId: item.itemId,
     status,
     message: failure?.message ?? "",
   });
-  return { status, ...(failure?.kind ? { failureKind: failure.kind } : {}), message: failure?.message ?? "" };
+  return {
+    status,
+    ...(failure?.kind ? { failureKind: failure.kind } : {}),
+    message: failure?.message ?? "",
+  };
 }
 
 /** 停止检查（item 边界与控制器边界）。 */
@@ -227,7 +269,13 @@ async function walkNodes(
       continue;
     }
     if (!node.enabled) {
-      await writer.emit({ type: "step-skip", itemId: item.itemId, stepPath, stepName: node.name, reason: "disabled" });
+      await writer.emit({
+        type: "step-skip",
+        itemId: item.itemId,
+        stepPath,
+        stepName: node.name,
+        reason: "disabled",
+      });
       continue;
     }
 
@@ -259,7 +307,13 @@ async function walkNodes(
             await runProcessors([{ kind: "script", script: config.script ?? "" }], procCtx);
             Object.assign(deps.tempVars, procCtx.vars);
             for (const l of procCtx.logs) {
-              await writer.emit({ type: "log", level: "info", message: l, itemId: item.itemId, stepPath });
+              await writer.emit({
+                type: "log",
+                level: "info",
+                message: l,
+                itemId: item.itemId,
+                stepPath,
+              });
             }
             await writer.emit({
               type: "step-op",
@@ -315,7 +369,11 @@ async function walkNodes(
           const condVars = mergedVars(deps, item);
           let truthy: boolean;
           try {
-            truthy = await evalCondition(config.expression ?? "true", { vars: condVars, env: deps.env, logs: [] });
+            truthy = await evalCondition(config.expression ?? "true", {
+              vars: condVars,
+              env: deps.env,
+              logs: [],
+            });
           } catch (e) {
             const message = e instanceof Error ? e.message : String(e);
             await writer.emit({
@@ -330,13 +388,25 @@ async function walkNodes(
           if (truthy) {
             await walkNodes(node.children, stepPath, item, deps, state, cookieJar, iteration);
           } else {
-            await writer.emit({ type: "step-skip", itemId: item.itemId, stepPath, stepName: node.name, reason: "condition" });
+            await writer.emit({
+              type: "step-skip",
+              itemId: item.itemId,
+              stepPath,
+              stepName: node.name,
+              reason: "condition",
+            });
           }
           break;
         }
         case "once": {
           if (state.onceDone.has(node.uid)) {
-            await writer.emit({ type: "step-skip", itemId: item.itemId, stepPath, stepName: node.name, reason: "once" });
+            await writer.emit({
+              type: "step-skip",
+              itemId: item.itemId,
+              stepPath,
+              stepName: node.name,
+              reason: "once",
+            });
           } else {
             state.onceDone.add(node.uid);
             await walkNodes(node.children, stepPath, item, deps, state, cookieJar, iteration);
@@ -347,11 +417,23 @@ async function walkNodes(
     } catch (e) {
       // 控制器级异常（配置无效等）：等同步骤失败
       const message = e instanceof Error ? e.message : String(e);
-      await writer.emit({ type: "log", level: "error", message: `步骤「${node.name}」异常：${message}`, itemId: item.itemId, stepPath });
+      await writer.emit({
+        type: "log",
+        level: "error",
+        message: `步骤「${node.name}」异常：${message}`,
+        itemId: item.itemId,
+        stepPath,
+      });
       applyFailure(node, item, state);
     }
     // 思考时间：顶层步骤间等待（迭代内不加）
-    if (iteration === undefined && item.settings.thinkTimeMs > 0 && i < nodes.length - 1 && !state.aborted && !state.stopped) {
+    if (
+      iteration === undefined &&
+      item.settings.thinkTimeMs > 0 &&
+      i < nodes.length - 1 &&
+      !state.aborted &&
+      !state.stopped
+    ) {
       await new Promise((r) => setTimeout(r, item.settings.thinkTimeMs));
     }
   }
@@ -405,7 +487,14 @@ async function runRequestNode(
       }
     }
   }
-  const outcome: StepOutcome = await runStep(deps.redis, deps.writer, deps.env, deps.tempVars, step, deps.envVarUpdates);
+  const outcome: StepOutcome = await runStep(
+    deps.redis,
+    deps.writer,
+    deps.env,
+    deps.tempVars,
+    step,
+    deps.envVarUpdates,
+  );
   // 步骤参数还原：仅当该键仍是本步骤写入的值（提取写回同名时保留提取值）
   if (stepParams) {
     const restore = (key: string, written: string) => {

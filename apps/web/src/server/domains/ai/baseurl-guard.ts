@@ -26,7 +26,13 @@ function ipIsForbidden(ip: string): boolean {
   }
   const lower = ip.toLowerCase();
   if (lower === "::" || lower === "::1") return true;
-  if (lower.startsWith("fe8") || lower.startsWith("fe9") || lower.startsWith("fea") || lower.startsWith("feb")) return true; // fe80::/10 链路本地
+  if (
+    lower.startsWith("fe8") ||
+    lower.startsWith("fe9") ||
+    lower.startsWith("fea") ||
+    lower.startsWith("feb")
+  )
+    return true; // fe80::/10 链路本地
   if (lower.startsWith("fc") || lower.startsWith("fd")) return true; // fc00::/7 ULA
   if (lower.startsWith("ff")) return true; // 组播
   return false;
@@ -36,7 +42,10 @@ function assertIp(ip: string): void {
   // 测试栈开关只豁免环回（mock 供应商）；私网/元数据始终拦截
   if (process.env.AI_ALLOW_PRIVATE_BASEURL === "1" && ipIsLoopback(ip)) return;
   if (ipIsForbidden(ip)) {
-    throw new DomainError(ErrCode.AI_BASEURL_FORBIDDEN, `BaseUrl 指向受限地址 ${ip}（内网/环回/云元数据段被拒绝）`);
+    throw new DomainError(
+      ErrCode.AI_BASEURL_FORBIDDEN,
+      `BaseUrl 指向受限地址 ${ip}（内网/环回/云元数据段被拒绝）`,
+    );
   }
 }
 

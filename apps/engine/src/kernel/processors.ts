@@ -54,7 +54,10 @@ export async function runScript(script: string, ctx: ProcessorCtx): Promise<void
   };
   try {
     const globals = context.global;
-    const define = (name: string, fn: (c: QuickJSContext, args: QuickJSHandle[]) => QuickJSHandle | undefined) => {
+    const define = (
+      name: string,
+      fn: (c: QuickJSContext, args: QuickJSHandle[]) => QuickJSHandle | undefined,
+    ) => {
       const f = context.newFunction(name, (...args) => fn(context, args));
       context.setProp(globals, name, f);
       f.dispose();
@@ -96,7 +99,10 @@ export async function runScript(script: string, ctx: ProcessorCtx): Promise<void
     result.value.dispose();
   } catch (e) {
     if (e instanceof ProcessorError) throw e;
-    throw new ProcessorError("SCRIPT_ERROR", `脚本引擎异常：${e instanceof Error ? e.message : String(e)}`);
+    throw new ProcessorError(
+      "SCRIPT_ERROR",
+      `脚本引擎异常：${e instanceof Error ? e.message : String(e)}`,
+    );
   } finally {
     context.dispose();
     runtime.dispose();
@@ -113,7 +119,10 @@ export async function evalCondition(expression: string, ctx: ProcessorCtx): Prom
   runtime.setInterruptHandler(() => Date.now() > deadline);
   try {
     const globals = context.global;
-    const define = (name: string, fn: (c: QuickJSContext, args: QuickJSHandle[]) => QuickJSHandle | undefined) => {
+    const define = (
+      name: string,
+      fn: (c: QuickJSContext, args: QuickJSHandle[]) => QuickJSHandle | undefined,
+    ) => {
       const f = context.newFunction(name, (...args) => fn(context, args));
       context.setProp(globals, name, f);
       f.dispose();

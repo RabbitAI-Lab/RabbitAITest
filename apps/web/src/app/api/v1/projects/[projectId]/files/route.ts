@@ -14,9 +14,7 @@ const unprocessable = (message?: string) =>
 export const GET = withProjectScope(async (ctx, req) => {
   try {
     ctx.requirePerm("PROJECT_FILE:READ");
-    const parsed = fileListQuerySchema.safeParse(
-      Object.fromEntries(new URL(req.url).searchParams),
-    );
+    const parsed = fileListQuerySchema.safeParse(Object.fromEntries(new URL(req.url).searchParams));
     if (!parsed.success) return unprocessable(parsed.error.issues[0]?.message);
     return NextResponse.json(ok(await listFiles(ctx.projectId, parsed.data)));
   } catch (err) {

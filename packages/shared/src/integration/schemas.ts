@@ -65,9 +65,15 @@ export const platformSyncSaveSchema = z.object({
   platform: z.enum(PLATFORMS),
   projectKey: z.string().min(1).max(128),
   /** 本地缺陷类型 → 平台缺陷类型（如 功能缺陷 → Bug） */
-  bugTypes: z.array(z.object({ local: z.string().min(1).max(64), platform: z.string().min(1).max(64) })).max(20).default([]),
+  bugTypes: z
+    .array(z.object({ local: z.string().min(1).max(64), platform: z.string().min(1).max(64) }))
+    .max(20)
+    .default([]),
   /** 平台状态 → 本地工作流状态 serial（覆盖默认映射） */
-  statusMapping: z.array(z.object({ platform: z.string().min(1).max(64), local: z.string().min(1).max(64) })).max(30).default([]),
+  statusMapping: z
+    .array(z.object({ platform: z.string().min(1).max(64), local: z.string().min(1).max(64) }))
+    .max(30)
+    .default([]),
   mode: z.enum(["INCREMENT", "FULL"]).default("INCREMENT"),
   cron: z.string().max(64).nullable().optional(),
   enabled: z.boolean().default(false),

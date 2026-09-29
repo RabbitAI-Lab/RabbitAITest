@@ -2,7 +2,12 @@
 import { DomainError, ErrCode } from "@rabbit/shared";
 import type { z } from "zod";
 import type { ScenarioStepNode } from "@rabbit/shared/execution";
-import { scenarioListQuerySchema, scenarioSaveSchema, scenarioStepsSaveSchema, scenarioBatchOpSchema } from "@rabbit/shared";
+import {
+  scenarioListQuerySchema,
+  scenarioSaveSchema,
+  scenarioStepsSaveSchema,
+  scenarioBatchOpSchema,
+} from "@rabbit/shared";
 import { nextNum, prisma } from "@rabbit/db";
 
 type SaveInput = z.infer<typeof scenarioSaveSchema>;
@@ -11,7 +16,9 @@ type StepsInput = z.infer<typeof scenarioStepsSaveSchema>;
 type BatchInput = z.infer<typeof scenarioBatchOpSchema>;
 
 async function getScenario(projectId: string, id: string, includeDeleted = false) {
-  const s = await prisma.scenario.findFirst({ where: { id, projectId, ...(includeDeleted ? {} : { deletedAt: null }) } });
+  const s = await prisma.scenario.findFirst({
+    where: { id, projectId, ...(includeDeleted ? {} : { deletedAt: null }) },
+  });
   if (!s) throw new DomainError(ErrCode.SCENARIO_NOT_FOUND, "场景不存在或已删除");
   return s;
 }
@@ -33,12 +40,19 @@ export async function listScenarios(projectId: string, query: ListQuery) {
   // 模块子树展开（includeChildren）
   let moduleIds: string[] | undefined;
   if (query.moduleId) {
-    const all = await prisma.moduleNode.findMany({ where: { projectId, scene: "scenario" }, select: { id: true, parentId: true } });
+    const all = await prisma.moduleNode.findMany({
+      where: { projectId, scene: "scenario" },
+      select: { id: true, parentId: true },
+    });
     const want = new Set<string>([query.moduleId]);
     let grew = true;
     while (grew) {
       grew = false;
-      for (const n of all) if (n.parentId && want.has(n.parentId) && !want.has(n.id)) { want.add(n.id); grew = true; }
+      for (const n of all)
+        if (n.parentId && want.has(n.parentId) && !want.has(n.id)) {
+          want.add(n.id);
+          grew = true;
+        }
     }
     moduleIds = [...want];
   }
@@ -46,7 +60,14 @@ export async function listScenarios(projectId: string, query: ListQuery) {
     projectId,
     deletedAt: query.recycle ? { not: null } : null,
     ...(moduleIds ? { moduleId: { in: moduleIds } } : {}),
-    ...(query.keyword ? { OR: [{ name: { contains: query.keyword, mode: "insensitive" as const } }, { num: Number(query.keyword) || -1 }] } : {}),
+    ...(query.keyword
+      ? {
+          OR: [
+            { name: { contains: query.keyword, mode: "insensitive" as const } },
+            { num: Number(query.keyword) || -1 },
+          ],
+        }
+      : {}),
     ...(query.level ? { level: query.level } : {}),
     ...(query.status ? { status: query.status } : {}),
     ...(query.tag ? { tags: { array_contains: [query.tag] } } : {}),
@@ -57,7 +78,21 @@ export async function listScenarios(projectId: string, query: ListQuery) {
     orderBy: { createdAt: "desc" },
     skip: (query.page - 1) * query.pageSize,
     take: query.pageSize,
-    select: { id: true, num: true, name: true, level: true, status: true, tags: true, moduleId: true, version: true, deletedAt: true, createdBy: true, createdAt: true, updatedAt: true, _count: { select: { steps: true } } },
+    select: {
+      id: true,
+      num: true,
+      name: true,
+      level: true,
+      status: true,
+      tags: true,
+      moduleId: true,
+      version: true,
+      deletedAt: true,
+      createdBy: true,
+      createdAt: true,
+      updatedAt: true,
+      _count: { select: { steps: true } },
+    },
   });
   // 最近执行（ExecItem refType=scenario）
   const ids = rows.map((r) => r.id);
@@ -67,7 +102,9 @@ export async function listScenarios(projectId: string, query: ListQuery) {
     orderBy: { finishedAt: "desc" },
   });
   const latest = new Map<string, { status: string; finishedAt: Date | null }>();
-  for (const it of items) if (!latest.has(it.refId)) latest.set(it.refId, { status: it.status, finishedAt: it.finishedAt });
+  for (const it of items)
+    if (!latest.has(it.refId))
+      latest.set(it.refId, { status: it.status, finishedAt: it.finishedAt });
   return {
     total,
     page: query.page,
@@ -93,7 +130,10 @@ export async function listScenarios(projectId: string, query: ListQuery) {
 
 export async function getScenarioDetail(projectId: string, id: string) {
   const s = await getScenario(projectId, id, true);
-  const steps = await prisma.scenarioStep.findMany({ where: { scenarioId: id }, orderBy: { order: "asc" } });
+  const steps = await prisma.scenarioStep.findMany({
+    where: { scenarioId: id },
+    orderBy: { order: "asc" },
+  });
   const byParent = new Map<string | null, typeof steps>();
   for (const st of steps) {
     const key = st.parentId;
@@ -150,9 +190,15 @@ export async function createScenario(projectId: string, userId: string, input: S
   return { id: s.id, num: s.num };
 }
 
-export async function updateScenario(projectId: string, userId: string, id: string, input: SaveInput) {
+export async function updateScenario(
+  projectId: string,
+  userId: string,
+  id: string,
+  input: SaveInput,
+) {
   const s = await getScenario(projectId, id);
-  if (s.version !== input.version) throw new DomainError(ErrCode.VERSION_CONFLICT, "场景已被他人修改，请刷新后重试");
+  if (s.version !== input.version)
+    throw new DomainError(ErrCode.VERSION_CONFLICT, "场景已被他人修改，请刷新后重试");
   const before = { name: s.name, level: s.level, config: s.config };
   await prisma.scenario.update({
     where: { id },
@@ -166,20 +212,37 @@ export async function updateScenario(projectId: string, userId: string, id: stri
       version: s.version + 1,
     },
   });
-  await appendChangeLog(id, "update", {
-    name: before.name !== input.name ? `${before.name} → ${input.name}` : undefined,
-    config: JSON.stringify(before.config) !== JSON.stringify(input.config) ? "配置区变更" : undefined,
-  }, userId);
+  await appendChangeLog(
+    id,
+    "update",
+    {
+      name: before.name !== input.name ? `${before.name} → ${input.name}` : undefined,
+      config:
+        JSON.stringify(before.config) !== JSON.stringify(input.config) ? "配置区变更" : undefined,
+    },
+    userId,
+  );
   return { id, version: s.version + 1 };
 }
 
 /** 步骤树整存（全删重建；version 乐观锁）。uid=前端稳定键直接作为 ScenarioStep.id。 */
 export async function saveSteps(projectId: string, userId: string, id: string, input: StepsInput) {
   const s = await getScenario(projectId, id);
-  if (s.version !== input.version) throw new DomainError(ErrCode.VERSION_CONFLICT, "场景已被他人修改，请刷新后重试");
+  if (s.version !== input.version)
+    throw new DomainError(ErrCode.VERSION_CONFLICT, "场景已被他人修改，请刷新后重试");
   // 循环引用检测（ref_scenario 深度≤5）
   await assertNoCircularRef(projectId, id, input.steps, 0, new Set([id]));
-  const rows: { id: string; scenarioId: string; parentId: string | null; stepType: string; refId: string | null; name: string; config: object; enabled: boolean; order: number }[] = [];
+  const rows: {
+    id: string;
+    scenarioId: string;
+    parentId: string | null;
+    stepType: string;
+    refId: string | null;
+    name: string;
+    config: object;
+    enabled: boolean;
+    order: number;
+  }[] = [];
   // 主键服务端生成：前端 uid 只是树键（作全局主键会与其它场景同名 uid 冲突 P2002，
   // 且历史数据已存在——全删重建天然换新 id，树形经 parentId=父新 id 重建）
   const walk = (nodes: ScenarioStepNode[], parentId: string | null) => {
@@ -210,18 +273,35 @@ export async function saveSteps(projectId: string, userId: string, id: string, i
 }
 
 /** 场景引用循环检测：ref_scenario 目标链回到自身 → 40476。 */
-async function assertNoCircularRef(projectId: string, selfId: string, steps: ScenarioStepNode[], depth: number, seen: Set<string>) {
+async function assertNoCircularRef(
+  projectId: string,
+  selfId: string,
+  steps: ScenarioStepNode[],
+  depth: number,
+  seen: Set<string>,
+) {
   if (depth > 5) throw new DomainError(ErrCode.SCENARIO_CIRCULAR_REF, "场景引用链深度超限（≤5）");
   for (const n of steps) {
     if (n.stepType === "ref_scenario") {
       const refId = (n.config as { refId?: string }).refId;
       if (!refId) continue;
-      if (refId === selfId || seen.has(refId)) throw new DomainError(ErrCode.SCENARIO_CIRCULAR_REF, "场景引用形成循环");
-      const target = await prisma.scenario.findFirst({ where: { id: refId, projectId }, select: { steps: { select: { id: true, stepType: true, config: true } } } });
+      if (refId === selfId || seen.has(refId))
+        throw new DomainError(ErrCode.SCENARIO_CIRCULAR_REF, "场景引用形成循环");
+      const target = await prisma.scenario.findFirst({
+        where: { id: refId, projectId },
+        select: { steps: { select: { id: true, stepType: true, config: true } } },
+      });
       if (!target) throw new DomainError(ErrCode.SCENARIO_NOT_FOUND, `被引用场景 ${refId} 不存在`);
       const childSteps = target.steps
         .filter((st) => st.stepType === "ref_scenario")
-        .map((st) => ({ uid: st.id, stepType: "ref_scenario" as const, name: "", enabled: true, config: (st.config as Record<string, unknown>) ?? {}, children: [] }));
+        .map((st) => ({
+          uid: st.id,
+          stepType: "ref_scenario" as const,
+          name: "",
+          enabled: true,
+          config: (st.config as Record<string, unknown>) ?? {},
+          children: [],
+        }));
       const nextSeen = new Set(seen);
       nextSeen.add(refId);
       await assertNoCircularRef(projectId, selfId, childSteps, depth + 1, nextSeen);
@@ -259,7 +339,17 @@ export async function copyScenario(projectId: string, userId: string, id: string
   const steps = await prisma.scenarioStep.findMany({ where: { scenarioId: id } });
   const num = await nextNum(prisma, "scenarios", projectId);
   const created = await prisma.scenario.create({
-    data: { projectId, moduleId: s.moduleId, num, name: `${s.name}-copy`, level: s.level, status: s.status, tags: (s.tags ?? []) as never, config: (s.config ?? {}) as never, createdBy: userId },
+    data: {
+      projectId,
+      moduleId: s.moduleId,
+      num,
+      name: `${s.name}-copy`,
+      level: s.level,
+      status: s.status,
+      tags: (s.tags ?? []) as never,
+      config: (s.config ?? {}) as never,
+      createdBy: userId,
+    },
   });
   // 步骤树复制（新 id 映射）
   const idMap = new Map<string, string>();
@@ -282,14 +372,20 @@ export async function copyScenario(projectId: string, userId: string, id: string
 }
 
 export async function batchDelete(projectId: string, userId: string, input: BatchInput) {
-  const r = await prisma.scenario.updateMany({ where: { id: { in: input.ids }, projectId, deletedAt: null }, data: { deletedAt: new Date() } });
+  const r = await prisma.scenario.updateMany({
+    where: { id: { in: input.ids }, projectId, deletedAt: null },
+    data: { deletedAt: new Date() },
+  });
   for (const id of input.ids) await appendChangeLog(id, "delete", { batch: true }, userId);
   return { count: r.count };
 }
 
 export async function batchMove(projectId: string, input: BatchInput) {
   if (!input.moduleId) throw new DomainError(ErrCode.VALIDATION_FAILED, "目标模块必填");
-  const r = await prisma.scenario.updateMany({ where: { id: { in: input.ids }, projectId, deletedAt: null }, data: { moduleId: input.moduleId } });
+  const r = await prisma.scenario.updateMany({
+    where: { id: { in: input.ids }, projectId, deletedAt: null },
+    data: { moduleId: input.moduleId },
+  });
   return { count: r.count };
 }
 
@@ -306,7 +402,15 @@ export async function scenarioHistory(projectId: string, id: string) {
     where: { refType: "scenario", refId: id, task: { projectId } },
     orderBy: { finishedAt: "desc" },
     take: 50,
-    select: { id: true, status: true, result: true, startedAt: true, finishedAt: true, taskId: true, task: { select: { id: true, status: true, type: true, createdAt: true } } },
+    select: {
+      id: true,
+      status: true,
+      result: true,
+      startedAt: true,
+      finishedAt: true,
+      taskId: true,
+      task: { select: { id: true, status: true, type: true, createdAt: true } },
+    },
   });
   return items.map((it) => ({
     itemId: it.id,
@@ -326,7 +430,21 @@ export async function scenarioChanges(projectId: string, id: string) {
     where: { entityType: "scenario", entityId: id },
     orderBy: { seq: "desc" },
     take: 50,
-    select: { seq: true, action: true, diff: true, createdAt: true, user: { select: { name: true } } },
+    select: {
+      seq: true,
+      action: true,
+      diff: true,
+      createdAt: true,
+      user: { select: { name: true } },
+    },
   });
-  return { items: logs.map((l) => ({ seq: l.seq, action: l.action, diff: l.diff, user: l.user?.name ?? "", createdAt: l.createdAt.toISOString() })) };
+  return {
+    items: logs.map((l) => ({
+      seq: l.seq,
+      action: l.action,
+      diff: l.diff,
+      user: l.user?.name ?? "",
+      createdAt: l.createdAt.toISOString(),
+    })),
+  };
 }

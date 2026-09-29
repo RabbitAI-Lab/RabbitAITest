@@ -213,9 +213,8 @@ test("DASH-001-03 待办：待我评审与我的计划执行（出现→处理�
   expect(judgeRes.status()).toBe(200);
   // 处理②：API 标记计划执行 PASS → 我的执行 -1
   const planDetail = await request.get(`/api/v1/projects/${projectId}/plans/${planId}`);
-  const refId = (
-    (await planDetail.json()) as { data: { cases: { refId: string }[] } }
-  ).data.cases[0].refId;
+  const refId = ((await planDetail.json()) as { data: { cases: { refId: string }[] } }).data
+    .cases[0].refId;
   const execRes = await request.post(
     `/api/v1/projects/${projectId}/plans/${planId}/cases/${refId}/exec`,
     { data: { status: "PASS" } },

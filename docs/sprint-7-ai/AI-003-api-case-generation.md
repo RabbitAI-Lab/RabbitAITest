@@ -1,20 +1,20 @@
 # 接口用例 AI 生成（单条按定义 · OpenAPI 批量）
 
-| 元信息项     | 内容                                                                                                        |
-| ------------ | ----------------------------------------------------------------------------------------------------------- |
-| 文档编号     | AI-003                                                                                                      |
-| 所属迭代     | Sprint 7 — AI 能力                                                                                          |
-| 优先级       | P2（AI 主能力之一）                                                                                         |
-| 所属模块     | ai 域 + api_test 域（只读消费 ApiDefinition，经 API-003 创建端点导入）                                       |
-| 文档状态     | Implemented（2026-09-27 交付）                                                                              |
-| 最后更新日期 | 2026-09-27                                                                                                  |
-| 上游依赖     | AI-001（模型网关）、API-002（接口定义/OpenAPI 解析器）、API-003（接口用例创建端点）、AI-005（提示词模板）     |
-| 下游消费     | 无硬下游                                                                                                    |
-| 上游依据     | 需求文档 §六；功能清单 §4.4「AI 生成用例（单条按 API 信息+提示词；批量按 Swagger/OpenAPI 文档生成多条）」     |
-| 对标基线     | 功能清单 §4.4（接口测试域 AI 生成）；§十 版本对比「支持 AI 生成接口用例」两版均支持                          |
-| 关联架构文档 | test-domain-model.md §2.8；api-conventions.md §3                                                            |
-| 高保真确认   | 待确认（原型 docs/design/AI-003-api-case-generation/）                                                       |
-| 工作量估算   | 后端 2.5 人日 / 前端 2 人日                                                                                  |
+| 元信息项     | 内容                                                                                                      |
+| ------------ | --------------------------------------------------------------------------------------------------------- |
+| 文档编号     | AI-003                                                                                                    |
+| 所属迭代     | Sprint 7 — AI 能力                                                                                        |
+| 优先级       | P2（AI 主能力之一）                                                                                       |
+| 所属模块     | ai 域 + api_test 域（只读消费 ApiDefinition，经 API-003 创建端点导入）                                    |
+| 文档状态     | Implemented（2026-09-27 交付）                                                                            |
+| 最后更新日期 | 2026-09-27                                                                                                |
+| 上游依赖     | AI-001（模型网关）、API-002（接口定义/OpenAPI 解析器）、API-003（接口用例创建端点）、AI-005（提示词模板） |
+| 下游消费     | 无硬下游                                                                                                  |
+| 上游依据     | 需求文档 §六；功能清单 §4.4「AI 生成用例（单条按 API 信息+提示词；批量按 Swagger/OpenAPI 文档生成多条）」 |
+| 对标基线     | 功能清单 §4.4（接口测试域 AI 生成）；§十 版本对比「支持 AI 生成接口用例」两版均支持                       |
+| 关联架构文档 | test-domain-model.md §2.8；api-conventions.md §3                                                          |
+| 高保真确认   | 待确认（原型 docs/design/AI-003-api-case-generation/）                                                    |
+| 工作量估算   | 后端 2.5 人日 / 前端 2 人日                                                                               |
 
 ## 1. 概述
 
@@ -24,15 +24,15 @@
 
 ### 1.2 范围边界（能力行 → §5 用例映射）
 
-| 能力                                                                          | P1 ✅ | 后续                                                     |
-| ----------------------------------------------------------------------------- | ----- | -------------------------------------------------------- |
-| 单条生成：接口定义列表选中 1 条→「AI 生成」→草稿（name/请求差量 headers·query·body/断言建议列表） | ✅ | 按接口定义批量全选生成（Backlog）                        |
-| 批量生成：粘贴或上传 OpenAPI 3.x JSON→解析出接口清单（method+path+summary）→逐条生成草稿 | ✅ | Swagger URL 拉取（SSRF 面扩大，登记；粘贴先行）    |
-| 批次上限：单批 ≤20 接口（超出 422 提示分批）；每接口 1 条草稿                  | ✅     | 每接口多条（正/反/边界，Backlog）                        |
-| 草稿结构：name/request{headers?,query?,bodyJson?}/assertions[{source(path/status/body),expression,operator,expected}] | ✅ | 前后置脚本/变量提取建议（Backlog）                 |
-| 断言算子约束：status 精确/body-jsonpath/body-contains/headers-contains/响应时间上限（映射 S2 六断言子集） | ✅ | —                                                        |
-| 勾选导入：逐条调 API-003 创建端点（apiId 关联真实校验）；留痕 AiGenRecord（scene=api_gen/api_gen_batch） | ✅ | 整体事务（部分成功，登记）                          |
-| 模板联动：AI-005 scene=api_gen 模板可选（占位符 {{api_spec}}/{{design_method}}） | ✅     | —                                                        |
+| 能力                                                                                                                  | P1 ✅ | 后续                                            |
+| --------------------------------------------------------------------------------------------------------------------- | ----- | ----------------------------------------------- |
+| 单条生成：接口定义列表选中 1 条→「AI 生成」→草稿（name/请求差量 headers·query·body/断言建议列表）                     | ✅    | 按接口定义批量全选生成（Backlog）               |
+| 批量生成：粘贴或上传 OpenAPI 3.x JSON→解析出接口清单（method+path+summary）→逐条生成草稿                              | ✅    | Swagger URL 拉取（SSRF 面扩大，登记；粘贴先行） |
+| 批次上限：单批 ≤20 接口（超出 422 提示分批）；每接口 1 条草稿                                                         | ✅    | 每接口多条（正/反/边界，Backlog）               |
+| 草稿结构：name/request{headers?,query?,bodyJson?}/assertions[{source(path/status/body),expression,operator,expected}] | ✅    | 前后置脚本/变量提取建议（Backlog）              |
+| 断言算子约束：status 精确/body-jsonpath/body-contains/headers-contains/响应时间上限（映射 S2 六断言子集）             | ✅    | —                                               |
+| 勾选导入：逐条调 API-003 创建端点（apiId 关联真实校验）；留痕 AiGenRecord（scene=api_gen/api_gen_batch）              | ✅    | 整体事务（部分成功，登记）                      |
+| 模板联动：AI-005 scene=api_gen 模板可选（占位符 {{api_spec}}/{{design_method}}）                                      | ✅    | —                                               |
 
 ### 1.3 前置依赖
 

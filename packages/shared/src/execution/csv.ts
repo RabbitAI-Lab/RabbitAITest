@@ -11,7 +11,10 @@ export interface CsvParseResult extends CsvTable {
 export const csvSourceSchema = z.object({
   source: z.enum(["file", "inline"]),
   fileId: z.string().uuid().optional(),
-  inlineText: z.string().max(512 * 1024).optional(),
+  inlineText: z
+    .string()
+    .max(512 * 1024)
+    .optional(),
   delimiter: z.enum([",", ";", "\t"]).default(","),
   hasHeader: z.boolean().default(true),
 });
@@ -21,10 +24,18 @@ const MAX_ROWS = 10000;
 const MAX_COLS = 200;
 
 /** RFC4180 简化子集：引号包裹字段（内含分隔符/引号转义 ""）；行分隔 \n 或 \r\n。 */
-export function parseCsv(text: string, opts: { delimiter: string; hasHeader: boolean }): CsvParseResult {
+export function parseCsv(
+  text: string,
+  opts: { delimiter: string; hasHeader: boolean },
+): CsvParseResult {
   const warnings: string[] = [];
   const rowsRaw = splitRows(text);
-  if (!rowsRaw.length) return { ...csvTableSchema.parse({ columns: [], rows: [] }), skippedRows: 0, warnings: ["空文件"] };
+  if (!rowsRaw.length)
+    return {
+      ...csvTableSchema.parse({ columns: [], rows: [] }),
+      skippedRows: 0,
+      warnings: ["空文件"],
+    };
 
   let columns: string[];
   let dataRows: string[][];
@@ -47,7 +58,8 @@ export function parseCsv(text: string, opts: { delimiter: string; hasHeader: boo
     if (row.length === 1 && row[0] === "") continue; // 空行静默跳过
     if (row.length !== columns.length) {
       skipped++;
-      if (warnings.length < 5) warnings.push(`列数不一致行已跳过（期望 ${columns.length} 列，实际 ${row.length}）`);
+      if (warnings.length < 5)
+        warnings.push(`列数不一致行已跳过（期望 ${columns.length} 列，实际 ${row.length}）`);
       continue;
     }
     if (rows.length >= MAX_ROWS) {
@@ -60,7 +72,11 @@ export function parseCsv(text: string, opts: { delimiter: string; hasHeader: boo
 }
 
 function splitRows(text: string): string[] {
-  return text.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n").filter((l, i, arr) => !(l === "" && i === arr.length - 1));
+  return text
+    .replace(/\r\n/g, "\n")
+    .replace(/\r/g, "\n")
+    .split("\n")
+    .filter((l, i, arr) => !(l === "" && i === arr.length - 1));
 }
 
 function splitLine(line: string, delimiter: string): string[] {

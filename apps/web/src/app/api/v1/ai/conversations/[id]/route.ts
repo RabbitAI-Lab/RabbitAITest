@@ -9,7 +9,10 @@ export const runtime = "nodejs";
 const renameSchema = z.object({ title: z.string().trim().min(1, "标题必填").max(128) });
 
 const unprocessable = (message?: string) =>
-  NextResponse.json({ code: 20422, message: message ?? "参数校验失败", data: null }, { status: 422 });
+  NextResponse.json(
+    { code: 20422, message: message ?? "参数校验失败", data: null },
+    { status: 422 },
+  );
 
 export const PUT = withAuth(async (ctx, req: Request, seg: unknown) => {
   try {

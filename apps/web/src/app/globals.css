@@ -66,14 +66,23 @@ body {
   font-size: 12px;
 }
 
-/* 认证页背景 */
+/* 认证页背景（主题色经 --rabbit-primary 注入，ENTP-004；未定制=#574BFF 与基线一致） */
 .auth-bg {
   min-height: 100vh;
   display: grid;
   place-items: center;
   background:
-    radial-gradient(600px 300px at 15% 10%, rgba(87, 75, 255, 0.1), transparent 60%),
-    radial-gradient(500px 260px at 90% 85%, rgba(87, 75, 255, 0.07), transparent 60%), #f5f6fa;
+    radial-gradient(
+      600px 300px at 15% 10%,
+      color-mix(in srgb, var(--rabbit-primary, #574bff) 10%, transparent),
+      transparent 60%
+    ),
+    radial-gradient(
+      500px 260px at 90% 85%,
+      color-mix(in srgb, var(--rabbit-primary, #574bff) 7%, transparent),
+      transparent 60%
+    ),
+    #f5f6fa;
 }
 
 /* 左侧导航 */

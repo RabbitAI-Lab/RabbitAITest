@@ -1,16 +1,16 @@
 # Sprint 3 — 场景自动化 · 迭代概览
 
-| 元信息项   | 内容                                                                                          |
-| ---------- | --------------------------------------------------------------------------------------------- |
-| 迭代编号   | Sprint 3                                                                                      |
-| 迭代名称   | 场景自动化（M4 里程碑）                                                                       |
-| 周期       | 第 9-11 周（15 个工作日）                                                                     |
+| 元信息项   | 内容                                                                                           |
+| ---------- | ---------------------------------------------------------------------------------------------- |
+| 迭代编号   | Sprint 3                                                                                       |
+| 迭代名称   | 场景自动化（M4 里程碑）                                                                        |
+| 周期       | 第 9-11 周（15 个工作日）                                                                      |
 | 覆盖优先级 | **P2 场景自动化**（需求文档 §五：编排/参数化/函数库/误报；§七 M4 W11）                         |
-| 文档数     | 7 份（5 API + 1 EXEC + 1 RPT）                                                                |
-| 文档状态   | Implemented（2026-09-27 交付：规格/原型/契约 v3/引擎/前后端/测试全量；走查随验收）                                      |
-| 上游依据   | [需求文档](../需求文档.md) §五「场景自动化/报告」、§七 M4；功能清单 §6.5/§6.7/§6.8            |
-| 前置迭代   | [Sprint 2](../sprint-2-api-core/sprint-overview.md)（定义/用例/参数体系/环境/调度/报告全链路）|
-| 阻塞下游   | Sprint 4 PLAN-003（计划引擎执行场景用例）、PLAN-005（报告导出）                               |
+| 文档数     | 7 份（5 API + 1 EXEC + 1 RPT）                                                                 |
+| 文档状态   | Implemented（2026-09-27 交付：规格/原型/契约 v3/引擎/前后端/测试全量；走查随验收）             |
+| 上游依据   | [需求文档](../需求文档.md) §五「场景自动化/报告」、§七 M4；功能清单 §6.5/§6.7/§6.8             |
+| 前置迭代   | [Sprint 2](../sprint-2-api-core/sprint-overview.md)（定义/用例/参数体系/环境/调度/报告全链路） |
+| 阻塞下游   | Sprint 4 PLAN-003（计划引擎执行场景用例）、PLAN-005（报告导出）                                |
 
 ---
 
@@ -30,27 +30,27 @@
 
 四条成功判定：
 
-| 维度           | 目标                                                                              | 判定方式                                                     |
-| -------------- | --------------------------------------------------------------------------------- | ------------------------------------------------------------ |
-| 编排执行正确   | 步骤树（7 类步骤）按序执行；变量作用域链（步骤提取>场景参数>环境）跨步骤传递；失败规则（忽略继续/停止）生效 | E2E 断言步骤间变量引用渲染与报告 stepPath 树视图              |
-| 参数化完备     | 常量/列表/CSV（上传+关联文件管理）三类参数；foreach 逐行迭代；迭代分组报告        | CSV N 行→N 迭代帧；报告迭代分组断言                           |
-| 误报治理可用   | 项目级误报规则（状态码/响应体包含/耗时）命中→FAKE_ERROR 单列统计，不算失败        | 误报两态 E2E（命中/未命中）；仅新报告生效                     |
-| 兼容与复用     | jmx/自有 JSON 导入导出往返等价；引擎复用 S2 单步管线；报告分享链路复用            | 导入往返 E2E；执行契约 v3 additive（EXEC_CONTRACT_VERSION=3） |
+| 维度         | 目标                                                                                                        | 判定方式                                                      |
+| ------------ | ----------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| 编排执行正确 | 步骤树（7 类步骤）按序执行；变量作用域链（步骤提取>场景参数>环境）跨步骤传递；失败规则（忽略继续/停止）生效 | E2E 断言步骤间变量引用渲染与报告 stepPath 树视图              |
+| 参数化完备   | 常量/列表/CSV（上传+关联文件管理）三类参数；foreach 逐行迭代；迭代分组报告                                  | CSV N 行→N 迭代帧；报告迭代分组断言                           |
+| 误报治理可用 | 项目级误报规则（状态码/响应体包含/耗时）命中→FAKE_ERROR 单列统计，不算失败                                  | 误报两态 E2E（命中/未命中）；仅新报告生效                     |
+| 兼容与复用   | jmx/自有 JSON 导入导出往返等价；引擎复用 S2 单步管线；报告分享链路复用                                      | 导入往返 E2E；执行契约 v3 additive（EXEC_CONTRACT_VERSION=3） |
 
 **本迭代不追求**：场景脑图模式（S4 CASE-007）、报告批量导出/PDF（S4 PLAN-005）、Swagger 场景同步（S6）、性能压测（永久红线）、多资源池（ENTP-006）。
 
 ## 2. 交付范围（8 项 / 7 规格）
 
-| #   | 交付项         | 内容                                                                                                | 文档       |
-| --- | -------------- | --------------------------------------------------------------------------------------------------- | ---------- |
+| #   | 交付项         | 内容                                                                                                                                                                                                                                                                                                                            | 文档       |
+| --- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
 | 1   | 场景编排       | 场景 CRUD/模块树/回收站/变更历史；五配置区（步骤/参数/前置/断言/设置：Cookie 策略/思考时间/失败规则）；7 类步骤（引用 api/case/scenario·复制或引用、自定义请求、循环×3（次数/While/ForEach）、条件、仅一次、脚本、等待）；步骤操作（启用禁用/复制/删除/子步骤/前后插入/批量展开启用禁用）；单条执行；SQL 前后置解禁（只读强制） | `API-006`  |
-| 2   | 参数化         | 常量/列表/CSV 三类参数；CSV 本地上传或关联文件管理；作用域场景级/步骤级；优先级体系（步骤提取>步骤参数>场景参数>环境变量） | `API-007`  |
-| 3   | 批量执行与定时 | 列表勾选批量执行（环境/池/串行 or 并行/失败停止）；定时任务（cron 选场景+环境，BullMQ repeatable，启停） | `API-008`  |
-| 4   | 导入导出       | 导出 Rabbit JSON（保留引用关系 or 展开为自定义请求两选项）；导入 Rabbit JSON / JMeter jmx / MeterSphere JSON | `API-009`  |
-| 5   | 内置函数库     | `${__func()}` 引擎函数（计数/随机/时间/UUID/编码）+ `@mock` 数据函数（字符串/数字/姓名/日期/邮箱/手机号）+ 管道叠加处理（md5/base64/substr/toUpperCase…）；渲染管线统一 | `EXEC-003` |
-| 6   | 误报规则       | 项目级规则 CRUD（匹配器：状态码/响应体包含/响应头包含/耗时上限；启用禁用）；执行终态匹配→ExecItem=FAKE_ERROR+FalseAlarmHit 留痕；仅对新执行生效 | `API-010`  |
-| 7   | 场景报告       | reportType=scenario 渲染：步骤树视图（stepPath 分组）、循环迭代分组、场景变量终值视图、误报统计概览卡片；场景执行历史；分享复用 RPT-002 | `RPT-003`  |
-| 8   | （并入 #1）    | SQL 处理器解禁尝试：只读事务+SELECT 白名单方案评审冻结并实现，**静态门禁仍拦截（S2 同款），诚实二次延后（API-006 勘误 1）** | `API-006`  |
+| 2   | 参数化         | 常量/列表/CSV 三类参数；CSV 本地上传或关联文件管理；作用域场景级/步骤级；优先级体系（步骤提取>步骤参数>场景参数>环境变量）                                                                                                                                                                                                      | `API-007`  |
+| 3   | 批量执行与定时 | 列表勾选批量执行（环境/池/串行 or 并行/失败停止）；定时任务（cron 选场景+环境，BullMQ repeatable，启停）                                                                                                                                                                                                                        | `API-008`  |
+| 4   | 导入导出       | 导出 Rabbit JSON（保留引用关系 or 展开为自定义请求两选项）；导入 Rabbit JSON / JMeter jmx / MeterSphere JSON                                                                                                                                                                                                                    | `API-009`  |
+| 5   | 内置函数库     | `${__func()}` 引擎函数（计数/随机/时间/UUID/编码）+ `@mock` 数据函数（字符串/数字/姓名/日期/邮箱/手机号）+ 管道叠加处理（md5/base64/substr/toUpperCase…）；渲染管线统一                                                                                                                                                         | `EXEC-003` |
+| 6   | 误报规则       | 项目级规则 CRUD（匹配器：状态码/响应体包含/响应头包含/耗时上限；启用禁用）；执行终态匹配→ExecItem=FAKE_ERROR+FalseAlarmHit 留痕；仅对新执行生效                                                                                                                                                                                 | `API-010`  |
+| 7   | 场景报告       | reportType=scenario 渲染：步骤树视图（stepPath 分组）、循环迭代分组、场景变量终值视图、误报统计概览卡片；场景执行历史；分享复用 RPT-002                                                                                                                                                                                         | `RPT-003`  |
+| 8   | （并入 #1）    | SQL 处理器解禁尝试：只读事务+SELECT 白名单方案评审冻结并实现，**静态门禁仍拦截（S2 同款），诚实二次延后（API-006 勘误 1）**                                                                                                                                                                                                     | `API-006`  |
 
 ## 3. 范围排除（防蔓延红线）
 
@@ -74,15 +74,15 @@
 
 ## 5. 规格清单与状态
 
-| 编号       | 名称                         | 状态       | 原型                                           |
-| ---------- | ---------------------------- | ---------- | ---------------------------------------------- |
-| API-006    | 场景编排                     | Implemented | docs/design/API-006-scenario-orchestration/    |
-| API-007    | 场景参数化（CSV/列表/常量）  | Implemented | docs/design/API-007-scenario-params-csv/       |
-| API-008    | 场景批量执行与定时任务       | Implemented | docs/design/API-008-scenario-execution-batch/  |
-| API-009    | 场景导入导出                 | Implemented | docs/design/API-009-scenario-import-export/    |
-| EXEC-003   | 引擎内置函数库               | Implemented | 接口契约评审替代（纯引擎，rules 约定）         |
-| API-010    | 误报规则                     | Implemented | docs/design/API-010-false-alarm-rules/         |
-| RPT-003    | 场景报告与概览               | Implemented | docs/design/RPT-003-scenario-report-share/     |
+| 编号     | 名称                        | 状态        | 原型                                          |
+| -------- | --------------------------- | ----------- | --------------------------------------------- |
+| API-006  | 场景编排                    | Implemented | docs/design/API-006-scenario-orchestration/   |
+| API-007  | 场景参数化（CSV/列表/常量） | Implemented | docs/design/API-007-scenario-params-csv/      |
+| API-008  | 场景批量执行与定时任务      | Implemented | docs/design/API-008-scenario-execution-batch/ |
+| API-009  | 场景导入导出                | Implemented | docs/design/API-009-scenario-import-export/   |
+| EXEC-003 | 引擎内置函数库              | Implemented | 接口契约评审替代（纯引擎，rules 约定）        |
+| API-010  | 误报规则                    | Implemented | docs/design/API-010-false-alarm-rules/        |
+| RPT-003  | 场景报告与概览              | Implemented | docs/design/RPT-003-scenario-report-share/    |
 
 ## 6. 工程债承接（S2 遗留清偿）
 
@@ -93,18 +93,18 @@
 
 ## 7. 交付自查（Sprint 收尾时回填）
 
-| 验收标准 | 结果 | 证据 |
-| -------- | ---- | ---- |
-| 1. 五配置区编排（7 类步骤按序执行/报告步骤树） | ✅ | MAINFLOW-s3（7 类步骤含引用/循环 foreach/条件/仅一次/脚本/等待→报告树按 stepPath 呈现）；API-006-02/03；engine scenario.test 顺序执行/控制器语义 10 条 |
-| 2. 变量作用域链（提取→引用渲染/参数覆盖环境） | ✅ | renderString 统一链 + mergedVars 合并序（shared 函数库矩阵 20 条）；MAINFLOW 变量视图；foreach row 注入（engine 单测 row.email 断言） |
-| 3. CSV 参数化（N 行→N 迭代帧/迭代分组报告） | ✅ | API-007 jmx T1-6（varsFinal.user=carol 末行迭代）+ e2e API-007-02（3 值→3 迭代分组）；parseCsv 单测 |
-| 4. 失败规则（忽略继续→FAILED 余步执行；停止→余步 SKIPPED） | ✅ | engine scenario.test continue/abort 二态 + step-skip 帧；**修复 continue 吞失败状态缺陷（WalkState.failed）** |
-| 5. 批量执行（并行 1 任务 N 报告/失败停止/定时建停触发） | ✅ | API-008 jmx（并行 2 场景→items=2 SUCCESS；cron 422 50005；toggle；run）；e2e API-008-01/02 |
-| 6. 导入导出往返（保留引用/jmx 导入） | ✅ | API-009 jmx（Rabbit JSON/MS/jmx 预览+落库；坏内容 422 50011）；e2e API-009-01/02；**修复导入 uid 作全局主键 P2002** |
-| 7. 函数库（`__UUID()/@name/${var\|md5}` 渲染生效） | ✅ | shared s3-execution 函数库矩阵（counter 连续/random 区间/UUID v4 形态/digest/管道叠加）；FUNCTION_CATALOG 前端提示（FunctionHintPopover） |
-| 8. 误报（命中→FAKE_ERROR 单列/不算任务失败/停用不再标记） | ✅ | API-010 jmx（status:200 规则改判 FAKE_ERROR+fakeError=1；停用对照 FAILED）；e2e API-010-02 同口径两态 |
-| 9. 权限二态（仅 READ 只读+直发 403 10003） | ✅ | e2e API-006-05（自降权：列表可见/新建隐藏/403 10003/回组恢复）；**修复 PROJECT_ADMIN 组漏授 SCENARIO:CREATE/UPDATE/DELETE** |
-| 10. 自动化测试齐备（Vitest+JMeter+Playwright 全绿） | ✅ | Vitest 97（shared 62 + engine 28 + mock 7）；JMeter 29 计划全绿（新增 5）；Playwright 107（新增 16 含 MAINFLOW-s3）；OpenAPI 快照 188 paths 审计通过 |
+| 验收标准                                                   | 结果 | 证据                                                                                                                                                   |
+| ---------------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1. 五配置区编排（7 类步骤按序执行/报告步骤树）             | ✅   | MAINFLOW-s3（7 类步骤含引用/循环 foreach/条件/仅一次/脚本/等待→报告树按 stepPath 呈现）；API-006-02/03；engine scenario.test 顺序执行/控制器语义 10 条 |
+| 2. 变量作用域链（提取→引用渲染/参数覆盖环境）              | ✅   | renderString 统一链 + mergedVars 合并序（shared 函数库矩阵 20 条）；MAINFLOW 变量视图；foreach row 注入（engine 单测 row.email 断言）                  |
+| 3. CSV 参数化（N 行→N 迭代帧/迭代分组报告）                | ✅   | API-007 jmx T1-6（varsFinal.user=carol 末行迭代）+ e2e API-007-02（3 值→3 迭代分组）；parseCsv 单测                                                    |
+| 4. 失败规则（忽略继续→FAILED 余步执行；停止→余步 SKIPPED） | ✅   | engine scenario.test continue/abort 二态 + step-skip 帧；**修复 continue 吞失败状态缺陷（WalkState.failed）**                                          |
+| 5. 批量执行（并行 1 任务 N 报告/失败停止/定时建停触发）    | ✅   | API-008 jmx（并行 2 场景→items=2 SUCCESS；cron 422 50005；toggle；run）；e2e API-008-01/02                                                             |
+| 6. 导入导出往返（保留引用/jmx 导入）                       | ✅   | API-009 jmx（Rabbit JSON/MS/jmx 预览+落库；坏内容 422 50011）；e2e API-009-01/02；**修复导入 uid 作全局主键 P2002**                                    |
+| 7. 函数库（`__UUID()/@name/${var\|md5}` 渲染生效）         | ✅   | shared s3-execution 函数库矩阵（counter 连续/random 区间/UUID v4 形态/digest/管道叠加）；FUNCTION_CATALOG 前端提示（FunctionHintPopover）              |
+| 8. 误报（命中→FAKE_ERROR 单列/不算任务失败/停用不再标记）  | ✅   | API-010 jmx（status:200 规则改判 FAKE_ERROR+fakeError=1；停用对照 FAILED）；e2e API-010-02 同口径两态                                                  |
+| 9. 权限二态（仅 READ 只读+直发 403 10003）                 | ✅   | e2e API-006-05（自降权：列表可见/新建隐藏/403 10003/回组恢复）；**修复 PROJECT_ADMIN 组漏授 SCENARIO:CREATE/UPDATE/DELETE**                            |
+| 10. 自动化测试齐备（Vitest+JMeter+Playwright 全绿）        | ✅   | Vitest 97（shared 62 + engine 28 + mock 7）；JMeter 29 计划全绿（新增 5）；Playwright 107（新增 16 含 MAINFLOW-s3）；OpenAPI 快照 188 paths 审计通过   |
 
 ### 7.1 工程债清偿
 

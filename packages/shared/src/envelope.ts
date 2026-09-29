@@ -42,9 +42,14 @@ export const ErrCode = {
   APIKEY_INVALID: 10010, // S6 INTG-003：APIKEY 无效/已吊销
   APIKEY_LIMIT_EXCEEDED: 10011, // APIKEY 超上限（5 条/人）
   OPEN_RATE_LIMITED: 10012, // 开放 API 限流（10 QPS/key）
+  CSRF_REJECTED: 10013, // S8 QA-002：跨站请求（Origin 校验失败）
+  LOGIN_RATE_LIMITED: 10014, // S8 QA-002：登录暴力破解限流（IP 维度）
   PERSONAL_PASSWORD_MISMATCH: 10020, // S5 SYS-007：修改密码旧密码错误
   PERSONAL_LOCAL_RUNNER_INVALID: 10021, // S5 SYS-007：本地 runner 地址非环回
   PERSONAL_AI_MODEL_INVALID: 10022, // S5 SYS-007：个人默认模型不存在或未启用
+  OPEN_SYNC_VALIDATION_FAILED: 10023, // S-future TOOL-001：open api-sync 载荷非法/批内重复
+  OPEN_SYNC_LIMIT_EXCEEDED: 10024, // S-future TOOL-001/002：开放同步/采集批量超上限（100）
+  OPEN_CAPTURE_INVALID: 10025, // S-future TOOL-002：open api-capture 载荷非法
   // 20xxx 项目与配置
   PROJECT_NOT_FOUND: 20404,
   TEMPLATE_NOT_FOUND: 20414,
@@ -124,9 +129,12 @@ export const ErrCode = {
   PLAN_NO_EXECUTABLE: 50012, // S4 PLAN-003 计划内无可引擎执行项
   POOL_NOT_FOUND: 50404,
   SCHEDULE_NOT_FOUND: 50414,
+  POOL_CONFIG_INVALID: 50422, // S-future EXEC-004：池配置非法（type/k8s 四项）
+  POOL_K8S_UNREACHABLE: 50423, // S-future EXEC-004：K8S apiServer 连通性测试失败
   // 60xxx 报告与分享
   REPORT_NOT_FOUND: 60404,
   SHARE_NOT_FOUND: 60414,
+  REPORT_STATS_INVALID: 60422, // S-future RPT-004：统计窗口参数非法（days∉{7,14,30}）
   // 70xxx AI 能力（S7）
   AI_MODEL_NOT_FOUND: 70404,
   AI_CONVERSATION_NOT_FOUND: 70414,
@@ -153,6 +161,44 @@ export const ErrCode = {
   PLATFORM_UNAUTHORIZED: 70014,
   INTEGRATION_SECRET_MISSING: 70015,
   AUDIT_QUERY_INVALID: 70030, // S6 SYS-008
+  PACK_NOT_ALLOWED: 70060, // S8 INFRA-004：任务非失败态不允许生成排障包
+  // 90xxx 企业版（S9；api-conventions §3 预留段兑现，rbac §6 License 门控）
+  LICENSE_REQUIRED: 90001, // 功能需企业版授权（通用门控）
+  LICENSE_FORMAT_INVALID: 90002, // License 结构不合法
+  LICENSE_SIGNATURE_INVALID: 90003, // License 验签失败
+  LICENSE_EXPIRED: 90004, // License 已过期（拒绝添加）
+  LICENSE_FEATURE_NOT_ENABLED: 90005, // 当前授权未包含该特性
+  // 9001x SSO（ENTP-002/003）
+  SSO_SOURCE_NOT_FOUND: 90010,
+  SSO_SOURCE_DISABLED: 90011,
+  SSO_STATE_INVALID: 90012,
+  SSO_PROVIDER_ERROR: 90013,
+  SSO_USER_MAPPING_FAILED: 90014,
+  SSO_CONFIG_INVALID: 90015,
+  SSO_ACCOUNT_CONFLICT: 90016,
+  // 9002x 多组织（ENTP-001）
+  ORG_DELETE_CONFIRM_REQUIRED: 90020,
+  ORG_OWNER_IMMUTABLE: 90021,
+  ORG_DEFAULT_PROTECTED: 90022,
+  ORG_NAME_EXISTS: 90023,
+  // 9003x 多资源池（ENTP-006）
+  POOL_DEFAULT_UNDELETABLE: 90030,
+  POOL_DEFAULT_UNDISABLEABLE: 90031,
+  POOL_DISABLED: 90032,
+  // POOL_NOT_FOUND 沿用 50404（EXEC-002 既有，错误码不复用/不改语义）
+  POOL_TYPE_INVALID: 90034,
+  POOL_NAME_EXISTS: 90035,
+  POOL_HAS_TASKS: 90036,
+  POOL_ORG_NOT_ALLOWED: 90037,
+  // 9004x 部门（ENTP-008）
+  DEPARTMENT_NOT_FOUND: 90040,
+  DEPARTMENT_NAME_EXISTS: 90041,
+  DEPARTMENT_CYCLE: 90042,
+  DEPARTMENT_HAS_CHILDREN: 90043,
+  DEPARTMENT_MEMBER_NOT_IN_ORG: 90044,
+  // 9005x-9006x 模板与主题（ENTP-005/004）
+  TEMPLATE_EVENT_INVALID: 90050,
+  THEME_IMAGE_TOO_LARGE: 90060,
 } as const;
 
 export const ErrMsg: Record<number, string> = {
@@ -219,7 +265,8 @@ export const ErrMsg: Record<number, string> = {
   [ErrCode.AI_MODEL_NOT_FOUND]: "AI 模型不存在或已删除",
   [ErrCode.AI_CONVERSATION_NOT_FOUND]: "会话不存在或无权访问",
   [ErrCode.AI_PROMPT_NOT_FOUND]: "提示词模板不存在或已删除",
-  [ErrCode.AI_NO_MODEL_AVAILABLE]: "尚未配置任何启用的 AI 模型，请联系管理员在系统管理-模型设置中配置",
+  [ErrCode.AI_NO_MODEL_AVAILABLE]:
+    "尚未配置任何启用的 AI 模型，请联系管理员在系统管理-模型设置中配置",
   [ErrCode.AI_BASEURL_FORBIDDEN]: "BaseUrl 指向内网/环回/云元数据地址，已被安全策略拒绝",
   [ErrCode.AI_PROVIDER_ERROR]: "AI 供应商调用失败",
   [ErrCode.AI_RESPONSE_UNPARSEABLE]: "AI 生成结果无法解析，请重试或调整提示词",
@@ -250,6 +297,9 @@ export const ErrMsg: Record<number, string> = {
   [ErrCode.PLATFORM_UNAUTHORIZED]: "平台凭据失效（401/403），请重新配置",
   [ErrCode.INTEGRATION_SECRET_MISSING]: "集成加密密钥未配置（RABBIT_INTEGRATION_SECRET）",
   [ErrCode.AUDIT_QUERY_INVALID]: "审计查询参数非法",
+  [ErrCode.PACK_NOT_ALLOWED]: "任务非失败状态，无需排障包",
+  [ErrCode.CSRF_REJECTED]: "跨站请求被拒绝",
+  [ErrCode.LOGIN_RATE_LIMITED]: "登录失败次数过多，请稍后再试",
   [ErrCode.PERSONAL_PASSWORD_MISMATCH]: "当前密码错误",
   [ErrCode.PERSONAL_LOCAL_RUNNER_INVALID]: "本地 runner 地址仅允许环回（127.0.0.1/localhost/::1）",
   [ErrCode.PERSONAL_AI_MODEL_INVALID]: "个人默认模型不存在或未启用",
@@ -271,4 +321,43 @@ export const ErrMsg: Record<number, string> = {
   [ErrCode.FILE_REPO_CONNECT_FAILED]: "存储库连接失败",
   [ErrCode.FILE_REPO_PULL_FAILED]: "存储库文件拉取失败",
   [ErrCode.FILE_REPO_URL_BLOCKED]: "仓库地址不允许（内网/元数据地址被守卫拦截）",
+  // 90xxx 企业版（S9）
+  [ErrCode.LICENSE_REQUIRED]: "该功能需企业版授权（License）",
+  [ErrCode.LICENSE_FORMAT_INVALID]: "License 内容不合法（格式/字段缺失）",
+  [ErrCode.LICENSE_SIGNATURE_INVALID]: "License 验签失败（内容被篡改或密钥不匹配）",
+  [ErrCode.LICENSE_EXPIRED]: "License 已过期，拒绝添加",
+  [ErrCode.LICENSE_FEATURE_NOT_ENABLED]: "当前授权未包含该企业特性",
+  [ErrCode.SSO_SOURCE_NOT_FOUND]: "认证源不存在",
+  [ErrCode.SSO_SOURCE_DISABLED]: "认证源已停用",
+  [ErrCode.SSO_STATE_INVALID]: "授权状态无效或已过期，请重新发起登录",
+  [ErrCode.SSO_PROVIDER_ERROR]: "身份提供方响应异常",
+  [ErrCode.SSO_USER_MAPPING_FAILED]: "身份属性映射失败（缺少必需属性）",
+  [ErrCode.SSO_CONFIG_INVALID]: "认证源配置不合法",
+  [ErrCode.SSO_ACCOUNT_CONFLICT]: "该账号已绑定其他登录方式",
+  [ErrCode.ORG_DELETE_CONFIRM_REQUIRED]: "删除组织需二次确认（needConfirm=true）",
+  [ErrCode.ORG_OWNER_IMMUTABLE]: "组织所有者不可移除",
+  [ErrCode.ORG_DEFAULT_PROTECTED]: "默认组织受保护，不可删除",
+  [ErrCode.ORG_NAME_EXISTS]: "组织名称已存在",
+  [ErrCode.POOL_DEFAULT_UNDELETABLE]: "默认资源池不可删除（社区版单池保护）",
+  [ErrCode.POOL_DEFAULT_UNDISABLEABLE]: "默认资源池不可禁用",
+  [ErrCode.POOL_DISABLED]: "资源池已禁用，不可执行",
+  // POOL_NOT_FOUND 沿用 50404 既有文案（上方 50xxx 段）
+  [ErrCode.POOL_TYPE_INVALID]: "资源池类型不合法",
+  [ErrCode.POOL_NAME_EXISTS]: "资源池名称已存在",
+  [ErrCode.POOL_HAS_TASKS]: "资源池存在历史任务，不可删除",
+  [ErrCode.POOL_ORG_NOT_ALLOWED]: "资源池未应用到当前组织",
+  [ErrCode.DEPARTMENT_NOT_FOUND]: "部门不存在",
+  [ErrCode.DEPARTMENT_NAME_EXISTS]: "同层级下已存在同名部门",
+  [ErrCode.DEPARTMENT_CYCLE]: "部门上级不合法（跨组织或形成环）",
+  [ErrCode.DEPARTMENT_HAS_CHILDREN]: "部门存在子部门，不可删除",
+  [ErrCode.DEPARTMENT_MEMBER_NOT_IN_ORG]: "所选用户不在本组织",
+  [ErrCode.TEMPLATE_EVENT_INVALID]: "消息事件类型不合法",
+  [ErrCode.THEME_IMAGE_TOO_LARGE]: "图片不能超过 200KB",
+  // P4 远期（f888165 并入）
+  [ErrCode.OPEN_SYNC_VALIDATION_FAILED]: "同步载荷非法（含批内重复接口或字段越界）",
+  [ErrCode.OPEN_SYNC_LIMIT_EXCEEDED]: "批量数量超出上限（100）",
+  [ErrCode.OPEN_CAPTURE_INVALID]: "采集载荷非法（URL 非法或字段越界）",
+  [ErrCode.POOL_CONFIG_INVALID]: "资源池配置非法（type/k8s 四项校验未通过）",
+  [ErrCode.POOL_K8S_UNREACHABLE]: "K8S apiServer 连接失败（超时或不可达）",
+  [ErrCode.REPORT_STATS_INVALID]: "统计窗口参数非法（days 仅支持 7/14/30）",
 };

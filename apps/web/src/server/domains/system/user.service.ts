@@ -7,6 +7,7 @@ const USER_LIMIT = config.userLimit;
 import type { UserCreateInput } from "@rabbit/shared";
 import { prisma } from "@rabbit/db";
 import { hashPassword } from "./auth.service";
+import { effectiveUserLimit } from "@/server/domains/entp/license.service";
 
 function genPassword(): string {
   return `Rb-${randomBytes(6).toString("base64url")}`;
@@ -34,17 +35,24 @@ export async function listUsers(q: { keyword?: string; page: number; pageSize: n
       select: { id: true, email: true, name: true, phone: true, status: true, createdAt: true },
     }),
   ]);
+  const limit = await effectiveUserLimit();
   return {
     total,
-    limit: USER_LIMIT,
+    limit: Number.isFinite(limit) ? limit : null, // ENTP-008：企业版无限额返回 null（前端显示「不限」）
+    communityLimit: USER_LIMIT,
     items: items.map((u) => ({ ...u, createdAt: u.createdAt.toISOString() })),
   };
 }
 
 export async function createUser(actorId: string, input: UserCreateInput) {
+  const limit = await effectiveUserLimit(); // ENTP-008：License(USER_SCALE) 放开 30 上限（maxUsers 可封顶）
   const active = await prisma.user.count({ where: { deletedAt: null } });
-  if (active >= USER_LIMIT)
-    throw new DomainError(ErrCode.USER_TOO_MANY, `社区版用户上限 ${USER_LIMIT}`);
+  if (active >= limit) {
+    throw new DomainError(
+      ErrCode.USER_TOO_MANY,
+      Number.isFinite(limit) ? `用户上限 ${limit}（社区版 30，企业版随授权扩容）` : "用户超限",
+    );
+  }
   // 邮箱唯一校验含软删用户（删除用户不清理占用，与基线口径一致）
   const exist = await prisma.user.findFirst({
     where: { email: input.email },

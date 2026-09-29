@@ -23,6 +23,8 @@ const SYSTEM_PLUGIN = ["SYSTEM_PLUGIN:READ", "SYSTEM_PLUGIN:UPDATE"] as const;
 const ORG_INTEGRATION = ["ORG_INTEGRATION:READ", "ORG_INTEGRATION:UPDATE"] as const;
 /** 三级审计日志读（SYS-008 随规格入库） */
 const SYSTEM_AUDIT = ["SYSTEM_AUDIT:READ"] as const;
+/** 系统指标面（S8 INFRA-004：/system/metrics Prometheus 文本） */
+const SYSTEM_METRICS = ["SYSTEM_METRICS:READ"] as const;
 const ORG_AUDIT = ["ORG_AUDIT:READ"] as const;
 const PROJECT_AUDIT = ["PROJECT_AUDIT:READ"] as const;
 const ORG_PROJECT = [
@@ -112,13 +114,48 @@ const PROJECT_REPORT = [
 /** 任务中心与任务操作（API-003/SYS-006 随规格入库） */
 const PROJECT_EXEC_TASK = ["PROJECT_EXEC_TASK:READ", "PROJECT_EXEC_TASK:UPDATE"] as const;
 /** AI 能力（S7 AI-001~005 随规格入库：模型管理=系统级；生成/提示词模板=项目级；助手对话个人级不设点） */
-const SYSTEM_AI = ["SYSTEM_AI:READ", "SYSTEM_AI:CREATE", "SYSTEM_AI:UPDATE", "SYSTEM_AI:DELETE"] as const;
+const SYSTEM_AI = [
+  "SYSTEM_AI:READ",
+  "SYSTEM_AI:CREATE",
+  "SYSTEM_AI:UPDATE",
+  "SYSTEM_AI:DELETE",
+] as const;
 const PROJECT_AI = [
   "PROJECT_AI:READ",
   "PROJECT_AI:CREATE",
   "PROJECT_AI:UPDATE",
   "PROJECT_AI:DELETE",
 ] as const;
+/** 授权管理（S9 ENTP-007 随规格入库——企业版总开关面） */
+const SYSTEM_LICENSE = ["SYSTEM_LICENSE:READ", "SYSTEM_LICENSE:UPDATE"] as const;
+/** 多组织管理，系统级（S9 ENTP-001 随规格入库；rbac §6 预登记语义兑现） */
+const ENTP_ORG = [
+  "ENTP_ORG:READ",
+  "ENTP_ORG:CREATE",
+  "ENTP_ORG:UPDATE",
+  "ENTP_ORG:DELETE",
+] as const;
+/** SSO 认证源（S9 ENTP-002 随规格入库；rbac §6 预登记 ENTP_SSO:UPDATE 扩四动作） */
+const ENTP_SSO = [
+  "ENTP_SSO:READ",
+  "ENTP_SSO:CREATE",
+  "ENTP_SSO:UPDATE",
+  "ENTP_SSO:DELETE",
+] as const;
+/** 多资源池增删改（S9 ENTP-006 随规格入库；读复用 SYSTEM_POOL:READ，rbac §6 预登记 CREATE|UPDATE+DELETE） */
+const ENTP_POOL = ["ENTP_POOL:CREATE", "ENTP_POOL:UPDATE", "ENTP_POOL:DELETE"] as const;
+/** 组织级部门管理（S9 ENTP-008 随规格入库） */
+const ORG_DEPARTMENT = [
+  "ORG_DEPARTMENT:READ",
+  "ORG_DEPARTMENT:CREATE",
+  "ORG_DEPARTMENT:UPDATE",
+  "ORG_DEPARTMENT:DELETE",
+] as const;
+
+/** 性能测试/UI 测试占位保留位（S-future LOAD-001/UIT-001：企业版方向，仅 READ；
+ * 消费方=LeftNav 占位导航双门控（模块开关 ∧ 权限点），激活真实模块时随 ENTP 扩展动作集） */
+const PROJECT_LOAD = ["PROJECT_LOAD:READ"] as const;
+const PROJECT_UIT = ["PROJECT_UIT:READ"] as const;
 
 export const PERMISSION_POINTS = [
   ...SYSTEM_USER,
@@ -128,6 +165,7 @@ export const PERMISSION_POINTS = [
   ...SYSTEM_PLUGIN,
   ...ORG_INTEGRATION,
   ...SYSTEM_AUDIT,
+  ...SYSTEM_METRICS,
   ...ORG_AUDIT,
   ...PROJECT_AUDIT,
   ...ORG_PROJECT,
@@ -151,6 +189,13 @@ export const PERMISSION_POINTS = [
   ...PROJECT_EXEC_TASK,
   ...SYSTEM_AI,
   ...PROJECT_AI,
+  ...SYSTEM_LICENSE,
+  ...ENTP_ORG,
+  ...ENTP_SSO,
+  ...ENTP_POOL,
+  ...ORG_DEPARTMENT,
+  ...PROJECT_LOAD,
+  ...PROJECT_UIT,
 ] as const;
 
 export type PermissionPoint = (typeof PERMISSION_POINTS)[number];
@@ -175,6 +220,7 @@ export const PRESET_GROUP_PERMISSIONS = {
     ...ORG_TEMPLATE,
     ...ORG_INTEGRATION,
     ...ORG_AUDIT,
+    ...ORG_DEPARTMENT,
     ...PROJECT_GROUP,
     "PROJECT_MEMBER:READ",
     "PROJECT_TEMPLATE:READ",
@@ -190,6 +236,8 @@ export const PRESET_GROUP_PERMISSIONS = {
     "PROJECT_SCRIPT:READ",
     "PROJECT_MESSAGE:READ",
     "PROJECT_AI:READ",
+    "PROJECT_LOAD:READ",
+    "PROJECT_UIT:READ",
     ...PROJECT_EXEC_TASK,
   ],
   ORG_MEMBER: ["ORG_PROJECT:READ"],
@@ -211,6 +259,8 @@ export const PRESET_GROUP_PERMISSIONS = {
     ...PROJECT_REPORT,
     ...PROJECT_EXEC_TASK,
     ...PROJECT_AI,
+    ...PROJECT_LOAD,
+    ...PROJECT_UIT,
   ],
   PROJECT_MEMBER: [
     "PROJECT_MEMBER:READ",

@@ -132,13 +132,25 @@ export async function getPlan(projectId: string, planId: string) {
   if (apiRefs.length > 0) {
     // 接口域读只经 Provider 通道（禁止本文件直查 api 域模型——test-domain-model §3）
     const { listApiRefSummary } = await import("@/server/domains/api/api-ref.provider");
-    apiSummaries = await listApiRefSummary(projectId, apiRefs.map((r) => r.refId));
+    apiSummaries = await listApiRefSummary(
+      projectId,
+      apiRefs.map((r) => r.refId),
+    );
   }
   const apiMap = new Map(apiSummaries.map((s) => [s.refId, s]));
-  let scenarioSummaries: { refId: string; name: string; level: string; status: string; updatedAt: string }[] = [];
+  let scenarioSummaries: {
+    refId: string;
+    name: string;
+    level: string;
+    status: string;
+    updatedAt: string;
+  }[] = [];
   if (scenarioRefs.length > 0) {
     const { listScenarioRefSummary } = await import("@/server/domains/api/api-ref.provider");
-    scenarioSummaries = await listScenarioRefSummary(projectId, scenarioRefs.map((r) => r.refId));
+    scenarioSummaries = await listScenarioRefSummary(
+      projectId,
+      scenarioRefs.map((r) => r.refId),
+    );
   }
   const scenarioMap = new Map(scenarioSummaries.map((s) => [s.refId, s]));
   // S4 统计口径升级：三类 refs 统一参与（引擎执行回写 api_case/scenario 状态；功能用例人工/自动）
@@ -315,7 +327,10 @@ export async function addPlanCases(
   const beforeCount = await prisma.planCaseRef.count({ where: { planId } });
   const settings = (p.settings ?? {}) as { allowDuplicate?: boolean };
   if (pointId) {
-    const point = await prisma.testPoint.findFirst({ where: { id: pointId, planId }, select: { id: true } });
+    const point = await prisma.testPoint.findFirst({
+      where: { id: pointId, planId },
+      select: { id: true },
+    });
     if (!point) throw new DomainError(ErrCode.POINT_NOT_FOUND, "测试点不存在");
   }
   const cases = await prisma.functionalCase.findMany({
@@ -324,9 +339,8 @@ export async function addPlanCases(
   });
   if (scenarioIds.length > 0) {
     // 场景域读经 api-ref.provider（禁止本文件直查 api 域模型——test-domain-model §3）
-    const { batchValidateScenarioRefs, assertNoInvalidRef } = await import(
-      "@/server/domains/api/api-ref.provider"
-    );
+    const { batchValidateScenarioRefs, assertNoInvalidRef } =
+      await import("@/server/domains/api/api-ref.provider");
     const { valid, invalid } = await batchValidateScenarioRefs(projectId, scenarioIds);
     assertNoInvalidRef(invalid);
     const existing = await prisma.planCaseRef.findMany({
@@ -336,20 +350,29 @@ export async function addPlanCases(
     const existingSet = new Set(existing.map((e) => e.refId));
     const dup = valid.filter((id) => existingSet.has(id));
     if (dup.length > 0 && !settings.allowDuplicate) {
-      throw new DomainError(ErrCode.DUP_ASSOC, `重复关联 ${dup.length} 个场景（计划未开启「允许重复关联」）`);
+      throw new DomainError(
+        ErrCode.DUP_ASSOC,
+        `重复关联 ${dup.length} 个场景（计划未开启「允许重复关联」）`,
+      );
     }
     for (const refId of valid) {
       if (existingSet.has(refId)) continue;
       await prisma.planCaseRef.create({
-        data: { planId, refType: "scenario", refId, pointId, execUserId: execUserId ?? null, status: "NOT_RUN" },
+        data: {
+          planId,
+          refType: "scenario",
+          refId,
+          pointId,
+          execUserId: execUserId ?? null,
+          status: "NOT_RUN",
+        },
       });
     }
   }
   if (apiCaseIds.length > 0) {
     // 接口用例走 Provider 通道（禁止本文件直查 api 域模型——test-domain-model §3）
-    const { batchValidateApiRefs, assertNoInvalidRef } = await import(
-      "@/server/domains/api/api-ref.provider"
-    );
+    const { batchValidateApiRefs, assertNoInvalidRef } =
+      await import("@/server/domains/api/api-ref.provider");
     const { valid, invalid } = await batchValidateApiRefs(projectId, apiCaseIds);
     assertNoInvalidRef(invalid);
     const apiExisting = await prisma.planCaseRef.findMany({
@@ -359,12 +382,22 @@ export async function addPlanCases(
     const apiExistingSet = new Set(apiExisting.map((e) => e.refId));
     const apiDup = valid.filter((id) => apiExistingSet.has(id));
     if (apiDup.length > 0 && !settings.allowDuplicate) {
-      throw new DomainError(ErrCode.DUP_ASSOC, `重复关联 ${apiDup.length} 条接口用例（计划未开启「允许重复关联」）`);
+      throw new DomainError(
+        ErrCode.DUP_ASSOC,
+        `重复关联 ${apiDup.length} 条接口用例（计划未开启「允许重复关联」）`,
+      );
     }
     for (const refId of valid) {
       if (apiExistingSet.has(refId)) continue;
       await prisma.planCaseRef.create({
-        data: { planId, refType: "api_case", refId, pointId, execUserId: execUserId ?? null, status: "NOT_RUN" },
+        data: {
+          planId,
+          refType: "api_case",
+          refId,
+          pointId,
+          execUserId: execUserId ?? null,
+          status: "NOT_RUN",
+        },
       });
     }
   }

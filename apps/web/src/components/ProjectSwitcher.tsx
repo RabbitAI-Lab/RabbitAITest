@@ -5,10 +5,15 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { projectApi } from "@rabbit/api-client";
 import { useProjectStore } from "@/stores/project";
+import { useOrgStore } from "@/stores/org";
 
-/** 顶栏项目切换器（SYS-003 §3：切换后业务页按项目重取）。 */
+/** 顶栏项目切换器（SYS-003 §3；ENTP-001：多组织下按当前组织过滤）。 */
 export function ProjectSwitcher() {
-  const { data, isLoading } = useQuery({ queryKey: ["projects"], queryFn: projectApi.list });
+  const currentOrgId = useOrgStore((s) => s.currentOrgId);
+  const { data, isLoading } = useQuery({
+    queryKey: ["projects", currentOrgId],
+    queryFn: () => projectApi.list(currentOrgId ?? undefined),
+  });
   const { projects, currentProjectId, setProjects, setCurrent } = useProjectStore();
 
   useEffect(() => {

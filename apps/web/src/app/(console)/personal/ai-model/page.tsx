@@ -61,7 +61,11 @@ export default function PersonalAiModelPage() {
           >
             <div className="border rounded divide-y text-[13px]">
               {list.map((m) => (
-                <div key={m.id} className="flex items-center gap-2 px-3 py-2" data-testid={`personal-model-${m.name}`}>
+                <div
+                  key={m.id}
+                  className="flex items-center gap-2 px-3 py-2"
+                  data-testid={`personal-model-${m.name}`}
+                >
                   <Radio value={m.id} />
                   <span className="font-medium">{m.name}</span>
                   <Tag>{m.provider}</Tag>
@@ -74,14 +78,30 @@ export default function PersonalAiModelPage() {
             </div>
           </Radio.Group>
           <Space>
-            <Button type="primary" loading={save.isPending} onClick={() => save.mutate(selected)} data-testid="personal-ai-model-save">
+            <Button
+              type="primary"
+              loading={save.isPending}
+              onClick={() => save.mutate(selected)}
+              data-testid="personal-ai-model-save"
+            >
               保存
             </Button>
-            <a className="text-xs text-[#574BFF] cursor-pointer" onClick={() => { setSelected(null); save.mutate(null); }} data-testid="personal-ai-model-clear">
+            <a
+              className="text-xs text-[#574BFF] cursor-pointer"
+              onClick={() => {
+                setSelected(null);
+                save.mutate(null);
+              }}
+              data-testid="personal-ai-model-clear"
+            >
               清除（用系统默认）
             </a>
           </Space>
-          <Alert type="info" showIcon message="解析顺序：个人默认（启用中） > 系统默认；停用后自动回退系统默认" />
+          <Alert
+            type="info"
+            showIcon
+            message="解析顺序：个人默认（启用中） > 系统默认；停用后自动回退系统默认"
+          />
         </div>
       )}
     </div>

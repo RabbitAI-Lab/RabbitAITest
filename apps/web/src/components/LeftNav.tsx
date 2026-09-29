@@ -22,6 +22,10 @@ import {
   FileCode2,
   Bell,
   UserCircle2,
+  Building2,
+  ShieldCheck,
+  Gauge,
+  MonitorPlay,
 } from "lucide-react";
 import { usePermissions, useProjectInfo } from "@/hooks/usePermissions";
 
@@ -30,7 +34,7 @@ interface NavItem {
   label: string;
   icon: React.ReactNode;
   perm?: string; // 菜单级权限守卫（SYS-004：无权限点菜单不出现）
-  module?: "case" | "plan" | "bug" | "api"; // 模块开关（PROJ-001：关闭=菜单隐藏）
+  module?: "case" | "plan" | "bug" | "api" | "load" | "uit"; // 模块开关（PROJ-001：关闭=菜单隐藏；load/uit 缺省即关，S-future 占位口径）
   testid?: string;
 }
 
@@ -138,6 +142,33 @@ export function LeftNav() {
         },
       ],
     },
+    // S-future LOAD-001/UIT-001：企业版方向占位（模块开关默认关 + 保留权限点双门控；对齐基线 menu.UI_*/PERFORMANCE_TEST_* 口径）
+    {
+      label: "性能测试",
+      items: [
+        {
+          href: "/load",
+          label: "性能测试",
+          icon: <Gauge size={15} strokeWidth={1.8} />,
+          perm: "PROJECT_LOAD:READ",
+          module: "load",
+          testid: "nav-load",
+        },
+      ],
+    },
+    {
+      label: "UI 测试",
+      items: [
+        {
+          href: "/ui-test",
+          label: "UI 测试",
+          icon: <MonitorPlay size={15} strokeWidth={1.8} />,
+          perm: "PROJECT_UIT:READ",
+          module: "uit",
+          testid: "nav-uit",
+        },
+      ],
+    },
     {
       label: "组织",
       items: [
@@ -154,6 +185,13 @@ export function LeftNav() {
           icon: <Users size={15} strokeWidth={1.8} />,
           perm: "ORG_MEMBER:READ",
           testid: "nav-org-members",
+        },
+        {
+          href: "/org/departments",
+          label: "部门管理",
+          icon: <Network size={15} strokeWidth={1.8} />,
+          perm: "ORG_DEPARTMENT:READ",
+          testid: "nav-org-departments",
         },
         {
           href: "/org/groups",
@@ -276,6 +314,27 @@ export function LeftNav() {
           testid: "nav-system-params",
         },
         {
+          href: "/system/sso",
+          label: "认证配置",
+          icon: <KeyRound size={15} strokeWidth={1.8} />,
+          perm: "ENTP_SSO:READ",
+          testid: "nav-system-sso",
+        },
+        {
+          href: "/system/orgs",
+          label: "组织管理",
+          icon: <Building2 size={15} strokeWidth={1.8} />,
+          perm: "ENTP_ORG:READ",
+          testid: "nav-system-orgs",
+        },
+        {
+          href: "/system/license",
+          label: "授权管理",
+          icon: <ShieldCheck size={15} strokeWidth={1.8} />,
+          perm: "SYSTEM_LICENSE:READ",
+          testid: "nav-system-license",
+        },
+        {
           href: "/system/pools",
           label: "资源池",
           icon: <LayoutDashboard size={15} strokeWidth={1.8} />,
@@ -327,13 +386,13 @@ export function LeftNav() {
                   : pathname === item.href || pathname.startsWith(item.href + "/");
               const cls = `relative flex items-center gap-2.5 mx-2 px-3 py-[7px] rounded-md text-[13px] transition-colors ${
                 active
-                  ? "bg-[#574BFF]/8 text-[#574BFF] font-medium"
+                  ? "bg-[#574BFF]/8 text-[var(--rabbit-primary,#574BFF)] font-medium"
                   : "text-[#3D4350] hover:bg-[#F2F3F5]"
               }`;
               return (
                 <Link key={item.href} href={item.href} className={cls} data-testid={item.testid}>
                   {active && (
-                    <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 rounded-r bg-[#574BFF]" />
+                    <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 rounded-r bg-[var(--rabbit-primary,#574BFF)]" />
                   )}
                   {item.icon}
                   {item.label}

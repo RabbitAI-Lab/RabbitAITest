@@ -23,9 +23,14 @@
         <span class="text-xs text-green-600/70">（撤销或过期后本页不可访问）</span>
       </div>
       <!-- 与 detail 同构的只读头部：无重跑/分享/返回列表操作 -->
-      <div class="bg-white border rounded-md p-3 flex items-center gap-3 flex-wrap" data-testid="proto-share-header">
+      <div
+        class="bg-white border rounded-md p-3 flex items-center gap-3 flex-wrap"
+        data-testid="proto-share-header"
+      >
         <h1 class="text-base font-medium">批量执行 · 3 条用例</h1>
-        <span class="rounded-full bg-red-50 text-[#FF4D4F] text-xs px-2 py-0.5 font-medium">失败</span>
+        <span class="rounded-full bg-red-50 text-[#FF4D4F] text-xs px-2 py-0.5 font-medium"
+          >失败</span
+        >
         <span class="bg-[#574BFF]/10 text-[#574BFF] rounded px-1.5 py-0.5 text-xs">接口用例</span>
         <span class="text-xs text-slate-400">T-0107 · admin · 2026-09-27 10:32</span>
         <!-- 只读：操作按钮整组隐藏（对照 detail.html 头部的 重跑/分享/返回列表） -->
@@ -41,7 +46,9 @@
         </div>
         <div class="bg-white border rounded-md p-3">
           <p class="text-xs text-slate-400">总耗时</p>
-          <p class="text-2xl font-semibold mt-0.5">1.2<span class="text-sm font-normal text-slate-400">s</span></p>
+          <p class="text-2xl font-semibold mt-0.5">
+            1.2<span class="text-sm font-normal text-slate-400">s</span>
+          </p>
         </div>
       </div>
       <!-- 用例级表格（只读） -->
@@ -60,19 +67,25 @@
           </thead>
           <tbody>
             <tr class="border-b">
-              <td class="px-3 py-2.5">item#1 · 查询宠物-狗 <span class="text-slate-400 text-xs">AC-1001</span></td>
+              <td class="px-3 py-2.5">
+                item#1 · 查询宠物-狗 <span class="text-slate-400 text-xs">AC-1001</span>
+              </td>
               <td class="px-3 py-2.5"><span class="text-[#52C41A]">SUCCESS</span></td>
               <td class="px-3 py-2.5">302ms</td>
               <td class="px-3 py-2.5"><span class="text-[#52C41A]">3/3</span></td>
             </tr>
             <tr class="border-b bg-[#574BFF]/[.05]">
-              <td class="px-3 py-2.5">item#2 · 查询宠物-猫 <span class="text-slate-400 text-xs">AC-1002</span></td>
+              <td class="px-3 py-2.5">
+                item#2 · 查询宠物-猫 <span class="text-slate-400 text-xs">AC-1002</span>
+              </td>
               <td class="px-3 py-2.5"><span class="text-[#FF4D4F] font-medium">FAILED</span></td>
               <td class="px-3 py-2.5">458ms</td>
               <td class="px-3 py-2.5"><span class="text-[#FF4D4F]">1/3</span></td>
             </tr>
             <tr>
-              <td class="px-3 py-2.5">item#3 · 新建订单 <span class="text-slate-400 text-xs">AC-1007</span></td>
+              <td class="px-3 py-2.5">
+                item#3 · 新建订单 <span class="text-slate-400 text-xs">AC-1007</span>
+              </td>
               <td class="px-3 py-2.5"><span class="text-[#52C41A]">SUCCESS</span></td>
               <td class="px-3 py-2.5">442ms</td>
               <td class="px-3 py-2.5"><span class="text-[#52C41A]">2/2</span></td>
@@ -83,7 +96,10 @@
       <!-- 步骤钻取（只读同构：请求快照 / 响应 / 断言 / 提取值 / 日志） -->
       <div class="bg-white border rounded-md" data-testid="proto-share-drilldown">
         <p class="px-3 py-2.5 border-b font-medium">
-          步骤钻取 <span class="text-xs text-slate-400 font-normal">item#2 · 查询宠物-猫 · FAILED · 458ms</span>
+          步骤钻取
+          <span class="text-xs text-slate-400 font-normal"
+            >item#2 · 查询宠物-猫 · FAILED · 458ms</span
+          >
         </p>
         <div class="p-3 space-y-3">
           <div class="grid grid-cols-2 gap-3">
@@ -92,11 +108,19 @@
                 请求快照 <span class="text-xs text-slate-400 font-normal">（渲染后实际值）</span>
               </p>
               <div class="p-3 space-y-2 text-[13px]">
-                <p class="font-mono text-xs break-all"><span class="text-green-600 font-bold">GET</span> http://127.0.0.1:4000/pets/9</p>
+                <p class="font-mono text-xs break-all">
+                  <span class="text-green-600 font-bold">GET</span> http://127.0.0.1:4000/pets/9
+                </p>
                 <table class="w-full text-xs">
                   <tbody>
-                    <tr class="border-b"><td class="py-1 font-mono w-32">Authorization</td><td class="py-1 font-mono break-all">Bearer eyJhbGciOiJIUzI1NiJ9…</td></tr>
-                    <tr><td class="py-1 font-mono">Accept</td><td class="py-1 font-mono">application/json</td></tr>
+                    <tr class="border-b">
+                      <td class="py-1 font-mono w-32">Authorization</td>
+                      <td class="py-1 font-mono break-all">Bearer eyJhbGciOiJIUzI1NiJ9…</td>
+                    </tr>
+                    <tr>
+                      <td class="py-1 font-mono">Accept</td>
+                      <td class="py-1 font-mono">application/json</td>
+                    </tr>
                   </tbody>
                 </table>
                 <p class="text-xs text-slate-400 font-mono">— 无 Body（GET）—</p>
@@ -104,10 +128,14 @@
             </div>
             <div class="border rounded-md">
               <p class="px-3 py-2 border-b text-[13px] font-medium flex justify-between">
-                响应 <span class="text-xs font-normal"><span class="text-green-600 font-semibold">200</span> · 458ms</span>
+                响应
+                <span class="text-xs font-normal"
+                  ><span class="text-green-600 font-semibold">200</span> · 458ms</span
+                >
               </p>
               <div class="p-3">
-                <pre class="bg-slate-50 border rounded p-2 font-mono text-xs overflow-auto">{
+                <pre class="bg-slate-50 border rounded p-2 font-mono text-xs overflow-auto">
+{
   "code": 0,
   "data": { "id": 9, "name": "小红", "kind": "cat" }
 }</pre>
@@ -115,7 +143,9 @@
             </div>
           </div>
           <div class="border rounded-md">
-            <p class="px-3 py-2 border-b text-[13px] font-medium">断言 <span class="text-xs text-slate-400 font-normal">3 条 · 1 失败</span></p>
+            <p class="px-3 py-2 border-b text-[13px] font-medium">
+              断言 <span class="text-xs text-slate-400 font-normal">3 条 · 1 失败</span>
+            </p>
             <table class="w-full text-[13px]">
               <thead class="text-slate-400 text-xs">
                 <tr class="border-b">
@@ -127,17 +157,23 @@
               </thead>
               <tbody>
                 <tr class="border-b">
-                  <td class="p-2">状态码</td><td class="p-2 font-mono text-xs">200</td><td class="p-2 font-mono text-xs">200</td>
+                  <td class="p-2">状态码</td>
+                  <td class="p-2 font-mono text-xs">200</td>
+                  <td class="p-2 font-mono text-xs">200</td>
                   <td class="p-2 text-[#52C41A]">✓ 通过</td>
                 </tr>
                 <tr class="border-b bg-red-50">
-                  <td class="p-2">响应体 JSONPath <span class="font-mono text-xs">$.data.kind</span></td>
+                  <td class="p-2">
+                    响应体 JSONPath <span class="font-mono text-xs">$.data.kind</span>
+                  </td>
                   <td class="p-2 font-mono text-xs">等于 dog</td>
                   <td class="p-2 font-mono text-xs text-[#FF4D4F]">cat</td>
                   <td class="p-2 text-[#FF4D4F] font-medium">✗ 失败</td>
                 </tr>
                 <tr>
-                  <td class="p-2">响应体 JSONPath <span class="font-mono text-xs">$.data.id</span></td>
+                  <td class="p-2">
+                    响应体 JSONPath <span class="font-mono text-xs">$.data.id</span>
+                  </td>
                   <td class="p-2 font-mono text-xs">等于 9</td>
                   <td class="p-2 font-mono text-xs">9</td>
                   <td class="p-2 text-[#52C41A]">✓ 通过</td>
@@ -158,7 +194,9 @@
               <tbody>
                 <tr class="border-b">
                   <td class="p-2 font-mono text-xs">token</td>
-                  <td class="p-2 font-mono text-xs break-all">eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9…</td>
+                  <td class="p-2 font-mono text-xs break-all">
+                    eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9…
+                  </td>
                   <td class="p-2">环境</td>
                 </tr>
               </tbody>
@@ -167,9 +205,13 @@
           <div class="border rounded-md">
             <p class="px-3 py-2 border-b text-[13px] font-medium">日志流</p>
             <div class="p-3 font-mono text-xs space-y-1">
-              <p class="text-slate-500">10:32:05.102 [info] item#2 开始执行：查询宠物-猫（GET /pets/9）</p>
+              <p class="text-slate-500">
+                10:32:05.102 [info] item#2 开始执行：查询宠物-猫（GET /pets/9）
+              </p>
               <p class="text-amber-500">10:32:05.108 [warn] 环境变量 retry 未定义，重试配置跳过</p>
-              <p class="text-red-500">10:32:05.560 [error] 断言失败：$.data.kind 期望 dog，实际 cat</p>
+              <p class="text-red-500">
+                10:32:05.560 [error] 断言失败：$.data.kind 期望 dog，实际 cat
+              </p>
             </div>
           </div>
         </div>
@@ -180,9 +222,14 @@
         以下为失效 token（过期 / 已撤销 / 不存在）时的统一空态示意
         <div class="h-px bg-slate-200 flex-1"></div>
       </div>
-      <div class="bg-white border rounded-md py-24 grid place-items-center gap-2" data-testid="proto-share-expired">
+      <div
+        class="bg-white border rounded-md py-24 grid place-items-center gap-2"
+        data-testid="proto-share-expired"
+      >
         <p class="text-slate-300 text-2xl font-medium">分享链接已过期或不存在</p>
-        <p class="text-slate-400 text-sm">链接可能已被撤销、超过有效期，或从未创建（SHARE_NOT_FOUND 60414）</p>
+        <p class="text-slate-400 text-sm">
+          链接可能已被撤销、超过有效期，或从未创建（SHARE_NOT_FOUND 60414）
+        </p>
         <a class="text-[#574BFF] text-sm mt-2" href="#">前往 RabbitAITest 首页</a>
       </div>
       <!-- 注：免登页数据 = reportDetail 同构裁剪（无重跑/分享/删除操作）；token 即凭证，端点无权限校验 -->

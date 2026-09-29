@@ -31,7 +31,12 @@ export function registerEchoBuiltin(): void {
         return { platformKey: String(args[1]), echoUpdated: true };
       case "syncBugs":
         return [
-          { platformKey: "ECHO-1001", title: "echo bug", status: "resolved", updatedAt: new Date().toISOString() },
+          {
+            platformKey: "ECHO-1001",
+            title: "echo bug",
+            status: "resolved",
+            updatedAt: new Date().toISOString(),
+          },
         ];
       case "fieldMapping":
         return [

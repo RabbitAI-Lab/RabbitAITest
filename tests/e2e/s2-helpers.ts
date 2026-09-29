@@ -137,13 +137,14 @@ export async function defaultApiModuleId(
   const res = await request.get(`/api/v1/projects/${projectId}/modules?scene=api`);
   const data = await ok<{ items: { id: string; isDefault?: boolean; children: unknown[] }[] }>(res);
   const flat: { id: string; isDefault?: boolean }[] = [];
-  const walk = (nodes: { id: string; isDefault?: boolean; children: unknown[] }[]) => {
+  // 命名避开与生产代码同名（api/import.service 亦有 walk——曾致跨文件污点误链，2026-09-28）
+  const flattenModules = (nodes: { id: string; isDefault?: boolean; children: unknown[] }[]) => {
     for (const n of nodes) {
       flat.push(n);
-      walk(n.children as typeof nodes);
+      flattenModules(n.children as typeof nodes);
     }
   };
-  walk(data.items);
+  flattenModules(data.items);
   return flat.find((m) => m.isDefault)?.id ?? flat[0]!.id;
 }
 

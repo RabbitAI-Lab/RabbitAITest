@@ -45,22 +45,31 @@ test("CASE-008-01 环检测与执行联动 blockedBy", async ({
   await expect(page.locator("body")).toContainText(nameA, { timeout: 10_000 });
 
   // 执行联动：计划内 A FAIL → 标记 B 响应含 blockedBy（接口断言）
-  const planRes = await request.post(`/api/v1/projects/${projectId}/plans`, { data: { name: `联动计划-${uniq}` } });
+  const planRes = await request.post(`/api/v1/projects/${projectId}/plans`, {
+    data: { name: `联动计划-${uniq}` },
+  });
   const planId = ((await planRes.json()) as { data: { id: string } }).data.id;
   await request.post(`/api/v1/projects/${projectId}/plans/${planId}/cases`, {
     data: { caseIds: [caseA, caseB] },
   });
   const detRes = await request.get(`/api/v1/projects/${projectId}/plans/${planId}`);
-  const cases = ((await detRes.json()) as { data: { cases: { caseId: string; refId: string }[] } }).data.cases;
+  const cases = ((await detRes.json()) as { data: { cases: { caseId: string; refId: string }[] } })
+    .data.cases;
   const refA = cases.find((c) => c.caseId === caseA)!.refId;
   const refB = cases.find((c) => c.caseId === caseB)!.refId;
   await request.post(`/api/v1/projects/${projectId}/plans/${planId}/cases/${refA}/exec`, {
     data: { status: "FAIL", actualResult: "A 失败", comment: "" },
   });
-  const bExec = await request.post(`/api/v1/projects/${projectId}/plans/${planId}/cases/${refB}/exec`, {
-    data: { status: "BLOCKED", actualResult: "前置未过", comment: "" },
-  });
-  const bBody = (await bExec.json()) as { code: number; data: { blockedBy?: { caseId: string }[] } };
+  const bExec = await request.post(
+    `/api/v1/projects/${projectId}/plans/${planId}/cases/${refB}/exec`,
+    {
+      data: { status: "BLOCKED", actualResult: "前置未过", comment: "" },
+    },
+  );
+  const bBody = (await bExec.json()) as {
+    code: number;
+    data: { blockedBy?: { caseId: string }[] };
+  };
   expect(bBody.code).toBe(0);
   expect(bBody.data.blockedBy?.[0]?.caseId).toBe(caseA);
 

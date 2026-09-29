@@ -20,13 +20,19 @@ test("PLAN-005-01 报告视图/总结/分享/CSV", async ({
   });
   const caseId = ((await caseRes.json()) as { data: { id: string } }).data.id;
   const planRes = await request.post(`/api/v1/projects/${projectId}/plans`, {
-    data: { name: `报告计划-${uniq}`, settings: { allowDuplicate: false, autoUpdateStatus: false, threshold: 80 } },
+    data: {
+      name: `报告计划-${uniq}`,
+      settings: { allowDuplicate: false, autoUpdateStatus: false, threshold: 80 },
+    },
   });
   const planId = ((await planRes.json()) as { data: { id: string } }).data.id;
-  await request.post(`/api/v1/projects/${projectId}/plans/${planId}/cases`, { data: { caseIds: [caseId] } });
+  await request.post(`/api/v1/projects/${projectId}/plans/${planId}/cases`, {
+    data: { caseIds: [caseId] },
+  });
   // 标记 PASS（阈值横幅需已执行口径）
   const det = await request.get(`/api/v1/projects/${projectId}/plans/${planId}`);
-  const refId = ((await det.json()) as { data: { cases: { refId: string }[] } }).data.cases[0]!.refId;
+  const refId = ((await det.json()) as { data: { cases: { refId: string }[] } }).data.cases[0]!
+    .refId;
   await request.post(`/api/v1/projects/${projectId}/plans/${planId}/cases/${refId}/exec`, {
     data: { status: "PASS", actualResult: "通过", comment: "" },
   });
@@ -47,7 +53,10 @@ test("PLAN-005-01 报告视图/总结/分享/CSV", async ({
   expect(String((draft.data as { draft: string }).draft)).toContain("执行总结");
 
   // 保存总结（UI 编辑态）
-  await page.getByRole("button", { name: "确 定" }).click().catch(() => {});
+  await page
+    .getByRole("button", { name: "确 定" })
+    .click()
+    .catch(() => {});
   await page.getByRole("button", { name: /保 存|保存/ }).click();
   await expect(page.getByTestId("summary-text")).toContainText("执行总结", { timeout: 10_000 });
 

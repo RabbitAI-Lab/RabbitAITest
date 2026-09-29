@@ -1,0 +1,99 @@
+name: perf
+
+# QA-001 性能基线 CI：PR=快速口径（1k 用例/20 任务），main push 与手动=完整口径（10k/100）。
+# 阈值即需求文档 §四 原文（不随口径放宽——quick 口径数据量小，本身即更宽松的实际余量）。
+on:
+  pull_request:
+    paths-ignore:
+      - "docs/**"
+      - "**/*.md"
+      - "CHANGELOG.md"
+  push:
+    branches: [main]
+    paths-ignore:
+      - "docs/**"
+      - "**/*.md"
+      - "CHANGELOG.md"
+  workflow_dispatch:
+    inputs:
+      scope:
+        description: "quick | full"
+        default: full
+
+concurrency:
+  group: perf-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  perf-baseline:
+    name: 性能基线（QA-001）
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: rabbit_perf
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 3s --health-timeout 3s --health-retries 20
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping" --health-interval 3s --health-timeout 3s --health-retries 20
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/rabbit_perf
+      REDIS_URL: redis://127.0.0.1:6379
+      # mock 端口必须 job 级可见（起栈子 shell 的 export 传不到后续 step——首红根因：
+      # baseline 回落 4000 无监听 → 场景 B/C 任务 NETWORK_ERROR）
+      MOCK_PORT: "4021"
+      PERF_MOCK_URL: http://127.0.0.1:4021
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile || pnpm install
+      - run: pnpm --filter @rabbit/db generate
+      - run: pnpm --filter @rabbit/db migrate-deploy
+      - run: pnpm --filter @rabbit/db seed
+      - run: pnpm --filter web build
+      - run: pnpm --filter mock build
+      - name: 起栈（web+engine+mock）
+        run: |
+          bash -c '
+            set -a
+            export PORT=3110 WEB_URL=http://localhost:3110 MOCK_PORT=4021
+            export DATABASE_URL='"$DATABASE_URL"' REDIS_URL='"$REDIS_URL"'
+            export SESSION_SECRET=ci-perf-session-secret-32chars-ok!!
+            export INTERNAL_TOKEN=ci-perf-internal-token SESSION_COOKIE_SECURE=false
+            export NO_ENGINE=0
+            pnpm --filter web start > /tmp/perf-web.log 2>&1 &
+            pnpm --filter engine start > /tmp/perf-engine.log 2>&1 &
+            pnpm --filter mock start > /tmp/perf-mock.log 2>&1 &
+          '
+      - name: 等待就绪
+        run: |
+          for i in $(seq 1 90); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:3110/api/v1/system/ready || true)
+            [ "$code" = "200" ] && exit 0
+            sleep 2
+          done
+          echo "stack not ready"; tail -50 /tmp/perf-web.log /tmp/perf-engine.log; exit 1
+      - name: seed + baseline（PR quick / main full）
+        run: |
+          SCOPE=quick
+          if [ "${{ github.event_name }}" = "push" ] || [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            SCOPE=${{ github.event.inputs.scope || 'full' }}
+          fi
+          echo "perf scope = $SCOPE"
+          node scripts/perf-seed.mjs --scope $SCOPE
+          node scripts/perf-baseline.mjs --scope $SCOPE --web http://localhost:3110
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: perf-baseline-report
+          path: test-results/perf/
+          retention-days: 30

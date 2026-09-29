@@ -12,7 +12,8 @@ function allowPrivate(): boolean {
 }
 
 function ipBlocked(ip: string): boolean {
-  if (ip === "::1" || ip.startsWith("127.") || ip.startsWith("169.254.") || ip.startsWith("0.")) return true;
+  if (ip === "::1" || ip.startsWith("127.") || ip.startsWith("169.254.") || ip.startsWith("0."))
+    return true;
   if (ip.startsWith("::ffff:")) return ipBlocked(ip.slice(7));
   if (ip.startsWith("fe80:") || ip === "fd00::0") return true;
   const m = ip.match(/^(\d+)\.(\d+)\.(\d+)\.(\d+)$/);
@@ -50,5 +51,8 @@ export async function assertSafeOutboundUrl(raw: string): Promise<void> {
 }
 
 function blocked(ip: string): DomainError {
-  return new DomainError(ErrCode.SWAGGER_SYNC_URL_BLOCKED, `目标地址不允许（内网/环回/元数据段：${ip}）`);
+  return new DomainError(
+    ErrCode.SWAGGER_SYNC_URL_BLOCKED,
+    `目标地址不允许（内网/环回/元数据段：${ip}）`,
+  );
 }

@@ -7,7 +7,10 @@ import { expandEnvGroup } from "@/server/domains/project/environment.service";
 export const runtime = "nodejs";
 
 const unprocessable = (message?: string) =>
-  NextResponse.json({ code: 20422, message: message ?? "参数校验失败", data: null }, { status: 422 });
+  NextResponse.json(
+    { code: 20422, message: message ?? "参数校验失败", data: null },
+    { status: 422 },
+  );
 
 /** 批量执行（API-008 §4：1..50 场景；serial/parallel + 失败停止）。
  *  S5 PROJ-006：envGroupId=按组执行（与 envId 互斥）——按组内顺序逐环境各建一个任务。 */

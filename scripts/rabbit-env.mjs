@@ -70,6 +70,7 @@ export function rabbitEnv(slot = resolveSlot()) {
       webUrl: `http://localhost:${3000 + slot}`,
       mockPort: 4000 + slot,
       mockUrl: `http://127.0.0.1:${4000 + slot}`,
+      runnerPort: 4300 + slot,
       pgPort: 5440 + slot,
       database: "rabbit",
       pgDataDir: ".pgdata",
@@ -81,6 +82,8 @@ export function rabbitEnv(slot = resolveSlot()) {
       webUrl: `http://localhost:${3100 + slot}`,
       mockPort: 4100 + slot,
       mockUrl: `http://127.0.0.1:${4100 + slot}`,
+      // S-future PLUG-003 plugin-runner 端口随槽位（原上游固定 4031——多 worktree 并存互抢，收编入表）
+      runnerPort: 4310 + slot,
       pgPort: 5450 + slot,
       database: "rabbit_e2e",
       pgDataDir: ".pgdata-e2e",
@@ -94,6 +97,7 @@ export function rabbitEnv(slot = resolveSlot()) {
       webUrl: `http://localhost:${3200 + slot}`,
       mockPort: 4200 + slot,
       mockUrl: `http://127.0.0.1:${4200 + slot}`,
+      runnerPort: 4320 + slot,
       pgPort: 5460 + slot,
       database: "rabbit_jm",
       pgDataDir: ".pgdata-jm",
@@ -112,6 +116,7 @@ function shellExports(e) {
     ["RABBIT_DEV_WEB_PORT", e.dev.webPort],
     ["RABBIT_DEV_WEB_URL", e.dev.webUrl],
     ["RABBIT_DEV_MOCK_PORT", e.dev.mockPort],
+    ["RABBIT_DEV_RUNNER_PORT", e.dev.runnerPort],
     ["RABBIT_DEV_PG_PORT", e.dev.pgPort],
     [
       "RABBIT_DEV_DATABASE_URL",
@@ -122,6 +127,7 @@ function shellExports(e) {
     ["RABBIT_E2E_WEB_PORT", e.e2e.webPort],
     ["RABBIT_E2E_WEB_URL", e.e2e.webUrl],
     ["RABBIT_E2E_MOCK_PORT", e.e2e.mockPort],
+    ["RABBIT_E2E_RUNNER_PORT", e.e2e.runnerPort],
     ["RABBIT_E2E_MOCK_URL", e.e2e.mockUrl],
     ["RABBIT_E2E_PG_PORT", e.e2e.pgPort],
     [
@@ -134,6 +140,7 @@ function shellExports(e) {
     ["RABBIT_JM_WEB_PORT", e.jm.webPort],
     ["RABBIT_JM_WEB_URL", e.jm.webUrl],
     ["RABBIT_JM_MOCK_PORT", e.jm.mockPort],
+    ["RABBIT_JM_RUNNER_PORT", e.jm.runnerPort],
     ["RABBIT_JM_MOCK_URL", e.jm.mockUrl],
     ["RABBIT_JM_PG_PORT", e.jm.pgPort],
     [

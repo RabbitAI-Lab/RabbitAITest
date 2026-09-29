@@ -19,14 +19,18 @@ test("AI-002-01 AI 生成全链路（生成→勾选→导入用例列表）", a
   await expect(page.getByTestId("ai-case-generate-drawer")).toBeVisible();
 
   // 输入需求 → 生成（接口断言：payload 含 requirement；mock 确定性 2 条草稿）
-  await page.getByTestId("ai-case-requirement").fill("用户连续输错密码 5 次应锁定 30 分钟，锁定期间正确密码也不放行");
+  await page
+    .getByTestId("ai-case-requirement")
+    .fill("用户连续输错密码 5 次应锁定 30 分钟，锁定期间正确密码也不放行");
   const gen = page.waitForResponse(`**/api/v1/projects/${pid}/ai/generate/cases`);
   await page.getByTestId("ai-case-generate").click();
   const genRes = await gen;
   expect(genRes.status()).toBe(200);
   const payload = genRes.request().postDataJSON() as { requirement: string };
   expect(payload.requirement).toContain("锁定");
-  const genData = (await genRes.json()) as { data: { drafts: { name: string; level: string; steps: unknown[] }[] } };
+  const genData = (await genRes.json()) as {
+    data: { drafts: { name: string; level: string; steps: unknown[] }[] };
+  };
   expect(genData.data.drafts.length).toBe(2);
   expect(genData.data.drafts[0]!.name).toBe("密码错误 5 次后锁定账户");
 
@@ -41,18 +45,26 @@ test("AI-002-01 AI 生成全链路（生成→勾选→导入用例列表）", a
   await page.getByTestId("ai-case-import").click();
   const impRes = await imported;
   expect(impRes.status()).toBe(201);
-  const impPayload = impRes.request().postDataJSON() as { name: string; level: string; steps: { desc: string }[] };
+  const impPayload = impRes.request().postDataJSON() as {
+    name: string;
+    level: string;
+    steps: { desc: string }[];
+  };
   expect(impPayload.name).toBe("密码错误 5 次后锁定账户");
   expect(impPayload.level).toBe("P1"); // AI high → 用例域 P1 映射
   expect(impPayload.steps.length).toBeGreaterThanOrEqual(2);
 
   // UI 断言：抽屉关闭 + 列表新增（列表刷新后含新用例）
   await expect(page.getByText("成功导入 1 条")).toBeVisible();
-  await expect(page.getByRole("cell", { name: "密码错误 5 次后锁定账户" })).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByRole("cell", { name: "密码错误 5 次后锁定账户" })).toBeVisible({
+    timeout: 15_000,
+  });
 
   // 接口断言：生成留痕
   const records = await request.get(`/api/v1/projects/${pid}/ai/gen-records`);
-  const recordsData = (await records.json()) as { data: { list: { scene: string; generatedCount: number }[] } };
+  const recordsData = (await records.json()) as {
+    data: { list: { scene: string; generatedCount: number }[] };
+  };
   expect(recordsData.data.list[0]!.scene).toBe("case_gen");
   expect(recordsData.data.list[0]!.generatedCount).toBe(2);
 

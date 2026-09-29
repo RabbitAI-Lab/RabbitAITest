@@ -30,7 +30,9 @@ test("INTG-003-T2 APIKEY 创建（一次性 sk 展示）→ open 触发执行 �
   await page.getByRole("button", { name: "我已保存，关闭" }).click();
 
   // 隔离上下文：Basic ak:sk 调 open（不带 session）
-  const openCtx = await playwright.request.newContext({ baseURL: E2E_BASE });
+  const openCtx = await playwright.request.newContext({
+    baseURL: E2E_BASE,
+  });
   const auth = `Basic ${Buffer.from(`${ak}:${sk}`).toString("base64")}`;
   const trigger = await openCtx.post("/api/v1/open/exec/api-case", {
     headers: { authorization: auth },

@@ -26,9 +26,7 @@ export const POST = withProjectScope(async (ctx, req, seg) => {
         { status: 422 },
       );
     }
-    return NextResponse.json(
-      ok(await batchDelete(ctx.projectId, apiId, parsed.data.ids)),
-    );
+    return NextResponse.json(ok(await batchDelete(ctx.projectId, apiId, parsed.data.ids)));
   } catch (err) {
     return toResponse(err);
   }

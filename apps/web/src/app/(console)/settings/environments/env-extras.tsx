@@ -4,7 +4,13 @@ import { Alert, Button, Empty, Input, Modal, Popconfirm, Select, Space, Table, T
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { ArrowDown, ArrowUp } from "lucide-react";
-import { envApi, envGroupApi, globalParamApi, type EnvGroupRow, type GlobalParamRow } from "@rabbit/api-client";
+import {
+  envApi,
+  envGroupApi,
+  globalParamApi,
+  type EnvGroupRow,
+  type GlobalParamRow,
+} from "@rabbit/api-client";
 import { useApp } from "@/hooks/useApp";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useProjectStore } from "@/stores/project";
@@ -34,8 +40,13 @@ export function EnvGroupsTab() {
   const invalidate = () => qc.invalidateQueries({ queryKey: ["env-groups", projectId] });
 
   const save = useMutation({
-    mutationFn: ({ id, body }: { id?: string; body: { name: string; environmentIds: string[] } }) =>
-      id ? envGroupApi.update(projectId!, id, body) : envGroupApi.create(projectId!, body),
+    mutationFn: ({
+      id,
+      body,
+    }: {
+      id?: string;
+      body: { name: string; environmentIds: string[] };
+    }) => (id ? envGroupApi.update(projectId!, id, body) : envGroupApi.create(projectId!, body)),
     onSuccess: () => {
       message.success("已保存");
       setEditing(null);
@@ -55,52 +66,80 @@ export function EnvGroupsTab() {
 
   const columns = [
     { title: "组名", dataIndex: "name" },
-    { title: "包含环境（有序）", dataIndex: "environmentIds", render: (ids: string[]) =>
-      ids.length ? (
-        <span>
-          {ids.map((id, i) => (
-            <span key={id}>
-              {i > 0 && <span className="text-gray-300 mx-1">→</span>}
-              <Tag color={envName(id) === "（已删除）" ? "default" : "blue"}>
-                {i + 1}. {envName(id)}
-              </Tag>
-            </span>
-          ))}
-        </span>
-      ) : (
-        <span className="text-xs text-gray-400">—</span>
-      ) },
-    { title: "可用环境数", render: (_: unknown, r: EnvGroupRow) => r.environmentIds.filter((id) => envName(id) !== "（已删除）").length },
+    {
+      title: "包含环境（有序）",
+      dataIndex: "environmentIds",
+      render: (ids: string[]) =>
+        ids.length ? (
+          <span>
+            {ids.map((id, i) => (
+              <span key={id}>
+                {i > 0 && <span className="text-gray-300 mx-1">→</span>}
+                <Tag color={envName(id) === "（已删除）" ? "default" : "blue"}>
+                  {i + 1}. {envName(id)}
+                </Tag>
+              </span>
+            ))}
+          </span>
+        ) : (
+          <span className="text-xs text-gray-400">—</span>
+        ),
+    },
+    {
+      title: "可用环境数",
+      render: (_: unknown, r: EnvGroupRow) =>
+        r.environmentIds.filter((id) => envName(id) !== "（已删除）").length,
+    },
     ...(canUpdate
-      ? [{
-          title: "操作",
-          render: (_: unknown, r: EnvGroupRow) => (
-            <Space size={4}>
-              <Button size="small" type="link" onClick={() => setEditing(r)}>
-                编辑
-              </Button>
-              <Popconfirm title="删除该环境组？（不影响环境本身）" onConfirm={() => remove.mutate(r.id)}>
-                <Button size="small" type="link" danger>
-                  删除
+      ? [
+          {
+            title: "操作",
+            render: (_: unknown, r: EnvGroupRow) => (
+              <Space size={4}>
+                <Button size="small" type="link" onClick={() => setEditing(r)}>
+                  编辑
                 </Button>
-              </Popconfirm>
-            </Space>
-          ),
-        }]
+                <Popconfirm
+                  title="删除该环境组？（不影响环境本身）"
+                  onConfirm={() => remove.mutate(r.id)}
+                >
+                  <Button size="small" type="link" danger>
+                    删除
+                  </Button>
+                </Popconfirm>
+              </Space>
+            ),
+          },
+        ]
       : []),
   ];
 
   return (
     <div data-testid="env-groups-panel">
       <div className="mb-2 flex items-center">
-        <span className="text-xs text-gray-400">组=有序环境集（≤10）：按组执行时按顺序逐环境各建一个任务；组内环境被删时执行自动跳过</span>
+        <span className="text-xs text-gray-400">
+          组=有序环境集（≤10）：按组执行时按顺序逐环境各建一个任务；组内环境被删时执行自动跳过
+        </span>
         {canCreate && (
-          <Button className="ml-auto" size="small" type="primary" onClick={() => setCreateOpen(true)} data-testid="btn-new-env-group">
+          <Button
+            className="ml-auto"
+            size="small"
+            type="primary"
+            onClick={() => setCreateOpen(true)}
+            data-testid="btn-new-env-group"
+          >
             ＋ 新建环境组
           </Button>
         )}
       </div>
-      <Table rowKey="id" size="small" loading={groups.isLoading} columns={columns} dataSource={groups.data?.items ?? []} pagination={false} />
+      <Table
+        rowKey="id"
+        size="small"
+        loading={groups.isLoading}
+        columns={columns}
+        dataSource={groups.data?.items ?? []}
+        pagination={false}
+      />
       {(createOpen || editing) && (
         <EnvGroupFormModal
           key={editing?.id ?? "new"}
@@ -149,7 +188,11 @@ function EnvGroupFormModal({
       <div className="space-y-3">
         <div>
           <p className="text-xs text-gray-500 mb-1">组名</p>
-          <Input value={name} onChange={(e) => setName(e.target.value)} data-testid="env-group-name-input" />
+          <Input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            data-testid="env-group-name-input"
+          />
         </div>
         <div>
           <p className="text-xs text-gray-500 mb-1">可选环境（未删除）</p>
@@ -166,14 +209,26 @@ function EnvGroupFormModal({
         <div>
           <p className="text-xs text-gray-500 mb-1">已选（执行顺序）</p>
           <div className="border rounded divide-y text-[13px]" data-testid="env-group-order">
-            {ids.length === 0 && <p className="px-2 py-2 text-xs text-gray-400 text-center">未选择</p>}
+            {ids.length === 0 && (
+              <p className="px-2 py-2 text-xs text-gray-400 text-center">未选择</p>
+            )}
             {ids.map((id, i) => (
               <div key={id} className="px-2 py-1.5 flex items-center gap-2">
                 <span className="text-gray-400">↕</span>
                 {envOptions.find((o) => o.value === id)?.label ?? id}
                 <span className="ml-auto flex gap-1">
-                  <Button size="small" type="text" icon={<ArrowUp size={12} />} onClick={() => move(i, -1)} />
-                  <Button size="small" type="text" icon={<ArrowDown size={12} />} onClick={() => move(i, 1)} />
+                  <Button
+                    size="small"
+                    type="text"
+                    icon={<ArrowUp size={12} />}
+                    onClick={() => move(i, -1)}
+                  />
+                  <Button
+                    size="small"
+                    type="text"
+                    icon={<ArrowDown size={12} />}
+                    onClick={() => move(i, 1)}
+                  />
                 </span>
               </div>
             ))}
@@ -228,37 +283,85 @@ export function GlobalParamsTab() {
         size="small"
         dataSource={current}
         pagination={false}
-        locale={{ emptyText: <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="暂无全局参数" /> }}
+        locale={{
+          emptyText: <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="暂无全局参数" />,
+        }}
         columns={[
-          { title: "Key", render: (_: unknown, r: GlobalParamRow, i: number) => (
-            <input className="border-0 outline-none font-mono w-full text-[13px]" value={r.key} disabled={!canUpdate} onChange={(e) => update(i, { key: e.target.value })} />
-          ) },
-          { title: "Value", render: (_: unknown, r: GlobalParamRow, i: number) => (
-            <input className="border-0 outline-none font-mono w-full text-[13px]" value={r.value} disabled={!canUpdate} onChange={(e) => update(i, { value: e.target.value })} />
-          ) },
-          { title: "描述", render: (_: unknown, r: GlobalParamRow, i: number) => (
-            <input className="border-0 outline-none w-full text-[13px] text-gray-500" value={r.description} disabled={!canUpdate} onChange={(e) => update(i, { description: e.target.value })} />
-          ) },
+          {
+            title: "Key",
+            render: (_: unknown, r: GlobalParamRow, i: number) => (
+              <input
+                className="border-0 outline-none font-mono w-full text-[13px]"
+                value={r.key}
+                disabled={!canUpdate}
+                onChange={(e) => update(i, { key: e.target.value })}
+              />
+            ),
+          },
+          {
+            title: "Value",
+            render: (_: unknown, r: GlobalParamRow, i: number) => (
+              <input
+                className="border-0 outline-none font-mono w-full text-[13px]"
+                value={r.value}
+                disabled={!canUpdate}
+                onChange={(e) => update(i, { value: e.target.value })}
+              />
+            ),
+          },
+          {
+            title: "描述",
+            render: (_: unknown, r: GlobalParamRow, i: number) => (
+              <input
+                className="border-0 outline-none w-full text-[13px] text-gray-500"
+                value={r.description}
+                disabled={!canUpdate}
+                onChange={(e) => update(i, { description: e.target.value })}
+              />
+            ),
+          },
           ...(canUpdate
-            ? [{
-                title: "",
-                width: 60,
-                render: (_: unknown, __: GlobalParamRow, i: number) => (
-                  <Button size="small" type="link" danger onClick={() => setRows(current.filter((_, j) => j !== i))}>
-                    删
-                  </Button>
-                ),
-              }]
+            ? [
+                {
+                  title: "",
+                  width: 60,
+                  render: (_: unknown, __: GlobalParamRow, i: number) => (
+                    <Button
+                      size="small"
+                      type="link"
+                      danger
+                      onClick={() => setRows(current.filter((_, j) => j !== i))}
+                    >
+                      删
+                    </Button>
+                  ),
+                },
+              ]
             : []),
         ]}
       />
       {canUpdate && (
         <div className="flex items-center mt-2">
-          <Button size="small" type="dashed" onClick={() => setRows([...current, { key: "", value: "", description: "" }])} data-testid="btn-add-global-param">
+          <Button
+            size="small"
+            type="dashed"
+            onClick={() => setRows([...current, { key: "", value: "", description: "" }])}
+            data-testid="btn-add-global-param"
+          >
             ＋ 添加参数
           </Button>
-          <span className="text-xs text-gray-400 ml-2">（{current.length}/100）{dup && <span className="text-red-500 ml-1">存在重复 key</span>}</span>
-          <Button className="ml-auto" type="primary" size="small" disabled={dup} loading={save.isPending} onClick={() => save.mutate()} data-testid="btn-save-global-params">
+          <span className="text-xs text-gray-400 ml-2">
+            （{current.length}/100）{dup && <span className="text-red-500 ml-1">存在重复 key</span>}
+          </span>
+          <Button
+            className="ml-auto"
+            type="primary"
+            size="small"
+            disabled={dup}
+            loading={save.isPending}
+            onClick={() => save.mutate()}
+            data-testid="btn-save-global-params"
+          >
             保存（全量提交）
           </Button>
         </div>

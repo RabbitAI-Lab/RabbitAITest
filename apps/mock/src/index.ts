@@ -19,6 +19,20 @@ const redis = new Redis(process.env.REDIS_URL ?? "redis://127.0.0.1:6379", {
 app.get("/healthz", (c) => c.json({ status: "UP" }));
 app.get("/hello", (c) => c.json({ message: "hello", status: "UP" }));
 
+// ── 性能基准回显（S8 QA-001 场景 C 采样目标；零延迟回显，排除外网抖动）──
+const perfEcho = async (c: Context) => {
+  let body: unknown = null;
+  try {
+    body = await c.req.json();
+  } catch {
+    body = null;
+  }
+  return c.json({ echo: true, method: c.req.method, path: c.req.path, body, ts: Date.now() });
+};
+app.get("/perf/echo", perfEcho);
+app.post("/perf/echo", perfEcho);
+// 其余方法 404（Hono 默认）——QA-001-T2 jmx 405/404 变体断言用
+
 // ── AI 供应商 Mock（S7 AI-001~005 测试确定性出口；OpenAI 兼容 chat/completions）──
 // 分支依据=真实 system prompt 固定开头（shared 常量，生产代码零测试标记）：
 //   「测试用例生成助手」→ 2 条固定功能用例草稿 JSON；「接口用例生成助手」→ 1 条固定接口用例草稿；
@@ -57,7 +71,8 @@ const MOCK_API_CASE_JSON = JSON.stringify([
     ],
   },
 ]);
-const MOCK_CHAT_TEXT = "可以从三层设计：1. 边界值：第 4 次（未触发）与第 5 次（触发锁定）各一条；2. 锁定期间行为：正确密码也不放行；3. 时间边界：30 分钟整自动解锁。";
+const MOCK_CHAT_TEXT =
+  "可以从三层设计：1. 边界值：第 4 次（未触发）与第 5 次（触发锁定）各一条；2. 锁定期间行为：正确密码也不放行；3. 时间边界：30 分钟整自动解锁。";
 
 app.post("/ai/chat/completions", async (c) => {
   const body = (await c.req.json().catch(() => ({}))) as {
@@ -74,8 +89,9 @@ app.post("/ai/chat/completions", async (c) => {
   if (body.stream) {
     // 3 片 delta + [DONE]（打字机断言依赖）
     const parts = content.match(/[\s\S]{1,12}/g) ?? [content];
-    const chunks = parts.map((text, i) =>
-      `data: ${JSON.stringify({ id: `mock-${i}`, model: mockModel, choices: [{ index: 0, delta: { content: text } }] })}\n\n`,
+    const chunks = parts.map(
+      (text, i) =>
+        `data: ${JSON.stringify({ id: `mock-${i}`, model: mockModel, choices: [{ index: 0, delta: { content: text } }] })}\n\n`,
     );
     chunks.push("data: [DONE]\n\n");
     return new Response(chunks.join(""), {
@@ -96,10 +112,7 @@ interface MatchedRule {
 }
 
 /** 路径模板匹配：`/pets/{id}` → `/pets/9`（捕获 REST 参数）。 */
-export function matchPath(
-  template: string,
-  path: string,
-): Record<string, string> | undefined {
+export function matchPath(template: string, path: string): Record<string, string> | undefined {
   const t = template.split("/").filter(Boolean);
   const p = path.split("/").filter(Boolean);
   if (t.length !== p.length) return undefined;
@@ -120,7 +133,13 @@ export function matchPath(
 /** 规则匹配：method+path 模板 → 头/Query/体条件全过 → 条件最多者优先（API-005 §2）。 */
 export function pickRule(
   rules: MockRuleSnapshotItem[],
-  req: { method: string; path: string; query: Record<string, string>; headers: Record<string, string>; body: string },
+  req: {
+    method: string;
+    path: string;
+    query: Record<string, string>;
+    headers: Record<string, string>;
+    body: string;
+  },
 ): MatchedRule | undefined {
   let best: MatchedRule | undefined;
   for (const rule of rules) {
@@ -217,9 +236,17 @@ if (process.env.VITEST === undefined) {
   // S5 MSG-001/FILE-001 e2e：机器人 webhook 接收 + Git 平台（标准 API 前缀 /api/v1|v3|v4|v5）
   const { buildRobotMocks, buildGitMocks } = await import("./s5-mocks.js");
   app.route("/mock-robot", buildRobotMocks());
+  // S9 ENTP-002/003 e2e/jmx：SSO+扫码 mock IdP（/sso/{provider}/{authId}/authorize|token|userinfo + serviceValidate + _test 控面）
+  const { buildSsoMocks } = await import("./s9-sso-mocks.js");
+  app.route("/sso", buildSsoMocks());
   app.route("/", buildGitMocks());
   mountSwaggerDoc(app);
-  serve({ fetch: app.fetch, port }, (info) => {
-    console.log(`[mock] listening :${info.port}（/healthz /hello /mock/{projectNum}/{path} + mock-jira/zentao/tapd + mock-robot + git-api）`);
+  const server = serve({ fetch: app.fetch, port }, (info) => {
+    console.log(
+      `[mock] listening :${info.port}（/healthz /hello /mock/{projectNum}/{path} + mock-jira/zentao/tapd + mock-robot + git-api + sso-idp + ws-echo）`,
+    );
   });
+  // S-future PLUG-003：/ws/echo WebSocket 回显（协议插件 e2e 采样目标）
+  const { mountWsEcho } = await import("./ws-echo.js");
+  mountWsEcho(server);
 }

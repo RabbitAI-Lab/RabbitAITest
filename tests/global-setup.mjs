@@ -104,6 +104,10 @@ export default async function globalSetup() {
     INTERNAL_TOKEN: "e2e-internal-token",
     // e2e mock 随槽位 4100+slot（web 经 MOCK_PUBLIC_URL 展示/下发同端口地址）——与开发栈 4000+s 互不抢占
     MOCK_PORT: String(ENV.e2e.mockPort),
+    // S-future PLUG-003：内嵌 plugin-runner 端口随槽位（原上游固定 4031——多 worktree 并存互抢，INFRA-005 收编入表）
+    PLUGIN_RUNNER_PORT: String(ENV.e2e.runnerPort),
+    // S-future EXEC-004：K8S apiServer 试连豁免环回（e2e 无集群）
+    POOL_K8S_ALLOW_LOOPBACK: "1",
     // S7 AI：种子内置一台指向 e2e mock 的模型（AI-002~005 spec 直接可用；环回豁免经 webServer env 注入；
     // baseUrl 含 /ai 前缀——mock 路由 /ai/chat/completions）
     RABBIT_SEED_AI_MOCK_BASE: `${ENV.e2e.mockUrl}/ai`,
@@ -123,6 +127,8 @@ export default async function globalSetup() {
     "RABBIT_INTEGRATION_SECRET",
     "OUTBOUND_ALLOW_PRIVATE",
     "MOCK_PORT",
+    "PLUGIN_RUNNER_PORT",
+    "POOL_K8S_ALLOW_LOOPBACK",
     "E2E_PLATFORM_USER",
     "E2E_PLATFORM_PASS",
   ]) {
@@ -132,7 +138,7 @@ export default async function globalSetup() {
   const { writeFileSync } = await import("node:fs");
   writeFileSync(
     path.join(root, "tests", ".e2e.env"),
-    `DATABASE_URL=${env.DATABASE_URL}\nREDIS_URL=${env.REDIS_URL}\nWEB_URL=${env.WEB_URL}\nSESSION_SECRET=${env.SESSION_SECRET}\nINTERNAL_TOKEN=${env.INTERNAL_TOKEN}\nPORT=${ENV.e2e.webPort}\nSESSION_COOKIE_SECURE=false\nRABBIT_INTEGRATION_SECRET=${env.RABBIT_INTEGRATION_SECRET}\nOUTBOUND_ALLOW_PRIVATE=${env.OUTBOUND_ALLOW_PRIVATE}\nMOCK_PORT=${env.MOCK_PORT}\nLOG_LEVEL=warn\n`,
+    `DATABASE_URL=${env.DATABASE_URL}\nREDIS_URL=${env.REDIS_URL}\nWEB_URL=${env.WEB_URL}\nSESSION_SECRET=${env.SESSION_SECRET}\nINTERNAL_TOKEN=${env.INTERNAL_TOKEN}\nPORT=${ENV.e2e.webPort}\nSESSION_COOKIE_SECURE=false\nRABBIT_INTEGRATION_SECRET=${env.RABBIT_INTEGRATION_SECRET}\nOUTBOUND_ALLOW_PRIVATE=${env.OUTBOUND_ALLOW_PRIVATE}\nMOCK_PORT=${env.MOCK_PORT}\nPLUGIN_RUNNER_PORT=${env.PLUGIN_RUNNER_PORT}\nPOOL_K8S_ALLOW_LOOPBACK=${env.POOL_K8S_ALLOW_LOOPBACK}\nLOG_LEVEL=warn\n`,
   );
   log("migrate deploy + seed …");
   const migrate = spawnSync("pnpm", ["--filter", "@rabbit/db", "migrate-deploy"], {
@@ -148,7 +154,8 @@ export default async function globalSetup() {
     const p = spawn("pnpm", ["--filter", pkg, "start"], { cwd: root, env, stdio: "inherit" });
     procs.push({ name, p });
   };
-  // 本槽位 mock 端口若被上一轮残留占用先释放（只清自己的槽位端口——跨 worktree 互杀教训，INFRA-005）
+  // 本槽位 mock 端口若被上一轮残留占用先释放（只清自己的槽位端口；占用者 cwd 属其他 worktree
+  // 时 fail fast 指名冲突——跨 worktree 互杀教训，INFRA-005）
   try {
     const holders = spawnSync("lsof", ["-ti", `:${ENV.e2e.mockPort}`], { encoding: "utf8" });
     const pids = (holders.stdout ?? "")

@@ -35,12 +35,14 @@ test("CASE-007-01 双模式同步与脑图保存", async ({
   const saved = await saveApi;
   expect(saved.status).toBe(201);
   expect(saved.code).toBe(0);
-  const payloadModules = (saved.body as { modules?: { created?: unknown[] } });
+  const payloadModules = saved.body as { modules?: { created?: unknown[] } };
   void payloadModules;
   void moduleName;
 
   // 切回列表模式可见既有用例（双向）
   await page.getByTestId("view-list").click();
-  await expect(page.getByRole("row", { name: new RegExp(caseName) })).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByRole("row", { name: new RegExp(caseName) })).toBeVisible({
+    timeout: 15_000,
+  });
   await expectNoConsoleErrors();
 });

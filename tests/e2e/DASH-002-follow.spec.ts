@@ -15,7 +15,9 @@ test("DASH-002-01 关注计划与七维度筛选", async ({
   const { projectId } = authedPage;
   const uniq = `${Date.now() % 1e7}`;
   const planName = `关注计划-${uniq}`;
-  const planRes = await request.post(`/api/v1/projects/${projectId}/plans`, { data: { name: planName } });
+  const planRes = await request.post(`/api/v1/projects/${projectId}/plans`, {
+    data: { name: planName },
+  });
   const planId = ((await planRes.json()) as { data: { id: string } }).data.id;
 
   // 列表行关注星（UI）+ 接口幂等
@@ -71,23 +73,57 @@ test("DASH-002-02 我的待办含接口用例行（refType 徽标）", async ({
   const { projectId } = authedPage;
   const uniq = `${Date.now() % 1e7}`;
   const modRes = await request.get(`/api/v1/projects/${projectId}/modules?scene=api`);
-  const modId = (((await modRes.json()) as { data: { items: { id: string }[] } }).data.items[0]!).id;
+  const modId = ((await modRes.json()) as { data: { items: { id: string }[] } }).data.items[0]!.id;
   const apiRes = await request.post(`/api/v1/projects/${projectId}/apis`, {
     data: {
       moduleId: modId,
       name: `待办接口-${uniq}`,
-      request: { spec: { method: "GET", url: "/x", headers: [], query: [], body: { kind: "none" }, auth: { kind: "none" } }, asserts: [], pre: [], post: [], extracts: [] },
+      request: {
+        spec: {
+          method: "GET",
+          url: "/x",
+          headers: [],
+          query: [],
+          body: { kind: "none" },
+          auth: { kind: "none" },
+        },
+        asserts: [],
+        pre: [],
+        post: [],
+        extracts: [],
+      },
     },
   });
   const apiId = ((await apiRes.json()) as { data: { id: string } }).data.id;
   const caseRes = await request.post(`/api/v1/projects/${projectId}/apis/${apiId}/cases`, {
-    data: { name: `待办接口用例-${uniq}`, level: "P1", status: "UNDERWAY", tags: [], request: { spec: { method: "GET", url: "/x", headers: [], query: [], body: { kind: "none" }, auth: { kind: "none" } }, asserts: [], pre: [], post: [], extracts: [] } },
+    data: {
+      name: `待办接口用例-${uniq}`,
+      level: "P1",
+      status: "UNDERWAY",
+      tags: [],
+      request: {
+        spec: {
+          method: "GET",
+          url: "/x",
+          headers: [],
+          query: [],
+          body: { kind: "none" },
+          auth: { kind: "none" },
+        },
+        asserts: [],
+        pre: [],
+        post: [],
+        extracts: [],
+      },
+    },
   });
   expect(caseRes.status()).toBe(201);
   const acaseId = ((await caseRes.json()) as { data: { id: string } }).data.id;
   const meRes = await request.get("/api/v1/personal/me");
   const userId = ((await meRes.json()) as { data: { userId: string } }).data.userId;
-  const planRes = await request.post(`/api/v1/projects/${projectId}/plans`, { data: { name: `待办计划-${uniq}` } });
+  const planRes = await request.post(`/api/v1/projects/${projectId}/plans`, {
+    data: { name: `待办计划-${uniq}` },
+  });
   const planId = ((await planRes.json()) as { data: { id: string } }).data.id;
   const link = await request.post(`/api/v1/projects/${projectId}/plans/${planId}/cases`, {
     data: { apiCaseIds: [acaseId], execUserId: userId },
@@ -96,8 +132,14 @@ test("DASH-002-02 我的待办含接口用例行（refType 徽标）", async ({
 
   // 接口断言：todo exec 含 api_case 行
   const todoRes = await request.get(`/api/v1/projects/${projectId}/dashboard/todo?kind=exec`);
-  const todoBody = (await todoRes.json()) as { data: { items: { refType?: string; title: string }[] } };
-  expect(todoBody.data.items.some((i) => i.refType === "api_case" && i.title.includes(`待办接口用例-${uniq}`))).toBe(true);
+  const todoBody = (await todoRes.json()) as {
+    data: { items: { refType?: string; title: string }[] };
+  };
+  expect(
+    todoBody.data.items.some(
+      (i) => i.refType === "api_case" && i.title.includes(`待办接口用例-${uniq}`),
+    ),
+  ).toBe(true);
 
   // UI：工作台「我的执行」子区可见（类型徽标渲染）
   await navFromHome(page, "工作台");

@@ -17,3 +17,12 @@ export const MOCK_BASE = process.env.E2E_MOCK_URL_BASE ?? E.e2e.mockUrl;
 
 /** mock HTTP 端口号（环境域名默认卡/导入 jmx 等需要裸端口处用） */
 export const MOCK_PORT = Number(new URL(MOCK_BASE).port) || 80;
+
+/** mock WebSocket 基址（S-future PLUG-003 ws 采样——与 HTTP mock 同端口） */
+export const MOCK_WS_BASE = MOCK_BASE.replace(/^http/, "ws");
+
+/** 被测 web 主机（host:port，console/pageUrl 断言模式用） */
+export const E2E_HOST = new URL(E2E_BASE).host;
+
+/** e2e 栈 Redis（engine2 等测试内自起进程用——键空间含逻辑库号=slot） */
+export const E2E_REDIS = process.env.E2E_REDIS_URL ?? E.e2e.redisUrl;

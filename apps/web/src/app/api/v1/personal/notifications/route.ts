@@ -8,7 +8,10 @@ export const GET = withAuth(async (ctx, req: Request) => {
   try {
     const url = new URL(req.url);
     const page = Math.max(1, Number(url.searchParams.get("page") ?? 1) || 1);
-    const pageSize = Math.min(100, Math.max(1, Number(url.searchParams.get("pageSize") ?? 20) || 20));
+    const pageSize = Math.min(
+      100,
+      Math.max(1, Number(url.searchParams.get("pageSize") ?? 20) || 20),
+    );
     const unread = url.searchParams.get("unread") === "true";
     return okResponse(await svc.listNotifications(ctx.userId, { page, pageSize, unread }));
   } catch (err) {

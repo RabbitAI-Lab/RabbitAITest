@@ -58,4 +58,9 @@
    - 汇聚点实放：用真实校验代码（zod schema 原样 safeParse）证明全部敌意值被拒（422 路径）。
 3. **证据留痕**：验证脚本按 `scripts/verify-fp-*.mjs` 命名提交入库（可复跑、CI 绿），登记至 [docs/security/mimosa-fp-ledger.md](../docs/security/mimosa-fp-ledger.md)（含 seal、commit、断言数）；后续同 finding 重复出现时引用台账答复，不重复推导、不绕过。
 4. **顺手加固登记**：核实过程中发现的稳健性观察（非安全，如递归无深度上限）登记台账「观察」栏，排期修复；不得以"误报"为由忽略真实缺陷。
-5. **门禁局限申报**：当前插件（v1.0.3）git-gate 为密封包，无 finding 级 accept / 项目级 ignore / 阈值配置；已证实误报的 finding 会在后续每次 commit 重复出现——按第 3 条处置，并向插件维护方反馈豁免机制需求（上游能力，非本仓库可控）。
+5. **门禁局限申报**：当前插件（v1.0.3）git-gate 为密封包，无 finding 级 accept / 项目级 ignore / 阈值配置；向插件维护方反馈豁免机制需求（上游能力，非本仓库可控）。
+6. **根治优先（2026-09-28 制度化，替代「引用即答」的默认路径）**：已证实误报**优先按下列已验证形态改代码消链**（行为等价、可测），git-gate 从此不再重复出现；确属无法结构化消除的才走第 3 条台账引用。三类已实证形态（audit crossFile 39→0，台账 #3/#4/#5）：
+   - **① 出站守卫不做成「导出函数直接以自身参数调 fetch」的薄包装**：守卫封装为 dispatcher 工厂（如 `safe-fetch.ts` 的 `outboundDispatcher()`，连接期 IP 校验在 Agent 内），调用方**模块级一次性构造实例**后直连 `fetch(url, { dispatcher: 常量 })`。薄包装形态（原 `safeFetch(url, init, opts)`）会被判 SSRF 入口——分析器无法建模包装内的守卫语义；
+   - **② 调用 fetch 的表达式里零 `process.env` 读取**（含模块级 env 常量传入同一调用的参数对象）：env 豁免开关在**模块初始化时**消化成 dispatcher/布尔常量，不进入 fetch 调用表达式（「env→fetch」污点锚在文件级，模块级常量也会被链上——须隔一层构造）；
+   - **③ 测试 helper 命名避开生产代码同名**（跨文件分析按函数名并链）：e2e/mock 侧局部 helper 不用 `post`/`walk` 这类生产代码常见名（曾致 35+1 条误链：mock 单测 `post()` ↔ Playwright `request.post`、e2e `walk` ↔ import.service 路径遍历）；e2e 读被测系统优先用 Playwright `request` 相对路径会话（无 URL 拼接，S8 readUnreadTitles 先例）。
+   - 验证口径：改完跑 `node <插件>/dist/cli.js audit . --deep --fail-on none --json` 确认 crossFile 归零 + 全量单测/e2e 相关面绿 + commit 实过门禁。

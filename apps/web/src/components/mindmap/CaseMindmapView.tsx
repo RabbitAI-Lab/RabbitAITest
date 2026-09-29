@@ -114,8 +114,7 @@ function cloneMods(r: Record<string, ModuleW>): Record<string, ModuleW> {
 
 function cloneCases(r: Record<string, CaseW>): Record<string, CaseW> {
   const out: Record<string, CaseW> = {};
-  for (const [k, v] of Object.entries(r))
-    out[k] = { ...v, steps: v.steps.map((s) => ({ ...s })) };
+  for (const [k, v] of Object.entries(r)) out[k] = { ...v, steps: v.steps.map((s) => ({ ...s })) };
   return out;
 }
 
@@ -162,10 +161,7 @@ function buildWorking(
 }
 
 /** 收集保存 diff（纯函数）：tmp 直存/重命名/删除集；嵌套在未保存模块下的节点暂缓（deferred）。 */
-function collectDiff(
-  mods: Record<string, ModuleW>,
-  cases: Record<string, CaseW>,
-): MindmapDiffView {
+function collectDiff(mods: Record<string, ModuleW>, cases: Record<string, CaseW>): MindmapDiffView {
   // 可本轮提交的 tmp 模块：父为根或已存未删模块（服务端 created.parentId 须为已存 uuid）
   const commitTmpModules = new Set<string>();
   for (const m of Object.values(mods)) {
@@ -312,11 +308,17 @@ export function CaseMindmapView() {
   const changeCount = diff.total;
 
   const moduleList = useMemo(
-    () => Object.values(mods).filter((m) => !m.deleted).sort((a, b) => a.order - b.order),
+    () =>
+      Object.values(mods)
+        .filter((m) => !m.deleted)
+        .sort((a, b) => a.order - b.order),
     [mods],
   );
   const caseList = useMemo(
-    () => Object.values(cases).filter((c) => !c.deleted).sort((a, b) => a.order - b.order),
+    () =>
+      Object.values(cases)
+        .filter((c) => !c.deleted)
+        .sort((a, b) => a.order - b.order),
     [cases],
   );
   const defaultModuleId = useMemo(
@@ -984,8 +986,7 @@ export function CaseMindmapView() {
             next[c.id] = { ...c, steps: c.steps.map((s) => ({ ...s })) };
             continue;
           }
-          const moduleId =
-            c.moduleId !== null ? (r.idMap[c.moduleId] ?? c.moduleId) : null;
+          const moduleId = c.moduleId !== null ? (r.idMap[c.moduleId] ?? c.moduleId) : null;
           next[realId] = {
             ...c,
             id: realId,
@@ -1201,7 +1202,12 @@ export function CaseMindmapView() {
           >
             移动
           </Button>
-          <Button size="small" danger data-testid="mindmap-batch-delete" onClick={confirmBatchDelete}>
+          <Button
+            size="small"
+            danger
+            data-testid="mindmap-batch-delete"
+            onClick={confirmBatchDelete}
+          >
             批量删除
           </Button>
           <Button
@@ -1423,9 +1429,8 @@ export function CaseMindmapView() {
                     />
                   </div>
                   <p className="text-[11px] text-[#A8ABB0]">
-                    直接用例{" "}
-                    {caseList.filter((c) => renderModuleOf(c) === panelModule.id).length} 个；子模块{" "}
-                    {moduleList.filter((m) => m.parentId === panelModule.id).length} 个。
+                    直接用例 {caseList.filter((c) => renderModuleOf(c) === panelModule.id).length}{" "}
+                    个；子模块 {moduleList.filter((m) => m.parentId === panelModule.id).length} 个。
                   </p>
                 </>
               ) : null}

@@ -108,7 +108,12 @@ export function withAudit<Ctx extends AuditCtx, Args extends unknown[]>(
       }
       try {
         const body = (res as unknown as { __auditData?: unknown }).__auditData ?? null;
-        result = body ?? (await res.clone().json().catch(() => null));
+        result =
+          body ??
+          (await res
+            .clone()
+            .json()
+            .catch(() => null));
       } catch {
         result = null;
       }
@@ -138,13 +143,17 @@ function extractObjectId(result: unknown): string | null {
 
 export async function queryAuditLogs(
   query: Query,
-  scope: { kind: "system" } | { kind: "org"; orgId: string } | { kind: "project"; projectId: string },
+  scope:
+    | { kind: "system" }
+    | { kind: "org"; orgId: string }
+    | { kind: "project"; projectId: string },
 ) {
   if (query.from && query.to && new Date(query.to) < new Date(query.from)) {
     throw new DomainError(ErrCode.AUDIT_QUERY_INVALID, "时间范围非法（to 早于 from）");
   }
 
-  const range = query.from && query.to ? new Date(query.to).getTime() - new Date(query.from).getTime() : 0;
+  const range =
+    query.from && query.to ? new Date(query.to).getTime() - new Date(query.from).getTime() : 0;
   if (Number.isFinite(range) && range > 366 * 24 * 3600 * 1000) {
     throw new DomainError(ErrCode.AUDIT_QUERY_INVALID, "时间范围超限（最长 366 天）");
   }
@@ -164,7 +173,12 @@ export async function queryAuditLogs(
     ...(query.objectType ? { objectType: query.objectType } : {}),
     ...(query.action ? { action: { startsWith: query.action } } : {}),
     ...(query.from || query.to
-      ? { createdAt: { ...(query.from ? { gte: new Date(query.from) } : {}), ...(query.to ? { lte: new Date(query.to) } : {}) } }
+      ? {
+          createdAt: {
+            ...(query.from ? { gte: new Date(query.from) } : {}),
+            ...(query.to ? { lte: new Date(query.to) } : {}),
+          },
+        }
       : {}),
   };
   const [rows, total] = await Promise.all([
@@ -192,7 +206,11 @@ export async function queryAuditLogs(
   }));
   // keyword 后置过滤（detail JSON 内匹配的进程内近似：当前页内匹配——登记 SYS-008 §4 容量口径）
   const filtered = query.keyword
-    ? list.filter((r) => JSON.stringify(r.detail ?? {}).toLowerCase().includes(query.keyword!.toLowerCase()))
+    ? list.filter((r) =>
+        JSON.stringify(r.detail ?? {})
+          .toLowerCase()
+          .includes(query.keyword!.toLowerCase()),
+      )
     : list;
   return { list: filtered, total, page: query.page, pageSize: query.pageSize };
 }

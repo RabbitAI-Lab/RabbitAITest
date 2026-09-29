@@ -1,9 +1,10 @@
 "use client";
 
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
 import { App as AntdApp, ConfigProvider } from "antd";
 import zhCN from "antd/locale/zh_CN";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { themeApi } from "@rabbit/api-client";
 
 /** 设计 tokens（对齐 docs/design 基线：主色 #574BFF、浅灰画布、13px 密度） */
 import type { ThemeConfig } from "antd";
@@ -37,6 +38,37 @@ export const themeConfig: ThemeConfig = {
   },
 };
 
+/** 动态主题（ENTP-004）：public/theme 驱动 antd 主色 token；未配置/失败=默认 #574BFF。 */
+function DynamicConfigProvider({ children }: { children: React.ReactNode }) {
+  const themeQ = useQuery({
+    queryKey: ["public-theme"],
+    queryFn: () => themeApi.publicTheme(),
+    staleTime: 60_000,
+    retry: false,
+  });
+  const primary = themeQ.data?.primaryColor;
+  const merged = useMemo<ThemeConfig>(
+    () =>
+      primary && /^#[0-9a-fA-F]{6}$/.test(primary) && primary !== "#574BFF"
+        ? {
+            ...themeConfig,
+            token: {
+              ...themeConfig.token,
+              colorPrimary: primary,
+              colorInfo: primary,
+              colorLink: primary,
+            },
+          }
+        : themeConfig,
+    [primary],
+  );
+  return (
+    <ConfigProvider locale={zhCN} theme={merged}>
+      {children}
+    </ConfigProvider>
+  );
+}
+
 export function Providers({ children }: { children: React.ReactNode }) {
   const [client] = useState(
     () =>
@@ -44,9 +76,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
   );
   return (
     <QueryClientProvider client={client}>
-      <ConfigProvider locale={zhCN} theme={themeConfig}>
+      <DynamicConfigProvider>
         <AntdApp>{children}</AntdApp>
-      </ConfigProvider>
+      </DynamicConfigProvider>
     </QueryClientProvider>
   );
 }

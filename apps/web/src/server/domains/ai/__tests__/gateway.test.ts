@@ -57,39 +57,58 @@ describe("assertAiBaseUrl（SSRF 守卫矩阵）", () => {
     "http://[fd00::1]/v1",
   ];
   it.each(forbidden)("内网/环回/元地址拒绝（%s）→ 70422", async (url) => {
-    await expect(assertAiBaseUrl(url)).rejects.toMatchObject({ code: ErrCode.AI_BASEURL_FORBIDDEN });
+    await expect(assertAiBaseUrl(url)).rejects.toMatchObject({
+      code: ErrCode.AI_BASEURL_FORBIDDEN,
+    });
   });
   it("localhost 域名解析到环回 → 拒绝", async () => {
     lookupMock.mockResolvedValue([{ address: "127.0.0.1", family: 4 }] as never);
-    await expect(assertAiBaseUrl("http://localhost:8080")).rejects.toMatchObject({ code: ErrCode.AI_BASEURL_FORBIDDEN });
+    await expect(assertAiBaseUrl("http://localhost:8080")).rejects.toMatchObject({
+      code: ErrCode.AI_BASEURL_FORBIDDEN,
+    });
   });
   it("非 http(s) 协议拒绝", async () => {
     await expect(assertAiBaseUrl("file:///etc/passwd")).rejects.toBeInstanceOf(DomainError);
   });
   it("域名解析到私网 IP 拒绝（DNS rebinding 第一道防线）", async () => {
     lookupMock.mockResolvedValue([{ address: "10.1.2.3", family: 4 }] as never);
-    await expect(assertAiBaseUrl("https://evil-rebind.example.com/v1")).rejects.toMatchObject({ code: ErrCode.AI_BASEURL_FORBIDDEN });
+    await expect(assertAiBaseUrl("https://evil-rebind.example.com/v1")).rejects.toMatchObject({
+      code: ErrCode.AI_BASEURL_FORBIDDEN,
+    });
   });
   it("多 A 记录任一私网即拒绝", async () => {
     lookupMock.mockResolvedValue([
       { address: "8.8.8.8", family: 4 },
       { address: "192.168.0.9", family: 4 },
     ] as never);
-    await expect(assertAiBaseUrl("https://mixed.example.com/v1")).rejects.toMatchObject({ code: ErrCode.AI_BASEURL_FORBIDDEN });
+    await expect(assertAiBaseUrl("https://mixed.example.com/v1")).rejects.toMatchObject({
+      code: ErrCode.AI_BASEURL_FORBIDDEN,
+    });
   });
   it("无法解析的域名拒绝（lookup 抛错）", async () => {
     lookupMock.mockRejectedValue(new Error("ENOTFOUND"));
-    await expect(assertAiBaseUrl("https://nonexistent.invalid.local")).rejects.toMatchObject({ code: ErrCode.AI_BASEURL_FORBIDDEN });
+    await expect(assertAiBaseUrl("https://nonexistent.invalid.local")).rejects.toMatchObject({
+      code: ErrCode.AI_BASEURL_FORBIDDEN,
+    });
   });
   it("测试栈开关仅豁免环回（127.0.0.1 放行；元数据/私网仍拒）", async () => {
     process.env.AI_ALLOW_PRIVATE_BASEURL = "1";
     await expect(assertAiBaseUrl("http://127.0.0.1:4001")).resolves.toBeUndefined();
-    await expect(assertAiBaseUrl("http://169.254.169.254/latest/meta-data")).rejects.toMatchObject({ code: ErrCode.AI_BASEURL_FORBIDDEN });
-    await expect(assertAiBaseUrl("http://10.0.0.1/v1")).rejects.toMatchObject({ code: ErrCode.AI_BASEURL_FORBIDDEN });
+    await expect(assertAiBaseUrl("http://169.254.169.254/latest/meta-data")).rejects.toMatchObject({
+      code: ErrCode.AI_BASEURL_FORBIDDEN,
+    });
+    await expect(assertAiBaseUrl("http://10.0.0.1/v1")).rejects.toMatchObject({
+      code: ErrCode.AI_BASEURL_FORBIDDEN,
+    });
   });
 });
 
-const runtime: AiModelRuntime = { id: "m1", baseUrl: "https://ai.example.test", model: "test-model", apiKey: "bearer-token-value" };
+const runtime: AiModelRuntime = {
+  id: "m1",
+  baseUrl: "https://ai.example.test",
+  model: "test-model",
+  apiKey: "bearer-token-value",
+};
 
 describe("callChat（OpenAI 兼容非流式）", () => {
   beforeEach(() => {
@@ -101,21 +120,34 @@ describe("callChat（OpenAI 兼容非流式）", () => {
 
   it("解析首 choice content", async () => {
     (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue(
-      new Response(JSON.stringify({ choices: [{ message: { content: "hello" } }] }), { status: 200 }),
+      new Response(JSON.stringify({ choices: [{ message: { content: "hello" } }] }), {
+        status: 200,
+      }),
     );
     await expect(callChat(runtime, [{ role: "user", content: "hi" }])).resolves.toBe("hello");
     const [url, init] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0]!;
     expect(url).toBe("https://ai.example.test/chat/completions");
-    expect((init as RequestInit).headers).toMatchObject({ authorization: "Bearer bearer-token-value" });
-    expect(JSON.parse((init as RequestInit).body as string)).toMatchObject({ model: "test-model", stream: false });
+    expect((init as RequestInit).headers).toMatchObject({
+      authorization: "Bearer bearer-token-value",
+    });
+    expect(JSON.parse((init as RequestInit).body as string)).toMatchObject({
+      model: "test-model",
+      stream: false,
+    });
   });
   it("上游 401 → 70501 且不泄 key", async () => {
-    (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue(new Response("unauthorized", { status: 401 }));
-    await expect(callChat(runtime, [{ role: "user", content: "hi" }])).rejects.toMatchObject({ code: ErrCode.AI_PROVIDER_ERROR });
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue(
+      new Response("unauthorized", { status: 401 }),
+    );
+    await expect(callChat(runtime, [{ role: "user", content: "hi" }])).rejects.toMatchObject({
+      code: ErrCode.AI_PROVIDER_ERROR,
+    });
   });
   it("上游网络失败 → 70501", async () => {
     (globalThis.fetch as ReturnType<typeof vi.fn>).mockRejectedValue(new Error("ECONNREFUSED"));
-    await expect(callChat(runtime, [{ role: "user", content: "hi" }])).rejects.toMatchObject({ code: ErrCode.AI_PROVIDER_ERROR });
+    await expect(callChat(runtime, [{ role: "user", content: "hi" }])).rejects.toMatchObject({
+      code: ErrCode.AI_PROVIDER_ERROR,
+    });
   });
 });
 
@@ -142,14 +174,22 @@ describe("streamChat（SSE 增量聚合）", () => {
     expect(chunks).toEqual(["你", "好"]);
   });
   it("无法解析的分片被忽略", async () => {
-    const sse = ['data: not-json', 'data: {"choices":[{"delta":{"content":"ok"}}]}', "data: [DONE]"].join("\n\n");
-    (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue(new Response(sse, { status: 200 }));
+    const sse = [
+      "data: not-json",
+      'data: {"choices":[{"delta":{"content":"ok"}}]}',
+      "data: [DONE]",
+    ].join("\n\n");
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue(
+      new Response(sse, { status: 200 }),
+    );
     const chunks: string[] = [];
     for await (const t of streamChat(runtime, [{ role: "user", content: "hi" }])) chunks.push(t);
     expect(chunks).toEqual(["ok"]);
   });
   it("上游 500 → 70501", async () => {
-    (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue(new Response("boom", { status: 500 }));
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue(
+      new Response("boom", { status: 500 }),
+    );
     await expect(async () => {
       for await (const _ of streamChat(runtime, [{ role: "user", content: "hi" }])) void _;
     }).rejects.toMatchObject({ code: ErrCode.AI_PROVIDER_ERROR });

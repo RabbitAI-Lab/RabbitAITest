@@ -6,7 +6,10 @@ import { batchDelete } from "@/server/domains/api/scenario.service";
 export const runtime = "nodejs";
 
 const unprocessable = (message?: string) =>
-  NextResponse.json({ code: 20422, message: message ?? "参数校验失败", data: null }, { status: 422 });
+  NextResponse.json(
+    { code: 20422, message: message ?? "参数校验失败", data: null },
+    { status: 422 },
+  );
 
 export const POST = withProjectScope(async (ctx, req) => {
   try {

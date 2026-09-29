@@ -18,7 +18,12 @@ export const POST = withProjectScope(async (ctx, _req, seg) => {
       action: "swagger.sync",
       objectType: "swagger_sync_task",
       objectId: taskId,
-      detail: { added: result.added, updated: result.updated, skipped: result.skipped, ok: result.ok },
+      detail: {
+        added: result.added,
+        updated: result.updated,
+        skipped: result.skipped,
+        ok: result.ok,
+      },
     });
     void flushAudit();
     return okResponse(result);

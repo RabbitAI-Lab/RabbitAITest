@@ -1,6 +1,20 @@
 "use client";
 
-import { Alert, Button, Form, Input, Modal, Select, Space, Spin, Switch, Table, Tabs, Tag, message } from "antd";
+import {
+  Alert,
+  Button,
+  Form,
+  Input,
+  Modal,
+  Select,
+  Space,
+  Spin,
+  Switch,
+  Table,
+  Tabs,
+  Tag,
+  message,
+} from "antd";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { integrationApi, type IntegrationView, type SyncHistoryEntry } from "@rabbit/api-client";
@@ -19,11 +33,22 @@ export default function IntegrationsPage() {
   const canOrgUpdate = canGlobal("ORG_INTEGRATION:UPDATE");
   return (
     <div className="p-4" data-testid="page-settings-integrations">
-      <PageHeader title="服务集成" sub="组织级三方平台对接（Jira / 禅道 / TAPD）：凭据加密存储不回显；平台交互经 plugin-runner 隔离执行" />
+      <PageHeader
+        title="服务集成"
+        sub="组织级三方平台对接（Jira / 禅道 / TAPD）：凭据加密存储不回显；平台交互经 plugin-runner 隔离执行"
+      />
       <Tabs
         items={[
-          { key: "org", label: "服务集成（组织）", children: <OrgIntegrations canUpdate={canOrgUpdate} /> },
-          { key: "project", label: "三方同步（项目）", children: <ProjectSync canUpdate={can("PROJECT_BUG:UPDATE")} /> },
+          {
+            key: "org",
+            label: "服务集成（组织）",
+            children: <OrgIntegrations canUpdate={canOrgUpdate} />,
+          },
+          {
+            key: "project",
+            label: "三方同步（项目）",
+            children: <ProjectSync canUpdate={can("PROJECT_BUG:UPDATE")} />,
+          },
         ]}
       />
     </div>
@@ -109,11 +134,20 @@ function IntegrationCard({
         <span className="font-medium">{meta?.label ?? item.platform}</span>
         <span className="ml-auto">{statusTag}</span>
       </div>
-      <div className="text-xs text-gray-400 mb-1 truncate">{item.hasCredential ? item.address : "配置后可在项目中关联，双向同步缺陷"}</div>
-      {item.testMessage && <div className="text-xs text-gray-400 mb-2 truncate">{item.testMessage}</div>}
+      <div className="text-xs text-gray-400 mb-1 truncate">
+        {item.hasCredential ? item.address : "配置后可在项目中关联，双向同步缺陷"}
+      </div>
+      {item.testMessage && (
+        <div className="text-xs text-gray-400 mb-2 truncate">{item.testMessage}</div>
+      )}
       {canUpdate && item.hasCredential && (
         <Space>
-          <Button size="small" loading={testing} onClick={onTest} data-testid={`integration-test-${item.platform}`}>
+          <Button
+            size="small"
+            loading={testing}
+            onClick={onTest}
+            data-testid={`integration-test-${item.platform}`}
+          >
             测试连接
           </Button>
           <Button size="small" onClick={onEdit}>
@@ -122,7 +156,12 @@ function IntegrationCard({
         </Space>
       )}
       {canUpdate && !item.hasCredential && (
-        <Button size="small" type="primary" onClick={onEdit} data-testid={`integration-config-${item.platform}`}>
+        <Button
+          size="small"
+          type="primary"
+          onClick={onEdit}
+          data-testid={`integration-config-${item.platform}`}
+        >
           配置
         </Button>
       )}
@@ -166,9 +205,23 @@ function IntegrationFormModal({
   });
 
   return (
-    <Modal title={`配置 · ${meta?.label ?? platform}`} open={open} onCancel={onClose} onOk={() => form.submit()} confirmLoading={save.isPending} okText="保存">
+    <Modal
+      title={`配置 · ${meta?.label ?? platform}`}
+      open={open}
+      onCancel={onClose}
+      onOk={() => form.submit()}
+      confirmLoading={save.isPending}
+      okText="保存"
+    >
       <Form form={form} layout="vertical" onFinish={(v) => save.mutate(v)}>
-        <Form.Item name="address" label="服务地址" rules={[{ required: true, message: "必填" }, { type: "url", message: "URL 非法" }]}>
+        <Form.Item
+          name="address"
+          label="服务地址"
+          rules={[
+            { required: true, message: "必填" },
+            { type: "url", message: "URL 非法" },
+          ]}
+        >
           <Input placeholder="https://jira.example.com" />
         </Form.Item>
         {platform === "jira" && (
@@ -198,7 +251,11 @@ function IntegrationFormModal({
             <Input.Password autoComplete="new-password" />
           </Form.Item>
         )}
-        <Alert type="info" showIcon message="保存后凭据加密落库且不再回显；可点「测试连接」验证（需对应平台插件已启用）" />
+        <Alert
+          type="info"
+          showIcon
+          message="保存后凭据加密落库且不再回显；可点「测试连接」验证（需对应平台插件已启用）"
+        />
       </Form>
     </Modal>
   );
@@ -236,7 +293,13 @@ function ProjectSync({ canUpdate }: { canUpdate: boolean }) {
   }, [cfg, form]);
 
   const save = useMutation({
-    mutationFn: (v: { platform: string; projectKey: string; mode: string; cron?: string; enabled: boolean }) =>
+    mutationFn: (v: {
+      platform: string;
+      projectKey: string;
+      mode: string;
+      cron?: string;
+      enabled: boolean;
+    }) =>
       integrationApi.saveSyncConfig(projectId!, {
         platform: v.platform,
         projectKey: v.projectKey,
@@ -256,7 +319,8 @@ function ProjectSync({ canUpdate }: { canUpdate: boolean }) {
     onError: (e) => message.error(e instanceof Error ? e.message : "拉取失败"),
   });
 
-  if (!orgConfigured) return <Alert type="info" showIcon message="进入任一项目后配置项目级三方同步" />;
+  if (!orgConfigured)
+    return <Alert type="info" showIcon message="进入任一项目后配置项目级三方同步" />;
   if (isLoading) return <Spin />;
   const meta = PLATFORM_META[platform as keyof typeof PLATFORM_META];
 
@@ -271,7 +335,11 @@ function ProjectSync({ canUpdate }: { canUpdate: boolean }) {
               disabled={!canUpdate}
             />
           </Form.Item>
-          <Form.Item name="projectKey" label={meta?.projectKeyLabel ?? "项目 Key"} rules={[{ required: true, message: "必填" }]}>
+          <Form.Item
+            name="projectKey"
+            label={meta?.projectKeyLabel ?? "项目 Key"}
+            rules={[{ required: true, message: "必填" }]}
+          >
             <Input placeholder={meta?.projectKeyHint} disabled={!canUpdate} />
           </Form.Item>
           <Form.Item name="mode" label="同步模式" initialValue="INCREMENT">
@@ -287,7 +355,12 @@ function ProjectSync({ canUpdate }: { canUpdate: boolean }) {
             <Input placeholder="0 */30 * * * ?" disabled={!canUpdate} />
           </Form.Item>
         </div>
-        <Form.Item name="enabled" label="启用同步（含定时拉取）" valuePropName="checked" initialValue={false}>
+        <Form.Item
+          name="enabled"
+          label="启用同步（含定时拉取）"
+          valuePropName="checked"
+          initialValue={false}
+        >
           <Switch disabled={!canUpdate} />
         </Form.Item>
         {canUpdate && (
@@ -295,7 +368,11 @@ function ProjectSync({ canUpdate }: { canUpdate: boolean }) {
             <Button type="primary" htmlType="submit" loading={save.isPending}>
               保存关联
             </Button>
-            <Button loading={pull.isPending} onClick={() => pull.mutate()} data-testid="integration-pull-btn">
+            <Button
+              loading={pull.isPending}
+              onClick={() => pull.mutate()}
+              data-testid="integration-pull-btn"
+            >
               ⟳ 手动拉取
             </Button>
           </Space>
@@ -309,16 +386,43 @@ function ProjectSync({ canUpdate }: { canUpdate: boolean }) {
           pagination={false}
           dataSource={history?.list ?? []}
           columns={[
-            { title: "时间", dataIndex: "at", render: (v: string) => <span className="text-xs text-gray-400">{fmt(v)}</span> },
-            { title: "方向", dataIndex: "direction", render: (v: string) => (v === "push" ? <Tag color="blue">推送</Tag> : <Tag>拉取</Tag>) },
-            { title: "来源", dataIndex: "trigger", render: (v?: string) => <Tag>{v ?? "手动"}</Tag> },
-            { title: "结果", dataIndex: "ok", render: (v: boolean, r: SyncHistoryEntry) =>
-              v ? <span className="text-green-600 text-xs">{r.detail}</span> : <span className="text-red-500 text-xs">{r.detail}</span> },
-            { title: "耗时", dataIndex: "ms", render: (v: number) => <span className="text-xs text-gray-400">{v}ms</span> },
+            {
+              title: "时间",
+              dataIndex: "at",
+              render: (v: string) => <span className="text-xs text-gray-400">{fmt(v)}</span>,
+            },
+            {
+              title: "方向",
+              dataIndex: "direction",
+              render: (v: string) =>
+                v === "push" ? <Tag color="blue">推送</Tag> : <Tag>拉取</Tag>,
+            },
+            {
+              title: "来源",
+              dataIndex: "trigger",
+              render: (v?: string) => <Tag>{v ?? "手动"}</Tag>,
+            },
+            {
+              title: "结果",
+              dataIndex: "ok",
+              render: (v: boolean, r: SyncHistoryEntry) =>
+                v ? (
+                  <span className="text-green-600 text-xs">{r.detail}</span>
+                ) : (
+                  <span className="text-red-500 text-xs">{r.detail}</span>
+                ),
+            },
+            {
+              title: "耗时",
+              dataIndex: "ms",
+              render: (v: number) => <span className="text-xs text-gray-400">{v}ms</span>,
+            },
           ]}
         />
       </div>
-      <p className="text-xs text-gray-400">单条缺陷推送：缺陷列表行「同步」操作（推送创建/更新，platformKey 回写）</p>
+      <p className="text-xs text-gray-400">
+        单条缺陷推送：缺陷列表行「同步」操作（推送创建/更新，platformKey 回写）
+      </p>
     </div>
   );
 }

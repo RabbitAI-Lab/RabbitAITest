@@ -12,8 +12,18 @@ parentPort.on("message", async (msg) => {
   try {
     if (msg.op === "load") {
       const mod = await import(`${msg.dir}/${msg.entry}`);
-      const factory = mod.default ?? mod.createPlugin;
-      if (typeof factory !== "function") throw new Error("插件入口未导出 default/createPlugin 工厂");
+      // 双层解包：ESM bundle default=工厂；CJS bundle 经 import() 后 default=module.exports 命名空间（S-future PLUG-003 websocket CJS 内联）
+      const raw = mod.default ?? mod.createPlugin;
+      const factory =
+        typeof raw === "function"
+          ? raw
+          : typeof raw?.default === "function"
+            ? raw.default
+            : typeof raw?.createPlugin === "function"
+              ? raw.createPlugin
+              : null;
+      if (typeof factory !== "function")
+        throw new Error("插件入口未导出 default/createPlugin 工厂");
       plugin = factory();
       reply({ ok: true, result: { loaded: true } });
       return;

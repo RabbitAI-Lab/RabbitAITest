@@ -44,7 +44,9 @@ test("API-005-01 Mock 主链路：建规则→地址→复制→直发命中→U
   await expect(modal).toBeVisible();
   await modal.getByTestId("input-mock-name").fill(ruleName);
   // 匹配区 Query KV：kind=dog（「Query KV」标题后的 kvEditor 区）
-  const querySection = modal.getByText("Query KV", { exact: true }).locator("xpath=following-sibling::div[1]");
+  const querySection = modal
+    .getByText("Query KV", { exact: true })
+    .locator("xpath=following-sibling::div[1]");
   await querySection.getByText("＋ 添加").click();
   await querySection.locator('input[placeholder="kind"]').fill("kind");
   await querySection.locator('input[placeholder="value"]').fill("dog");
@@ -75,7 +77,9 @@ test("API-005-01 Mock 主链路：建规则→地址→复制→直发命中→U
   await expect(page.getByText("Mock 地址已复制")).toBeVisible();
 
   // 规则表出现行
-  const ruleRow = page.getByTestId("mock-rule-table").getByRole("row", { name: new RegExp(ruleName) });
+  const ruleRow = page
+    .getByTestId("mock-rule-table")
+    .getByRole("row", { name: new RegExp(ruleName) });
   await expect(ruleRow).toBeVisible();
 
   // ── page.request 直发 mock 服务：命中（体+200+x-mock-rule 头）──
@@ -138,7 +142,9 @@ test("API-005-02 二态与热更新：未命中 40401 / 禁用下线 / 改体生
   await navFromHome(page, "接口定义");
   await page.getByRole("link", { name: defName }).click();
   await page.getByTestId("api-tab-mock").click();
-  const ruleRow = page.getByTestId("mock-rule-table").getByRole("row", { name: new RegExp(ruleName) });
+  const ruleRow = page
+    .getByTestId("mock-rule-table")
+    .getByRole("row", { name: new RegExp(ruleName) });
   await expect(ruleRow).toBeVisible();
 
   const toggleApi = expectApi("**/api/v1/projects/*/apis/*/mocks/*");
@@ -163,15 +169,18 @@ test("API-005-02 二态与热更新：未命中 40401 / 禁用下线 / 改体生
   await ruleRow.locator(".ant-switch").click();
   const enabled = await enableApi;
   expect(enabled.code).toBe(0);
-  const putResp = await page.request.put(`/api/v1/projects/${projectId}/apis/${def.id}/mocks/${mockId}`, {
-    data: {
-      name: ruleName,
-      enabled: true,
-      followApi: false,
-      matchers: { headers: [], query: [{ key: "kind", value: "dog" }] },
-      response: { status: 200, headers: [], body: '{"mock":"v2-hot"}', delayMs: 0 },
+  const putResp = await page.request.put(
+    `/api/v1/projects/${projectId}/apis/${def.id}/mocks/${mockId}`,
+    {
+      data: {
+        name: ruleName,
+        enabled: true,
+        followApi: false,
+        matchers: { headers: [], query: [{ key: "kind", value: "dog" }] },
+        response: { status: 200, headers: [], body: '{"mock":"v2-hot"}', delayMs: 0 },
+      },
     },
-  });
+  );
   expect(putResp.status()).toBe(200);
   expect(((await putResp.json()) as { code: number }).code).toBe(0);
   const hot = await page.request.get(`${mockUrl}?kind=dog`);
@@ -179,15 +188,18 @@ test("API-005-02 二态与热更新：未命中 40401 / 禁用下线 / 改体生
   expect(await hot.text()).toBe('{"mock":"v2-hot"}');
 
   // ── followApi 开启 → 返回定义默认响应（断言响应体=定义 response.body）──
-  const followResp = await page.request.put(`/api/v1/projects/${projectId}/apis/${def.id}/mocks/${mockId}`, {
-    data: {
-      name: ruleName,
-      enabled: true,
-      followApi: true,
-      matchers: { headers: [], query: [{ key: "kind", value: "dog" }] },
-      response: { status: 200, headers: [], body: '{"mock":"v2-hot"}', delayMs: 0 },
+  const followResp = await page.request.put(
+    `/api/v1/projects/${projectId}/apis/${def.id}/mocks/${mockId}`,
+    {
+      data: {
+        name: ruleName,
+        enabled: true,
+        followApi: true,
+        matchers: { headers: [], query: [{ key: "kind", value: "dog" }] },
+        response: { status: 200, headers: [], body: '{"mock":"v2-hot"}', delayMs: 0 },
+      },
     },
-  });
+  );
   expect(followResp.status()).toBe(200);
   const followed = await page.request.get(`${mockUrl}?kind=dog`);
   expect(followed.status()).toBe(200);

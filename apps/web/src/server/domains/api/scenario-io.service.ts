@@ -36,11 +36,18 @@ interface ExportedScenario {
 export async function exportScenarios(projectId: string, input: ExportInput) {
   const scenarios = await prisma.scenario.findMany({
     where: { id: { in: input.ids }, projectId, deletedAt: null },
-    include: { steps: { orderBy: { order: "asc" } }, module: { select: { name: true, parentId: true } } },
+    include: {
+      steps: { orderBy: { order: "asc" } },
+      module: { select: { name: true, parentId: true } },
+    },
   });
-  if (scenarios.length === 0) throw new DomainError(ErrCode.SCENARIO_NOT_FOUND, "场景不存在或已删除");
+  if (scenarios.length === 0)
+    throw new DomainError(ErrCode.SCENARIO_NOT_FOUND, "场景不存在或已删除");
 
-  const moduleNames = await prisma.moduleNode.findMany({ where: { projectId, scene: "scenario" }, select: { id: true, name: true, parentId: true } });
+  const moduleNames = await prisma.moduleNode.findMany({
+    where: { projectId, scene: "scenario" },
+    select: { id: true, name: true, parentId: true },
+  });
   const modulePath = (id: string): string => {
     const parts: string[] = [];
     let cur = moduleNames.find((m) => m.id === id);
@@ -75,7 +82,18 @@ export async function exportScenarios(projectId: string, input: ExportInput) {
   };
 }
 
-function buildTree(rows: { id: string; parentId: string | null; stepType: string; refId: string | null; name: string; enabled: boolean; config: unknown; order: number }[]): ScenarioStepNode[] {
+function buildTree(
+  rows: {
+    id: string;
+    parentId: string | null;
+    stepType: string;
+    refId: string | null;
+    name: string;
+    enabled: boolean;
+    config: unknown;
+    order: number;
+  }[],
+): ScenarioStepNode[] {
   const byParent = new Map<string | null, typeof rows>();
   for (const r of rows) {
     if (!byParent.has(r.parentId)) byParent.set(r.parentId, []);
@@ -94,23 +112,36 @@ function buildTree(rows: { id: string; parentId: string | null; stepType: string
 }
 
 /** flatten：引用步骤递归展开为 custom 快照（含子场景深度≤5）。 */
-async function flattenSteps(projectId: string, steps: ScenarioStepNode[], depth: number): Promise<ExportedStep[]> {
+async function flattenSteps(
+  projectId: string,
+  steps: ScenarioStepNode[],
+  depth: number,
+): Promise<ExportedStep[]> {
   if (depth > 5) throw new DomainError(ErrCode.SCENARIO_CIRCULAR_REF, "引用链深度超限（≤5）");
   const out: ExportedStep[] = [];
   for (const n of steps) {
     if (n.stepType === "ref_scenario") {
       const refId = (n.config as { refId?: string }).refId;
       if (refId) {
-        const sub = await prisma.scenario.findFirst({ where: { id: refId, projectId }, include: { steps: { orderBy: { order: "asc" } } } });
+        const sub = await prisma.scenario.findFirst({
+          where: { id: refId, projectId },
+          include: { steps: { orderBy: { order: "asc" } } },
+        });
         if (sub) {
-          out.push({ ...n, children: await flattenSteps(projectId, buildTree(sub.steps), depth + 1) });
+          out.push({
+            ...n,
+            children: await flattenSteps(projectId, buildTree(sub.steps), depth + 1),
+          });
           continue;
         }
       }
       out.push({ ...n, children: [] });
       continue;
     }
-    out.push({ ...n, children: n.children.length ? await flattenSteps(projectId, n.children, depth) : [] });
+    out.push({
+      ...n,
+      children: n.children.length ? await flattenSteps(projectId, n.children, depth) : [],
+    });
   }
   return out;
 }
@@ -125,7 +156,10 @@ export interface ImportPreview {
   firstSteps: { name: string; stepType: string }[];
 }
 
-function detectFormat(parsed: unknown, filename: string): "rabbit-scenario" | "jmx" | "metersphere" {
+function detectFormat(
+  parsed: unknown,
+  filename: string,
+): "rabbit-scenario" | "jmx" | "metersphere" {
   if (filename.endsWith(".jmx")) return "jmx";
   const obj = parsed as Record<string, unknown>;
   if (obj?.format === "rabbit-scenario") return "rabbit-scenario";
@@ -135,7 +169,8 @@ function detectFormat(parsed: unknown, filename: string): "rabbit-scenario" | "j
 }
 
 export function previewImport(filename: string, content: string): ImportPreview {
-  if (content.length > IMPORT_MAX_BYTES) throw new DomainError(ErrCode.IMPORT_FILE_TOO_LARGE, "导入文件超上限（2MB）");
+  if (content.length > IMPORT_MAX_BYTES)
+    throw new DomainError(ErrCode.IMPORT_FILE_TOO_LARGE, "导入文件超上限（2MB）");
   if (filename.endsWith(".jmx")) {
     const r = parseJmx(content);
     return {
@@ -153,9 +188,11 @@ export function previewImport(filename: string, content: string): ImportPreview 
     throw new DomainError(ErrCode.IMPORT_FORMAT_UNKNOWN, "JSON 解析失败");
   }
   const format = detectFormat(parsed, filename);
-  const scenarios = (format === "rabbit-scenario"
-    ? ((parsed as { scenarios?: unknown[] }).scenarios ?? [])
-    : msToRabbit(parsed).scenarios) as ExportedScenario[];
+  const scenarios = (
+    format === "rabbit-scenario"
+      ? ((parsed as { scenarios?: unknown[] }).scenarios ?? [])
+      : msToRabbit(parsed).scenarios
+  ) as ExportedScenario[];
   return {
     format,
     scenarioCount: scenarios.length,
@@ -179,7 +216,11 @@ function msToRabbit(parsed: unknown): { scenarios: ExportedScenario[] } {
         tags: [],
         modulePath: "未规划场景",
         config: {
-          params: { constants: [], lists: [], csv: { source: "inline", delimiter: ",", hasHeader: true } },
+          params: {
+            constants: [],
+            lists: [],
+            csv: { source: "inline", delimiter: ",", hasHeader: true },
+          },
           prePost: { pre: [], post: [] },
           asserts: [],
           settings: { cookieMode: "off", thinkTimeMs: 0, onFailure: "abort" },
@@ -198,7 +239,9 @@ function msStep(st: Record<string, unknown>): ExportedStep {
     name: String(st.name ?? st.stepName ?? "步骤"),
     enabled: st.enable !== false,
     config: (st.config as Record<string, unknown>) ?? {},
-    children: Array.isArray(st.children) ? (st.children as Record<string, unknown>[]).map(msStep) : [],
+    children: Array.isArray(st.children)
+      ? (st.children as Record<string, unknown>[]).map(msStep)
+      : [],
   };
   // MS 字段兼容映射：request → bundle
   if (mapped.stepType === "custom" && st.request && !mapped.config.bundle) {
@@ -211,7 +254,12 @@ function msStep(st: Record<string, unknown>): ExportedStep {
           url: String(req.url ?? req.path ?? "/"),
           headers: [],
           query: [],
-          body: req.body ? { kind: "raw_json", content: typeof req.body === "string" ? req.body : JSON.stringify(req.body) } : { kind: "none" },
+          body: req.body
+            ? {
+                kind: "raw_json",
+                content: typeof req.body === "string" ? req.body : JSON.stringify(req.body),
+              }
+            : { kind: "none" },
           auth: { kind: "none" },
         },
         asserts: [{ kind: "status_code", path: "", op: "eq", expected: "200" }],
@@ -225,10 +273,15 @@ function msStep(st: Record<string, unknown>): ExportedStep {
 }
 
 function countSteps(steps: { children: unknown[] }[]): number {
-  return steps.reduce((s, st) => s + 1 + countSteps((st.children ?? []) as { children: unknown[] }[]), 0);
+  return steps.reduce(
+    (s, st) => s + 1 + countSteps((st.children ?? []) as { children: unknown[] }[]),
+    0,
+  );
 }
 
-function flattenPreview(steps: { name: string; stepType: string; children: unknown[] }[]): { name: string; stepType: string }[] {
+function flattenPreview(
+  steps: { name: string; stepType: string; children: unknown[] }[],
+): { name: string; stepType: string }[] {
   const out: { name: string; stepType: string }[] = [];
   const walk = (nodes: { name: string; stepType: string; children: unknown[] }[]) => {
     for (const n of nodes) {
@@ -241,7 +294,13 @@ function flattenPreview(steps: { name: string; stepType: string; children: unkno
   return out.slice(0, 12);
 }
 
-export async function importScenarios(projectId: string, userId: string, filename: string, content: string, moduleId?: string) {
+export async function importScenarios(
+  projectId: string,
+  userId: string,
+  filename: string,
+  content: string,
+  moduleId?: string,
+) {
   const preview = previewImport(filename, content);
   let scenarios: ExportedScenario[];
   if (preview.format === "jmx") {
@@ -258,7 +317,14 @@ export async function importScenarios(projectId: string, userId: string, filenam
             constants: [],
             lists: [],
             ...(r.csv && r.csv.columns.length > 0
-              ? { csv: { source: "inline", inlineText: toCsvText(r.csv.columns, r.csv.rows), delimiter: ",", hasHeader: true } }
+              ? {
+                  csv: {
+                    source: "inline",
+                    inlineText: toCsvText(r.csv.columns, r.csv.rows),
+                    delimiter: ",",
+                    hasHeader: true,
+                  },
+                }
               : {}),
           },
           prePost: { pre: [], post: [] },
@@ -270,19 +336,26 @@ export async function importScenarios(projectId: string, userId: string, filenam
     ];
   } else {
     const parsed = JSON.parse(content) as Record<string, unknown>;
-    scenarios = (preview.format === "rabbit-scenario"
-      ? ((parsed.scenarios ?? []) as ExportedScenario[])
-      : msToRabbit(parsed).scenarios);
+    scenarios =
+      preview.format === "rabbit-scenario"
+        ? ((parsed.scenarios ?? []) as ExportedScenario[])
+        : msToRabbit(parsed).scenarios;
   }
-  if (scenarios.length === 0) throw new DomainError(ErrCode.IMPORT_FORMAT_UNKNOWN, "导入内容不含场景");
+  if (scenarios.length === 0)
+    throw new DomainError(ErrCode.IMPORT_FORMAT_UNKNOWN, "导入内容不含场景");
 
   // 目标模块（默认=未规划场景，懒创建）
   let targetModule = moduleId;
   if (!targetModule) {
-    const m = await prisma.moduleNode.findFirst({ where: { projectId, scene: "scenario", isDefault: true }, select: { id: true } });
+    const m = await prisma.moduleNode.findFirst({
+      where: { projectId, scene: "scenario", isDefault: true },
+      select: { id: true },
+    });
     targetModule = m?.id;
     if (!targetModule) {
-      const created = await prisma.moduleNode.create({ data: { projectId, scene: "scenario", name: "未规划场景", isDefault: true } });
+      const created = await prisma.moduleNode.create({
+        data: { projectId, scene: "scenario", name: "未规划场景", isDefault: true },
+      });
       targetModule = created.id;
     }
   }
@@ -315,8 +388,23 @@ function toCsvText(columns: string[], rows: string[][]): string {
   return [columns.join(","), ...rows.map((r) => r.join(","))].join("\n");
 }
 
-async function insertSteps(projectId: string, scenarioId: string, steps: ScenarioStepNode[], warnings: string[]): Promise<void> {
-  const rows: { id: string; scenarioId: string; parentId: string | null; stepType: string; refId: string | null; name: string; config: unknown; enabled: boolean; order: number }[] = [];
+async function insertSteps(
+  projectId: string,
+  scenarioId: string,
+  steps: ScenarioStepNode[],
+  warnings: string[],
+): Promise<void> {
+  const rows: {
+    id: string;
+    scenarioId: string;
+    parentId: string | null;
+    stepType: string;
+    refId: string | null;
+    name: string;
+    config: unknown;
+    enabled: boolean;
+    order: number;
+  }[] = [];
   // 主键一律新生成：导入文件里的 uid 是导出侧标识，直接沿用会与既有行全局主键冲突（P2002）；
   // 树形关联经 parentId=父新 id 重建，文件 uid 不参与落库。
   const walk = (nodes: ScenarioStepNode[], parentId: string | null) => {
@@ -340,7 +428,10 @@ async function insertSteps(projectId: string, scenarioId: string, steps: Scenari
   // ref 模式引用键导入：refKey（method+path+name）重挂（命中多条取最新，未命中降级 custom）
   for (const r of rows) {
     if (r.stepType.startsWith("ref_")) {
-      const cfg = r.config as { refKey?: { method?: string; path?: string; name?: string }; bundle?: unknown };
+      const cfg = r.config as {
+        refKey?: { method?: string; path?: string; name?: string };
+        bundle?: unknown;
+      };
       if (!cfg?.refKey) continue;
       const api = await prisma.apiDefinition.findFirst({
         where: { projectId, method: cfg.refKey.method, path: cfg.refKey.path, deletedAt: null },
@@ -348,7 +439,11 @@ async function insertSteps(projectId: string, scenarioId: string, steps: Scenari
         select: { id: true, request: true },
       });
       const c = await prisma.apiCase.findFirst({
-        where: { projectId, api: { method: cfg.refKey.method, path: cfg.refKey.path }, deletedAt: null },
+        where: {
+          projectId,
+          api: { method: cfg.refKey.method, path: cfg.refKey.path },
+          deletedAt: null,
+        },
         orderBy: { updatedAt: "desc" },
         select: { id: true, request: true },
       });

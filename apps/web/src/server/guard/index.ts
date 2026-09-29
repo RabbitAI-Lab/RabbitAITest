@@ -1,10 +1,37 @@
 import { NextResponse } from "next/server";
 import { DomainError, ErrCode, ErrMsg, fail, ok } from "@rabbit/shared";
+import { logFor, runWithLogContext } from "@rabbit/shared/logger";
 import { getSession } from "@/lib/session";
 import { getActiveUserId } from "@/server/current-user";
 import { prisma } from "@rabbit/db";
 import { permissionSetFor } from "@/server/rbac";
 import { ensureBoot } from "@/server/boot";
+import { httpIncr } from "@/server/metrics-counter";
+
+/** INFRA-004：访问日志 + reqId 上下文（middleware 零改写直通——reqId 此处兜底生成，出口回写 X-Request-Id）。 */
+function accessLog(req: unknown, run: () => Promise<NextResponse>): Promise<NextResponse> {
+  if (!(req instanceof Request)) return run();
+  const reqId =
+    req.headers.get("x-request-id")?.slice(0, 64) ??
+    crypto.randomUUID().replace(/-/g, "").slice(0, 12);
+  const start = Date.now();
+  let path = "";
+  try {
+    path = new URL(req.url).pathname;
+  } catch {
+    path = "invalid";
+  }
+  return runWithLogContext({ reqId }, async () => {
+    const res = await run();
+    if (!res.headers.has("x-request-id")) res.headers.set("x-request-id", reqId);
+    httpIncr(path, res.status);
+    logFor("http").info(
+      { method: req.method, path, status: res.status, ms: Date.now() - start },
+      "http request",
+    );
+    return res;
+  });
+}
 
 /** api-conventions §2：统一信封 + 错误码。 */
 export function toResponse(err: unknown): NextResponse {
@@ -12,7 +39,11 @@ export function toResponse(err: unknown): NextResponse {
     const status =
       err.code === ErrCode.UNAUTHENTICATED
         ? 401
-        : err.code === ErrCode.FORBIDDEN
+        : err.code === ErrCode.FORBIDDEN ||
+            err.code === ErrCode.CSRF_REJECTED ||
+            // 90xxx 企业版门控（S9 ENTP-007）
+            err.code === ErrCode.LICENSE_REQUIRED ||
+            err.code === ErrCode.LICENSE_FEATURE_NOT_ENABLED
           ? 403
           : (
                 [
@@ -52,11 +83,24 @@ export function toResponse(err: unknown): NextResponse {
                   ErrCode.ENV_GROUP_NOT_FOUND,
                   ErrCode.FILE_REPO_NOT_FOUND,
                   ErrCode.NOTIFICATION_NOT_FOUND,
+                  // S9 ENTP
+                  ErrCode.SSO_SOURCE_NOT_FOUND,
+                  ErrCode.DEPARTMENT_NOT_FOUND,
                 ] as number[]
               ).includes(err.code)
             ? 404
-                : err.code === ErrCode.VERSION_CONFLICT || err.code === ErrCode.SCRIPT_IN_USE
-                  ? 409
+            : err.code === ErrCode.VERSION_CONFLICT ||
+                err.code === ErrCode.SCRIPT_IN_USE ||
+                // S9 ENTP 409（组织/池/部门冲突与保护）
+                err.code === ErrCode.ORG_NAME_EXISTS ||
+                err.code === ErrCode.ORG_DEFAULT_PROTECTED ||
+                err.code === ErrCode.POOL_DEFAULT_UNDELETABLE ||
+                err.code === ErrCode.POOL_NAME_EXISTS ||
+                err.code === ErrCode.POOL_HAS_TASKS ||
+                err.code === ErrCode.DEPARTMENT_NAME_EXISTS ||
+                err.code === ErrCode.DEPARTMENT_HAS_CHILDREN ||
+                err.code === ErrCode.SSO_ACCOUNT_CONFLICT
+              ? 409
               : err.code === ErrCode.VALIDATION_FAILED ||
                   (
                     [
@@ -123,21 +167,51 @@ export function toResponse(err: unknown): NextResponse {
                       ErrCode.PERSONAL_PASSWORD_MISMATCH,
                       ErrCode.PERSONAL_LOCAL_RUNNER_INVALID,
                       ErrCode.PERSONAL_AI_MODEL_INVALID,
+                      ErrCode.PACK_NOT_ALLOWED,
+                      // S9 ENTP（90xxx 422 面：License 校验/SSO 配置与状态/组织确认/池规则/部门环/模板事件/主题图片）
+                      ErrCode.LICENSE_FORMAT_INVALID,
+                      ErrCode.LICENSE_SIGNATURE_INVALID,
+                      ErrCode.LICENSE_EXPIRED,
+                      ErrCode.SSO_SOURCE_DISABLED,
+                      ErrCode.SSO_STATE_INVALID,
+                      ErrCode.SSO_USER_MAPPING_FAILED,
+                      ErrCode.SSO_CONFIG_INVALID,
+                      ErrCode.ORG_DELETE_CONFIRM_REQUIRED,
+                      ErrCode.ORG_OWNER_IMMUTABLE,
+                      ErrCode.POOL_DEFAULT_UNDISABLEABLE,
+                      ErrCode.POOL_DISABLED,
+                      ErrCode.POOL_TYPE_INVALID,
+                      ErrCode.POOL_ORG_NOT_ALLOWED,
+                      ErrCode.DEPARTMENT_CYCLE,
+                      ErrCode.DEPARTMENT_MEMBER_NOT_IN_ORG,
+                      ErrCode.TEMPLATE_EVENT_INVALID,
+                      ErrCode.THEME_IMAGE_TOO_LARGE,
+                      // S-future（PLUG-003/TOOL-001/002/EXEC-004/RPT-004）
+                      ErrCode.PROTOCOL_PLUGIN_LOAD_FAILED,
+                      ErrCode.OPEN_SYNC_VALIDATION_FAILED,
+                      ErrCode.OPEN_SYNC_LIMIT_EXCEEDED,
+                      ErrCode.OPEN_CAPTURE_INVALID,
+                      ErrCode.POOL_CONFIG_INVALID,
+                      ErrCode.REPORT_STATS_INVALID,
                     ] as number[]
                   ).includes(err.code)
                 ? 422
-                : err.code === ErrCode.PLUGIN_VERSION_CONFLICT || err.code === ErrCode.PLUGIN_DELETE_FORBIDDEN
+                : err.code === ErrCode.PLUGIN_VERSION_CONFLICT ||
+                    err.code === ErrCode.PLUGIN_DELETE_FORBIDDEN
                   ? 409
-                : err.code === ErrCode.AI_PROVIDER_ERROR
-                  ? 502 // 供应商上游失败（网关语义；透出上游状态不泄 key）
-                  : err.code === ErrCode.OPEN_RATE_LIMITED
-                    ? 429
-                    : 400;
+                  : err.code === ErrCode.AI_PROVIDER_ERROR ||
+                      err.code === ErrCode.SSO_PROVIDER_ERROR || // 供应商上游失败（透出上游状态不泄 key）
+                      err.code === ErrCode.POOL_K8S_UNREACHABLE // apiServer 探测失败（透出上游状态不泄 token）
+                    ? 502
+                    : err.code === ErrCode.OPEN_RATE_LIMITED ||
+                        err.code === ErrCode.LOGIN_RATE_LIMITED
+                      ? 429
+                      : 400;
     return NextResponse.json(fail(err.code, err.message ?? ErrMsg[err.code] ?? "业务错误"), {
       status,
     });
   }
-  console.error("[unhandled]", err);
+  logFor("http").error({ err }, "unhandled error");
   return NextResponse.json(fail(50000, "服务内部错误"), { status: 500 });
 }
 
@@ -150,22 +224,26 @@ export interface AuthedCtx {
 export function withAuth<Ctx, Args extends unknown[]>(
   handler: (ctx: AuthedCtx & Ctx, ...args: Args) => Promise<NextResponse>,
 ) {
-  return async (...args: Args): Promise<NextResponse> => {
-    try {
-      ensureBoot();
-      const userId = await getActiveUserId();
-      if (!userId) {
-        return NextResponse.json(fail(ErrCode.UNAUTHENTICATED, ErrMsg[ErrCode.UNAUTHENTICATED]!), {
-          status: 401,
-        });
+  return async (...args: Args): Promise<NextResponse> =>
+    accessLog(args[0], async () => {
+      try {
+        ensureBoot();
+        const userId = await getActiveUserId();
+        if (!userId) {
+          return NextResponse.json(
+            fail(ErrCode.UNAUTHENTICATED, ErrMsg[ErrCode.UNAUTHENTICATED]!),
+            {
+              status: 401,
+            },
+          );
+        }
+        const session = await getSession();
+        const ctx = { userId, email: session.email } as AuthedCtx & Ctx;
+        return await runWithLogContext({ userId }, () => handler(ctx, ...args));
+      } catch (err) {
+        return toResponse(err);
       }
-      const session = await getSession();
-      const ctx = { userId, email: session.email } as AuthedCtx & Ctx;
-      return await handler(ctx, ...args);
-    } catch (err) {
-      return toResponse(err);
-    }
-  };
+    });
 }
 
 export interface ProjectCtx extends AuthedCtx {
@@ -185,56 +263,62 @@ export function withProjectScope<Args extends unknown[]>(
   handler: (ctx: ProjectCtx, req: Request, ...args: Args) => Promise<NextResponse>,
   opts: { allowDeleted?: boolean } = {},
 ) {
-  return async (req: Request, ...args: Args): Promise<NextResponse> => {
-    try {
-      ensureBoot();
-      const userId = await getActiveUserId();
-      if (!userId) {
-        return NextResponse.json(fail(ErrCode.UNAUTHENTICATED, ErrMsg[ErrCode.UNAUTHENTICATED]!), {
-          status: 401,
+  return async (req: Request, ...args: Args): Promise<NextResponse> =>
+    accessLog(req, async () => {
+      try {
+        ensureBoot();
+        const userId = await getActiveUserId();
+        if (!userId) {
+          return NextResponse.json(
+            fail(ErrCode.UNAUTHENTICATED, ErrMsg[ErrCode.UNAUTHENTICATED]!),
+            {
+              status: 401,
+            },
+          );
+        }
+        const seg = args[0] as { params: Promise<{ projectId: string }> } | undefined;
+        const projectId = seg ? (await seg.params).projectId : "";
+        const member = await prisma.projectMember.findFirst({
+          where: { projectId, userId },
+          select: { id: true },
         });
-      }
-      const seg = args[0] as { params: Promise<{ projectId: string }> } | undefined;
-      const projectId = seg ? (await seg.params).projectId : "";
-      const member = await prisma.projectMember.findFirst({
-        where: { projectId, userId },
-        select: { id: true },
-      });
-      const project = member
-        ? await prisma.project.findFirst({
-            where: { id: projectId, ...(opts.allowDeleted ? {} : { deletedAt: null }) },
-            select: { id: true, orgId: true, status: true },
-          })
-        : null;
-      if (!project) {
-        return NextResponse.json(
-          fail(ErrCode.PROJECT_NOT_FOUND, ErrMsg[ErrCode.PROJECT_NOT_FOUND]!),
-          { status: 404 },
+        const project = member
+          ? await prisma.project.findFirst({
+              where: { id: projectId, ...(opts.allowDeleted ? {} : { deletedAt: null }) },
+              select: { id: true, orgId: true, status: true },
+            })
+          : null;
+        if (!project) {
+          return NextResponse.json(
+            fail(ErrCode.PROJECT_NOT_FOUND, ErrMsg[ErrCode.PROJECT_NOT_FOUND]!),
+            { status: 404 },
+          );
+        }
+        const permissions = await permissionSetFor(userId, { orgId: project.orgId, projectId });
+        const session = await getSession();
+        const ctx: ProjectCtx = {
+          userId,
+          email: session.email,
+          projectId,
+          orgId: project.orgId,
+          projectStatus: project.status,
+          permissions,
+          requirePerm(point: string) {
+            if (!permissions.has(point))
+              throw new DomainError(ErrCode.FORBIDDEN, `缺少权限点 ${point}`);
+          },
+          requireWritable() {
+            if (project.status === "ENDED")
+              throw new DomainError(ErrCode.PROJECT_ENDED, ErrMsg[ErrCode.PROJECT_ENDED]!);
+          },
+        };
+        return await runWithLogContext({ userId, orgId: project.orgId, projectId }, () =>
+          handler(ctx, req, ...args),
         );
+      } catch (err) {
+        return toResponse(err);
       }
-      const permissions = await permissionSetFor(userId, { orgId: project.orgId, projectId });
-      const session = await getSession();
-      const ctx: ProjectCtx = {
-        userId,
-        email: session.email,
-        projectId,
-        orgId: project.orgId,
-        projectStatus: project.status,
-        permissions,
-        requirePerm(point: string) {
-          if (!permissions.has(point))
-            throw new DomainError(ErrCode.FORBIDDEN, `缺少权限点 ${point}`);
-        },
-        requireWritable() {
-          if (project.status === "ENDED")
-            throw new DomainError(ErrCode.PROJECT_ENDED, ErrMsg[ErrCode.PROJECT_ENDED]!);
-        },
-      };
-      return await handler(ctx, req, ...args);
-    } catch (err) {
-      return toResponse(err);
-    }
-  };
+    });
 }
 
 /** 系统级权限守卫（SYS-004/SYS-005）：登录 + 权限点。 */
@@ -242,25 +326,30 @@ export function withSystemPerm(point: string) {
   return function <Args extends unknown[]>(
     handler: (ctx: AuthedCtx, req: Request, ...args: Args) => Promise<NextResponse>,
   ) {
-    return async (req: Request, ...args: Args): Promise<NextResponse> => {
-      try {
-        const userId = await getActiveUserId();
-        if (!userId) {
-          return NextResponse.json(
-            fail(ErrCode.UNAUTHENTICATED, ErrMsg[ErrCode.UNAUTHENTICATED]!),
-            { status: 401 },
+    return async (req: Request, ...args: Args): Promise<NextResponse> =>
+      accessLog(req, async () => {
+        try {
+          const userId = await getActiveUserId();
+          if (!userId) {
+            return NextResponse.json(
+              fail(ErrCode.UNAUTHENTICATED, ErrMsg[ErrCode.UNAUTHENTICATED]!),
+              { status: 401 },
+            );
+          }
+          const perms = await permissionSetFor(userId);
+          if (!perms.has(point)) {
+            return NextResponse.json(fail(ErrCode.FORBIDDEN, `缺少权限点 ${point}`), {
+              status: 403,
+            });
+          }
+          const session = await getSession();
+          return await runWithLogContext({ userId }, () =>
+            handler({ userId, email: session.email }, req, ...args),
           );
+        } catch (err) {
+          return toResponse(err);
         }
-        const perms = await permissionSetFor(userId);
-        if (!perms.has(point)) {
-          return NextResponse.json(fail(ErrCode.FORBIDDEN, `缺少权限点 ${point}`), { status: 403 });
-        }
-        const session = await getSession();
-        return await handler({ userId, email: session.email }, req, ...args);
-      } catch (err) {
-        return toResponse(err);
-      }
-    };
+      });
   };
 }
 
@@ -281,46 +370,52 @@ export interface OrgCtx extends AuthedCtx {
 export function withOrgScope<Args extends unknown[]>(
   handler: (ctx: OrgCtx, req: Request, ...args: Args) => Promise<NextResponse>,
 ) {
-  return async (req: Request, ...args: Args): Promise<NextResponse> => {
-    try {
-      ensureBoot();
-      const userId = await getActiveUserId();
-      if (!userId) {
-        return NextResponse.json(fail(ErrCode.UNAUTHENTICATED, ErrMsg[ErrCode.UNAUTHENTICATED]!), {
-          status: 401,
+  return async (req: Request, ...args: Args): Promise<NextResponse> =>
+    accessLog(req, async () => {
+      try {
+        ensureBoot();
+        const userId = await getActiveUserId();
+        if (!userId) {
+          return NextResponse.json(
+            fail(ErrCode.UNAUTHENTICATED, ErrMsg[ErrCode.UNAUTHENTICATED]!),
+            {
+              status: 401,
+            },
+          );
+        }
+        const seg = args[0] as { params: Promise<{ orgId: string }> } | undefined;
+        const orgId = seg ? (await seg.params).orgId : "";
+        const member = await prisma.orgMember.findFirst({
+          where: { orgId, userId },
+          select: { id: true },
         });
+        if (!member) {
+          return NextResponse.json(fail(ErrCode.PROJECT_NOT_FOUND, "组织不存在或无权访问"), {
+            status: 404,
+          });
+        }
+        const permissions = await permissionSetFor(userId, { orgId });
+        const session = await getSession();
+        return await runWithLogContext({ userId, orgId }, () =>
+          handler(
+            {
+              userId,
+              email: session.email,
+              orgId,
+              permissions,
+              requirePerm(point: string) {
+                if (!permissions.has(point))
+                  throw new DomainError(ErrCode.FORBIDDEN, `缺少权限点 ${point}`);
+              },
+            },
+            req,
+            ...args,
+          ),
+        );
+      } catch (err) {
+        return toResponse(err);
       }
-      const seg = args[0] as { params: Promise<{ orgId: string }> } | undefined;
-      const orgId = seg ? (await seg.params).orgId : "";
-      const member = await prisma.orgMember.findFirst({
-        where: { orgId, userId },
-        select: { id: true },
-      });
-      if (!member) {
-        return NextResponse.json(fail(ErrCode.PROJECT_NOT_FOUND, "组织不存在或无权访问"), {
-          status: 404,
-        });
-      }
-      const permissions = await permissionSetFor(userId, { orgId });
-      const session = await getSession();
-      return await handler(
-        {
-          userId,
-          email: session.email,
-          orgId,
-          permissions,
-          requirePerm(point: string) {
-            if (!permissions.has(point))
-              throw new DomainError(ErrCode.FORBIDDEN, `缺少权限点 ${point}`);
-          },
-        },
-        req,
-        ...args,
-      );
-    } catch (err) {
-      return toResponse(err);
-    }
-  };
+    });
 }
 
 /** engine 内部回调/注册令牌守卫。 */
@@ -333,20 +428,21 @@ export function withInternalToken(
   return async (
     req: Request,
     seg: { params: Promise<Record<string, string>> },
-  ): Promise<NextResponse> => {
-    try {
-      const { config: cfg } = await import("@rabbit/shared");
-      if (req.headers.get("x-internal-token") !== cfg.internalToken) {
-        return NextResponse.json(
-          fail(ErrCode.ENGINE_CALLBACK_INVALID, ErrMsg[ErrCode.ENGINE_CALLBACK_INVALID]!),
-          { status: 401 },
-        );
+  ): Promise<NextResponse> =>
+    accessLog(req, async () => {
+      try {
+        const { config: cfg } = await import("@rabbit/shared");
+        if (req.headers.get("x-internal-token") !== cfg.internalToken) {
+          return NextResponse.json(
+            fail(ErrCode.ENGINE_CALLBACK_INVALID, ErrMsg[ErrCode.ENGINE_CALLBACK_INVALID]!),
+            { status: 401 },
+          );
+        }
+        return await handler(req, seg);
+      } catch (err) {
+        return toResponse(err);
       }
-      return await handler(req, seg);
-    } catch (err) {
-      return toResponse(err);
-    }
-  };
+    });
 }
 
 /** 统一成功响应。 */
@@ -355,7 +451,16 @@ export function okResponse<T>(data: T, status = 200): NextResponse {
 }
 
 /** S4：请求体 zod 解析统一出口（ZodError → DomainError 20422，避免裸抛落 500）。 */
-export function zodParse<T>(schema: { safeParse: (d: unknown) => { success: true; data: T } | { success: false; error: { issues: { path: (string | number)[]; message: string }[] } } }, data: unknown): T {
+export function zodParse<T>(
+  schema: {
+    safeParse: (
+      d: unknown,
+    ) =>
+      | { success: true; data: T }
+      | { success: false; error: { issues: { path: (string | number)[]; message: string }[] } };
+  },
+  data: unknown,
+): T {
   const parsed = schema.safeParse(data);
   if (!parsed.success) {
     const first = parsed.error.issues[0];

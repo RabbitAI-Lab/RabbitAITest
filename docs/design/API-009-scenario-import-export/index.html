@@ -7,55 +7,118 @@
   </head>
   <body class="bg-slate-50 text-slate-800 text-sm">
     <header class="h-12 bg-white border-b flex items-center px-4 gap-3">
-      <span class="font-semibold">RabbitAITest</span><span class="border rounded px-2 py-0.5">演示项目 #1</span>
+      <span class="font-semibold">RabbitAITest</span
+      ><span class="border rounded px-2 py-0.5">演示项目 #1</span>
       <span class="ml-auto text-slate-400 text-xs">帮助 · 消息 · 用户</span>
     </header>
     <main class="p-4 space-y-4">
       <!-- 画板一：导入弹窗（上传 → 预览 → 确认） -->
       <section class="bg-white border rounded-md">
-        <div class="px-3 py-2 border-b bg-slate-50 font-medium">画板一 · 导入弹窗（上传态 → 解析预览态）</div>
+        <div class="px-3 py-2 border-b bg-slate-50 font-medium">
+          画板一 · 导入弹窗（上传态 → 解析预览态）
+        </div>
         <div class="p-4 flex gap-6">
           <div class="border rounded-md w-[420px] p-4 text-center text-[13px]">
             <p class="font-medium mb-3">导入场景</p>
             <div class="border-2 border-dashed rounded-md p-8 text-slate-400">
               <p class="text-2xl mb-1">⇪</p>
               <p>拖拽文件到此处，或 <span class="text-[#574BFF]">点击选择</span></p>
-              <p class="text-xs mt-1">支持 .json（Rabbit / MeterSphere v3）· .jmx（JMeter）· ≤2MB</p>
+              <p class="text-xs mt-1">
+                支持 .json（Rabbit / MeterSphere v3）· .jmx（JMeter）· ≤2MB
+              </p>
             </div>
           </div>
           <div class="border rounded-md w-[520px] p-4 text-[13px]">
             <p class="font-medium mb-2">解析预览 · demo-scenarios.json（Rabbit 格式）</p>
             <div class="border rounded divide-y text-xs">
-              <div class="p-2 flex items-center gap-2"><span class="border rounded px-1.5 py-0.5 text-green-700 bg-green-50 border-green-200">场景 2 个</span><span class="border rounded px-1.5 py-0.5 text-blue-600 bg-blue-50 border-blue-200">步骤 17</span><span class="border rounded px-1.5 py-0.5 text-purple-600 bg-purple-50 border-purple-200">循环 3</span><span class="border rounded px-1.5 py-0.5 text-slate-500 bg-slate-50">引用 4</span></div>
-              <div class="p-2 text-amber-700 bg-amber-50 text-xs">⚠ 2 条警告：引用「查询宠物 GET /pets/{id}」命中 3 条定义，已取最新；jmx 样本中 CookieManager 不支持，已跳过</div>
+              <div class="p-2 flex items-center gap-2">
+                <span
+                  class="border rounded px-1.5 py-0.5 text-green-700 bg-green-50 border-green-200"
+                  >场景 2 个</span
+                ><span class="border rounded px-1.5 py-0.5 text-blue-600 bg-blue-50 border-blue-200"
+                  >步骤 17</span
+                ><span
+                  class="border rounded px-1.5 py-0.5 text-purple-600 bg-purple-50 border-purple-200"
+                  >循环 3</span
+                ><span class="border rounded px-1.5 py-0.5 text-slate-500 bg-slate-50">引用 4</span>
+              </div>
+              <div class="p-2 text-amber-700 bg-amber-50 text-xs">
+                ⚠ 2 条警告：引用「查询宠物 GET /pets/{id}」命中 3 条定义，已取最新；jmx 样本中
+                CookieManager 不支持，已跳过
+              </div>
               <div class="p-2">
                 <p class="text-slate-500 mb-1">首个场景步骤树抽样</p>
                 <p class="pl-2">下单主流程</p>
                 <p class="pl-6">🔁 遍历用户列表（ForEach · users.csv）</p>
-                <p class="pl-10">🔗 注册（引用 · users_POST）<span class="text-[10px] text-green-600 ml-1">引用命中</span></p>
+                <p class="pl-10">
+                  🔗 注册（引用 · users_POST）<span class="text-[10px] text-green-600 ml-1"
+                    >引用命中</span
+                  >
+                </p>
                 <p class="pl-10">⌨ 脚本 · 校验订单号</p>
-                <p class="pl-10">🔗 创建订单（引用 · POST /orders）<span class="text-[10px] text-amber-600 ml-1">降级 custom 快照</span></p>
+                <p class="pl-10">
+                  🔗 创建订单（引用 · POST /orders）<span class="text-[10px] text-amber-600 ml-1"
+                    >降级 custom 快照</span
+                  >
+                </p>
               </div>
             </div>
-            <div class="flex items-center gap-2 mt-3"><span class="text-slate-500">导入到模块</span><select class="border rounded px-2 py-1.5 flex-1"><option>未规划场景</option><option>交易域/下单流程</option></select></div>
-            <div class="flex justify-end gap-2 mt-3"><button class="border rounded px-3 py-1.5">取消</button><button class="bg-[#574BFF] text-white rounded px-3 py-1.5">确认导入（新建 2 个场景）</button></div>
+            <div class="flex items-center gap-2 mt-3">
+              <span class="text-slate-500">导入到模块</span
+              ><select class="border rounded px-2 py-1.5 flex-1">
+                <option>未规划场景</option>
+                <option>交易域/下单流程</option>
+              </select>
+            </div>
+            <div class="flex justify-end gap-2 mt-3">
+              <button class="border rounded px-3 py-1.5">取消</button
+              ><button class="bg-[#574BFF] text-white rounded px-3 py-1.5">
+                确认导入（新建 2 个场景）
+              </button>
+            </div>
           </div>
         </div>
       </section>
       <!-- 画板二：导出模式弹窗 -->
       <section class="bg-white border rounded-md">
-        <div class="px-3 py-2 border-b bg-slate-50 font-medium">画板二 · 导出弹窗（模式二态：保留引用 / 展开）</div>
+        <div class="px-3 py-2 border-b bg-slate-50 font-medium">
+          画板二 · 导出弹窗（模式二态：保留引用 / 展开）
+        </div>
         <div class="p-4 flex gap-6 text-[13px]">
           <div class="border rounded-md w-[400px] p-4 space-y-3">
             <p class="font-medium">导出 2 个场景</p>
-            <label class="flex gap-2 border rounded-md p-3 cursor-pointer border-[#574BFF] bg-[#574BFF]/5"><input type="radio" checked class="mt-1" /><span><span class="font-medium">保留引用关系</span><br /><span class="text-xs text-slate-500">引用步骤按业务键（method+path+名称）保存；导入方按同键重新挂载，未命中自动降级为自定义请求快照</span></span></label>
-            <label class="flex gap-2 border rounded-md p-3 cursor-pointer"><input type="radio" class="mt-1" /><span><span class="font-medium">展开为自定义请求</span><br /><span class="text-xs text-slate-500">引用步骤（含子场景，深度≤5）递归展开为独立请求快照，与源项目完全解耦</span></span></label>
-            <p class="text-xs text-slate-400">CSV 参数文件内容随包内嵌（inline），导入自动重建文件记录</p>
-            <div class="flex justify-end"><button class="bg-[#574BFF] text-white rounded-md px-3 py-1.5">导出 rabbit-scenarios.json</button></div>
+            <label
+              class="flex gap-2 border rounded-md p-3 cursor-pointer border-[#574BFF] bg-[#574BFF]/5"
+              ><input type="radio" checked class="mt-1" /><span
+                ><span class="font-medium">保留引用关系</span><br /><span
+                  class="text-xs text-slate-500"
+                  >引用步骤按业务键（method+path+名称）保存；导入方按同键重新挂载，未命中自动降级为自定义请求快照</span
+                ></span
+              ></label
+            >
+            <label class="flex gap-2 border rounded-md p-3 cursor-pointer"
+              ><input type="radio" class="mt-1" /><span
+                ><span class="font-medium">展开为自定义请求</span><br /><span
+                  class="text-xs text-slate-500"
+                  >引用步骤（含子场景，深度≤5）递归展开为独立请求快照，与源项目完全解耦</span
+                ></span
+              ></label
+            >
+            <p class="text-xs text-slate-400">
+              CSV 参数文件内容随包内嵌（inline），导入自动重建文件记录
+            </p>
+            <div class="flex justify-end">
+              <button class="bg-[#574BFF] text-white rounded-md px-3 py-1.5">
+                导出 rabbit-scenarios.json
+              </button>
+            </div>
           </div>
           <div class="border rounded-md w-[320px] p-4">
             <p class="text-slate-500 text-xs mb-2">导出文件结构（预览）</p>
-            <pre class="text-[11px] font-mono bg-slate-50 border rounded p-2 leading-5 overflow-auto">{ "format": "rabbit-scenario",
+            <pre
+              class="text-[11px] font-mono bg-slate-50 border rounded p-2 leading-5 overflow-auto"
+            >
+{ "format": "rabbit-scenario",
   "formatVersion": 1,
   "mode": "ref",
   "scenarios": [

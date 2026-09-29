@@ -141,7 +141,11 @@ export const aiGenerateApiCaseSchema = z.object({
 });
 
 export const aiGenerateApiCaseBatchSchema = z.object({
-  openapiDoc: z.string().trim().min(1, "OpenAPI 文档必填").max(512 * 1024),
+  openapiDoc: z
+    .string()
+    .trim()
+    .min(1, "OpenAPI 文档必填")
+    .max(512 * 1024),
   modelId: z.string().trim().max(64).optional(),
   designMethod: z.string().trim().max(128).optional(),
 });
@@ -169,9 +173,18 @@ export const aiApiCaseDraftSchema = z.object({
   name: z.string().trim().min(1).max(128),
   request: z
     .object({
-      headers: z.array(z.object({ key: z.string().trim().min(1).max(64), value: z.string().max(512) })).max(20).optional(),
-      query: z.array(z.object({ key: z.string().trim().min(1).max(64), value: z.string().max(512) })).max(20).optional(),
-      bodyJson: z.string().max(16 * 1024).optional(),
+      headers: z
+        .array(z.object({ key: z.string().trim().min(1).max(64), value: z.string().max(512) }))
+        .max(20)
+        .optional(),
+      query: z
+        .array(z.object({ key: z.string().trim().min(1).max(64), value: z.string().max(512) }))
+        .max(20)
+        .optional(),
+      bodyJson: z
+        .string()
+        .max(16 * 1024)
+        .optional(),
     })
     .default({}),
   assertions: z
@@ -230,14 +243,22 @@ export function aiDraftToAsserts(items: AiDraftAssertion[]): AssertSpec[] {
       continue;
     }
     if (a.source === "headers") {
-      out.push({ kind: "response_header", path: a.expression || "", op: "contains", expected: a.expected });
+      out.push({
+        kind: "response_header",
+        path: a.expression || "",
+        op: "contains",
+        expected: a.expected,
+      });
       continue;
     }
     // body：expression 为 JSONPath（$.x）；exists 弱化为 contains 空串（结构存在性弱化，登记 AI-003 §6）
     const path = a.expression || "$";
-    if (a.operator === "exists") out.push({ kind: "body_jsonpath", path, op: "contains", expected: a.expected || "" });
-    else if (a.operator === "jsonpath-eq") out.push({ kind: "body_jsonpath", path, op: "eq", expected: a.expected });
-    else if (a.operator === "eq") out.push({ kind: "body_jsonpath", path, op: "eq", expected: a.expected });
+    if (a.operator === "exists")
+      out.push({ kind: "body_jsonpath", path, op: "contains", expected: a.expected || "" });
+    else if (a.operator === "jsonpath-eq")
+      out.push({ kind: "body_jsonpath", path, op: "eq", expected: a.expected });
+    else if (a.operator === "eq")
+      out.push({ kind: "body_jsonpath", path, op: "eq", expected: a.expected });
     else out.push({ kind: "body_jsonpath", path, op: "contains", expected: a.expected });
   }
   return out;
@@ -245,7 +266,13 @@ export function aiDraftToAsserts(items: AiDraftAssertion[]): AssertSpec[] {
 
 /** AI 草稿请求 → S2 requestSpec 模板（method/url 由目标接口定义补齐） */
 export function aiDraftToRequestSpec(
-  draft: { request: { headers?: { key: string; value: string }[]; query?: { key: string; value: string }[]; bodyJson?: string } },
+  draft: {
+    request: {
+      headers?: { key: string; value: string }[];
+      query?: { key: string; value: string }[];
+      bodyJson?: string;
+    };
+  },
   base: { method: string; url: string },
 ) {
   return {

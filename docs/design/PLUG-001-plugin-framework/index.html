@@ -7,85 +7,179 @@
   </head>
   <body class="bg-slate-50 text-slate-800 text-sm">
     <header class="h-12 bg-white border-b flex items-center px-4 gap-3">
-      <span class="font-semibold">RabbitAITest</span><span class="border rounded px-2 py-0.5">系统设置</span>
-      <nav class="ml-4 flex gap-4 text-slate-500"><span>用户</span><span>用户组</span><span>组织与项目</span><span>系统参数</span><span>资源池</span><span class="text-slate-900 font-medium border-b-2 border-[#574BFF] -mb-[13px] pb-[13px]">插件管理</span><span>系统日志</span></nav>
+      <span class="font-semibold">RabbitAITest</span
+      ><span class="border rounded px-2 py-0.5">系统设置</span>
+      <nav class="ml-4 flex gap-4 text-slate-500">
+        <span>用户</span><span>用户组</span><span>组织与项目</span><span>系统参数</span
+        ><span>资源池</span
+        ><span class="text-slate-900 font-medium border-b-2 border-[#574BFF] -mb-[13px] pb-[13px]"
+          >插件管理</span
+        ><span>系统日志</span>
+      </nav>
       <span class="ml-auto text-slate-400 text-xs">帮助 · 消息 · 管理员</span>
     </header>
     <main class="p-4 space-y-4 max-w-[1100px]">
       <!-- 画板一：插件列表 + 上传 Modal -->
       <section class="bg-white border rounded-md">
-        <div class="px-3 py-2 border-b bg-slate-50 font-medium">画板一 · 插件管理页 /system/plugins（列表 + 上传 Modal）</div>
+        <div class="px-3 py-2 border-b bg-slate-50 font-medium">
+          画板一 · 插件管理页 /system/plugins（列表 + 上传 Modal）
+        </div>
         <div class="flex">
           <div class="flex-1">
             <div class="p-3 flex items-center gap-2 border-b">
               <button class="bg-[#574BFF] text-white rounded-md px-3 py-1.5">上传插件</button>
-              <select class="border rounded px-2 py-1.5 text-xs bg-white"><option>全部类型</option><option>协议</option><option>平台</option><option>驱动</option></select>
+              <select class="border rounded px-2 py-1.5 text-xs bg-white">
+                <option>全部类型</option>
+                <option>协议</option>
+                <option>平台</option>
+                <option>驱动</option>
+              </select>
               <input class="border rounded px-2 py-1.5 text-xs w-40" placeholder="搜索插件名称" />
-              <span class="text-xs text-slate-400 ml-auto">插件包 = tarball（.tgz）· 上传需系统管理员权限 · SPI 1.0</span>
+              <span class="text-xs text-slate-400 ml-auto"
+                >插件包 = tarball（.tgz）· 上传需系统管理员权限 · SPI 1.0</span
+              >
             </div>
             <table class="w-full text-[13px]">
-              <thead class="text-slate-500 text-xs bg-slate-50"><tr class="text-left"><th class="px-3 py-2">名称</th><th class="px-3 py-2">类型</th><th class="px-3 py-2">版本</th><th class="px-3 py-2">SPI</th><th class="px-3 py-2">组织范围</th><th class="px-3 py-2">状态</th><th class="px-3 py-2">更新时间</th><th class="px-3 py-2">操作</th></tr></thead>
+              <thead class="text-slate-500 text-xs bg-slate-50">
+                <tr class="text-left">
+                  <th class="px-3 py-2">名称</th>
+                  <th class="px-3 py-2">类型</th>
+                  <th class="px-3 py-2">版本</th>
+                  <th class="px-3 py-2">SPI</th>
+                  <th class="px-3 py-2">组织范围</th>
+                  <th class="px-3 py-2">状态</th>
+                  <th class="px-3 py-2">更新时间</th>
+                  <th class="px-3 py-2">操作</th>
+                </tr>
+              </thead>
               <tbody class="divide-y">
                 <tr>
                   <td class="px-3 py-2 font-medium">jira-platform</td>
-                  <td class="px-3 py-2"><span class="text-[10px] border rounded px-1.5 py-0.5 bg-violet-50 text-violet-600 border-violet-200">平台</span></td>
-                  <td class="px-3 py-2 font-mono text-xs">1.2.0</td><td class="px-3 py-2 font-mono text-xs">1.0</td>
+                  <td class="px-3 py-2">
+                    <span
+                      class="text-[10px] border rounded px-1.5 py-0.5 bg-violet-50 text-violet-600 border-violet-200"
+                      >平台</span
+                    >
+                  </td>
+                  <td class="px-3 py-2 font-mono text-xs">1.2.0</td>
+                  <td class="px-3 py-2 font-mono text-xs">1.0</td>
                   <td class="px-3 py-2 text-xs">全部组织</td>
-                  <td class="px-3 py-2"><span class="text-[10px] rounded px-1.5 py-0.5 bg-green-50 text-green-600">● 运行中</span></td>
+                  <td class="px-3 py-2">
+                    <span class="text-[10px] rounded px-1.5 py-0.5 bg-green-50 text-green-600"
+                      >● 运行中</span
+                    >
+                  </td>
                   <td class="px-3 py-2 text-slate-400 text-xs">09-26 10:12</td>
-                  <td class="px-3 py-2 space-x-2 text-[#574BFF]"><a>停用</a><a class="text-red-500">删除</a></td>
+                  <td class="px-3 py-2 space-x-2 text-[#574BFF]">
+                    <a>停用</a><a class="text-red-500">删除</a>
+                  </td>
                 </tr>
                 <tr>
                   <td class="px-3 py-2 font-medium">tcp-conn</td>
-                  <td class="px-3 py-2"><span class="text-[10px] border rounded px-1.5 py-0.5 bg-cyan-50 text-cyan-600 border-cyan-200">协议</span></td>
-                  <td class="px-3 py-2 font-mono text-xs">0.3.1</td><td class="px-3 py-2 font-mono text-xs">1.0</td>
+                  <td class="px-3 py-2">
+                    <span
+                      class="text-[10px] border rounded px-1.5 py-0.5 bg-cyan-50 text-cyan-600 border-cyan-200"
+                      >协议</span
+                    >
+                  </td>
+                  <td class="px-3 py-2 font-mono text-xs">0.3.1</td>
+                  <td class="px-3 py-2 font-mono text-xs">1.0</td>
                   <td class="px-3 py-2 text-xs" title="研发中心 · 测试中心">2 个组织 ⌄</td>
-                  <td class="px-3 py-2"><span class="text-[10px] rounded px-1.5 py-0.5 bg-green-50 text-green-600">● 运行中</span></td>
+                  <td class="px-3 py-2">
+                    <span class="text-[10px] rounded px-1.5 py-0.5 bg-green-50 text-green-600"
+                      >● 运行中</span
+                    >
+                  </td>
                   <td class="px-3 py-2 text-slate-400 text-xs">09-25 16:40</td>
-                  <td class="px-3 py-2 space-x-2 text-[#574BFF]"><a>停用</a><a class="text-red-500">删除</a></td>
+                  <td class="px-3 py-2 space-x-2 text-[#574BFF]">
+                    <a>停用</a><a class="text-red-500">删除</a>
+                  </td>
                 </tr>
                 <tr>
                   <td class="px-3 py-2 font-medium">zentao-platform</td>
-                  <td class="px-3 py-2"><span class="text-[10px] border rounded px-1.5 py-0.5 bg-violet-50 text-violet-600 border-violet-200">平台</span></td>
-                  <td class="px-3 py-2 font-mono text-xs">1.0.4</td><td class="px-3 py-2 font-mono text-xs">1.0</td>
+                  <td class="px-3 py-2">
+                    <span
+                      class="text-[10px] border rounded px-1.5 py-0.5 bg-violet-50 text-violet-600 border-violet-200"
+                      >平台</span
+                    >
+                  </td>
+                  <td class="px-3 py-2 font-mono text-xs">1.0.4</td>
+                  <td class="px-3 py-2 font-mono text-xs">1.0</td>
                   <td class="px-3 py-2 text-xs">全部组织</td>
-                  <td class="px-3 py-2"><span class="text-[10px] rounded px-1.5 py-0.5 bg-slate-100 text-slate-500">已停用</span></td>
+                  <td class="px-3 py-2">
+                    <span class="text-[10px] rounded px-1.5 py-0.5 bg-slate-100 text-slate-500"
+                      >已停用</span
+                    >
+                  </td>
                   <td class="px-3 py-2 text-slate-400 text-xs">09-24 09:03</td>
-                  <td class="px-3 py-2 space-x-2 text-[#574BFF]"><a>启用</a><a class="text-red-500">删除</a></td>
+                  <td class="px-3 py-2 space-x-2 text-[#574BFF]">
+                    <a>启用</a><a class="text-red-500">删除</a>
+                  </td>
                 </tr>
                 <tr class="bg-red-50/50">
-                  <td class="px-3 py-2 font-medium">tapd-platform<div class="text-[11px] text-red-500 font-normal mt-1">↳ worker 崩溃已重启 3 次：connect ETIMEDOUT 20.2.1.9:443（重试）</div></td>
-                  <td class="px-3 py-2"><span class="text-[10px] border rounded px-1.5 py-0.5 bg-violet-50 text-violet-600 border-violet-200">平台</span></td>
-                  <td class="px-3 py-2 font-mono text-xs">1.0.0</td><td class="px-3 py-2 font-mono text-xs">1.0</td>
+                  <td class="px-3 py-2 font-medium">
+                    tapd-platform
+                    <div class="text-[11px] text-red-500 font-normal mt-1">
+                      ↳ worker 崩溃已重启 3 次：connect ETIMEDOUT 20.2.1.9:443（重试）
+                    </div>
+                  </td>
+                  <td class="px-3 py-2">
+                    <span
+                      class="text-[10px] border rounded px-1.5 py-0.5 bg-violet-50 text-violet-600 border-violet-200"
+                      >平台</span
+                    >
+                  </td>
+                  <td class="px-3 py-2 font-mono text-xs">1.0.0</td>
+                  <td class="px-3 py-2 font-mono text-xs">1.0</td>
                   <td class="px-3 py-2 text-xs">全部组织</td>
-                  <td class="px-3 py-2"><span class="text-[10px] rounded px-1.5 py-0.5 bg-red-50 text-red-600">● 异常</span></td>
+                  <td class="px-3 py-2">
+                    <span class="text-[10px] rounded px-1.5 py-0.5 bg-red-50 text-red-600"
+                      >● 异常</span
+                    >
+                  </td>
                   <td class="px-3 py-2 text-slate-400 text-xs">09-27 08:15</td>
                   <td class="px-3 py-2 space-x-2 text-[#574BFF]"><a>重试</a><a>停用</a></td>
                 </tr>
               </tbody>
             </table>
-            <div class="p-3 text-xs text-slate-400">共 4 个插件 · 删除前需停用且无项目关联引用（INTG 删除依赖校验）</div>
+            <div class="p-3 text-xs text-slate-400">
+              共 4 个插件 · 删除前需停用且无项目关联引用（INTG 删除依赖校验）
+            </div>
           </div>
           <!-- 上传 Modal -->
           <div class="w-[360px] border-l p-4 text-[13px] space-y-3">
             <p class="font-medium">上传插件包</p>
             <div class="border-2 border-dashed rounded-md p-6 text-center text-xs text-slate-400">
-              <p class="text-2xl mb-1">📦</p>点击或拖入 .tgz 插件包（≤32MB）
+              <p class="text-2xl mb-1">📦</p>
+              点击或拖入 .tgz 插件包（≤32MB）
             </div>
             <p class="text-slate-500 text-xs pt-1">清单解析预览（package.json → rabbitPlugin）</p>
             <div class="border rounded p-2 font-mono text-xs space-y-1 bg-slate-50">
               <div>name: <span class="text-slate-800">jira-platform</span></div>
               <div>kind: <span class="text-violet-600">platform</span></div>
-              <div>version: <span class="text-slate-800">1.3.0</span> <span class="text-green-600">✓ 高于当前 1.2.0</span></div>
-              <div>spiVersion: <span class="text-slate-800">1.0</span> <span class="text-green-600">✓ 兼容宿主 1.0</span></div>
+              <div>
+                version: <span class="text-slate-800">1.3.0</span>
+                <span class="text-green-600">✓ 高于当前 1.2.0</span>
+              </div>
+              <div>
+                spiVersion: <span class="text-slate-800">1.0</span>
+                <span class="text-green-600">✓ 兼容宿主 1.0</span>
+              </div>
               <div>entry: <span class="text-slate-800">dist/index.js</span></div>
             </div>
             <div>
               <p class="text-slate-500 mb-1">组织范围</p>
-              <label class="flex items-center gap-2 mb-1"><input type="radio" name="scope" checked /> 全部组织</label>
-              <label class="flex items-center gap-2"><input type="radio" name="scope" /> 指定组织（穿梭框选择，略）</label>
+              <label class="flex items-center gap-2 mb-1"
+                ><input type="radio" name="scope" checked /> 全部组织</label
+              >
+              <label class="flex items-center gap-2"
+                ><input type="radio" name="scope" /> 指定组织（穿梭框选择，略）</label
+              >
             </div>
-            <div class="flex gap-2 pt-1"><button class="bg-[#574BFF] text-white rounded-md px-3 py-1.5">确认上传</button><button class="border rounded-md px-3 py-1.5">取消</button></div>
+            <div class="flex gap-2 pt-1">
+              <button class="bg-[#574BFF] text-white rounded-md px-3 py-1.5">确认上传</button
+              ><button class="border rounded-md px-3 py-1.5">取消</button>
+            </div>
           </div>
         </div>
       </section>
@@ -94,13 +188,25 @@
         <div class="px-3 py-2 border-b bg-slate-50 font-medium">画板二 · 校验反馈与空态</div>
         <div class="grid grid-cols-2 gap-3 p-3 text-[13px]">
           <div class="border rounded p-3 space-y-2">
-            <p class="text-slate-500 text-xs">上传失败反馈（422 · code 70002 / 70003 / 409 70005）</p>
-            <div class="border border-red-200 bg-red-50 rounded p-2 text-xs text-red-600">清单缺失字段：rabbitPlugin.spiVersion 必填（code 70002 PLUGIN_PACKAGE_INVALID）</div>
-            <div class="border border-red-200 bg-red-50 rounded p-2 text-xs text-red-600">SPI 版本不兼容：插件 2.0 &gt; 宿主支持 1.0（code 70003 PLUGIN_SPI_INCOMPATIBLE）</div>
-            <div class="border border-amber-200 bg-amber-50 rounded p-2 text-xs text-amber-600">同名同版本已存在：jira-platform@1.2.0（code 70005 · 版本号需递增）</div>
+            <p class="text-slate-500 text-xs">
+              上传失败反馈（422 · code 70002 / 70003 / 409 70005）
+            </p>
+            <div class="border border-red-200 bg-red-50 rounded p-2 text-xs text-red-600">
+              清单缺失字段：rabbitPlugin.spiVersion 必填（code 70002 PLUGIN_PACKAGE_INVALID）
+            </div>
+            <div class="border border-red-200 bg-red-50 rounded p-2 text-xs text-red-600">
+              SPI 版本不兼容：插件 2.0 &gt; 宿主支持 1.0（code 70003 PLUGIN_SPI_INCOMPATIBLE）
+            </div>
+            <div class="border border-amber-200 bg-amber-50 rounded p-2 text-xs text-amber-600">
+              同名同版本已存在：jira-platform@1.2.0（code 70005 · 版本号需递增）
+            </div>
           </div>
           <div class="border rounded p-6 text-center text-xs text-slate-400">
-            <p class="text-3xl mb-2">🧩</p>上传第一个插件包<p class="mt-1">支持协议 / 平台 / 驱动三类 · 上传后经 plugin-runner 热加载，无需重启服务</p>
+            <p class="text-3xl mb-2">🧩</p>
+            上传第一个插件包
+            <p class="mt-1">
+              支持协议 / 平台 / 驱动三类 · 上传后经 plugin-runner 热加载，无需重启服务
+            </p>
             <button class="mt-3 bg-[#574BFF] text-white rounded-md px-3 py-1.5">上传插件</button>
           </div>
         </div>

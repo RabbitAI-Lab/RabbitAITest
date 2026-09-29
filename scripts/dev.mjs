@@ -174,13 +174,15 @@ async function main() {
   });
   if (seed.status !== 0) throw new Error("种子失败");
 
-  // web 端口经 PORT 注入（apps/web dev 脚本未写死 -p）；engine 回调 web 走 WEB_INTERNAL_URL/WEB_URL
+  // web 端口经 PORT 注入（apps/web dev 脚本未写死 -p）；engine 回调 web 走 WEB_INTERNAL_URL/WEB_URL；
+  // PLUGIN_RUNNER_PORT 随槽位（S-future PLUG-003 内嵌 runner 默认 4010 会跨 worktree 互抢）
   const stackEnv = {
     PORT: String(ENV.dev.webPort),
     WEB_URL: ENV.dev.webUrl,
     WEB_INTERNAL_URL: `http://127.0.0.1:${ENV.dev.webPort}`,
     MOCK_PORT: String(ENV.dev.mockPort),
     MOCK_PUBLIC_URL: ENV.dev.mockUrl,
+    PLUGIN_RUNNER_PORT: String(ENV.dev.runnerPort),
   };
   run("web", "pnpm", ["--filter", "web", "dev"], { env: stackEnv });
   run("engine", "pnpm", ["--filter", "engine", "dev"], { env: stackEnv });

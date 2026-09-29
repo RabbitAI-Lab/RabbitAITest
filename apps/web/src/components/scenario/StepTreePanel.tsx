@@ -44,7 +44,14 @@ export function newUid(): string {
 /** 各类型步骤默认值（custom 的 bundle 保留最小合法 RequestSpec，编辑器内再补全）。 */
 export function makeStep(stepType: StepType): ScenarioStepNode {
   const meta = STEP_META[stepType];
-  const base: ScenarioStepNode = { uid: newUid(), stepType, name: meta.label, enabled: true, config: {}, children: [] };
+  const base: ScenarioStepNode = {
+    uid: newUid(),
+    stepType,
+    name: meta.label,
+    enabled: true,
+    config: {},
+    children: [],
+  };
   switch (stepType) {
     case "ref_api":
     case "ref_case":
@@ -56,7 +63,14 @@ export function makeStep(stepType: StepType): ScenarioStepNode {
         name: "自定义请求",
         config: {
           bundle: {
-            request: { method: "GET", url: "", headers: [], query: [], body: { kind: "none" }, auth: { kind: "none" } },
+            request: {
+              method: "GET",
+              url: "",
+              headers: [],
+              query: [],
+              body: { kind: "none" },
+              auth: { kind: "none" },
+            },
             asserts: [],
             pre: [],
             post: [],
@@ -88,7 +102,10 @@ export function findNode(nodes: ScenarioStepNode[], uid: string): ScenarioStepNo
   return undefined;
 }
 
-function mapTree(nodes: ScenarioStepNode[], fn: (n: ScenarioStepNode) => ScenarioStepNode): ScenarioStepNode[] {
+function mapTree(
+  nodes: ScenarioStepNode[],
+  fn: (n: ScenarioStepNode) => ScenarioStepNode,
+): ScenarioStepNode[] {
   return nodes.map((n) => fn({ ...n, children: mapTree(n.children, fn) }));
 }
 
@@ -106,7 +123,12 @@ function regenUid(n: ScenarioStepNode): ScenarioStepNode {
 }
 
 /** 在 parentUid（null=根）的子级 index 处插入；缺省追加到末尾。 */
-function insertInto(nodes: ScenarioStepNode[], parentUid: string | null, node: ScenarioStepNode, index?: number): ScenarioStepNode[] {
+function insertInto(
+  nodes: ScenarioStepNode[],
+  parentUid: string | null,
+  node: ScenarioStepNode,
+  index?: number,
+): ScenarioStepNode[] {
   if (parentUid === null) {
     const next = [...nodes];
     next.splice(index ?? next.length, 0, node);
@@ -123,7 +145,11 @@ function insertInto(nodes: ScenarioStepNode[], parentUid: string | null, node: S
 }
 
 /** 求节点在父子级中的位置（parentUid + index），未命中返回 null。 */
-function locate(nodes: ScenarioStepNode[], uid: string, parent: string | null = null): { parentUid: string | null; index: number } | null {
+function locate(
+  nodes: ScenarioStepNode[],
+  uid: string,
+  parent: string | null = null,
+): { parentUid: string | null; index: number } | null {
   for (let i = 0; i < nodes.length; i++) {
     const cur = nodes[i]!;
     if (cur.uid === uid) return { parentUid: parent, index: i };
@@ -149,7 +175,14 @@ export interface StepTreePanelProps {
   onStepDebug?: (uid: string) => void;
 }
 
-export default function StepTreePanel({ steps, onChange, selectedUid, onSelect, canEdit, onStepDebug }: StepTreePanelProps) {
+export default function StepTreePanel({
+  steps,
+  onChange,
+  selectedUid,
+  onSelect,
+  canEdit,
+  onStepDebug,
+}: StepTreePanelProps) {
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   const toggleCollapse = (uid: string) => {
     setCollapsed((prev) => {
@@ -161,7 +194,8 @@ export default function StepTreePanel({ steps, onChange, selectedUid, onSelect, 
   };
 
   const act = {
-    toggleEnabled: (uid: string) => onChange(mapTree(steps, (n) => (n.uid === uid ? { ...n, enabled: !n.enabled } : n))),
+    toggleEnabled: (uid: string) =>
+      onChange(mapTree(steps, (n) => (n.uid === uid ? { ...n, enabled: !n.enabled } : n))),
     duplicate: (uid: string) => {
       const loc = locate(steps, uid);
       const node = findNode(steps, uid);
@@ -193,7 +227,12 @@ export default function StepTreePanel({ steps, onChange, selectedUid, onSelect, 
     addChild: (parentUid: string | null, t: StepType) => {
       const node = makeStep(t);
       onChange(insertInto(steps, parentUid, node));
-      if (parentUid) setCollapsed((prev) => { const n2 = new Set(prev); n2.delete(parentUid); return n2; });
+      if (parentUid)
+        setCollapsed((prev) => {
+          const n2 = new Set(prev);
+          n2.delete(parentUid);
+          return n2;
+        });
       onSelect(node.uid);
     },
   };
@@ -269,9 +308,17 @@ export default function StepTreePanel({ steps, onChange, selectedUid, onSelect, 
 }
 
 /** 用替换后的兄弟数组重建树（moveUp / moveDown 用）。 */
-function replaceSiblings(nodes: ScenarioStepNode[], parentUid: string | null, sibs: ScenarioStepNode[]): ScenarioStepNode[] {
+function replaceSiblings(
+  nodes: ScenarioStepNode[],
+  parentUid: string | null,
+  sibs: ScenarioStepNode[],
+): ScenarioStepNode[] {
   if (parentUid === null) return sibs;
-  return nodes.map((n) => (n.uid === parentUid ? { ...n, children: sibs } : { ...n, children: replaceSiblings(n.children, parentUid, sibs) }));
+  return nodes.map((n) =>
+    n.uid === parentUid
+      ? { ...n, children: sibs }
+      : { ...n, children: replaceSiblings(n.children, parentUid, sibs) },
+  );
 }
 
 export function countSteps(nodes: ScenarioStepNode[]): number {
@@ -322,13 +369,27 @@ function StepRow(p: RowProps) {
         onClick={() => p.onSelect(node.uid)}
       >
         {meta.container ? (
-          <button type="button" className="shrink-0 text-[#87888D]" onClick={(e) => { e.stopPropagation(); p.onToggleCollapse(node.uid); }}>
-            {isCollapsed ? <ChevronRight size={13} strokeWidth={1.8} /> : <ChevronDown size={13} strokeWidth={1.8} />}
+          <button
+            type="button"
+            className="shrink-0 text-[#87888D]"
+            onClick={(e) => {
+              e.stopPropagation();
+              p.onToggleCollapse(node.uid);
+            }}
+          >
+            {isCollapsed ? (
+              <ChevronRight size={13} strokeWidth={1.8} />
+            ) : (
+              <ChevronDown size={13} strokeWidth={1.8} />
+            )}
           </button>
         ) : (
           <span className="w-[13px] shrink-0" />
         )}
-        <span className="h-4 w-[3px] shrink-0 rounded-sm" style={{ background: node.enabled ? meta.color : "#C9CDD4" }} />
+        <span
+          className="h-4 w-[3px] shrink-0 rounded-sm"
+          style={{ background: node.enabled ? meta.color : "#C9CDD4" }}
+        />
         <span
           className="shrink-0 rounded-sm px-1 py-px text-[10px] leading-4"
           style={{ color: meta.color, background: `${meta.color}14` }}
@@ -347,32 +408,63 @@ function StepRow(p: RowProps) {
             {refId ? "引用" : "未选目标"}
           </span>
         )}
-        <span className="hidden shrink-0 items-center gap-0.5 group-hover:flex" onClick={(e) => e.stopPropagation()}>
-          {canEdit && node.stepType !== "ref_scenario" && p.onStepDebug && (node.stepType === "ref_api" || node.stepType === "ref_case") && (
-            <IconBtn title="单步执行" testid={`btn-step-debug-${node.uid}`} onClick={() => p.onStepDebug?.(node.uid)}>
-              <Play size={12} strokeWidth={1.8} />
-            </IconBtn>
-          )}
+        <span
+          className="hidden shrink-0 items-center gap-0.5 group-hover:flex"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {canEdit &&
+            node.stepType !== "ref_scenario" &&
+            p.onStepDebug &&
+            (node.stepType === "ref_api" || node.stepType === "ref_case") && (
+              <IconBtn
+                title="单步执行"
+                testid={`btn-step-debug-${node.uid}`}
+                onClick={() => p.onStepDebug?.(node.uid)}
+              >
+                <Play size={12} strokeWidth={1.8} />
+              </IconBtn>
+            )}
           {canEdit && (
-            <IconBtn title={node.enabled ? "禁用" : "启用"} testid={`btn-step-toggle-${node.uid}`} onClick={() => act.toggleEnabled(node.uid)}>
+            <IconBtn
+              title={node.enabled ? "禁用" : "启用"}
+              testid={`btn-step-toggle-${node.uid}`}
+              onClick={() => act.toggleEnabled(node.uid)}
+            >
               <span className="text-[10px]">{node.enabled ? "禁" : "启"}</span>
             </IconBtn>
           )}
           {canEdit && (
-            <IconBtn title="复制" testid={`btn-step-copy-${node.uid}`} onClick={() => act.duplicate(node.uid)}>
+            <IconBtn
+              title="复制"
+              testid={`btn-step-copy-${node.uid}`}
+              onClick={() => act.duplicate(node.uid)}
+            >
               <Copy size={12} strokeWidth={1.8} />
             </IconBtn>
           )}
           {canEdit && meta.container && p.addMenu(node.uid, `btn-add-child-${node.uid}`)}
           {canEdit && (
             <>
-              <IconBtn title="上移" testid={`btn-step-up-${node.uid}`} onClick={() => act.moveUp(node.uid)}>
+              <IconBtn
+                title="上移"
+                testid={`btn-step-up-${node.uid}`}
+                onClick={() => act.moveUp(node.uid)}
+              >
                 <ChevronRight size={12} strokeWidth={1.8} className="-rotate-90" />
               </IconBtn>
-              <IconBtn title="下移" testid={`btn-step-down-${node.uid}`} onClick={() => act.moveDown(node.uid)}>
+              <IconBtn
+                title="下移"
+                testid={`btn-step-down-${node.uid}`}
+                onClick={() => act.moveDown(node.uid)}
+              >
                 <ChevronRight size={12} strokeWidth={1.8} className="rotate-90" />
               </IconBtn>
-              <IconBtn title="删除" testid={`btn-step-del-${node.uid}`} danger onClick={() => act.remove(node.uid)}>
+              <IconBtn
+                title="删除"
+                testid={`btn-step-del-${node.uid}`}
+                danger
+                onClick={() => act.remove(node.uid)}
+              >
                 <Trash2 size={12} strokeWidth={1.8} />
               </IconBtn>
             </>

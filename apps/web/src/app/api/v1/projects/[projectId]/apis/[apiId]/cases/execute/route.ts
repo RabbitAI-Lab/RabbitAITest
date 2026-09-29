@@ -16,9 +16,7 @@ export const POST = withProjectScope(async (ctx, req, seg) => {
     ctx.requirePerm("PROJECT_API:CREATE");
     ctx.requireWritable();
     const { apiId } = await (seg as { params: Promise<{ apiId: string }> }).params;
-    const parsed = apiCaseExecuteSchema.omit({ clientTaskId: true }).safeParse(
-      await req.json(),
-    );
+    const parsed = apiCaseExecuteSchema.omit({ clientTaskId: true }).safeParse(await req.json());
     if (!parsed.success) return unprocessable(parsed.error.issues[0]?.message);
     return NextResponse.json(
       ok(await executeCases(ctx.projectId, ctx.userId, apiId, parsed.data)),

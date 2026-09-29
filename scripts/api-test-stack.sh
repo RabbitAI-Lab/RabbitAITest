@@ -21,6 +21,11 @@ export RABBIT_USER_LIMIT=1000
 # mock 端口随槽位 4200+slot（JM_MOCK_PORT 可覆盖）
 export AI_ALLOW_PRIVATE_BASEURL=1
 export JM_MOCK_PORT="${JM_MOCK_PORT:-$RABBIT_JM_MOCK_PORT}" # export：S8 起 baseline step 子 shell 依赖（58e153e 教训）
+# S-future PLUG-003：内嵌 plugin-runner 端口随槽位（原上游固定 4030——多 worktree 并存互抢，INFRA-005 收编入表）。
+# 只设 PORT 不设 URL（URL 显式配置=禁用内嵌启动，instrumentation-node §startPluginRunner）
+export PLUGIN_RUNNER_PORT="${PLUGIN_RUNNER_PORT:-$RABBIT_JM_RUNNER_PORT}"
+# S-future EXEC-004：K8S apiServer 试连测试豁免环回（本机无集群；生产默认拒环回）
+export POOL_K8S_ALLOW_LOOPBACK="${POOL_K8S_ALLOW_LOOPBACK:-1}"
 # S7：种子内置一台指向 jmeter 栈 mock 的模型（baseUrl 须含 /ai 前缀——mock 路由 /ai/chat/completions）
 export RABBIT_SEED_AI_MOCK_BASE="${RABBIT_SEED_AI_MOCK_BASE:-http://127.0.0.1:${JM_MOCK_PORT}/ai}"
 

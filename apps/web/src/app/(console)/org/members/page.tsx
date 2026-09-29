@@ -33,7 +33,8 @@ export default function OrgMembersPage() {
   // 候选：系统用户（排除已在组织）
   const { data: candidates, isFetching: searching } = useQuery({
     queryKey: ["org-member-candidates", pickKeyword],
-    queryFn: () => orgApi.memberCandidates(orgId!, { keyword: pickKeyword || undefined, pageSize: 20 }),
+    queryFn: () =>
+      orgApi.memberCandidates(orgId!, { keyword: pickKeyword || undefined, pageSize: 20 }),
     enabled: Boolean(orgId) && editable,
   });
   const memberIds = new Set((data?.items ?? []).map((m) => m.id));
@@ -90,7 +91,7 @@ export default function OrgMembersPage() {
                 allowClear
                 placeholder="搜索系统用户邮箱/姓名添加（可多选）"
                 options={(candidates?.items ?? [])
-                  
+
                   .map((u) => ({ value: u.id, label: `${u.name}（${u.email}）` }))}
                 data-testid="org-member-candidate-select"
               />
@@ -114,16 +115,27 @@ export default function OrgMembersPage() {
           dataSource={data?.items ?? []}
           pagination={{ pageSize: 20, showTotal: (t) => `共 ${t} 人` }}
           columns={[
-            { title: "姓名", dataIndex: "name", render: (v: string, r) => <span data-testid={`org-member-${r.email}`}>{v}</span> },
-            { title: "邮箱", dataIndex: "email", render: (v: string) => <span className="text-[#87888D]">{v}</span> },
+            {
+              title: "姓名",
+              dataIndex: "name",
+              render: (v: string, r) => <span data-testid={`org-member-${r.email}`}>{v}</span>,
+            },
+            {
+              title: "邮箱",
+              dataIndex: "email",
+              render: (v: string) => <span className="text-[#87888D]">{v}</span>,
+            },
             { title: "手机", dataIndex: "phone", render: (v: string | null) => v ?? "—" },
             {
               title: "角色",
               key: "role",
-              render: (_, r) =>
-                project.org ? <Tag>组织成员</Tag> : null,
+              render: (_, r) => (project.org ? <Tag>组织成员</Tag> : null),
             },
-            { title: "加入时间", dataIndex: "joinedAt", render: (v: string) => v.replace("T", " ").slice(0, 16) },
+            {
+              title: "加入时间",
+              dataIndex: "joinedAt",
+              render: (v: string) => v.replace("T", " ").slice(0, 16),
+            },
             ...(editable
               ? [
                   {
@@ -138,7 +150,13 @@ export default function OrgMembersPage() {
                         okButtonProps={{ danger: true }}
                         onConfirm={() => remove.mutate(r.id)}
                       >
-                        <Button type="link" size="small" danger className="!px-0" data-testid={`btn-remove-org-member-${r.email}`}>
+                        <Button
+                          type="link"
+                          size="small"
+                          danger
+                          className="!px-0"
+                          data-testid={`btn-remove-org-member-${r.email}`}
+                        >
                           移除
                         </Button>
                       </Popconfirm>

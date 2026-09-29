@@ -310,33 +310,33 @@ function DashList({
             const refMeta = it.refType ? REF_TYPE_META[it.refType] : undefined;
             return (
               <div key={it.id} data-testid="dash-item">
-              <Link
-                href={it.href}
-                className="flex items-center gap-3 py-2.5 hover:bg-[#F7F8FA] px-2 rounded"
-                data-testid={`dash-${kind}-row-${it.id}`}
-              >
-                <span
-                  className={`w-11 text-center text-xs border rounded px-1 py-0.5 shrink-0 ${meta.cls}`}
+                <Link
+                  href={it.href}
+                  className="flex items-center gap-3 py-2.5 hover:bg-[#F7F8FA] px-2 rounded"
+                  data-testid={`dash-${kind}-row-${it.id}`}
                 >
-                  {meta.label}
-                </span>
-                {/* 我的执行行：refType 类型徽标（功能/接口/场景） */}
-                {refMeta && (
                   <span
-                    className={`text-[10px] rounded px-1 py-0.5 shrink-0 ${refMeta.cls}`}
-                    data-testid={`dash-ref-type-${it.id}`}
+                    className={`w-11 text-center text-xs border rounded px-1 py-0.5 shrink-0 ${meta.cls}`}
                   >
-                    {refMeta.label}
+                    {meta.label}
                   </span>
-                )}
-                <span className="text-[13px] flex-1 truncate">{it.title}</span>
-                {it.context && (
-                  <span className="text-xs text-[#A8ABB0] truncate max-w-40">{it.context}</span>
-                )}
-                <span className="text-xs text-[#A8ABB0]">
-                  {(it.createdAt ?? it.updatedAt ?? "").replace("T", " ").slice(0, 16)}
-                </span>
-              </Link>
+                  {/* 我的执行行：refType 类型徽标（功能/接口/场景） */}
+                  {refMeta && (
+                    <span
+                      className={`text-[10px] rounded px-1 py-0.5 shrink-0 ${refMeta.cls}`}
+                      data-testid={`dash-ref-type-${it.id}`}
+                    >
+                      {refMeta.label}
+                    </span>
+                  )}
+                  <span className="text-[13px] flex-1 truncate">{it.title}</span>
+                  {it.context && (
+                    <span className="text-xs text-[#A8ABB0] truncate max-w-40">{it.context}</span>
+                  )}
+                  <span className="text-xs text-[#A8ABB0]">
+                    {(it.createdAt ?? it.updatedAt ?? "").replace("T", " ").slice(0, 16)}
+                  </span>
+                </Link>
               </div>
             );
           })}

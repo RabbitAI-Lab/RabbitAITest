@@ -251,24 +251,23 @@ test("CASE-005-03 重新提审开关关闭：编辑用例不重置评审结果",
     { data: { enabled: false } },
   );
   expect(offRes.status()).toBe(200);
-  expect(((await offRes.json()) as { data: { reSubmitEnabled: boolean } }).data.reSubmitEnabled).toBe(false);
+  expect(
+    ((await offRes.json()) as { data: { reSubmitEnabled: boolean } }).data.reSubmitEnabled,
+  ).toBe(false);
 
   // 编辑用例（name 属白名单字段，version 乐观锁）——开关关闭 → 不重置
-  const putRes = await request.put(
-    `/api/v1/projects/${authedPage.projectId}/cases/${kase.id}`,
-    {
-      data: {
-        name: `${caseName}-改`,
-        precondition: kase.precondition,
-        steps: kase.steps,
-        level: kase.level,
-        tags: kase.tags,
-        fields: kase.fields,
-        moduleId: kase.moduleId,
-        version: kase.version,
-      },
+  const putRes = await request.put(`/api/v1/projects/${authedPage.projectId}/cases/${kase.id}`, {
+    data: {
+      name: `${caseName}-改`,
+      precondition: kase.precondition,
+      steps: kase.steps,
+      level: kase.level,
+      tags: kase.tags,
+      fields: kase.fields,
+      moduleId: kase.moduleId,
+      version: kase.version,
     },
-  );
+  });
   expect(putRes.status()).toBe(200);
 
   // 接口断言：评审结果仍 PASS、reSubmit=false（未重置）

@@ -58,7 +58,10 @@ export function ScriptRefPanel({
                 size="small"
                 value={value?.params?.[p.name] ?? p.defaultValue}
                 onChange={(e) =>
-                  onChange({ scriptId: selected.id, params: { ...(value?.params ?? {}), [p.name]: e.target.value } })
+                  onChange({
+                    scriptId: selected.id,
+                    params: { ...(value?.params ?? {}), [p.name]: e.target.value },
+                  })
                 }
               />
               {value?.params?.[p.name] && value.params[p.name] !== p.defaultValue && (
@@ -68,7 +71,9 @@ export function ScriptRefPanel({
           ))}
         </div>
       )}
-      <p className="text-[11px] text-[#A8ABB0]">执行构建期展开：内容内联 + 参数注入（显式值 &gt; 默认值）；引擎无感知</p>
+      <p className="text-[11px] text-[#A8ABB0]">
+        执行构建期展开：内容内联 + 参数注入（显式值 &gt; 默认值）；引擎无感知
+      </p>
     </div>
   );
 }

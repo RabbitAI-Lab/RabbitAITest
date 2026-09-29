@@ -21,7 +21,14 @@ import { resolveRuntimeForUser } from "./model.service";
 import { resolveTemplate } from "./prompt.service";
 import { parseOpenApi3 } from "../api/import.service";
 
-async function recordGen(projectId: string, userId: string, modelId: string, scene: string, generated: number, prompt: string) {
+async function recordGen(
+  projectId: string,
+  userId: string,
+  modelId: string,
+  scene: string,
+  generated: number,
+  prompt: string,
+) {
   await prisma.aiGenRecord.create({
     data: {
       projectId,
@@ -36,7 +43,11 @@ async function recordGen(projectId: string, userId: string, modelId: string, sce
 }
 
 /** AI-002 功能用例生成 */
-export async function generateCases(projectId: string, userId: string, input: AiGenerateCasesInput) {
+export async function generateCases(
+  projectId: string,
+  userId: string,
+  input: AiGenerateCasesInput,
+) {
   const runtime = await resolveRuntimeForUser(userId, input.modelId);
   const tpl = await resolveTemplate(projectId, "case_gen", input.templateId);
   const template = tpl?.template ?? BUILTIN_CASE_GEN_TEMPLATE;
@@ -56,7 +67,8 @@ export async function generateCases(projectId: string, userId: string, input: Ai
     { maxTokens: 4096 },
   );
   const arr = extractJsonArray(text);
-  if (!arr) throw new DomainError(ErrCode.AI_RESPONSE_UNPARSEABLE, "AI 生成结果无法解析为 JSON 数组");
+  if (!arr)
+    throw new DomainError(ErrCode.AI_RESPONSE_UNPARSEABLE, "AI 生成结果无法解析为 JSON 数组");
   const drafts: z.infer<typeof aiCaseDraftSchema>[] = [];
   const skipped: { index: number; reason: string }[] = [];
   arr.slice(0, AI_GEN_MAX_CASES).forEach((item, index) => {
@@ -64,7 +76,14 @@ export async function generateCases(projectId: string, userId: string, input: Ai
     if (parsed.success) drafts.push(parsed.data);
     else skipped.push({ index, reason: parsed.error.issues[0]?.message ?? "结构不符" });
   });
-  await recordGen(projectId, userId, runtime.id, "case_gen", drafts.length, `${CASE_GEN_SYSTEM_PROMPT}\n---\n${userPrompt}`);
+  await recordGen(
+    projectId,
+    userId,
+    runtime.id,
+    "case_gen",
+    drafts.length,
+    `${CASE_GEN_SYSTEM_PROMPT}\n---\n${userPrompt}`,
+  );
   return { drafts, skipped };
 }
 
@@ -74,13 +93,18 @@ export async function generateApiCase(
   userId: string,
   input: { apiId: string; templateId?: string; modelId?: string; designMethod?: string },
 ) {
-  const api = await prisma.apiDefinition.findFirst({ where: { id: input.apiId, projectId, deletedAt: null } });
+  const api = await prisma.apiDefinition.findFirst({
+    where: { id: input.apiId, projectId, deletedAt: null },
+  });
   if (!api) throw new DomainError(ErrCode.API_NOT_FOUND, "接口定义不存在或已删除");
   const runtime = await resolveRuntimeForUser(userId, input.modelId);
   const tpl = await resolveTemplate(projectId, "api_gen", input.templateId);
   const template = tpl?.template ?? BUILTIN_API_GEN_TEMPLATE;
   const designMethod = input.designMethod ?? tpl?.designMethod ?? "";
-  const spec = renderTemplate(template, { api_spec: apiSpecSummary(api), design_method: designMethod });
+  const spec = renderTemplate(template, {
+    api_spec: apiSpecSummary(api),
+    design_method: designMethod,
+  });
   const text = await callChat(
     runtime,
     [
@@ -90,7 +114,8 @@ export async function generateApiCase(
     { maxTokens: 2048 },
   );
   const arr = extractJsonArray(text);
-  if (!arr || arr.length === 0) throw new DomainError(ErrCode.AI_RESPONSE_UNPARSEABLE, "AI 生成结果无法解析为 JSON 数组");
+  if (!arr || arr.length === 0)
+    throw new DomainError(ErrCode.AI_RESPONSE_UNPARSEABLE, "AI 生成结果无法解析为 JSON 数组");
   const drafts: z.infer<typeof aiApiCaseDraftSchema>[] = [];
   const skipped: { index: number; reason: string }[] = [];
   arr.slice(0, 1).forEach((item, index) => {
@@ -103,7 +128,14 @@ export async function generateApiCase(
       drafts.push(d);
     } else skipped.push({ index, reason: parsed.error.issues[0]?.message ?? "结构不符" });
   });
-  await recordGen(projectId, userId, runtime.id, "api_gen", drafts.length, `${API_CASE_GEN_SYSTEM_PROMPT}\n---\n${spec}`);
+  await recordGen(
+    projectId,
+    userId,
+    runtime.id,
+    "api_gen",
+    drafts.length,
+    `${API_CASE_GEN_SYSTEM_PROMPT}\n---\n${spec}`,
+  );
   return { drafts, skipped };
 }
 
@@ -120,22 +152,34 @@ export async function generateApiCaseBatch(
     throw new DomainError(ErrCode.AI_OPENAPI_INVALID, "OpenAPI 文档解析失败（支持 3.x JSON）");
   }
   const apis = parsed.apis.filter((a) => a.method && a.path);
-  if (apis.length === 0) throw new DomainError(ErrCode.AI_OPENAPI_INVALID, "OpenAPI 文档未解析出任何接口");
+  if (apis.length === 0)
+    throw new DomainError(ErrCode.AI_OPENAPI_INVALID, "OpenAPI 文档未解析出任何接口");
   if (apis.length > AI_GEN_BATCH_MAX_APIS) {
-    throw new DomainError(ErrCode.AI_OPENAPI_INVALID, `单批接口数超上限 ${AI_GEN_BATCH_MAX_APIS}（当前 ${apis.length}，请分批）`);
+    throw new DomainError(
+      ErrCode.AI_OPENAPI_INVALID,
+      `单批接口数超上限 ${AI_GEN_BATCH_MAX_APIS}（当前 ${apis.length}，请分批）`,
+    );
   }
   const runtime = await resolveRuntimeForUser(userId, input.modelId);
   const tpl = await resolveTemplate(projectId, "api_gen");
   const template = tpl?.template ?? BUILTIN_API_GEN_TEMPLATE;
   const designMethod = input.designMethod ?? tpl?.designMethod ?? "";
 
-  const drafts: { apiIndex: number; method: string; path: string; draft: z.infer<typeof aiApiCaseDraftSchema> }[] = [];
+  const drafts: {
+    apiIndex: number;
+    method: string;
+    path: string;
+    draft: z.infer<typeof aiApiCaseDraftSchema>;
+  }[] = [];
   const skipped: { index: number; reason: string }[] = [];
   // 顺序逐条（并发对供应商限速更稳；每批≤20 规模可控——登记节流简化）
   for (let i = 0; i < apis.length; i++) {
     const a = apis[i]!;
     const spec = renderTemplate(template, {
-      api_spec: truncateBytes(`${a.method} ${a.path}${a.name ? `（${a.name}）` : ""}\n${JSON.stringify(a.request ?? {})}`, AI_SPEC_SUMMARY_MAX_BYTES),
+      api_spec: truncateBytes(
+        `${a.method} ${a.path}${a.name ? `（${a.name}）` : ""}\n${JSON.stringify(a.request ?? {})}`,
+        AI_SPEC_SUMMARY_MAX_BYTES,
+      ),
       design_method: designMethod,
     });
     try {
@@ -153,7 +197,12 @@ export async function generateApiCaseBatch(
       if (parsed?.success) {
         const d = parsed.data;
         if (!d.assertions.some((x) => x.source === "status")) {
-          d.assertions.unshift({ source: "status", expression: "", operator: "eq", expected: "200" });
+          d.assertions.unshift({
+            source: "status",
+            expression: "",
+            operator: "eq",
+            expected: "200",
+          });
         }
         drafts.push({ apiIndex: i, method: a.method, path: a.path, draft: d });
       } else {
@@ -163,20 +212,41 @@ export async function generateApiCaseBatch(
       skipped.push({ index: i, reason: err instanceof DomainError ? err.message : "调用失败" });
     }
   }
-  await recordGen(projectId, userId, runtime.id, "api_gen_batch", drafts.length, `${API_CASE_GEN_SYSTEM_PROMPT}\n---\nbatch:${apis.length} apis`);
-  return { apis: apis.map((a, i) => ({ index: i, method: a.method, path: a.path, name: a.name ?? "" })), drafts, skipped };
+  await recordGen(
+    projectId,
+    userId,
+    runtime.id,
+    "api_gen_batch",
+    drafts.length,
+    `${API_CASE_GEN_SYSTEM_PROMPT}\n---\nbatch:${apis.length} apis`,
+  );
+  return {
+    apis: apis.map((a, i) => ({ index: i, method: a.method, path: a.path, name: a.name ?? "" })),
+    drafts,
+    skipped,
+  };
 }
 
 function truncateBytes(s: string, max: number): string {
   return Buffer.byteLength(s, "utf8") > max ? `${s.slice(0, Math.floor(max / 2))}…（截断）` : s;
 }
 
-function apiSpecSummary(api: { method: string; path: string; name: string; request: unknown }): string {
-  return truncateBytes(`${api.method} ${api.path}（${api.name}）\n${JSON.stringify(api.request ?? {})}`, AI_SPEC_SUMMARY_MAX_BYTES);
+function apiSpecSummary(api: {
+  method: string;
+  path: string;
+  name: string;
+  request: unknown;
+}): string {
+  return truncateBytes(
+    `${api.method} ${api.path}（${api.name}）\n${JSON.stringify(api.request ?? {})}`,
+    AI_SPEC_SUMMARY_MAX_BYTES,
+  );
 }
 
 async function moduleNameOf(projectId: string, moduleId?: string): Promise<string> {
   if (!moduleId) return "未分组";
-  const node = await prisma.moduleNode.findFirst({ where: { id: moduleId, projectId, scene: "case" } });
+  const node = await prisma.moduleNode.findFirst({
+    where: { id: moduleId, projectId, scene: "case" },
+  });
   return node?.name ?? "未分组";
 }

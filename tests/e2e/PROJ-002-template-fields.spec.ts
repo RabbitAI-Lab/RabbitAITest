@@ -207,7 +207,10 @@ test("PROJ-002-03 项目模板开关不可逆与设默认/复制", async ({
   await page.getByTestId("btn-new-template").click();
   await page.getByRole("dialog").getByPlaceholder("模板名称").fill(tplName);
   const createApi = expectApi("**/api/v1/projects/*/templates");
-  await page.getByRole("dialog").getByRole("button", { name: /确\s*定/ }).click();
+  await page
+    .getByRole("dialog")
+    .getByRole("button", { name: /确\s*定/ })
+    .click();
   const created = await createApi;
   expect(created.status).toBe(201);
   expect(created.code).toBe(0);
@@ -256,7 +259,10 @@ test("PROJ-002-03 项目模板开关不可逆与设默认/复制", async ({
   await page.getByTestId("btn-new-template").click();
   await page.getByRole("dialog").getByPlaceholder("模板名称").fill(`${tplName}-P`);
   const createPApi = expectApi("**/api/v1/projects/*/templates");
-  await page.getByRole("dialog").getByRole("button", { name: /确\s*定/ }).click();
+  await page
+    .getByRole("dialog")
+    .getByRole("button", { name: /确\s*定/ })
+    .click();
   const createdP = await createPApi;
   expect(createdP.status).toBe(201);
   await expect(page.getByRole("row", { name: new RegExp(`${tplName}-P`) })).toBeVisible();

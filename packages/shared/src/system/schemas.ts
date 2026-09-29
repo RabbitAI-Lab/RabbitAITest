@@ -4,11 +4,18 @@ import { PERMISSION_POINTS, isValidPermissionPoint } from "../permissions";
 
 // ── 用户管理（SYS-004）──
 
+/** QA-002 密码策略：≥8 位且同时含字母与数字（注册/创建用户/改密/重置统一口径）。 */
+export const passwordPolicy = z
+  .string()
+  .min(8, "密码至少 8 位")
+  .max(128)
+  .refine((v) => /[a-zA-Z]/.test(v) && /[0-9]/.test(v), "密码须同时包含字母与数字");
+
 export const userCreateSchema = z.object({
   email: z.string().email().max(256),
   name: z.string().min(1).max(128),
   phone: z.string().max(32).optional(),
-  password: z.string().min(8).max(64).optional(), // 缺省则服务端生成并一次性返回
+  password: passwordPolicy.optional(), // 缺省则服务端生成并一次性返回（QA-002：字母+数字）
 });
 export const userUpdateSchema = z.object({
   name: z.string().min(1).max(128).optional(),
@@ -59,11 +66,35 @@ export const cleanupParamSchema = z.object({
   logRetentionDays: z.number().int().min(7).max(3650),
   changeLogRetentionDays: z.number().int().min(7).max(3650),
 });
+// ── 界面设置（S9 ENTP-004；THEME 特性门控，图片内联 dataUrl ≤200KB）──
+export const dataUrlImage = z
+  .string()
+  .max(280_000) // base64 膨胀后 200KB 二进制 ≈ 270KB 文本，留余量后由服务端二次校验字节
+  .refine(
+    (v) => v === "" || /^data:image\/(png|jpeg|svg\+xml);base64,/.test(v),
+    "仅支持 png/jpeg/svg dataUrl 或空串",
+  );
+export const themeParamSchema = z.object({
+  primaryColor: z
+    .string()
+    .regex(/^#[0-9a-fA-F]{6}$/, "主题色须为 #RRGGBB")
+    .default("#574BFF"),
+  followPrimary: z.boolean().default(true),
+  siteName: z.string().max(64).default("RabbitAITest"),
+  slogan: z.string().max(128).default(""),
+  loginLogo: dataUrlImage.default(""),
+  loginBg: dataUrlImage.default(""),
+  icon: dataUrlImage.default(""),
+  platformName: z.string().max(64).default("RabbitAITest"),
+  platformLogo: dataUrlImage.default(""),
+  helpUrl: z.string().max(512).default(""),
+});
 export const paramGroupSchema = z.discriminatedUnion("group", [
   z.object({ group: z.literal("basic"), value: basicParamSchema }),
   z.object({ group: z.literal("smtp"), value: smtpParamSchema }),
   z.object({ group: z.literal("file"), value: fileParamSchema }),
   z.object({ group: z.literal("cleanup"), value: cleanupParamSchema }),
+  z.object({ group: z.literal("theme"), value: themeParamSchema }),
 ]);
 
 /** 兼容导出：实际生效值以 config.userLimit（RABBIT_USER_LIMIT 可配）为准 */
@@ -79,7 +110,7 @@ export const personalMeUpdateSchema = z.object({
 });
 export const changePasswordSchema = z.object({
   oldPassword: z.string().min(1).max(256),
-  newPassword: z.string().min(8).max(256),
+  newPassword: passwordPolicy,
 });
 export const localRunnerUpsertSchema = z.object({
   /** 仅环回地址（127.0.0.1/localhost/::1），null/空=清除 */

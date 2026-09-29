@@ -65,8 +65,7 @@ export default function PlanGroupReportPage() {
   }
 
   const agg = data.aggregate;
-  const progress =
-    agg.totalRefs > 0 ? Math.round((agg.executed / agg.totalRefs) * 100) : 0;
+  const progress = agg.totalRefs > 0 ? Math.round((agg.executed / agg.totalRefs) * 100) : 0;
   const canUpdate = can("PROJECT_PLAN:UPDATE");
   const members = data.members;
   type MemberRow = (typeof members)[number];
@@ -119,7 +118,11 @@ export default function PlanGroupReportPage() {
               返回计划列表
             </Button>
             {canUpdate && !editing && (
-              <Button type="primary" onClick={() => setEditing(true)} data-testid="group-summary-edit">
+              <Button
+                type="primary"
+                onClick={() => setEditing(true)}
+                data-testid="group-summary-edit"
+              >
                 编辑总结
               </Button>
             )}
@@ -141,7 +144,8 @@ export default function PlanGroupReportPage() {
       {/* 成员明细 */}
       <div className="rabbit-card mb-4">
         <p className="rabbit-card-title">
-          成员计划明细 <span className="text-xs text-[#A8ABB0] font-normal">共 {members.length} 个</span>
+          成员计划明细{" "}
+          <span className="text-xs text-[#A8ABB0] font-normal">共 {members.length} 个</span>
         </p>
         <Table<MemberRow>
           rowKey="id"
@@ -177,7 +181,12 @@ export default function PlanGroupReportPage() {
               width: 180,
               render: (_, row) => (
                 <div className="flex items-center gap-2">
-                  <Progress percent={row.progress} size="small" showInfo={false} className="!m-0 w-24" />
+                  <Progress
+                    percent={row.progress}
+                    size="small"
+                    showInfo={false}
+                    className="!m-0 w-24"
+                  />
                   <span className="text-xs text-[#87888D]">
                     {row.executed}/{row.caseCount}
                   </span>

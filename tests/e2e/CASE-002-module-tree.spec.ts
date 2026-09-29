@@ -242,10 +242,19 @@ test("CASE-002-03 批量移动与模块计数、批量编辑、行分享、默�
   await page.getByTestId("btn-batch-move").click();
   await page.getByTestId("select-move-target").click();
   // 限定 TreeSelect 弹层树（与左侧 ModuleTreePanel 同名 treeitem 严格模式冲突）
-  await page.locator(".ant-select-tree-list-holder, .ant-tree").filter({ hasText: targetName }).last().getByRole("treeitem", { name: new RegExp(targetName) }).first().click();
+  await page
+    .locator(".ant-select-tree-list-holder, .ant-tree")
+    .filter({ hasText: targetName })
+    .last()
+    .getByRole("treeitem", { name: new RegExp(targetName) })
+    .first()
+    .click();
   const moveApi = expectApi("**/api/v1/projects/*/cases/batch-move");
   const moveRaw = page.waitForResponse("**/api/v1/projects/*/cases/batch-move");
-  await page.getByRole("dialog").getByRole("button", { name: /移\s*动/ }).click();
+  await page
+    .getByRole("dialog")
+    .getByRole("button", { name: /移\s*动/ })
+    .click();
   const moved = await moveApi;
   expect(moved.status).toBe(200);
   expect(moved.code).toBe(0);
@@ -290,7 +299,10 @@ test("CASE-002-03 批量移动与模块计数、批量编辑、行分享、默�
   await page.getByTestId("select-batch-level").click();
   await page.getByRole("option", { name: "P1", exact: true }).click();
   const updateApi = expectApi("**/api/v1/projects/*/cases/batch-update");
-  await page.getByRole("dialog").getByRole("button", { name: /应\s*用/ }).click();
+  await page
+    .getByRole("dialog")
+    .getByRole("button", { name: /应\s*用/ })
+    .click();
   const updated = await updateApi;
   expect(updated.status).toBe(200);
   expect(updated.code).toBe(0);
@@ -303,7 +315,7 @@ test("CASE-002-03 批量移动与模块计数、批量编辑、行分享、默�
 
   // 默认模块「未规划用例」：右键改名可用（规格 §1.2 行 1：默认模块不可删、名可改——预置/自定义二态）
   const defaultNode = page.getByTestId("module-node-未规划用例");
-  const clickNodeStable = async (loc: ReturnType<Page['getByTestId']>) => {
+  const clickNodeStable = async (loc: ReturnType<Page["getByTestId"]>) => {
     await loc.scrollIntoViewIfNeeded();
     await loc.click({ timeout: 15_000 }).catch(async () => {
       await page.waitForTimeout(800);

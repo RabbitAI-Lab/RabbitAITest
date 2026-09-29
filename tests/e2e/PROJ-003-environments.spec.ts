@@ -30,7 +30,7 @@ test("PROJ-003-01 环境主链路：新建五区→连接测试失败态→保�
   await page.getByTestId("btn-new-env").click();
   const createdRes = await createP;
   expect(createdRes.status()).toBe(201);
-  expect((((await createdRes.json()) as { code: number }).code)).toBe(0);
+  expect(((await createdRes.json()) as { code: number }).code).toBe(0);
   await expect(page.getByTestId("input-env-name")).toBeVisible();
   await page.getByTestId("input-env-name").fill(envName);
 
@@ -62,7 +62,9 @@ test("PROJ-003-01 环境主链路：新建五区→连接测试失败态→保�
   await page.getByTestId("btn-add-db").click();
   const dbCard = page.getByTestId("env-db-card").first();
   await dbCard.locator('input[placeholder="名称"]').fill("测试库");
-  await dbCard.locator('input[placeholder^="postgresql://"]').fill("postgresql://no-such-user:x@127.0.0.1:59999/nodb");
+  await dbCard
+    .locator('input[placeholder^="postgresql://"]')
+    .fill("postgresql://no-such-user:x@127.0.0.1:59999/nodb");
   const testApi = expectApi("**/api/v1/projects/*/environments/test-datasource");
   await page.getByTestId("btn-db-test-1").click();
   const tested = await testApi;
@@ -74,7 +76,10 @@ test("PROJ-003-01 环境主链路：新建五区→连接测试失败态→保�
   // ── 保存（PUT payload 断言五区配置）──
   const saveApi = expectApi("**/api/v1/projects/*/environments/*");
   const saveRaw = page.waitForResponse(
-    (r) => r.url().includes("/environments/") && !r.url().includes("test-datasource") && r.request().method() === "PUT",
+    (r) =>
+      r.url().includes("/environments/") &&
+      !r.url().includes("test-datasource") &&
+      r.request().method() === "PUT",
   );
   await page.getByTestId("btn-save-env").click();
   const saved = await saveApi;
@@ -83,12 +88,24 @@ test("PROJ-003-01 环境主链路：新建五区→连接测试失败态→保�
   const saveRawRes = await saveRaw;
   const savePayload = saveRawRes.request().postDataJSON() as {
     name: string;
-    config: { vars: { key: string; value: string }[]; http: { hostname: string; port: number }[]; hosts: { host: string }[]; database: { url: string }[] };
+    config: {
+      vars: { key: string; value: string }[];
+      http: { hostname: string; port: number }[];
+      hosts: { host: string }[];
+      database: { url: string }[];
+    };
   };
   expect(savePayload.name).toBe(envName);
-  expect(savePayload.config.vars).toContainEqual({ key: "base", value: "http://127.0.0.1:4000", enabled: true });
+  expect(savePayload.config.vars).toContainEqual({
+    key: "base",
+    value: "http://127.0.0.1:4000",
+    enabled: true,
+  });
   expect(savePayload.config.http[0]).toMatchObject({ hostname: "127.0.0.1", port: 4000 });
-  expect(savePayload.config.hosts[0]).toMatchObject({ host: "petstore.example", address: "127.0.0.1" });
+  expect(savePayload.config.hosts[0]).toMatchObject({
+    host: "petstore.example",
+    address: "127.0.0.1",
+  });
   expect(savePayload.config.database[0].url).toContain("59999");
   await expect(page.getByText("环境已保存")).toBeVisible();
 
@@ -97,15 +114,19 @@ test("PROJ-003-01 环境主链路：新建五区→连接测试失败态→保�
   await page.getByTestId("env-list-table").getByText(envName).click();
   await expect(page.getByTestId("input-env-name")).toHaveValue(envName);
   await expect(page.getByTestId("env-tab-vars")).toContainText("① 变量（1）");
-  await expect(page.getByTestId("env-vars-row").first().locator('input[placeholder="key"]')).toHaveValue("base");
+  await expect(
+    page.getByTestId("env-vars-row").first().locator('input[placeholder="key"]'),
+  ).toHaveValue("base");
   await page.getByTestId("env-tab-db").click();
-  await expect(page.getByTestId("env-db-card").first().locator('input[placeholder^="postgresql://"]')).toHaveValue(
-    "postgresql://no-such-user:x@127.0.0.1:59999/nodb",
-  );
+  await expect(
+    page.getByTestId("env-db-card").first().locator('input[placeholder^="postgresql://"]'),
+  ).toHaveValue("postgresql://no-such-user:x@127.0.0.1:59999/nodb");
 
   // ── 复制 → 副本（xxx_copy）──
   await page.getByRole("button", { name: /返\s*回列表/ }).click();
-  const copyRow = page.getByTestId("env-list-table").getByRole("row", { name: new RegExp(envName) });
+  const copyRow = page
+    .getByTestId("env-list-table")
+    .getByRole("row", { name: new RegExp(envName) });
   const copyApi = expectApi("**/api/v1/projects/*/environments/*/copy");
   await copyRow.getByRole("button", { name: /复\s*制/ }).click();
   const copied = await copyApi;
@@ -115,12 +136,17 @@ test("PROJ-003-01 环境主链路：新建五区→连接测试失败态→保�
   await expect(page.getByTestId("env-list-table").getByText(`${envName}_copy`)).toBeVisible();
 
   // ── 导出（UI 点击触发下载；内容断言经 page.request 直发）──
-  await copyRow.first().getByRole("button", { name: /导\s*出/ }).click();
+  await copyRow
+    .first()
+    .getByRole("button", { name: /导\s*出/ })
+    .click();
   const list = await page.request.get(`/api/v1/projects/${projectId}/environments`);
   const envId = (await ok<{ items: { name: string; id: string }[] }>(list)).items.find(
     (e) => e.name === envName,
   )!.id;
-  const exportResp = await page.request.get(`/api/v1/projects/${projectId}/environments/${envId}/export`);
+  const exportResp = await page.request.get(
+    `/api/v1/projects/${projectId}/environments/${envId}/export`,
+  );
   expect(exportResp.status()).toBe(200);
   const expText = await exportResp.text();
   expect(expText).toContain(envName);
@@ -132,13 +158,22 @@ test("PROJ-003-01 环境主链路：新建五区→连接测试失败态→保�
     .getByRole("row")
     .filter({ hasText: new RegExp(`${envName}(?!_)`) });
   const delApi = expectApi("**/api/v1/projects/*/environments/*");
-  await exactNameRow.first().getByRole("button", { name: /删\s*除/ }).click();
-  await page.locator(".ant-popover").getByRole("button", { name: /确\s*定|删\s*除/ }).click();
+  await exactNameRow
+    .first()
+    .getByRole("button", { name: /删\s*除/ })
+    .click();
+  await page
+    .locator(".ant-popover")
+    .getByRole("button", { name: /确\s*定|删\s*除/ })
+    .click();
   const removed = await delApi;
   expect(removed.status).toBe(200);
   expect(removed.code).toBe(0);
   await expect(page.getByText("环境已删除")).toBeVisible();
-  await expect(page.getByTestId("env-list-table").getByText(envName, { exact: true })).toHaveCount(0, { timeout: 10000 });
+  await expect(page.getByTestId("env-list-table").getByText(envName, { exact: true })).toHaveCount(
+    0,
+    { timeout: 10000 },
+  );
   await expect(page.getByTestId("env-list-table").getByText(`${envName}_copy`)).toBeVisible();
 
   await expectNoConsoleErrors();
@@ -197,7 +232,8 @@ test("PROJ-003-02 导入二态：同名覆盖=false 跳过 / =true 覆盖", asyn
 
   // 覆盖生效（接口断言）：变量变为导入内容
   const list = await page.request.get(`/api/v1/projects/${projectId}/environments`);
-  const items = (await ok<{ items: { name: string; config: { vars: { key: string }[] } }[] }>(list)).items;
+  const items = (await ok<{ items: { name: string; config: { vars: { key: string }[] } }[] }>(list))
+    .items;
   const target = items.find((e) => e.name === envName);
   expect(target?.config.vars.map((v) => v.key)).toContain("imported");
 

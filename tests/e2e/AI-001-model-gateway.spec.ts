@@ -34,7 +34,7 @@ test("AI-001-01 模型管理全链路（新建/掩码/连接测试/设默认/SSR
   await expect(page.getByTestId("ai-model-card-e2e-mock-模型")).toBeVisible();
   await expect(page.getByTestId("ai-model-card-e2e-mock-模型")).toContainText("sk-****");
 
-  // 新建（指向 e2e mock（槽位 4100+s）/ai 环回豁免；provider 默认已智谱，无需重选）
+  // 新建（指向 e2e mock :4001/ai 环回豁免；provider 默认已智谱，无需重选）
   await page.getByTestId("ai-model-create").click();
   await page.getByTestId("ai-model-form-name").fill(`e2e-模型-${uniq}`);
   await page.getByTestId("ai-model-form-baseurl").fill(`${MOCK_BASE}/ai`);

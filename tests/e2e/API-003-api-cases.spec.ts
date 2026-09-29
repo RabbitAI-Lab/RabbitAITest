@@ -59,8 +59,14 @@ test("API-003-01 批量执行主链路：勾选→批量执行→任务中心终
   await expect(caseTable.getByRole("row", { name: new RegExp(failName) })).toBeVisible();
 
   // 勾选 2 条 → 批量执行（失败停止 on）
-  await caseTable.getByRole("row", { name: new RegExp(passName) }).locator("input[type=checkbox]").check();
-  await caseTable.getByRole("row", { name: new RegExp(failName) }).locator("input[type=checkbox]").check();
+  await caseTable
+    .getByRole("row", { name: new RegExp(passName) })
+    .locator("input[type=checkbox]")
+    .check();
+  await caseTable
+    .getByRole("row", { name: new RegExp(failName) })
+    .locator("input[type=checkbox]")
+    .check();
   await page.getByTestId("btn-batch-exec").click();
   const batchModal = page.getByRole("dialog");
   await expect(batchModal).toBeVisible();
@@ -100,7 +106,9 @@ test("API-003-01 批量执行主链路：勾选→批量执行→任务中心终
   await expect(page.getByTestId("report-status")).toHaveText("FAILED", { timeout: 30000 });
   await expect(page.getByTestId("report-summary-cards")).toContainText("1");
   const itemsTable = page.getByTestId("report-items-table");
-  await expect(itemsTable.getByRole("row", { name: new RegExp(passName) }).getByText("SUCCESS")).toBeVisible();
+  await expect(
+    itemsTable.getByRole("row", { name: new RegExp(passName) }).getByText("SUCCESS"),
+  ).toBeVisible();
   const failRow = itemsTable.getByRole("row", { name: new RegExp(failName) });
   await expect(failRow.getByText("FAILED")).toBeVisible();
   await expect(failRow.getByTestId("assert-fail")).toHaveCount(0); // items 表无断言徽标（在钻取内）
@@ -108,7 +116,10 @@ test("API-003-01 批量执行主链路：勾选→批量执行→任务中心终
   await failRow.click();
   await expect(page.getByTestId("item-drilldown")).toBeVisible();
   await expect(page.getByTestId("drill-request")).toContainText("/hello");
-  const failAssertRow = page.getByTestId("asserts-table").locator("tbody tr").filter({ hasText: "状态码" });
+  const failAssertRow = page
+    .getByTestId("asserts-table")
+    .locator("tbody tr")
+    .filter({ hasText: "状态码" });
   await expect(failAssertRow).toHaveCount(1);
   await expect(failAssertRow).toContainText("500"); // 期望
   await expect(failAssertRow).toContainText("200"); // 实际值（/hello 返回 200）
@@ -254,7 +265,10 @@ test("API-003-04 clientTaskId 幂等：同键连点仅生成一任务、换键�
   const uniq = `I3${Date.now() % 1e7}${Math.floor(Math.random() * 1e3)}`;
 
   // 数据准备：慢 mock 规则（6s 延迟，任务保持 RUNNING 供幂等窗口判定）
-  const def = await createApiDef(request, projectId, { name: `幂等定义-${uniq}`, path: "/pets/{id}" });
+  const def = await createApiDef(request, projectId, {
+    name: `幂等定义-${uniq}`,
+    path: "/pets/{id}",
+  });
   await createMockRule(request, projectId, def.id, {
     name: `幂等慢规则-${uniq}`,
     respBody: "{}",

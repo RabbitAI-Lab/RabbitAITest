@@ -24,17 +24,45 @@ export interface PointNode {
 
 export const pointApi = {
   list: (projectId: string, planId: string) =>
-    get<{ points: PointNode[]; ungrouped: PointCounts }>(`/api/v1/projects/${projectId}/plans/${planId}/points`),
-  create: (projectId: string, planId: string, body: { name: string; parentId?: string | null; inheritConfig?: boolean; config?: Partial<PointConfig> }) =>
-    post<{ id: string; name: string }>(`/api/v1/projects/${projectId}/plans/${planId}/points`, body),
-  update: (projectId: string, planId: string, pointId: string, body: { name?: string; parentId?: string | null; inheritConfig?: boolean; config?: Partial<PointConfig> }) =>
-    put<{ id: string }>(`/api/v1/projects/${projectId}/plans/${planId}/points/${pointId}`, body),
+    get<{ points: PointNode[]; ungrouped: PointCounts }>(
+      `/api/v1/projects/${projectId}/plans/${planId}/points`,
+    ),
+  create: (
+    projectId: string,
+    planId: string,
+    body: {
+      name: string;
+      parentId?: string | null;
+      inheritConfig?: boolean;
+      config?: Partial<PointConfig>;
+    },
+  ) =>
+    post<{ id: string; name: string }>(
+      `/api/v1/projects/${projectId}/plans/${planId}/points`,
+      body,
+    ),
+  update: (
+    projectId: string,
+    planId: string,
+    pointId: string,
+    body: {
+      name?: string;
+      parentId?: string | null;
+      inheritConfig?: boolean;
+      config?: Partial<PointConfig>;
+    },
+  ) => put<{ id: string }>(`/api/v1/projects/${projectId}/plans/${planId}/points/${pointId}`, body),
   remove: (projectId: string, planId: string, pointId: string) =>
     del<{ ok: boolean }>(`/api/v1/projects/${projectId}/plans/${planId}/points/${pointId}`),
   reorder: (projectId: string, planId: string, orderedIds: string[]) =>
-    put<{ ok: boolean }>(`/api/v1/projects/${projectId}/plans/${planId}/points-order`, { orderedIds }),
+    put<{ ok: boolean }>(`/api/v1/projects/${projectId}/plans/${planId}/points-order`, {
+      orderedIds,
+    }),
   moveCases: (projectId: string, planId: string, refIds: string[], pointId: string | null) =>
-    post<{ affected: number }>(`/api/v1/projects/${projectId}/plans/${planId}/cases/move`, { refIds, pointId }),
+    post<{ affected: number }>(`/api/v1/projects/${projectId}/plans/${planId}/cases/move`, {
+      refIds,
+      pointId,
+    }),
 };
 
 // ── PLAN-002 关联扩展（挂点 + 场景）──
@@ -65,13 +93,27 @@ export interface PlanExecuteBody {
 
 export const planExecApi = {
   execute: (projectId: string, planId: string, body: PlanExecuteBody) =>
-    post<{ taskId: string; itemCount: number; warnings: string[] }>(`/api/v1/projects/${projectId}/plans/${planId}/execute`, body),
-  runRef: (projectId: string, planId: string, refId: string) =>
-    post<{ taskId: string; itemCount: number }>(`/api/v1/projects/${projectId}/plans/${planId}/cases/${refId}/run`, {}),
-  executions: (projectId: string, planId: string, page = 1, pageSize = 20) =>
-    get<PageOf<{ taskId: string; status: string; itemCount: number; durationMs: number | null; createdAt: string; finishedAt: string | null; createdBy: string }>>(
-      `/api/v1/projects/${projectId}/plans/${planId}/executions${qs({ page, pageSize })}`,
+    post<{ taskId: string; itemCount: number; warnings: string[] }>(
+      `/api/v1/projects/${projectId}/plans/${planId}/execute`,
+      body,
     ),
+  runRef: (projectId: string, planId: string, refId: string) =>
+    post<{ taskId: string; itemCount: number }>(
+      `/api/v1/projects/${projectId}/plans/${planId}/cases/${refId}/run`,
+      {},
+    ),
+  executions: (projectId: string, planId: string, page = 1, pageSize = 20) =>
+    get<
+      PageOf<{
+        taskId: string;
+        status: string;
+        itemCount: number;
+        durationMs: number | null;
+        createdAt: string;
+        finishedAt: string | null;
+        createdBy: string;
+      }>
+    >(`/api/v1/projects/${projectId}/plans/${planId}/executions${qs({ page, pageSize })}`),
 };
 
 // ── PLAN-004 计划分组 ──
@@ -94,7 +136,13 @@ export interface PlanGroupRow {
   name: string;
   description: string | null;
   archivedAt: string | null;
-  aggregate: { memberCount: number; totalRefs: number; executed: number; passRate: number | null; thresholdMetCount: number };
+  aggregate: {
+    memberCount: number;
+    totalRefs: number;
+    executed: number;
+    passRate: number | null;
+    thresholdMetCount: number;
+  };
   members: PlanGroupMember[];
 }
 export interface PlanGroupReport {
@@ -102,7 +150,13 @@ export interface PlanGroupReport {
   name: string;
   description: string | null;
   archivedAt: string | null;
-  aggregate: { memberCount: number; totalRefs: number; executed: number; passRate: number | null; thresholdMetCount: number };
+  aggregate: {
+    memberCount: number;
+    totalRefs: number;
+    executed: number;
+    passRate: number | null;
+    thresholdMetCount: number;
+  };
   members: Omit<PlanGroupMember, "groupId">[];
   reportId: string;
   summary: string;
@@ -111,7 +165,9 @@ export interface PlanGroupReport {
 
 export const planGroupApi = {
   list: (projectId: string, archived = false) =>
-    get<{ groups: PlanGroupRow[]; ungrouped: PlanGroupMember[] }>(`/api/v1/projects/${projectId}/plan-groups${qs({ archived: archived ? "only" : undefined })}`),
+    get<{ groups: PlanGroupRow[]; ungrouped: PlanGroupMember[] }>(
+      `/api/v1/projects/${projectId}/plan-groups${qs({ archived: archived ? "only" : undefined })}`,
+    ),
   create: (projectId: string, body: { name: string; description?: string }) =>
     post<{ id: string; name: string }>(`/api/v1/projects/${projectId}/plan-groups`, body),
   update: (projectId: string, groupId: string, body: { name?: string; description?: string }) =>
@@ -119,17 +175,32 @@ export const planGroupApi = {
   remove: (projectId: string, groupId: string) =>
     del<{ ok: boolean }>(`/api/v1/projects/${projectId}/plan-groups/${groupId}`),
   archive: (projectId: string, groupId: string) =>
-    post<{ id: string; archived: boolean }>(`/api/v1/projects/${projectId}/plan-groups/${groupId}/archive`, {}),
+    post<{ id: string; archived: boolean }>(
+      `/api/v1/projects/${projectId}/plan-groups/${groupId}/archive`,
+      {},
+    ),
   unarchive: (projectId: string, groupId: string) =>
-    post<{ id: string; archived: boolean }>(`/api/v1/projects/${projectId}/plan-groups/${groupId}/unarchive`, {}),
+    post<{ id: string; archived: boolean }>(
+      `/api/v1/projects/${projectId}/plan-groups/${groupId}/unarchive`,
+      {},
+    ),
   report: (projectId: string, groupId: string) =>
     get<PlanGroupReport>(`/api/v1/projects/${projectId}/plan-groups/${groupId}/report`),
   saveReportSummary: (projectId: string, groupId: string, summary: string) =>
-    put<{ reportId: string }>(`/api/v1/projects/${projectId}/plan-groups/${groupId}/report/summary`, { summary }),
+    put<{ reportId: string }>(
+      `/api/v1/projects/${projectId}/plan-groups/${groupId}/report/summary`,
+      { summary },
+    ),
   movePlan: (projectId: string, planId: string, groupId: string | null) =>
-    post<{ planId: string; groupId: string | null }>(`/api/v1/projects/${projectId}/plans/${planId}/move-group`, { groupId }),
+    post<{ planId: string; groupId: string | null }>(
+      `/api/v1/projects/${projectId}/plans/${planId}/move-group`,
+      { groupId },
+    ),
   batchArchive: (projectId: string, ids: string[], archived: boolean) =>
-    post<{ affected: number; cascadedGroups: number }>(`/api/v1/projects/${projectId}/plans/batch-archive`, { ids, archived }),
+    post<{ affected: number; cascadedGroups: number }>(
+      `/api/v1/projects/${projectId}/plans/batch-archive`,
+      { ids, archived },
+    ),
 };
 
 // ── PLAN-005 计划报告 ──
@@ -160,7 +231,12 @@ export interface PlanReportView {
     passRate: number | null;
     thresholdMet: boolean | null;
   };
-  points: { pointId: string | null; name: string; passRate: number | null; rows: PlanReportRow[] }[];
+  points: {
+    pointId: string | null;
+    name: string;
+    passRate: number | null;
+    rows: PlanReportRow[];
+  }[];
   summary: string;
   generatedAt: string;
 }
@@ -173,9 +249,14 @@ export const planReportApi = {
   draft: (projectId: string, planId: string) =>
     post<{ draft: string }>(`/api/v1/projects/${projectId}/plans/${planId}/report/draft`, {}),
   createShare: (projectId: string, planId: string, expireHours: 1 | 24 | 168 | 720) =>
-    post<{ token: string; expireAt: string }>(`/api/v1/projects/${projectId}/plans/${planId}/report/shares`, { expireHours }),
+    post<{ token: string; expireAt: string }>(
+      `/api/v1/projects/${projectId}/plans/${planId}/report/shares`,
+      { expireHours },
+    ),
   listShares: (projectId: string, planId: string) =>
-    get<{ items: { token: string; expireAt: string; expired: boolean; createdAt: string }[] }>(`/api/v1/projects/${projectId}/plans/${planId}/report/shares`),
+    get<{ items: { token: string; expireAt: string; expired: boolean; createdAt: string }[] }>(
+      `/api/v1/projects/${projectId}/plans/${planId}/report/shares`,
+    ),
   revokeShare: (projectId: string, planId: string, token: string) =>
     del<{ ok: boolean }>(`/api/v1/projects/${projectId}/plans/${planId}/report/shares/${token}`),
   exportCsv: (projectId: string, planId: string) =>
@@ -206,12 +287,20 @@ export const followApi = {
       : del<{ followed: boolean }>(`/api/v1/projects/${projectId}/plans/${planId}/follow`),
   scenario: (projectId: string, scenarioId: string, on: boolean) =>
     on
-      ? post<{ followed: boolean }>(`/api/v1/projects/${projectId}/scenarios/${scenarioId}/follow`, {})
+      ? post<{ followed: boolean }>(
+          `/api/v1/projects/${projectId}/scenarios/${scenarioId}/follow`,
+          {},
+        )
       : del<{ followed: boolean }>(`/api/v1/projects/${projectId}/scenarios/${scenarioId}/follow`),
   apiCase: (projectId: string, apiId: string, caseId: string, on: boolean) =>
     on
-      ? post<{ followed: boolean }>(`/api/v1/projects/${projectId}/apis/${apiId}/cases/${caseId}/follow`, {})
-      : del<{ followed: boolean }>(`/api/v1/projects/${projectId}/apis/${apiId}/cases/${caseId}/follow`),
+      ? post<{ followed: boolean }>(
+          `/api/v1/projects/${projectId}/apis/${apiId}/cases/${caseId}/follow`,
+          {},
+        )
+      : del<{ followed: boolean }>(
+          `/api/v1/projects/${projectId}/apis/${apiId}/cases/${caseId}/follow`,
+        ),
   review: (projectId: string, reviewId: string, on: boolean) =>
     on
       ? post<{ followed: boolean }>(`/api/v1/projects/${projectId}/reviews/${reviewId}/follow`, {})

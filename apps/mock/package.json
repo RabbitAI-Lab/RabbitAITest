@@ -13,8 +13,8 @@
   },
   "dependencies": {
     "@hono/node-server": "^1.13.7",
-    "hono": "^4.6.0",
     "@rabbit/shared": "workspace:*",
+    "hono": "^4.6.0",
     "ioredis": "^5.4.2"
   },
   "devDependencies": {

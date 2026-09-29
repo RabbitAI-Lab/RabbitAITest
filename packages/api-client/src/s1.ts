@@ -104,6 +104,18 @@ export const permApi = {
 };
 
 // ── SYS-005 系统参数 ──
+export interface ThemeParamValue {
+  primaryColor: string;
+  followPrimary: boolean;
+  siteName: string;
+  slogan: string;
+  loginLogo: string;
+  loginBg: string;
+  icon: string;
+  platformName: string;
+  platformLogo: string;
+  helpUrl: string;
+}
 export interface SystemParams {
   base: { siteUrl: string; loginBanner: string };
   smtp: { host: string; port: number; user: string; pass: string; ssl: boolean; from: string };
@@ -114,11 +126,15 @@ export interface SystemParams {
     lastRunAt: string | null;
     lastRunCount: number;
   };
+  /** S9 ENTP-004 界面设置（社区版=默认值） */
+  theme?: ThemeParamValue;
 }
 export const paramApi = {
   get: () => get<SystemParams>("/api/v1/system/params"),
-  update: (group: "basic" | "smtp" | "file" | "cleanup", value: Record<string, unknown>) =>
-    put<{ ok: boolean }>(`/api/v1/system/params/${group}`, { group, value }),
+  update: (
+    group: "basic" | "smtp" | "file" | "cleanup" | "theme",
+    value: Record<string, unknown>,
+  ) => put<{ ok: boolean }>(`/api/v1/system/params/${group}`, { group, value }),
   testSmtp: (body: SystemParams["smtp"]) =>
     post<{ ok: boolean; message: string }>("/api/v1/system/params/smtp/test", body),
 };
@@ -146,7 +162,9 @@ export const orgApi = {
   createProject: (orgId: string, body: { name: string; description?: string }) =>
     post<{ id: string; name: string }>(`/api/v1/orgs/${orgId}/projects`, body),
   memberCandidates: (orgId: string, q: { keyword?: string; page?: number; pageSize?: number }) =>
-    get<PageOf<{ id: string; email: string; name: string }>>(`/api/v1/orgs/${orgId}/member-candidates${qs(q)}`),
+    get<PageOf<{ id: string; email: string; name: string }>>(
+      `/api/v1/orgs/${orgId}/member-candidates${qs(q)}`,
+    ),
   addMembers: (orgId: string, userIds: string[]) =>
     post<{ added: number }>(`/api/v1/orgs/${orgId}/members-add`, { userIds }),
   removeMember: (orgId: string, userId: string) =>
@@ -509,7 +527,13 @@ export const commentApi = {
     get<{ items: CommentDto[] }>(
       `/api/v1/projects/${projectId}/comments?entity=${encodeURIComponent(entity)}`,
     ),
-  create: (projectId: string, entity: string, content: string, parentId?: string, mentions?: string[]) =>
+  create: (
+    projectId: string,
+    entity: string,
+    content: string,
+    parentId?: string,
+    mentions?: string[],
+  ) =>
     post<{ id: string }>(
       `/api/v1/projects/${projectId}/comments?entity=${encodeURIComponent(entity)}`,
       { content, parentId, ...(mentions?.length ? { mentions } : {}) },
@@ -725,8 +749,7 @@ export const bugApi = {
     }>(`/api/v1/projects/${projectId}/bugs/${bugId}/changes`),
   batchDelete: (projectId: string, ids: string[]) =>
     post<{ affected: number }>(`/api/v1/projects/${projectId}/bugs/batch-delete`, { ids }),
-  exportBugs: (projectId: string) =>
-    downloadRaw(`/api/v1/projects/${projectId}/bugs/export`),
+  exportBugs: (projectId: string) => downloadRaw(`/api/v1/projects/${projectId}/bugs/export`),
   downloadUrl: (projectId: string, attachmentId: string) =>
     `/api/v1/projects/${projectId}/attachments/${attachmentId}/download`,
 };
@@ -862,9 +885,7 @@ export const dashApi = {
   todo: (projectId: string, kind: string, page = 1) =>
     get<PageOf<DashItem>>(`/api/v1/projects/${projectId}/dashboard/todo${qs({ kind, page })}`),
   followed: (projectId: string, kind?: string, page = 1) =>
-    get<PageOf<DashItem>>(
-      `/api/v1/projects/${projectId}/dashboard/followed${qs({ kind, page })}`,
-    ),
+    get<PageOf<DashItem>>(`/api/v1/projects/${projectId}/dashboard/followed${qs({ kind, page })}`),
   created: (projectId: string, kind: string, page = 1) =>
     get<PageOf<DashItem>>(`/api/v1/projects/${projectId}/dashboard/created${qs({ kind, page })}`),
 };

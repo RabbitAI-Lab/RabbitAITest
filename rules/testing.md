@@ -23,6 +23,7 @@ tests/
 3. 回归纪律不变（§5.3：Bug 先写失败用例再修复）。
 
 > **门禁勘误（2026-09-27）**：`run-api-tests.sh` 原以 `grep '<error>true</error>'`（XML 形态）校验 jtl，而 JMeter 5.6 默认输出 CSV——门禁空转，任何断言失败都被漏放（S1 期间因此漏检 8 处 422/500 缺陷与多组断言编写错误）。已改为 CSV 第 8 列 success 真校验 + 每计划清场旧 jtl；JMeter 断言要求同步明确：**预期 4xx/5xx 的采样器其状态断言必须勾选 Ignore Status（assume_success）**，否则 JMeter 采样器本身按状态码置失败。
+
 ## 2. JMeter 接口测试规范（tests/api/）
 
 1. **覆盖面（每个功能点必测四类）**：

@@ -9,16 +9,24 @@ export const runtime = "nodejs";
 export const GET = withApiKey(async (ctx, _req, seg) => {
   try {
     const { taskId } = await (seg as { params: Promise<{ taskId: string }> }).params;
-    const task = await prisma.execTask.findUnique({ where: { id: taskId }, select: { projectId: true } });
-    if (!task) return NextResponse.json({ code: 40404, message: "任务不存在", data: null }, { status: 404 });
+    const task = await prisma.execTask.findUnique({
+      where: { id: taskId },
+      select: { projectId: true },
+    });
+    if (!task)
+      return NextResponse.json({ code: 40404, message: "任务不存在", data: null }, { status: 404 });
     await assertProjectVisible(ctx.userId, task.projectId);
     const report = await prisma.report.findFirst({
       where: { taskId },
       select: { id: true, name: true, reportType: true, summary: true, createdAt: true },
     });
-    if (!report) return NextResponse.json({ code: 60404, message: "报告不存在", data: null }, { status: 404 });
+    if (!report)
+      return NextResponse.json({ code: 60404, message: "报告不存在", data: null }, { status: 404 });
     const raw = report.summary;
-    const summary = (typeof raw === "string" ? JSON.parse(raw) : (raw ?? {})) as Record<string, unknown>;
+    const summary = (typeof raw === "string" ? JSON.parse(raw) : (raw ?? {})) as Record<
+      string,
+      unknown
+    >;
     return okResponse({
       reportId: report.id,
       name: report.name,

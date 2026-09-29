@@ -1,12 +1,19 @@
 import { NextResponse } from "next/server";
 import { ok, scenarioSaveSchema } from "@rabbit/shared";
 import { withProjectScope, toResponse } from "@/server/guard";
-import { getScenarioDetail, updateScenario, deleteScenario } from "@/server/domains/api/scenario.service";
+import {
+  getScenarioDetail,
+  updateScenario,
+  deleteScenario,
+} from "@/server/domains/api/scenario.service";
 
 export const runtime = "nodejs";
 
 const unprocessable = (message?: string) =>
-  NextResponse.json({ code: 20422, message: message ?? "参数校验失败", data: null }, { status: 422 });
+  NextResponse.json(
+    { code: 20422, message: message ?? "参数校验失败", data: null },
+    { status: 422 },
+  );
 
 export const GET = withProjectScope(async (ctx, _req, seg) => {
   try {

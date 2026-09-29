@@ -20,14 +20,19 @@ export interface RobotUpsertInput {
 }
 
 export const robotApi = {
-  list: (projectId: string) => get<{ total: number; items: RobotRow[] }>(`/api/v1/projects/${projectId}/robots`),
+  list: (projectId: string) =>
+    get<{ total: number; items: RobotRow[] }>(`/api/v1/projects/${projectId}/robots`),
   create: (projectId: string, body: RobotUpsertInput) =>
     post<RobotRow>(`/api/v1/projects/${projectId}/robots`, body),
   update: (projectId: string, id: string, body: RobotUpsertInput) =>
     patch<RobotRow>(`/api/v1/projects/${projectId}/robots/${id}`, body),
-  remove: (projectId: string, id: string) => del<{ id: string }>(`/api/v1/projects/${projectId}/robots/${id}`),
+  remove: (projectId: string, id: string) =>
+    del<{ id: string }>(`/api/v1/projects/${projectId}/robots/${id}`),
   test: (projectId: string, id: string) =>
-    post<{ delivered: boolean; detail: string }>(`/api/v1/projects/${projectId}/robots/${id}/test`, {}),
+    post<{ delivered: boolean; detail: string }>(
+      `/api/v1/projects/${projectId}/robots/${id}/test`,
+      {},
+    ),
 };
 
 export interface MessageEventConfig {
@@ -40,9 +45,10 @@ export type MessageEventsConfig = Record<string, MessageEventConfig>;
 
 export const messageConfigApi = {
   view: (projectId: string) =>
-    get<{ config: MessageEventsConfig; robots: { id: string; name: string; channel: string; enabled: boolean }[] }>(
-      `/api/v1/projects/${projectId}/message-config`,
-    ),
+    get<{
+      config: MessageEventsConfig;
+      robots: { id: string; name: string; channel: string; enabled: boolean }[];
+    }>(`/api/v1/projects/${projectId}/message-config`),
   save: (projectId: string, config: MessageEventsConfig) =>
     put<{ config: MessageEventsConfig }>(`/api/v1/projects/${projectId}/message-config`, config),
 };
@@ -62,7 +68,9 @@ export const notificationApi = {
     if (q.page) p.set("page", String(q.page));
     if (q.pageSize) p.set("pageSize", String(q.pageSize));
     if (q.unread) p.set("unread", "true");
-    return get<{ total: number; items: NotificationRow[] }>(`/api/v1/personal/notifications?${p.toString()}`);
+    return get<{ total: number; items: NotificationRow[] }>(
+      `/api/v1/personal/notifications?${p.toString()}`,
+    );
   },
   unreadCount: () => get<{ count: number }>("/api/v1/personal/notifications/unread-count"),
   markRead: (id: string) => post<{ id: string }>(`/api/v1/personal/notifications/${id}/read`, {}),
@@ -118,8 +126,14 @@ export const publicScriptApi = {
   setStatus: (projectId: string, id: string, status: "DRAFT" | "ENABLED") =>
     patch<PublicScriptRow>(`/api/v1/projects/${projectId}/public-scripts/${id}`, { status }),
   remove: (projectId: string, id: string, force = false) =>
-    del<{ id: string }>(`/api/v1/projects/${projectId}/public-scripts/${id}${force ? "?force=true" : ""}`),
-  debug: (projectId: string, id: string, body: { vars: Record<string, string>; params: Record<string, string> }) =>
+    del<{ id: string }>(
+      `/api/v1/projects/${projectId}/public-scripts/${id}${force ? "?force=true" : ""}`,
+    ),
+  debug: (
+    projectId: string,
+    id: string,
+    body: { vars: Record<string, string>; params: Record<string, string> },
+  ) =>
     post<{ logs: string[]; vars: Record<string, string>; durationMs: number }>(
       `/api/v1/projects/${projectId}/public-scripts/${id}/debug`,
       body,
@@ -140,12 +154,14 @@ export interface EnvGroupRow {
 }
 
 export const envGroupApi = {
-  list: (projectId: string) => get<{ total: number; items: EnvGroupRow[] }>(`/api/v1/projects/${projectId}/env-groups`),
+  list: (projectId: string) =>
+    get<{ total: number; items: EnvGroupRow[] }>(`/api/v1/projects/${projectId}/env-groups`),
   create: (projectId: string, body: { name: string; environmentIds: string[] }) =>
     post<EnvGroupRow>(`/api/v1/projects/${projectId}/env-groups`, body),
   update: (projectId: string, id: string, body: { name: string; environmentIds: string[] }) =>
     patch<EnvGroupRow>(`/api/v1/projects/${projectId}/env-groups/${id}`, body),
-  remove: (projectId: string, id: string) => del<{ id: string }>(`/api/v1/projects/${projectId}/env-groups/${id}`),
+  remove: (projectId: string, id: string) =>
+    del<{ id: string }>(`/api/v1/projects/${projectId}/env-groups/${id}`),
 };
 
 export interface GlobalParamRow {
@@ -155,7 +171,8 @@ export interface GlobalParamRow {
 }
 
 export const globalParamApi = {
-  get: (projectId: string) => get<{ params: GlobalParamRow[] }>(`/api/v1/projects/${projectId}/global-params`),
+  get: (projectId: string) =>
+    get<{ params: GlobalParamRow[] }>(`/api/v1/projects/${projectId}/global-params`),
   save: (projectId: string, params: GlobalParamRow[]) =>
     put<{ params: GlobalParamRow[] }>(`/api/v1/projects/${projectId}/global-params`, { params }),
 };
@@ -171,14 +188,24 @@ export interface FileRepoRow {
 }
 
 export const fileRepoApi = {
-  list: (projectId: string) => get<{ total: number; items: FileRepoRow[] }>(`/api/v1/projects/${projectId}/file-repos`),
-  create: (projectId: string, body: { platform: FileRepoRow["platform"]; url: string; token?: string }) =>
-    post<FileRepoRow>(`/api/v1/projects/${projectId}/file-repos`, body),
-  update: (projectId: string, id: string, body: { platform: FileRepoRow["platform"]; url: string; token?: string }) =>
-    patch<FileRepoRow>(`/api/v1/projects/${projectId}/file-repos/${id}`, body),
-  remove: (projectId: string, id: string) => del<{ id: string }>(`/api/v1/projects/${projectId}/file-repos/${id}`),
+  list: (projectId: string) =>
+    get<{ total: number; items: FileRepoRow[] }>(`/api/v1/projects/${projectId}/file-repos`),
+  create: (
+    projectId: string,
+    body: { platform: FileRepoRow["platform"]; url: string; token?: string },
+  ) => post<FileRepoRow>(`/api/v1/projects/${projectId}/file-repos`, body),
+  update: (
+    projectId: string,
+    id: string,
+    body: { platform: FileRepoRow["platform"]; url: string; token?: string },
+  ) => patch<FileRepoRow>(`/api/v1/projects/${projectId}/file-repos/${id}`, body),
+  remove: (projectId: string, id: string) =>
+    del<{ id: string }>(`/api/v1/projects/${projectId}/file-repos/${id}`),
   test: (projectId: string, id: string) =>
-    post<{ ok: boolean; message: string }>(`/api/v1/projects/${projectId}/file-repos/${id}/test`, {}),
+    post<{ ok: boolean; message: string }>(
+      `/api/v1/projects/${projectId}/file-repos/${id}/test`,
+      {},
+    ),
   pull: (projectId: string, id: string, body: { branch: string; path: string }) =>
     post<{ pulled: number; refreshed: number; skipped: number }>(
       `/api/v1/projects/${projectId}/file-repos/${id}/pull`,
@@ -202,10 +229,12 @@ export const personalApi = {
     patch<{ email: string; name: string; phone: string }>("/api/v1/personal/me", body),
   changePassword: (body: { oldPassword: string; newPassword: string }) =>
     post<{ ok: boolean }>("/api/v1/personal/me", body),
-  localRunner: () => get<{ address: string | null; preferLocal: boolean }>("/api/v1/personal/local-runner"),
+  localRunner: () =>
+    get<{ address: string | null; preferLocal: boolean }>("/api/v1/personal/local-runner"),
   saveLocalRunner: (body: { address?: string | null; preferLocal: boolean }) =>
     put<{ address: string | null; preferLocal: boolean }>("/api/v1/personal/local-runner", body),
-  checkLocalRunner: () => post<{ reachable: boolean; detail: string }>("/api/v1/personal/local-runner/check", {}),
+  checkLocalRunner: () =>
+    post<{ reachable: boolean; detail: string }>("/api/v1/personal/local-runner/check", {}),
   aiModel: () => get<{ modelId: string | null }>("/api/v1/personal/ai-model"),
   saveAiModel: (modelId: string | null) =>
     put<{ modelId: string | null }>("/api/v1/personal/ai-model", { modelId }),

@@ -48,7 +48,11 @@ export default function SystemUsersPage() {
     onError: (e) => message.error(e instanceof Error ? e.message : "创建失败"),
   });
   const update = useMutation({
-    mutationFn: () => userApi.update(editing!.id, { name: editing!.name.trim(), phone: editing!.phone.trim() || null }),
+    mutationFn: () =>
+      userApi.update(editing!.id, {
+        name: editing!.name.trim(),
+        phone: editing!.phone.trim() || null,
+      }),
     onSuccess: () => {
       invalidate();
       setEditing(null);
@@ -92,7 +96,11 @@ export default function SystemUsersPage() {
     <div>
       <PageHeader
         title="用户管理"
-        sub={`系统用户（社区版上限 ${data?.limit ?? 30} 人）`}
+        sub={
+          data?.limit == null
+            ? `系统用户 · 企业版（授权上限不限，当前 ${data?.total ?? 0} 人）`
+            : `系统用户（上限 ${data.limit} 人${data.limit === (data as { communityLimit?: number }).communityLimit ? " · 社区版" : " · 授权上限"}）`
+        }
         extra={
           <Button
             type="primary"
@@ -104,6 +112,38 @@ export default function SystemUsersPage() {
           </Button>
         }
       />
+      {/* ENTP-008：容量进度（社区版逼近上限提示扩容；企业版不限额显示授权口径） */}
+      {data && (
+        <div
+          className="mb-3 flex items-center gap-3 text-xs text-[#646A73]"
+          data-testid="user-limit-bar"
+        >
+          <span>用户规模</span>
+          <div className="w-56 h-2 bg-slate-100 rounded-full overflow-hidden">
+            <div
+              className={`h-full rounded-full ${data.limit == null ? "bg-emerald-500" : data.total / data.limit > 0.8 ? "bg-amber-500" : "bg-[#574BFF]"}`}
+              style={{
+                width:
+                  data.limit == null
+                    ? "8%"
+                    : `${Math.min(100, Math.round((data.total / data.limit) * 100))}%`,
+              }}
+            />
+          </div>
+          <span className="font-medium">
+            {data.total} / {data.limit == null ? "不限" : data.limit}
+          </span>
+          {data.limit != null && data.total / data.limit > 0.8 && (
+            <a
+              className="text-[#574BFF]"
+              href="/system/license"
+              data-testid="user-limit-upgrade-link"
+            >
+              接近上限——企业版授权扩容 →
+            </a>
+          )}
+        </div>
+      )}
       <div className="rabbit-card">
         <div className="flex gap-2 p-3 border-b border-[#F0F1F3]">
           <Input
@@ -169,7 +209,9 @@ export default function SystemUsersPage() {
                     type="link"
                     size="small"
                     className="!px-0"
-                    onClick={() => setEditing({ id: row.id, name: row.name, phone: row.phone ?? "" })}
+                    onClick={() =>
+                      setEditing({ id: row.id, name: row.name, phone: row.phone ?? "" })
+                    }
                     data-testid={`btn-edit-user-${row.email}`}
                   >
                     编辑
@@ -212,11 +254,19 @@ export default function SystemUsersPage() {
           <div className="space-y-4 pt-2">
             <div>
               <label className="block text-[13px] mb-1">姓名 *</label>
-              <Input value={editing.name} onChange={(e) => setEditing({ ...editing, name: e.target.value })} data-testid="input-edit-user-name" />
+              <Input
+                value={editing.name}
+                onChange={(e) => setEditing({ ...editing, name: e.target.value })}
+                data-testid="input-edit-user-name"
+              />
             </div>
             <div>
               <label className="block text-[13px] mb-1">手机</label>
-              <Input value={editing.phone} onChange={(e) => setEditing({ ...editing, phone: e.target.value })} data-testid="input-edit-user-phone" />
+              <Input
+                value={editing.phone}
+                onChange={(e) => setEditing({ ...editing, phone: e.target.value })}
+                data-testid="input-edit-user-phone"
+              />
             </div>
           </div>
         )}

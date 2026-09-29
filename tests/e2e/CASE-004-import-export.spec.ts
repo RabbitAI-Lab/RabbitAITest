@@ -145,7 +145,16 @@ test("CASE-004-02 导入失败行报告（原子不落库）与跳过模式", as
   const pid = authedPage.projectId;
 
   // 生成导入文件①：3 个数据行，第 3 行（Excel 行号 4）等级非法
-  const headers = ["ID", "所属模块", "用例名称", "前置条件", "步骤描述", "预期结果", "用例等级", "标签"];
+  const headers = [
+    "ID",
+    "所属模块",
+    "用例名称",
+    "前置条件",
+    "步骤描述",
+    "预期结果",
+    "用例等级",
+    "标签",
+  ];
   // fixture 自造（rules/testing §3.5.2）：exceljs 经 createRequire 从 web 工作区加载（ESM 目录导入不可用）
   async function buildXlsx(rows: (string | number)[][]): Promise<string> {
     const { createRequire } = await import("node:module");
@@ -162,7 +171,6 @@ test("CASE-004-02 导入失败行报告（原子不落库）与跳过模式", as
     return path;
   }
 
-
   // 用户路径：首页 → 测试用例
   await navFromHome(page, "测试用例");
   await expect(page.getByTestId("case-table")).toBeVisible();
@@ -176,10 +184,7 @@ test("CASE-004-02 导入失败行报告（原子不落库）与跳过模式", as
   await page.getByTestId("btn-import").click();
   await expect(page.getByTestId("import-step-upload")).toBeVisible();
   const importDialog = page.getByRole("dialog");
-  await page
-    .getByTestId("import-step-upload")
-    .locator('input[type="file"]')
-    .setInputFiles(badPath);
+  await page.getByTestId("import-step-upload").locator('input[type="file"]').setInputFiles(badPath);
   await importDialog.getByRole("button", { name: "下一步" }).click();
   await expect(page.getByTestId("import-step-mapping")).toBeVisible();
   // 默认模式=相同编号跳过（radio-import-mode useState("skip")）——本文件无同编号，模式不影响失败断言

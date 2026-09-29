@@ -2,6 +2,104 @@
 
 本项目的所有显著变更记录于此。格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本遵循语义化版本。
 
+## [v0.9.0] - 2026-09-28 — Sprint 9 企业版核心（M10 里程碑）
+
+### 新增（全量交付：三层测试 + CI 全绿）
+
+- **License 体系（ENTP-007）**：三段式签名 License（`RABBIT-ENT1.<payload>.<hmac>`，HMAC-SHA256 验签 + 三重校验 90002-90004）；`assertEntpEnabled(feature)` 六特性统一门控（MULTI_ORG/SSO/MULTI_POOL/THEME/MSG_TEMPLATE/USER_SCALE → 403 90001/90005）；授权管理页 `/system/license`（社区版⇄企业版状态卡、功能矩阵、到期 ≤30 天黄条/过期红条）；公开 `GET /public/license-status`（无鉴权，前端按钮解锁驱动，no-store）；`scripts/gen-license.mjs` 签发工具（--expires/--features/--max-users）；License 表 S0 已建零 DDL
+- **多组织管理（ENTP-001）**：组织 CRUD（建=名称+管理员既有用户+描述 → 组织+成员+预设事务；编辑/结束 ACTIVE↔ENDED 不入切换列表；删除 needConfirm 二次确认级联项目域数据，默认组织保护 90022）；顶栏组织切换器（>1 ACTIVE 组织显示，zustand 持久化）；`GET /personal/orgs` + `GET /personal/projects?orgId=` 按组织过滤；ProjectSwitcher 组织感知取数
+- **SSO 单点认证（ENTP-002）**：AuthSource 认证源（8 类型枚举，LDAP/CAS/OIDC/OAuth2 四协议实现，SAML 占位 90015）；OIDC/OAuth2/CAS 授权码全链（state Redis 5 分钟防 CSRF 90012、属性映射 username/name/email、find-or-create LOCAL 绑定/异源 409 90016）；LDAP 账密直登（注入式 adapter，bind+search+二次 bind，失败同码防枚举）；登录页「更多登录方式」+ LDAP Tab；mock IdP（`/sso/{provider}/{authId}/*` + `_test` 控面）
+- **扫码登录（ENTP-003）**：企微/钉钉/飞书三平台（apiBase/authorizeBase 可注入 mock——测试栈免真实企业账号）；回调换身份（各平台 API 形态）→ 合成 `@sso.scan` 幂等账号；SSO 特性门控
+- **自定义主题品牌（ENTP-004）**：SystemParam `theme` 组（主题色/背景跟随/登录页五项/平台三项；图片 dataUrl ≤200KB 90060）；界面设置 Tab 左表单右实时预览；`GET /public/theme` 驱动 antd token（Providers 动态 colorPrimary）+ `--rabbit-primary` CSS 变量（登录背景/导航选中态）+ 登录页/顶栏品牌 + 根 layout metadata 站点名
+- **自定义消息模板（ENTP-005）**：`message_templates` 表（项目×事件唯一，11 事件全覆盖）；变量目录 `TEMPLATE_VARS`（公共三变量+对象变量，`${var}` 渲染未知保留原样）；dispatch 渲染挂钩（模板存在且 License 有效→渲染；否则回退挂点 defaults——S5 固定文案零回归）；实时预览（服务端示例数据渲染，静态路由 preview/ 规避动态段 405）；模板 Tab（变量 chip 插入/预览/恢复默认）
+- **多资源池（ENTP-006）**：池 CRUD（NODE/K8S 类型位、应用组织 orgScope ALL|指定、启停、默认池删/禁保护 90030/90031、有任务池拒删 90036）；按池队列路由 `exec-pool-{poolId}`（BullMQ 禁冒号——设计稿 `exec:{poolId}` 勘误改连字符；默认池恒 `exec` 单引擎零回归）；engine `POOL_ID` 环境变量绑定（队列订阅+心跳携带 poolId 按池下发并发）；执行入口池校验（禁用 90032/orgScope 越界 90037）；场景/计划执行弹窗选池下拉（API-008 预留通道接通）
+- **用户扩容与部门（ENTP-008）**：`effectiveUserLimit()`（License USER_SCALE 放开 30 上限，maxUsers 可封顶；注册与管理员创建两入口共用）；组织级部门树（parentId 自引用+环检测 90042+同层重名 90041+有子拒删 90043）+ 成员多对多挂载（越组织 90044）；`/org/departments` 左树右表页；用户管理页容量进度条（社区版逼近上限提示扩容/企业版不限额口径）
+- **权限与错误码**：新增 18 权限点（SYSTEM_LICENSE:R/U、ENTP_ORG×4、ENTP_SSO×4、ENTP_POOL:C/U/D、ORG_DEPARTMENT×4；rbac §6 预登记兑现）；90xxx 企业版段 34 枚（api-conventions §3 预留兑现；POOL_NOT_FOUND 沿用 50404 不复用）；guard toResponse 90xxx HTTP 映射
+- **数据模型**：ENTP 域 4 新表（auth_sources/departments/department_members/message_templates）+ resource_pools.org_scope 列（门禁 3 例外登记 test-domain-model §6——基座表 id 为 TEXT 口径对齐）；licenses 表 S0 已建零 DDL
+- **测试**：Vitest 新增 48（shared 15：特性/队列名/License payload/theme/模板变量渲染/扫码 URL；web 33：License 校验管线+状态机+门控矩阵+上限四态、dispatch 模板渲染矩阵+回退零回归、SSO state/OIDC/CAS/fid-or-create 三分支/LDAP fake 矩阵）；gen-jmx-s9 生成 8 份计划（License 三态码生成期预计算；四类×四断言）；Playwright ENTP 10 用例（单文件串行防全局态互踩：授权二态/组织切换器/OIDC+钉钉 mock 全链/engine2 绑池执行/部门树/主题应用/模板渲染事件链）+ EXEC-002 门控断言并行安全化（读态↔按钮态重试环）；mock IdP s9-sso-mocks（多段平台路径路由）
+
+### 修复与加固
+
+- 修复 ENTP-005 preview POST 被兄弟动态段 `[event]` 405 吞并（迁静态路由 preview/）；修复 ENTP-008 createDepartment 环检测误传 parentId 作 departmentId 致所有子部门创建 90042 自环假报；修复 CAS XML 属性 `cas:` 前缀未剥离致映射落空；修复 SSO redirect_uri 用 base.siteUrl 默认 :3000 与实际端口不符（改取发起请求 origin，部署免配置）；修复 EXEC-002 与 ENTP 并行持证竞态（license-status 读态与按钮态一致重试环）
+
+### 测试与收口
+
+- Vitest 324（新增 48）；JMeter 63 计划（新增 8：ENTP-001~008）；Playwright 178（新增 10：ENTP-s9-enterprise 单文件串行 8 用例 + EXEC-002 改造）；OpenAPI 279→292 paths（`gen-openapi --check` 过）；权限点 91→109；错误码 118→152（90xxx 34 枚）
+- 8 规格 Draft→Approved→Implemented；8 组高保真原型（docs/design/ENTP-*/，人工确认随验收走查）；sprint-overview 交付自查回填
+
+## [v0.8.0] - 2026-09-28 — Sprint future 远期 P4（协议插件 · 外部工具契约 · 报告分析 · K8S 池 · 企业版占位）
+
+### 新增（全量交付：三层测试 + CI 全绿）
+
+- **WebSocket/MQTT 协议插件（PLUG-003）**：`plugins/websocket`（undici WebSocket 内联 CJS bundle，单 run 探活：连接→发送→收首条→close，超时 504/拒绝 502）与 `plugins/mqtt`（自研最小 MQTT 3.1.1 客户端——node:net 手工编解码 CONNECT/CONNACK/SUBSCRIBE/PUBLISH(QoS0)/DISCONNECT + 剩余长度 varint + `+/#` 通配匹配，零新增 npm 依赖）；插件名=协议标识（规避 tcp-conn 勘误坑）+具名 `createPlugin` 导出；双侧加载器（plugin-runner/引擎 registry）双层解包（CJS import() 命名空间适配）；请求编辑器协议选择器（内置/插件分组，非 http 协议 HTTP 面折叠+protocolConfig JSON 编辑区，调试页顶行经共用 `ProtocolSelect` 呈现）；定义/用例保存协议可用性校验 40511（PLUG-002 预留码首次兑现）；新增会话级 `GET /api/v1/plugins/protocols`（协议选项数据源，普通成员可见）；mock `/ws/echo` RFC6455 回显端点（e2e 采样目标）
+- **外部工具契约（TOOL-001/TOOL-002）**：`POST /api/v1/open/api-sync`（IDEA 插件批量 upsert，幂等键 method+path，软删复活，批内重复/超限 422·10023/10024）+ `GET /api/v1/open/api-definitions`（回读分页信封）+ `POST /api/v1/open/api-capture`（浏览器抓包导入：URL query 逐键拆解、敏感头五枚脱敏、skip-if-exists 不 bump version、ftp 等拒绝 10025）；APIKEY Basic(base64)/Bearer 双形态；插件本体=外部仓库交付（JVM/MV3，技术栈红线）
+- **报告高级分析（RPT-004，超出基线自主设计）**：`GET /reports/stats?days=7|14|30`（连续补零趋势/类型分布/失败 TOP5，内存聚合，非法 422·60422）+ 统计页 `/reports/stats`（报告页签导航、自绘 SVG 双序列趋势图零图表库、空态引导）
+- **K8S 型资源池（EXEC-004）**：默认池 type NODE↔K8S 切换 + `ResourcePool.config` JSONB 四项配置（apiServer 强制 https/namespace RFC1123/token 只写不读掩码/image 默认值；门禁 3 例外登记）+ `PUT ?test=true` apiServer /version 试连不落库（safe-fetch 新 `allowPrivateKeepLoopback` 口径：私网/ULA/CGNAT 放行、环回/链路本地/非路由拒；`POOL_K8S_ALLOW_LOOPBACK` 测试栈豁免）+ 池管理页 K8S 表单/试连三态/休眠往返 + task-runner Deployment 清单模板（附录 A）+ 池 DTO `loadTest/uiTest` 占位字段
+- **企业版占位（LOAD-001/UIT-001，清单 §12.10 同口径）**：模块开关 `load`/`uit`（缺省即关，存量零迁移）+ 保留权限点 `PROJECT_LOAD/UIT:READ`（SYSTEM_ADMIN/ORG_ADMIN/PROJECT_ADMIN 映射）+ 占位导航组与 `/load` `/ui-test` 企业版方向空态页；LOAD-002 分布式压测架构稿（拓扑/契约冻结，红线重申不自研压测内核，测试豁免登记）
+- **基础设施**：错误码 10023-10025/50422/50423/60422（guard 中央映射同步）；`moduleFlagsSchema` 扩 load/uit；jm 栈/e2e 栈 plugin-runner 端口隔离（PLUGIN_RUNNER_PORT 4030/4031，客户端默认跟随——多 worktree :4010 互抢第三案收口）；`gen-jmx-p4.mjs` 生成器（multipart 上传采样器/HeaderManager/JSR223 props 桥/多变量提取）
+
+### 修复与加固
+
+- **S6 潜伏缺陷三处（引擎协议链路首次真执行暴露）**：registry `webBaseUrl` 恒回退 :3000（不回退 WEB_URL→注册表恒空）；轮询鉴权头 Bearer vs `x-internal-token` 恒 401；step.ts 协议分派前 resolveUrl 把插件协议占位 url 误判「相对路径未选环境」——修复后引擎装载/执行链路（上传→启用→30s 轮询→CJS 装载→采样→报告）首次全通
+- **S1 潜伏**：`PUT /projects/{id}` zod `.parse` 失败曾 500（rules §4.5 无效参数禁 500）→ safeParse 422
+- plugin-runner bootstrap 与引擎 registry 工厂解析双层解包（CJS bundle 适配）；INTG-003 原型 `<uuid>` 未转义致 oxfmt 解析失败（顺手修复）；`pluginApi.list` 签名加可选 kind（plugins 页 queryFn 包箭头）
+- 规格勘误登记 15 则（description 裁撤/审计动作统一 open.exec/droppedBodies 裁撤/来源以变更历史承载/url 占位/协议选项数据源/CJS 双层解包/k8s 摘要恒回显/PoolUpdateInput=z.input/试连环回豁免/safe-fetch 选项化/reportStats 拆文件等，见各规格 §8）；Mimosa FP 台账 #4（RFC 6455 强制 SHA-1）
+
+### 测试与收口
+
+- 单测 348 全绿（新增 116：引擎插件两套件 19 含内嵌 ws echo/mini broker；web 39 含池守卫矩阵 9/试连三态/open-sync 幂等/统计聚合/SVG 路径；shared 13 权限点与错误码矩阵）
+- JMeter 新增 7 计划全绿（LOAD-002 豁免登记；四类×四断言，含 multipart 上传/409 版本递增/props 桥 Basic/收尾状态恢复防栈内泄漏）
+- Playwright 新增 5 spec 8 用例全绿（三类断言；含 ws 真执行对 mock echo 回显、引擎 30s 轮询重试容错、K8S 休眠往返、占位三态；TOOL 两规格无 UI 面豁免登记）
+- OpenAPI 快照 277→284 paths（--check 过）；typecheck 13/13；format 全绿
+
+## [v0.7.2] - 2026-09-28 — AI 智能助手 UI v2（Ant Design X 重构）
+
+### 变更
+
+- **AI 智能助手面板重构（AI-004 §9，用户验收反馈驱动）**：表现层全面换用 **@ant-design/x 1.6.1**（选 1.x 线 peer antd ^5.20.3；2.x 需 antd 6 属架构级升级不采用）——`Conversations` 会话栏（active 高亮 + hover ⋯ 菜单重命名/删除，替代双击重命名）、`Bubble.List` 气泡流（助手渐变头像/用户主题色渐变气泡/流式光标/错误态红边气泡）、`Sender` 圆角输入容器（动作条内联模型下拉 + 圆形发送钮，loading 态自动切换停止钮）、`Welcome + Prompts` 空态（三条能力建议卡点击即填入，竖排）；面板 560→720px
+- 后端 SSE 契约（delta/done/error 帧）、`streamAiChat`、会话服务**零改动**（jmx/单测不受影响）；全部 data-testid 保留，AI-004-01 会话定位器随 Conversations DOM 调整为文本定位（规格 §9 登记）
+- **SYS-007 本地执行页回填竞态修复（勘误 2）**：初始查询迟到时渲染期回填覆盖用户已输入地址（慢网可现：输入被抹→检测钮永久禁用）；新增依赖改变 chunk 时序后在 CI 确定性暴露——dirty 守卫（用户编辑后迟到回填不覆盖）
+- 规格 §3/§9 与 v2 高保真原型（docs/design/AI-004-ai-assistant/v2-antd-x/，先于编码产出）同步更新；视觉走查两轮（建议卡横排溢出→竖排修复、placeholder 折行修复）
+
+### 测试
+
+- **补齐 chat SSE 帧序列单测**（`chat-sse.test.ts`：delta*→done 顺序/done 载荷（messageId/conversationId/title 截 20）/半截 delta+error 帧兜底且助手不落库）——此前帧 wire 格式仅 e2e 断言，而 event-stream body 读取是 Playwright 弱支撑（AI 域并跑实测 flake：body 缓冲被驱逐即 protocol error）；e2e AI-004-01 改为容错读（读到则断言）并补请求负载断言
+- AI 域全量 e2e 回归（AI-001~005，并行 4 workers）绿；SYS-007 全 spec 绿；typecheck/oxlint 绿；jmx 无涉及（纯表现层+测试加固）
+
+## [v0.7.1] - 2026-09-28 — Mimosa 门禁误报根治（静态分析友好重构）
+
+### 变更（行为等价，rules/security.md §8.6 制度化）
+
+- **safeFetch 薄包装移除 → outboundDispatcher 工厂**（台账 #4 根治）：`safe-fetch.ts` 不再导出「直接以自身参数调 fetch」的包装（该形态被判 SSRF 入口，守卫语义无法被静态分析建模）；三调用方（AI 上游 chat-client / 通知 webhook robot-sender / Swagger 同步）改为模块级一次性构造 dispatcher 实例直连 `fetch(url, { dispatcher })`——连接期 IP 校验语义不变（同一 agentFor），env 豁免开关移至模块初始化消化（fetch 调用表达式零 env 读取）
+- **同名碰撞消链**（台账 #5 根治）：mock 单测局部 `post()` → `postCompletions`（曾与 Playwright `request.post` 误并 35 条跨文件污点）；e2e `s2-helpers.ts` 局部 `walk` → `flattenModules`（曾与 api/import.service 路径遍历 sink 误并 1 条）
+- **制度沉淀**：rules/security.md 新增 §8.6「根治优先」——三类已验证形态（dispatcher 工厂/env 出调用表达式/测试 helper 命名避撞）+ 验证口径（audit crossFile 归零 + 测试绿 + commit 实过门禁）；台账 #3/#4/#5 状态升级「已根治」
+
+### 测试
+
+- web 单测 118 全绿（safe-fetch 守卫矩阵不涉及）、mock 单测 12 全绿、typecheck/oxlint 绿；`mimosa audit --deep` crossFile **39→0**；S5 演示视频归档 commit 与本分支 commit 均实过 git-gate 无拦截
+
+## [v0.7.0] - 2026-09-28 — Sprint 8 稳定化（M9 标准版 GA 里程碑）
+
+### 新增（全量交付：三层测试 + CI 全绿）
+
+- **性能基线（QA-001）**：`scripts/perf-seed.mjs`（幂等万级种子：专用项目+10 模块+10k/1k 用例分批直插）；`scripts/perf-baseline.mjs` 三场景基准（万级列表+keyword/level 筛选 P95、报告详情 P95、100 并发 api_debug 任务全成功断言+吞吐统计；JSON+markdown 报告，超阈非零退出）；mock `/perf/echo` 回显端点（基准采样目标，排除外网抖动）；独立 `perf.yml` CI（PR=quick 1k/20、main+手动=full 10k/100）；`pnpm perf:seed/perf:baseline` 入口。本地 full 实测：列表 P95 11ms（阈值 1000）、报告 6ms（阈值 2000）、100/100 并发 772ms 全成功
+- **安全加固（QA-002）**：`safe-fetch`（undici Agent connect.lookup 连接期 IP 黑名单校验——校验与建连同一次解析，消 DNS rebinding TOCTOU；S7 登记残余收口）三处出站统一（AI chat/Swagger 同步/通知 webhook）；CSRF Origin 校验（非幂等+会话 cookie；Origin/Referer 不同源 403 10013；缺失放行——SameSite=Lax 第一层+非浏览器客户端兼容，规格登记决策）；安全响应头五枚（nosniff/DENY/Referrer-Policy/Permissions-Policy/HSTS）；登录暴力破解限流（IP 维度 5 次/10 分钟 429 10014，成功清零，XFF 首跳取 IP，审计留痕）；密码策略统一（≥8 位且含字母与数字，注册/创建/改密四处）；`pnpm audit --prod --audit-level high` 进 quality job（依赖升级收口：nodemailer 6→9、pnpm overrides postcss≥8.5.18/deepmerge-ts≥8——6 high 清零）
+- **可观测（INFRA-004）**：`@rabbit/shared/logger` 统一 pino logger（redact 脱敏矩阵含嵌套/数组、module 子 logger、ALS 请求上下文 reqId/userId/orgId/projectId 自动附带、TTY 单行美化自实现流；子路径导出防客户端 bundle 拉入 node:stream）；reqId 链路（middleware 生成/透传+x-request-id 注入+X-Request-Id 响应头）；访问日志（guard 五包装器统一：method/path/status/ms；open API 面同口径）；`GET /system/metrics` Prometheus 文本最小指标集（队列 depth/active/dead、引擎槽 used/cap、任务时长 P50/P95、HTTP 计数——权限 SYSTEM_METRICS:READ）；ready 增强（存储写探针+默认池 3 拍心跳，NO_ENGINE=1 跳过不阻塞）；全栈 console.* 清零（web/engine 服务路径；CLI 脚本例外）
+- **失败任务排障包（INFRA-004）**：`POST /reports/{taskId}/troubleshoot-pack`（任务定义快照+items 摘要+事件流末 50 帧+日志检索说明 → 单 JSON 直下；非 FAILED 422 70060 防直发；报告页「排障包」按钮仅失败任务渲染，三态原型走查）
+- **备份恢复（INFRA-004）**：`scripts/backup.mjs`（SQL 逻辑导出：全表行+附件/文件目录+manifest → tar.gz；勘误：embedded-postgres 发行包无 pg_dump 二进制，物理 dump 口径登记部署文档）；`scripts/restore.mjs`（manifest 校验+PG 大版本比对+TRUNCATE+外键拓扑序回放+jsonb 列类型处理+附件回放）；roundtrip 本地验证（seed→backup→restore→数据全量对齐）
+
+### 修复与加固
+
+- 登录路由未限流（暴力破解面）；出站 fetch 三处各自为政（解析期守卫可被 rebinding 绕过）；middleware 无安全头；jmeter 栈 JM_MOCK_PORT 未导出（RUN_SCRIPT 场景 mock 端口拼错）
+- 规格勘误登记：排障包 tar.gz→单 JSON（免新依赖+中文文件名风险）；排障包 LOG_FILE 日志片段裁撤（env 路径读取=路径穿越面，Mimosa 拦截成立；进程日志口径=stdout 按 execTaskId 检索）；排障包 URL 段对齐 reports/[taskId]（与报告详情同口径）
+
+### 测试与收口
+
+- 单测新增 43（shared 27：logger redact/ALS/logFor+密码策略矩阵；web 16：safe-fetch IP 矩阵+连接期 rebinding/CSRF 判定矩阵/限流窗口语义/HTTP 计数器），shared 114+web 118 全绿
+- JMeter 新增 3 计划（QA-001 mock echo 四类、QA-002 安全头/CSRF/限流/弱密码四类、INFRA-004 metrics/ready/排障包四类——HeaderAssertion 换 ResponseAssertion 响应头字段，5.6.3 无该类），全量 55 计划全绿
+- Playwright 新增 2 spec 4 用例（登录限流三态 XFF 隔离+route 注入、排障包按钮三态+直发 422），全量全新口径全绿
+- OpenAPI 快照 277→279 paths（--check 通过）；依赖审计 prod high=0
+
 ## [v0.6.0] - 2026-09-28 — Sprint 5 协作通知（M6 里程碑）
 
 ### 新增（全量交付：三层测试 + CI 全绿）
@@ -126,7 +224,6 @@
 - 场景树聚合含 engine 根前缀产生的无帧包装层（报告树多一层「步骤 0」）——纯包装层剥离（迭代组聚合形态保留）
 - 批量执行弹窗对无 SYSTEM_POOL:READ 的项目管理员拉系统池列表（页面恒 403 噪声）——按权限拉取回落默认池
 - instrumentation.ts 被双 runtime 编译（edge bundle 解析 pg/fs 失败）——S3 逻辑迁 instrumentation-node.ts（nodejs-only，Next 15.3+ 约定）；客户端组件误引 @rabbit/shared/execution 聚合入口（node:crypto 进浏览器 bundle）——csv/function-catalog 细粒度子路径导出
-
 
 ## [v0.3.0] - 2026-09-27 — Sprint 2 接口测试核心（M3 里程碑）
 

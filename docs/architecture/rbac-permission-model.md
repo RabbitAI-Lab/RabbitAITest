@@ -68,12 +68,15 @@ ENTP_SSO:UPDATE  ENTP_POOL:CREATE|UPDATE        # 企业版权限点（License �
 - 组织级资源强制 `org_id`；跨域引用只经 Provider 接口（test-domain-model §3）
 - 任务中心/日志按用户所在 org/project 范围过滤
 
-## 6. License 门控（企业版开关）
+## 6. License 门控（企业版开关）——S9 ENTP-007 已实现
 
-```python
-def gated(feature: EntpFeature):   # MULTI_ORG / SSO / MULTI_POOL / THEME / MSG_TEMPLATE / USER_SCALE
-    # LicenseService.valid() 且 feature 授权 → 放行；否则 403(90xxx)
+```ts
+// apps/web/src/server/domains/entp/license.service.ts（全仓唯一门控入口）
+assertEntpEnabled(feature: EntpFeature): void
+// MULTI_ORG / SSO / MULTI_POOL / THEME / MSG_TEMPLATE / USER_SCALE（packages/shared/src/entp/features.ts）
+// 无有效 License → 403 90001；特性未授权 → 403 90005；与 10003（RBAC）正交：先权限后门控
 ```
 
-- 门控点集中登记（`entp_features.py`），企业版功能端点必须经 `@gated` 装饰，Code Review 按 ENTP 前缀规格核对
-- 前端对应菜单/按钮隐藏；社区版容量限制（默认池唯一、用户上限）在后端强制，前端只做提示
+- 门控点集中登记（`license.service.ts` + `ENTP_FEATURES` 目录），企业版功能端点必须在 Route Handler 内调用 `assertEntpEnabled`，Code Review 按 ENTP 前缀规格核对
+- 前端对应菜单/按钮经 `GET /api/v1/public/license-status`（无鉴权）驱动禁用+锁提示；社区版容量限制（默认池唯一、用户上限 30）在后端强制，前端只做提示
+- 权限点兑现：`SYSTEM_LICENSE:READ|UPDATE`、`ENTP_ORG:READ|CREATE|UPDATE|DELETE`、`ENTP_SSO:READ|CREATE|UPDATE|DELETE`、`ENTP_POOL:CREATE|UPDATE|DELETE`、`ORG_DEPARTMENT:READ|CREATE|UPDATE|DELETE`（§3 预登记语义落地）

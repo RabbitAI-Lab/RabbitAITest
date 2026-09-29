@@ -1,5 +1,6 @@
 /** EXEC-002/006 runner v4：api_debug 单请求 + api_case 批量（串行）+ scenario 场景（串行/并行）+ plan 计划（S4）。 */
-import { config, execCommandSchema, execStopKey } from "@rabbit/shared";
+import { config, execCommandSchema, execStopKey, execQueueNameFor } from "@rabbit/shared";
+import { logFor } from "@rabbit/shared/logger";
 import type { ExecCallback, ExecCommand } from "@rabbit/shared/execution";
 import { heartbeatResponseSchema } from "@rabbit/shared/execution";
 import { Worker } from "bullmq";
@@ -22,7 +23,10 @@ async function isStopped(redis: Redis, taskId: string): Promise<boolean> {
 }
 
 /** 任务执行（kernel 流程：指令 → 事件流 → 终态回调）。 */
-export async function runTask(redis: Redis, command: unknown): Promise<"success" | "failed" | "stopped"> {
+export async function runTask(
+  redis: Redis,
+  command: unknown,
+): Promise<"success" | "failed" | "stopped"> {
   const cmd = execCommandSchema.parse(command) as ExecCommand;
   const writer = new EventWriter(redis, cmd.taskId);
   const envVarUpdates: { name: string; value: string }[] = [];
@@ -39,13 +43,29 @@ export async function runTask(redis: Redis, command: unknown): Promise<"success"
     await writer.emit({
       type: "task-final",
       outcome,
-      ...(failureKind ? { failureKind: failureKind as "NETWORK_ERROR" | "ASSERT_FAILED" | "CONFIG_ERROR" | "SCRIPT_ERROR" } : {}),
+      ...(failureKind
+        ? {
+            failureKind: failureKind as
+              | "NETWORK_ERROR"
+              | "ASSERT_FAILED"
+              | "CONFIG_ERROR"
+              | "SCRIPT_ERROR",
+          }
+        : {}),
       message: message ?? "",
       ...(stats ? { stats } : {}),
     });
     const cb: ExecCallback = {
       outcome,
-      ...(failureKind ? { failureKind: failureKind as "NETWORK_ERROR" | "ASSERT_FAILED" | "CONFIG_ERROR" | "SCRIPT_ERROR" } : {}),
+      ...(failureKind
+        ? {
+            failureKind: failureKind as
+              | "NETWORK_ERROR"
+              | "ASSERT_FAILED"
+              | "CONFIG_ERROR"
+              | "SCRIPT_ERROR",
+          }
+        : {}),
       message: message ?? "",
       lastSeq: writer.lastSeq,
       varUpdates: envVarUpdates,
@@ -60,14 +80,21 @@ export async function runTask(redis: Redis, command: unknown): Promise<"success"
       level: "info",
       message: `任务开始 ${cmd.request.method} ${cmd.request.url}`,
     });
-    const r = await runStep(redis, writer, cmd.envSnapshot, tempVars, {
-      request: cmd.request,
-      asserts: cmd.asserts,
-      pre: cmd.pre,
-      post: cmd.post,
-      extracts: cmd.extracts,
-      counter,
-    }, envVarUpdates);
+    const r = await runStep(
+      redis,
+      writer,
+      cmd.envSnapshot,
+      tempVars,
+      {
+        request: cmd.request,
+        asserts: cmd.asserts,
+        pre: cmd.pre,
+        post: cmd.post,
+        extracts: cmd.extracts,
+        counter,
+      },
+      envVarUpdates,
+    );
     return finish(r.status === "SUCCESS" ? "success" : "failed", r.failureKind, r.message);
   }
 
@@ -79,12 +106,22 @@ export async function runTask(redis: Redis, command: unknown): Promise<"success"
     if (cmd.mode === "serial") {
       for (const item of cmd.items) {
         if (stoppedAll) {
-          await writer.emit({ type: "item-final", itemId: item.itemId, status: "SKIPPED", message: "前序失败（失败停止）" });
+          await writer.emit({
+            type: "item-final",
+            itemId: item.itemId,
+            status: "SKIPPED",
+            message: "前序失败（失败停止）",
+          });
           continue;
         }
         if (await isStopped(redis, cmd.taskId)) {
           stoppedAll = true;
-          await writer.emit({ type: "item-final", itemId: item.itemId, status: "STOPPED", message: "任务被停止" });
+          await writer.emit({
+            type: "item-final",
+            itemId: item.itemId,
+            status: "STOPPED",
+            message: "任务被停止",
+          });
           continue;
         }
         // tempVars item 级隔离（变量链不跨场景）；envVarUpdates/counter 任务级共享
@@ -106,7 +143,12 @@ export async function runTask(redis: Redis, command: unknown): Promise<"success"
       const jobs = cmd.items.map((item) =>
         limit(async () => {
           if (stoppedAll) {
-            await writer.emit({ type: "item-final", itemId: item.itemId, status: "SKIPPED", message: "失败停止（未开始）" });
+            await writer.emit({
+              type: "item-final",
+              itemId: item.itemId,
+              status: "SKIPPED",
+              message: "失败停止（未开始）",
+            });
             return;
           }
           const itemTempVars: Record<string, string> = {};
@@ -124,7 +166,8 @@ export async function runTask(redis: Redis, command: unknown): Promise<"success"
 
     const passed = [...itemOutcomes.values()].filter((r) => r.status === "SUCCESS").length;
     const failed = [...itemOutcomes.values()].filter((r) => r.status === "FAILED").length;
-    const outcome: "success" | "failed" | "stopped" = stopped && failed === 0 ? "stopped" : failed > 0 ? "failed" : "success";
+    const outcome: "success" | "failed" | "stopped" =
+      stopped && failed === 0 ? "stopped" : failed > 0 ? "failed" : "success";
     return finish(
       outcome,
       failed > 0 ? "ASSERT_FAILED" : undefined,
@@ -147,13 +190,23 @@ export async function runTask(redis: Redis, command: unknown): Promise<"success"
     if (cmd.mode === "serial") {
       for (const item of cmd.items) {
         if (stoppedAll) {
-          await writer.emit({ type: "item-final", itemId: item.command.itemId, status: "SKIPPED", message: "前序失败（失败停止）" });
+          await writer.emit({
+            type: "item-final",
+            itemId: item.command.itemId,
+            status: "SKIPPED",
+            message: "前序失败（失败停止）",
+          });
           outcomes.set(item.command.itemId, { status: "SKIPPED", message: "前序失败（失败停止）" });
           continue;
         }
         if (await isStopped(redis, cmd.taskId)) {
           stoppedAll = true;
-          await writer.emit({ type: "item-final", itemId: item.command.itemId, status: "STOPPED", message: "任务被停止" });
+          await writer.emit({
+            type: "item-final",
+            itemId: item.command.itemId,
+            status: "STOPPED",
+            message: "任务被停止",
+          });
           outcomes.set(item.command.itemId, { status: "STOPPED", message: "任务被停止" });
           continue;
         }
@@ -170,7 +223,12 @@ export async function runTask(redis: Redis, command: unknown): Promise<"success"
       const jobs = cmd.items.map((item) =>
         limit(async () => {
           if (stoppedAll) {
-            await writer.emit({ type: "item-final", itemId: item.command.itemId, status: "SKIPPED", message: "失败停止（未开始）" });
+            await writer.emit({
+              type: "item-final",
+              itemId: item.command.itemId,
+              status: "SKIPPED",
+              message: "失败停止（未开始）",
+            });
             outcomes.set(item.command.itemId, { status: "SKIPPED", message: "失败停止（未开始）" });
             return;
           }
@@ -183,7 +241,8 @@ export async function runTask(redis: Redis, command: unknown): Promise<"success"
     }
     const passed = [...outcomes.values()].filter((r) => r.status === "SUCCESS").length;
     const failed = [...outcomes.values()].filter((r) => r.status === "FAILED").length;
-    const outcome: "success" | "failed" | "stopped" = stopped && failed === 0 ? "stopped" : failed > 0 ? "failed" : "success";
+    const outcome: "success" | "failed" | "stopped" =
+      stopped && failed === 0 ? "stopped" : failed > 0 ? "failed" : "success";
     return finish(
       outcome,
       failed > 0 ? "ASSERT_FAILED" : undefined,
@@ -199,26 +258,43 @@ export async function runTask(redis: Redis, command: unknown): Promise<"success"
   let stopOnFail = cmd.stopOnFail;
   for (const item of cmd.items) {
     if (stopped) {
-      await writer.emit({ type: "item-final", itemId: item.itemId, status: "SKIPPED", message: "前序失败（失败停止）" });
+      await writer.emit({
+        type: "item-final",
+        itemId: item.itemId,
+        status: "SKIPPED",
+        message: "前序失败（失败停止）",
+      });
       continue;
     }
     if (await isStopped(redis, cmd.taskId)) {
       stopped = true;
-      await writer.emit({ type: "item-final", itemId: item.itemId, status: "STOPPED", message: "任务被停止" });
+      await writer.emit({
+        type: "item-final",
+        itemId: item.itemId,
+        status: "STOPPED",
+        message: "任务被停止",
+      });
       continue;
     }
     await writer.emit({ type: "item-start", itemId: item.itemId, name: item.name });
-    const r = await runStep(redis, writer, cmd.envSnapshot, tempVars, {
-      itemId: item.itemId,
-      name: item.name,
-      moduleId: item.moduleId,
-      request: item.request,
-      asserts: item.asserts,
-      pre: item.pre,
-      post: item.post,
-      extracts: item.extracts,
-      counter,
-    }, envVarUpdates);
+    const r = await runStep(
+      redis,
+      writer,
+      cmd.envSnapshot,
+      tempVars,
+      {
+        itemId: item.itemId,
+        name: item.name,
+        moduleId: item.moduleId,
+        request: item.request,
+        asserts: item.asserts,
+        pre: item.pre,
+        post: item.post,
+        extracts: item.extracts,
+        counter,
+      },
+      envVarUpdates,
+    );
     if (r.status === "STOPPED") {
       stopped = true; // 余项 SKIPPED（循环顶部处理）
       await writer.emit({
@@ -256,12 +332,14 @@ export async function runTask(redis: Redis, command: unknown): Promise<"success"
   );
 }
 
-/** worker + 注册/心跳 v2（busy 槽位 + 在执任务清单 + 并发动态下发，EXEC-002 §2）。 */
+/** worker + 注册/心跳 v2（busy 槽位 + 在执任务清单 + 并发动态下发，EXEC-002 §2；ENTP-006 POOL_ID 池绑定）。 */
 export function startWorker(): void {
   const connection = new Redis(config.redisUrl, { maxRetriesPerRequest: null });
   let inFlight = new Set<string>();
+  // ENTP-006：engine 进程绑定池（env POOL_ID，缺省默认池=exec 队列，单引擎部署零感知）
+  const queueName = execQueueNameFor(config.enginePoolId);
   const worker = new Worker(
-    config.execQueueName,
+    queueName,
     async (job) => {
       if (job.name !== "exec") return;
       const taskId = String((job.data as { taskId?: string }).taskId ?? job.id ?? "");
@@ -275,7 +353,7 @@ export function startWorker(): void {
     { connection: connection.duplicate(), concurrency: 4 },
   );
   worker.on("failed", (job, err) => {
-    console.error(`[engine] job ${job?.id} failed: ${err.message}`);
+    logFor("engine").error({ jobId: job?.id, err }, "job failed");
   });
 
   let configuredConcurrency = 4;
@@ -291,6 +369,7 @@ export function startWorker(): void {
           busy: inFlight.size,
           taskIds: [...inFlight],
           ts: Date.now(),
+          poolId: config.enginePoolId,
         }),
       });
       if (res.ok) {
@@ -299,13 +378,16 @@ export function startWorker(): void {
           configuredConcurrency = parsed.data.maxConcurrency;
           poolConcurrency = configuredConcurrency;
           worker.concurrency = configuredConcurrency; // BullMQ 运行时并发调整（EXEC-002 §2）
-          console.log(`[engine] pool maxConcurrency → ${configuredConcurrency}`);
+          logFor("engine").info(
+            { maxConcurrency: configuredConcurrency },
+            "pool maxConcurrency updated",
+          );
         }
       } else {
-        console.warn(`[engine] heartbeat HTTP ${res.status}`);
+        logFor("engine").warn({ status: res.status }, "heartbeat http error");
       }
     } catch (e) {
-      console.warn(`[engine] heartbeat failed: ${e instanceof Error ? e.message : e}`);
+      logFor("engine").warn({ err: e }, "heartbeat failed");
     }
   };
   void beat();
@@ -320,5 +402,8 @@ export function startWorker(): void {
   process.on("SIGTERM", () => void shutdown());
   // S6 PLUG-002：协议插件注册表周期同步（30s 轮询 web internal 清单；版本变更才拉包）
   startProtocolSync();
-  console.log(`[engine] worker v${VERSION} started nodeId=${NODE_ID}`);
+  logFor("engine").info(
+    { version: VERSION, nodeId: NODE_ID, queue: queueName, poolId: config.enginePoolId },
+    "worker started",
+  );
 }

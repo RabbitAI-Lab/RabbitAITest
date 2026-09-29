@@ -1,6 +1,5 @@
 import { test, expect } from "./fixtures";
-import { robotWebhookUrl, robotCalls, clearRobotCalls, fetchUnreadTitles } from "./s5-helpers";
-import { E2E_BASE } from "./env";
+import { robotWebhookUrl, robotCalls, clearRobotCalls, readUnreadTitles } from "./s5-helpers";
 
 const MEMBER_PASSWORD = process.env.E2E_USER_PASSWORD ?? "rabbit-pass-123";
 
@@ -59,6 +58,7 @@ test.describe("MSG-001 通知机器人", () => {
 
   test("T3 事件链路：BUG_CREATED → 站内信（接收人；操作人去重）+ mock webhook", async ({
     page,
+    browser,
     authedPage,
     request,
     expectNoConsoleErrors,
@@ -134,13 +134,15 @@ test.describe("MSG-001 通知机器人", () => {
     });
     expect(bug.status()).toBe(201);
 
-    // ① member 收到站内信（API 断言）
-    const memberLogin = await request.post("/api/v1/auth/login", {
+    // ① member 收到站内信（API 断言；S8 改造：独立浏览器上下文承载 member 会话——
+    //    cookie 由 jar 自动管理，无响应 cookie 流入网络调用的显式污点链，Mimosa high 根因消除）
+    const memberCtx = await browser.newContext();
+    const memberLogin = await memberCtx.request.post("/api/v1/auth/login", {
       data: { email: memberEmail, password: MEMBER_PASSWORD },
     });
-    const rasCookie =
-      (memberLogin.headers()["set-cookie"] ?? "").split("ras=")[1]?.split(";")[0] ?? "";
-    const titles = await fetchUnreadTitles(E2E_BASE, rasCookie);
+    expect(memberLogin.status()).toBe(200);
+    const titles = await readUnreadTitles(memberCtx.request);
+    await memberCtx.close();
     expect(titles.some((t) => t.includes("e2e-通知触发缺陷") && t.includes("新建"))).toBeTruthy();
     // ② 操作人（admin）本人不收（同人去重）
     const own = await page.request.get("/api/v1/personal/notifications?unread=true");

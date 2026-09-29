@@ -35,12 +35,12 @@ export async function listModules(projectId: string, scene: string) {
                 _count: { _all: true },
               })
             : scene === "file"
-            ? await prisma.fileItem.groupBy({
-                by: ["moduleId"],
-                where: { projectId, deletedAt: null },
-                _count: { _all: true },
-              })
-            : [];
+              ? await prisma.fileItem.groupBy({
+                  by: ["moduleId"],
+                  where: { projectId, deletedAt: null },
+                  _count: { _all: true },
+                })
+              : [];
   const countMap = new Map<string, number>();
   for (const c of counts)
     if (c.moduleId) countMap.set(c.moduleId, (c._count as { _all: number })._all);

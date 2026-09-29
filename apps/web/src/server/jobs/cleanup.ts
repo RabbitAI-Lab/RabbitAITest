@@ -4,6 +4,7 @@
  */
 import { Queue, Worker } from "bullmq";
 import { config } from "@rabbit/shared";
+import { logFor } from "@rabbit/shared/logger";
 import { prisma } from "@rabbit/db";
 import { readParam, updateParam } from "@/server/domains/system/param.service";
 
@@ -54,7 +55,7 @@ export async function runCleanupOnce(
       await purgeProject(p.id);
       purgedProjects += 1;
     } catch (err) {
-      console.warn("[cleanup] purge project failed", p.id, err);
+      logFor("cleanup").warn({ projectId: p.id, err }, "purge project failed");
     }
   }
   const prev = await readParam("cleanup");
@@ -65,7 +66,7 @@ export async function runCleanupOnce(
     lastRunCount: changes + audits,
   }).catch(() => undefined);
   void prev;
-  console.log(JSON.stringify({ msg: "cleanup done", changes, audits, at: now.toISOString() }));
+  logFor("cleanup").info({ changes, audits, purgedProjects }, "cleanup done");
   return { changes, audits, purgedProjects };
 }
 
@@ -89,11 +90,8 @@ export async function ensureCleanupScheduler(): Promise<void> {
       connection: { url: config.redisUrl },
       concurrency: 1,
     });
-    console.log("[cleanup] scheduler ready (daily 03:00)");
+    logFor("cleanup").info("scheduler ready (daily 03:00)");
   } catch (err) {
-    console.warn(
-      "[cleanup] Redis 不可用，定时清理未注册：",
-      err instanceof Error ? err.message : err,
-    );
+    logFor("cleanup").warn({ err }, "Redis 不可用，定时清理未注册");
   }
 }

@@ -1,6 +1,16 @@
 "use client";
 
-import { Button, Checkbox, Drawer, Empty, Input, Select, Skeleton, TreeSelect, message } from "antd";
+import {
+  Button,
+  Checkbox,
+  Drawer,
+  Empty,
+  Input,
+  Select,
+  Skeleton,
+  TreeSelect,
+  message,
+} from "antd";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import {
@@ -13,7 +23,12 @@ import {
 } from "@rabbit/api-client";
 import { toTreeSelectData } from "@/components/CaseForm";
 
-const LEVEL_MAP: Record<AiCaseDraft["level"], string> = { critical: "P0", high: "P1", medium: "P2", low: "P3" };
+const LEVEL_MAP: Record<AiCaseDraft["level"], string> = {
+  critical: "P0",
+  high: "P1",
+  medium: "P2",
+  low: "P3",
+};
 // 静态类映射（Tailwind JIT 不编译动态拼接——S1 勘误 1 同款坑）
 const LEVEL_CLS: Record<AiCaseDraft["level"], string> = {
   critical: "bg-red-50 text-red-500",
@@ -56,7 +71,11 @@ export function AiCaseGenerateDrawer({
     queryFn: () => listAiPrompts(projectId),
     enabled: open,
   });
-  const models = useQuery({ queryKey: ["ai-model-picker"], queryFn: listEnabledAiModels, enabled: open });
+  const models = useQuery({
+    queryKey: ["ai-model-picker"],
+    queryFn: listEnabledAiModels,
+    enabled: open,
+  });
 
   const casePrompts = (prompts.data?.list ?? []).filter((p) => p.scene === "case_gen" && p.enabled);
   const defaultPrompt = casePrompts.find((p) => p.isDefault);
@@ -100,7 +119,8 @@ export function AiCaseGenerateDrawer({
       }
     }
     setImporting(false);
-    if (ok > 0) message.success(`成功导入 ${ok} 条${fails.length ? `，失败 ${fails.length} 条` : ""}`);
+    if (ok > 0)
+      message.success(`成功导入 ${ok} 条${fails.length ? `，失败 ${fails.length} 条` : ""}`);
     if (fails.length > 0) message.error(fails.slice(0, 3).join("；"));
     if (ok > 0) {
       onImported?.();
@@ -109,7 +129,13 @@ export function AiCaseGenerateDrawer({
   };
 
   return (
-    <Drawer title="✦ AI 生成用例" open={open} onClose={onClose} width={640} data-testid="ai-case-generate-drawer">
+    <Drawer
+      title="✦ AI 生成用例"
+      open={open}
+      onClose={onClose}
+      width={640}
+      data-testid="ai-case-generate-drawer"
+    >
       <div className="space-y-3">
         <div>
           <p className="text-xs text-slate-500 mb-1">
@@ -133,7 +159,10 @@ export function AiCaseGenerateDrawer({
               onChange={setModuleId}
               allowClear
               treeDefaultExpandAll
-              treeData={[{ title: "未分组", value: "", children: [] }, ...toTreeSelectData(modules.data?.items ?? [])]}
+              treeData={[
+                { title: "未分组", value: "", children: [] },
+                ...toTreeSelectData(modules.data?.items ?? []),
+              ]}
               data-testid="ai-case-module"
             />
           </div>
@@ -145,7 +174,10 @@ export function AiCaseGenerateDrawer({
               onChange={setTemplateId}
               options={[
                 { value: "", label: "内置默认" },
-                ...casePrompts.map((p) => ({ value: p.id, label: `${p.isDefault ? "★ " : ""}${p.name}` })),
+                ...casePrompts.map((p) => ({
+                  value: p.id,
+                  label: `${p.isDefault ? "★ " : ""}${p.name}`,
+                })),
               ]}
               data-testid="ai-case-template"
             />
@@ -158,32 +190,60 @@ export function AiCaseGenerateDrawer({
               onChange={setModelId}
               placeholder="默认模型"
               allowClear
-              options={(models.data?.list ?? []).map((m) => ({ value: m.id, label: `${m.isDefault ? "★ " : ""}${m.model}` }))}
+              options={(models.data?.list ?? []).map((m) => ({
+                value: m.id,
+                label: `${m.isDefault ? "★ " : ""}${m.model}`,
+              }))}
               data-testid="ai-case-model"
             />
           </div>
         </div>
-        <Button type="primary" loading={generating} onClick={generate} disabled={!requirement.trim()} data-testid="ai-case-generate">
+        <Button
+          type="primary"
+          loading={generating}
+          onClick={generate}
+          disabled={!requirement.trim()}
+          data-testid="ai-case-generate"
+        >
           生成草稿
         </Button>
 
         {generating && <Skeleton active paragraph={{ rows: 4 }} />}
         {!generating && skipped.length > 0 && (
-          <p className="text-xs text-amber-500">已剔除 {skipped.length} 条不合格草稿（{skipped.map((s) => s.reason).slice(0, 2).join("；")}）</p>
+          <p className="text-xs text-amber-500">
+            已剔除 {skipped.length} 条不合格草稿（
+            {skipped
+              .map((s) => s.reason)
+              .slice(0, 2)
+              .join("；")}
+            ）
+          </p>
         )}
         {!generating && drafts.length === 0 && skipped.length === 0 && (
-          <Empty description={models.data?.total === 0 ? "尚未配置 AI 模型——请联系管理员在 系统管理 → 模型设置 配置" : "生成后在此勾选导入"} />
+          <Empty
+            description={
+              models.data?.total === 0
+                ? "尚未配置 AI 模型——请联系管理员在 系统管理 → 模型设置 配置"
+                : "生成后在此勾选导入"
+            }
+          />
         )}
         <div className="space-y-2" data-testid="ai-case-drafts">
           {drafts.map((d, i) => (
-            <label key={i} className="block border rounded-lg p-3 space-y-1.5 cursor-pointer hover:border-[#574BFF]/40" data-testid={`ai-case-draft-${i}`}>
+            <label
+              key={i}
+              className="block border rounded-lg p-3 space-y-1.5 cursor-pointer hover:border-[#574BFF]/40"
+              data-testid={`ai-case-draft-${i}`}
+            >
               <div className="flex items-center gap-2">
                 <Checkbox
                   checked={!!checked[i]}
                   onChange={(e) => setChecked((prev) => ({ ...prev, [i]: e.target.checked }))}
                 />
                 <span className="font-medium text-[13px]">{d.name}</span>
-                <span className={`text-[10px] border rounded px-1 ml-auto ${LEVEL_CLS[d.level]}`}>{LEVEL_MAP[d.level]}</span>
+                <span className={`text-[10px] border rounded px-1 ml-auto ${LEVEL_CLS[d.level]}`}>
+                  {LEVEL_MAP[d.level]}
+                </span>
               </div>
               {d.prerequisite && <p className="text-xs text-slate-400">前置：{d.prerequisite}</p>}
               <p className="text-xs text-slate-400">
@@ -205,10 +265,17 @@ export function AiCaseGenerateDrawer({
         </div>
         {drafts.length > 0 && (
           <div className="flex items-center gap-2">
-            <Button type="primary" loading={importing} onClick={importSelected} data-testid="ai-case-import">
+            <Button
+              type="primary"
+              loading={importing}
+              onClick={importSelected}
+              data-testid="ai-case-import"
+            >
               导入所选 ({drafts.filter((_, i) => checked[i]).length})
             </Button>
-            <span className="text-xs text-slate-400">导入走用例创建接口，模块/模板/权限真实校验</span>
+            <span className="text-xs text-slate-400">
+              导入走用例创建接口，模块/模板/权限真实校验
+            </span>
           </div>
         )}
       </div>

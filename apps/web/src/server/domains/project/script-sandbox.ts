@@ -85,7 +85,9 @@ export async function runScriptDebug(
   } catch (err) {
     if (err instanceof ScriptDebugError) throw err;
     const msg = err instanceof Error ? err.message : String(err);
-    throw new ScriptDebugError(/interrupt|deadline|timeout/i.test(msg) ? "脚本执行超时（>5s）" : msg);
+    throw new ScriptDebugError(
+      /interrupt|deadline|timeout/i.test(msg) ? "脚本执行超时（>5s）" : msg,
+    );
   } finally {
     context.dispose();
     runtime.dispose();

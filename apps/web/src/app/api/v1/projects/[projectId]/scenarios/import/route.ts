@@ -12,13 +12,26 @@ export const POST = withProjectScope(async (ctx, req) => {
     ctx.requireWritable();
     const form = await req.formData();
     const file = form.get("file");
-    if (!(file instanceof File)) return NextResponse.json({ code: 20422, message: "缺少 file 字段", data: null }, { status: 422 });
+    if (!(file instanceof File))
+      return NextResponse.json(
+        { code: 20422, message: "缺少 file 字段", data: null },
+        { status: 422 },
+      );
     if (file.size > 2 * 1024 * 1024) {
-      return NextResponse.json({ code: 50010, message: "导入文件超出大小上限（2MB）", data: null }, { status: 422 });
+      return NextResponse.json(
+        { code: 50010, message: "导入文件超出大小上限（2MB）", data: null },
+        { status: 422 },
+      );
     }
     const moduleId = form.get("moduleId");
     const content = await file.text();
-    const r = await importScenarios(ctx.projectId, ctx.userId, file.name, content, typeof moduleId === "string" && moduleId ? moduleId : undefined);
+    const r = await importScenarios(
+      ctx.projectId,
+      ctx.userId,
+      file.name,
+      content,
+      typeof moduleId === "string" && moduleId ? moduleId : undefined,
+    );
     return NextResponse.json(ok(r), { status: 201 });
   } catch (err) {
     return toResponse(err);

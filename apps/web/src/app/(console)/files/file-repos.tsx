@@ -6,7 +6,12 @@ import { useState } from "react";
 import { fileRepoApi, type FileRepoRow } from "@rabbit/api-client";
 import { useApp } from "@/hooks/useApp";
 
-const PLATFORM_LABEL: Record<string, string> = { gitea: "Gitea", github: "GitHub", gitlab: "GitLab", gitee: "Gitee" };
+const PLATFORM_LABEL: Record<string, string> = {
+  gitea: "Gitea",
+  github: "GitHub",
+  gitlab: "GitLab",
+  gitee: "Gitee",
+};
 
 /** FILE-001：存储库管理弹窗（连接/测试/拉取）。 */
 export function FileReposModal({ projectId, onClose }: { projectId: string; onClose: () => void }) {
@@ -52,11 +57,26 @@ export function FileReposModal({ projectId, onClose }: { projectId: string; onCl
   });
 
   return (
-    <Modal title="存储库管理（Git 平台对接）" open footer={null} onCancel={onClose} width={760} destroyOnClose>
+    <Modal
+      title="存储库管理（Git 平台对接）"
+      open
+      footer={null}
+      onCancel={onClose}
+      width={760}
+      destroyOnClose
+    >
       <div className="space-y-3">
         <div className="flex items-center">
-          <span className="text-xs text-gray-400">Gitea / GitHub / GitLab / Gitee · Token 加密存储永不回显 · 地址过 SSRF 出站守卫</span>
-          <Button className="ml-auto" size="small" type="primary" onClick={() => setCreateOpen(true)} data-testid="btn-new-file-repo">
+          <span className="text-xs text-gray-400">
+            Gitea / GitHub / GitLab / Gitee · Token 加密存储永不回显 · 地址过 SSRF 出站守卫
+          </span>
+          <Button
+            className="ml-auto"
+            size="small"
+            type="primary"
+            onClick={() => setCreateOpen(true)}
+            data-testid="btn-new-file-repo"
+          >
             ＋ 连接存储库
           </Button>
         </div>
@@ -68,24 +88,60 @@ export function FileReposModal({ projectId, onClose }: { projectId: string; onCl
           pagination={false}
           data-testid="file-repo-table"
           columns={[
-            { title: "平台", dataIndex: "platform", width: 90, render: (v: string) => <Tag>{PLATFORM_LABEL[v] ?? v}</Tag> },
-            { title: "地址", dataIndex: "url", render: (v: string) => <code className="text-xs text-gray-500">{v}</code> },
-            { title: "Token", dataIndex: "hasToken", width: 130, render: (v: boolean) => (v ? <span className="text-xs text-gray-500">● 已配置</span> : <span className="text-xs text-gray-400">○ 未配置</span>) },
+            {
+              title: "平台",
+              dataIndex: "platform",
+              width: 90,
+              render: (v: string) => <Tag>{PLATFORM_LABEL[v] ?? v}</Tag>,
+            },
+            {
+              title: "地址",
+              dataIndex: "url",
+              render: (v: string) => <code className="text-xs text-gray-500">{v}</code>,
+            },
+            {
+              title: "Token",
+              dataIndex: "hasToken",
+              width: 130,
+              render: (v: boolean) =>
+                v ? (
+                  <span className="text-xs text-gray-500">● 已配置</span>
+                ) : (
+                  <span className="text-xs text-gray-400">○ 未配置</span>
+                ),
+            },
             {
               title: "操作",
               width: 240,
               render: (_: unknown, r: FileRepoRow) => (
                 <Space size={4}>
-                  <Button size="small" type="link" loading={test.isPending && test.variables === r.id} onClick={() => test.mutate(r.id)}>
+                  <Button
+                    size="small"
+                    type="link"
+                    loading={test.isPending && test.variables === r.id}
+                    onClick={() => test.mutate(r.id)}
+                  >
                     测试
                   </Button>
-                  <Button size="small" type="link" onClick={() => { setPullTarget(r); setPullBranch("main"); setPullPath(""); }} data-testid={`repo-pull-${r.id}`}>
+                  <Button
+                    size="small"
+                    type="link"
+                    onClick={() => {
+                      setPullTarget(r);
+                      setPullBranch("main");
+                      setPullPath("");
+                    }}
+                    data-testid={`repo-pull-${r.id}`}
+                  >
                     拉取
                   </Button>
                   <Button size="small" type="link" onClick={() => setEditing(r)}>
                     编辑
                   </Button>
-                  <Popconfirm title="删除仓库？（已拉取文件保留）" onConfirm={() => remove.mutate(r.id)}>
+                  <Popconfirm
+                    title="删除仓库？（已拉取文件保留）"
+                    onConfirm={() => remove.mutate(r.id)}
+                  >
                     <Button size="small" type="link" danger>
                       删除
                     </Button>
@@ -122,15 +178,28 @@ export function FileReposModal({ projectId, onClose }: { projectId: string; onCl
             destroyOnClose
           >
             <div className="space-y-3">
-              <Alert type="info" showIcon message="目录递归深度≤3、文件数≤50；同分支同路径重复拉取=覆盖更新" />
+              <Alert
+                type="info"
+                showIcon
+                message="目录递归深度≤3、文件数≤50；同分支同路径重复拉取=覆盖更新"
+              />
               <div className="flex gap-2">
                 <div className="w-32">
                   <p className="text-xs text-gray-500 mb-1">分支</p>
-                  <Input value={pullBranch} onChange={(e) => setPullBranch(e.target.value)} data-testid="repo-pull-branch" />
+                  <Input
+                    value={pullBranch}
+                    onChange={(e) => setPullBranch(e.target.value)}
+                    data-testid="repo-pull-branch"
+                  />
                 </div>
                 <div className="flex-1">
                   <p className="text-xs text-gray-500 mb-1">路径（文件或目录）</p>
-                  <Input placeholder="data/" value={pullPath} onChange={(e) => setPullPath(e.target.value)} data-testid="repo-pull-path" />
+                  <Input
+                    placeholder="data/"
+                    value={pullPath}
+                    onChange={(e) => setPullPath(e.target.value)}
+                    data-testid="repo-pull-path"
+                  />
                 </div>
               </div>
             </div>
@@ -183,7 +252,10 @@ function FileRepoFormModal({
           <Radio.Group
             value={platform}
             onChange={(e) => setPlatform(e.target.value)}
-            options={(Object.keys(PLATFORM_LABEL) as FileRepoRow["platform"][]).map((v) => ({ value: v, label: PLATFORM_LABEL[v] }))}
+            options={(Object.keys(PLATFORM_LABEL) as FileRepoRow["platform"][]).map((v) => ({
+              value: v,
+              label: PLATFORM_LABEL[v],
+            }))}
             optionType="button"
             buttonStyle="solid"
             data-testid="repo-platform-radio"
@@ -191,11 +263,24 @@ function FileRepoFormModal({
         </div>
         <div>
           <p className="text-xs text-gray-500 mb-1">仓库地址（https://host/owner/repo）</p>
-          <Input className="font-mono text-xs" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://git.example.com/qa/testdata.git" data-testid="repo-url-input" />
+          <Input
+            className="font-mono text-xs"
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            placeholder="https://git.example.com/qa/testdata.git"
+            data-testid="repo-url-input"
+          />
         </div>
         <div>
-          <p className="text-xs text-gray-500 mb-1">Token（私有仓库必填；{initial ? "留空=不更新" : "加密存储"}）</p>
-          <Input.Password className="font-mono text-xs" value={token} onChange={(e) => setToken(e.target.value)} data-testid="repo-token-input" />
+          <p className="text-xs text-gray-500 mb-1">
+            Token（私有仓库必填；{initial ? "留空=不更新" : "加密存储"}）
+          </p>
+          <Input.Password
+            className="font-mono text-xs"
+            value={token}
+            onChange={(e) => setToken(e.target.value)}
+            data-testid="repo-token-input"
+          />
         </div>
       </div>
     </Modal>

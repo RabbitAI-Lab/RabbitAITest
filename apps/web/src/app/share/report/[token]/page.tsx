@@ -40,7 +40,9 @@ export default function ShareReportPage() {
           <p className="text-[#C9CDD4] text-2xl font-medium m-0">分享链接已过期或不存在</p>
           <p className="text-[#A8ABB0] text-sm m-0">
             链接可能已被撤销、超过有效期，或从未创建
-            {error instanceof ApiError && error.code ? `（${error.code}）` : "（SHARE_NOT_FOUND 60414）"}
+            {error instanceof ApiError && error.code
+              ? `（${error.code}）`
+              : "（SHARE_NOT_FOUND 60414）"}
           </p>
           <a className="text-[#574BFF] text-sm mt-2" href="/">
             前往 RabbitAITest 首页

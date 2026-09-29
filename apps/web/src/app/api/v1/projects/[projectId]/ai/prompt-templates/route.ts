@@ -6,7 +6,10 @@ import { listTemplates, createTemplate } from "@/server/domains/ai/prompt.servic
 export const runtime = "nodejs";
 
 const unprocessable = (message?: string) =>
-  NextResponse.json({ code: 20422, message: message ?? "参数校验失败", data: null }, { status: 422 });
+  NextResponse.json(
+    { code: 20422, message: message ?? "参数校验失败", data: null },
+    { status: 422 },
+  );
 
 export const GET = withProjectScope(async (ctx) => {
   try {

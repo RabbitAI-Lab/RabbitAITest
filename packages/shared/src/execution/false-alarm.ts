@@ -13,9 +13,16 @@ export const falseAlarmMatcherSchema = z
     headerContains: z.string().min(1).max(512).optional(), // "key=value" 子串（头名=值）
     responseTimeGt: z.number().int().min(1).max(600000).optional(),
   })
-  .refine((m) => m.status !== undefined || m.bodyContains !== undefined || m.headerContains !== undefined || m.responseTimeGt !== undefined, {
-    message: "匹配器至少一项条件",
-  });
+  .refine(
+    (m) =>
+      m.status !== undefined ||
+      m.bodyContains !== undefined ||
+      m.headerContains !== undefined ||
+      m.responseTimeGt !== undefined,
+    {
+      message: "匹配器至少一项条件",
+    },
+  );
 export type FalseAlarmMatcher = z.infer<typeof falseAlarmMatcherSchema>;
 
 export interface FalseAlarmRuleLike {
@@ -37,7 +44,8 @@ export interface FailedStepInput {
 
 function headerMatches(headers: { key: string; value: string }[], expect: string): boolean {
   const eq = expect.indexOf("=");
-  if (eq <= 0) return headers.some((h) => `${h.key}:${h.value}`.includes(expect) || h.key.includes(expect));
+  if (eq <= 0)
+    return headers.some((h) => `${h.key}:${h.value}`.includes(expect) || h.key.includes(expect));
   const key = expect.slice(0, eq).trim().toLowerCase();
   const val = expect.slice(eq + 1);
   return headers.some((h) => h.key.toLowerCase() === key && h.value.includes(val));
@@ -48,7 +56,8 @@ export function ruleMatchesStep(rule: FalseAlarmRuleLike, step: FailedStepInput)
   const m = rule.matcher;
   if (m.status !== undefined && step.status !== m.status) return false;
   if (m.bodyContains !== undefined && !step.bodyText.includes(m.bodyContains)) return false;
-  if (m.headerContains !== undefined && !headerMatches(step.headers, m.headerContains)) return false;
+  if (m.headerContains !== undefined && !headerMatches(step.headers, m.headerContains))
+    return false;
   if (m.responseTimeGt !== undefined && step.responseTimeMs <= m.responseTimeGt) return false;
   return true;
 }
@@ -60,7 +69,10 @@ export interface FalseAlarmHitResult {
 }
 
 /** 多规则 × 多失败步骤：任一规则对任一失败步骤成立即命中（返回全部命中，状态一次改判）。 */
-export function matchFalseAlarm(rules: FalseAlarmRuleLike[], failedSteps: FailedStepInput[]): FalseAlarmHitResult[] {
+export function matchFalseAlarm(
+  rules: FalseAlarmRuleLike[],
+  failedSteps: FailedStepInput[],
+): FalseAlarmHitResult[] {
   const hits: FalseAlarmHitResult[] = [];
   for (const rule of rules) {
     if (!rule.enabled) continue;

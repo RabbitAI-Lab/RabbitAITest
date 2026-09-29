@@ -42,6 +42,9 @@ test("rabbitEnv：slot 随槽位线性偏移，Redis 逻辑库号 = slot", () =>
   assert.equal(e.jm.webPort, 3208);
   assert.equal(e.jm.mockPort, 4208);
   assert.equal(e.jm.pgPort, 5468);
+  assert.equal(e.dev.runnerPort, 4308);
+  assert.equal(e.e2e.runnerPort, 4318);
+  assert.equal(e.jm.runnerPort, 4328);
   assert.equal(e.dev.redisUrl, "redis://127.0.0.1:6379/8");
   assert.equal(e.e2e.redisUrl, "redis://127.0.0.1:6381/8");
   assert.equal(e.jm.redisUrl, "redis://127.0.0.1:6381/8");
@@ -50,19 +53,22 @@ test("rabbitEnv：slot 随槽位线性偏移，Redis 逻辑库号 = slot", () =>
 });
 
 test("端口表全量唯一：三种用途 × 10 槽无跨用途/跨槽冲突，且避开旧固定端口", () => {
-  const legacy = new Set([3000, 3100, 3101, 4000, 4001, 4020, 5432, 5433, 5434, 5438]);
+  const legacy = new Set([3000, 3100, 3101, 4000, 4001, 4020, 4031, 5432, 5433, 5434, 5438]);
   const all = new Map(); // port -> "用途[s]"
   for (let s = 0; s <= MAX_SLOT; s++) {
     const e = rabbitEnv(s);
     const entries = [
       [e.dev.webPort, "dev.web"],
       [e.dev.mockPort, "dev.mock"],
+      [e.dev.runnerPort, "dev.runner"],
       [e.dev.pgPort, "dev.pg"],
       [e.e2e.webPort, "e2e.web"],
       [e.e2e.mockPort, "e2e.mock"],
+      [e.e2e.runnerPort, "e2e.runner"],
       [e.e2e.pgPort, "e2e.pg"],
       [e.jm.webPort, "jm.web"],
       [e.jm.mockPort, "jm.mock"],
+      [e.jm.runnerPort, "jm.runner"],
       [e.jm.pgPort, "jm.pg"],
     ];
     for (const [port, label] of entries) {

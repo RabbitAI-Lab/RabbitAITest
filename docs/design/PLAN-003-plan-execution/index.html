@@ -7,23 +7,33 @@
   </head>
   <body class="bg-slate-50 text-slate-800 text-sm">
     <header class="h-12 bg-white border-b flex items-center px-4 gap-3">
-      <span class="font-semibold">RabbitAITest</span><span class="border rounded px-2 py-0.5">演示项目 #1</span>
+      <span class="font-semibold">RabbitAITest</span
+      ><span class="border rounded px-2 py-0.5">演示项目 #1</span>
       <span class="ml-auto text-slate-400 text-xs">帮助 · 消息 · 用户</span>
     </header>
     <main class="p-4 space-y-4 max-w-[1200px]">
       <!-- 画板一：执行入口 + 执行配置抽屉（生效来源徽标） -->
       <section class="bg-white border rounded-md">
-        <div class="px-3 py-2 border-b bg-slate-50 font-medium">画板一 · 计划详情头部执行入口 + 执行配置抽屉（每项显示生效来源）</div>
+        <div class="px-3 py-2 border-b bg-slate-50 font-medium">
+          画板一 · 计划详情头部执行入口 + 执行配置抽屉（每项显示生效来源）
+        </div>
         <div class="flex">
           <div class="flex-1 p-4">
             <div class="flex items-center gap-3 border-b pb-3">
               <span class="text-base font-medium">支付域回归 V1.2</span>
-              <span class="text-[10px] border rounded px-1.5 py-0.5 bg-blue-50 text-blue-600 border-blue-200">进行中</span>
-              <span class="text-xs text-slate-400">通过率 62% · 阈值 80% <span class="text-red-500">未达标</span></span>
+              <span
+                class="text-[10px] border rounded px-1.5 py-0.5 bg-blue-50 text-blue-600 border-blue-200"
+                >进行中</span
+              >
+              <span class="text-xs text-slate-400"
+                >通过率 62% · 阈值 80% <span class="text-red-500">未达标</span></span
+              >
               <div class="ml-auto flex items-center gap-2">
                 <div class="relative">
                   <button class="bg-[#574BFF] text-white rounded-md px-3 py-1.5">▶ 执行 ▾</button>
-                  <div class="absolute right-0 top-full mt-1 w-36 bg-white border rounded shadow-lg py-1 text-[13px] hidden group-hover:block">
+                  <div
+                    class="absolute right-0 top-full mt-1 w-36 bg-white border rounded shadow-lg py-1 text-[13px] hidden group-hover:block"
+                  >
                     <p class="px-3 py-1.5 hover:bg-slate-50">执行全部（8 项）</p>
                     <p class="px-3 py-1.5 hover:bg-slate-50">执行当前点：扫码支付</p>
                   </div>
@@ -31,98 +41,246 @@
                 <button class="border rounded-md px-3 py-1.5">执行配置</button>
               </div>
             </div>
-            <p class="text-xs text-slate-400 pt-3">用例清单 Tab 的接口/场景行将出现「执行结果」徽标与最近报告链接；行内「▶」单条执行</p>
+            <p class="text-xs text-slate-400 pt-3">
+              用例清单 Tab 的接口/场景行将出现「执行结果」徽标与最近报告链接；行内「▶」单条执行
+            </p>
             <table class="w-full text-[13px] pt-2">
-              <thead class="text-slate-500 text-xs"><tr class="text-left"><th class="px-2 py-1.5">类型</th><th class="px-2 py-1.5">名称</th><th class="px-2 py-1.5">执行结果</th><th class="px-2 py-1.5">最近报告</th><th class="px-2 py-1.5">操作</th></tr></thead>
+              <thead class="text-slate-500 text-xs">
+                <tr class="text-left">
+                  <th class="px-2 py-1.5">类型</th>
+                  <th class="px-2 py-1.5">名称</th>
+                  <th class="px-2 py-1.5">执行结果</th>
+                  <th class="px-2 py-1.5">最近报告</th>
+                  <th class="px-2 py-1.5">操作</th>
+                </tr>
+              </thead>
               <tbody class="divide-y">
-                <tr><td class="px-2 py-2"><span class="text-[10px] border rounded px-1.5 py-0.5 bg-blue-50 text-blue-600 border-blue-200">接口</span></td><td class="px-2 py-2">扫码下单正向 #A-101</td><td class="px-2 py-2 text-green-600 font-medium">PASS</td><td class="px-2 py-2 text-[#574BFF]">RPT-2026…01 ↗</td><td class="px-2 py-2"><a class="text-[#574BFF]">▶</a></td></tr>
-                <tr><td class="px-2 py-2"><span class="text-[10px] border rounded px-1.5 py-0.5 bg-purple-50 text-purple-600 border-purple-200">场景</span></td><td class="px-2 py-2">扫码全流程 #S-201</td><td class="px-2 py-2 text-orange-500 font-medium">FAILED <span class="text-[10px] border rounded px-1 py-0.5 bg-orange-50 text-orange-600 border-orange-200">误报</span></td><td class="px-2 py-2 text-[#574BFF]">RPT-2026…02 ↗</td><td class="px-2 py-2"><a class="text-[#574BFF]">▶</a></td></tr>
+                <tr>
+                  <td class="px-2 py-2">
+                    <span
+                      class="text-[10px] border rounded px-1.5 py-0.5 bg-blue-50 text-blue-600 border-blue-200"
+                      >接口</span
+                    >
+                  </td>
+                  <td class="px-2 py-2">扫码下单正向 #A-101</td>
+                  <td class="px-2 py-2 text-green-600 font-medium">PASS</td>
+                  <td class="px-2 py-2 text-[#574BFF]">RPT-2026…01 ↗</td>
+                  <td class="px-2 py-2"><a class="text-[#574BFF]">▶</a></td>
+                </tr>
+                <tr>
+                  <td class="px-2 py-2">
+                    <span
+                      class="text-[10px] border rounded px-1.5 py-0.5 bg-purple-50 text-purple-600 border-purple-200"
+                      >场景</span
+                    >
+                  </td>
+                  <td class="px-2 py-2">扫码全流程 #S-201</td>
+                  <td class="px-2 py-2 text-orange-500 font-medium">
+                    FAILED
+                    <span
+                      class="text-[10px] border rounded px-1 py-0.5 bg-orange-50 text-orange-600 border-orange-200"
+                      >误报</span
+                    >
+                  </td>
+                  <td class="px-2 py-2 text-[#574BFF]">RPT-2026…02 ↗</td>
+                  <td class="px-2 py-2"><a class="text-[#574BFF]">▶</a></td>
+                </tr>
               </tbody>
             </table>
           </div>
           <div class="w-[320px] border-l p-4 text-[13px] space-y-3">
             <p class="font-medium">执行配置（计划默认，可被点配置覆盖）</p>
-            <div class="flex items-center gap-2"><span class="text-slate-500 w-16">环境</span><select class="border rounded px-2 py-1 flex-1"><option>MOCK-演示环境</option></select><span class="text-[10px] border rounded px-1 py-0.5 bg-slate-100 text-slate-500">计划默认</span></div>
-            <div class="flex items-center gap-2"><span class="text-slate-500 w-16">资源池</span><select class="border rounded px-2 py-1 flex-1"><option>LOCAL</option></select><span class="text-[10px] border rounded px-1 py-0.5 bg-blue-50 text-blue-600 border-blue-200">点：扫码支付</span></div>
-            <label class="flex items-center gap-2"><input type="checkbox" /> 并行执行 <span class="text-[10px] border rounded px-1 py-0.5 bg-blue-50 text-blue-600 border-blue-200">点：扫码支付</span></label>
-            <label class="flex items-center gap-2"><input type="checkbox" checked /> 失败停止 <span class="text-[10px] border rounded px-1 py-0.5 bg-slate-100 text-slate-500">计划默认</span></label>
-            <p class="text-[11px] text-slate-400">徽标=该项生效来源（点显式配置 / 计划默认）；执行时按 resolvePointChain 逐点求值</p>
-            <div class="flex justify-end gap-2"><button class="border rounded px-3 py-1.5">取消</button><button class="bg-[#574BFF] text-white rounded px-3 py-1.5">保存并执行</button></div>
+            <div class="flex items-center gap-2">
+              <span class="text-slate-500 w-16">环境</span
+              ><select class="border rounded px-2 py-1 flex-1">
+                <option>MOCK-演示环境</option></select
+              ><span class="text-[10px] border rounded px-1 py-0.5 bg-slate-100 text-slate-500"
+                >计划默认</span
+              >
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-slate-500 w-16">资源池</span
+              ><select class="border rounded px-2 py-1 flex-1">
+                <option>LOCAL</option></select
+              ><span
+                class="text-[10px] border rounded px-1 py-0.5 bg-blue-50 text-blue-600 border-blue-200"
+                >点：扫码支付</span
+              >
+            </div>
+            <label class="flex items-center gap-2"
+              ><input type="checkbox" /> 并行执行
+              <span
+                class="text-[10px] border rounded px-1 py-0.5 bg-blue-50 text-blue-600 border-blue-200"
+                >点：扫码支付</span
+              ></label
+            >
+            <label class="flex items-center gap-2"
+              ><input type="checkbox" checked /> 失败停止
+              <span class="text-[10px] border rounded px-1 py-0.5 bg-slate-100 text-slate-500"
+                >计划默认</span
+              ></label
+            >
+            <p class="text-[11px] text-slate-400">
+              徽标=该项生效来源（点显式配置 / 计划默认）；执行时按 resolvePointChain 逐点求值
+            </p>
+            <div class="flex justify-end gap-2">
+              <button class="border rounded px-3 py-1.5">取消</button
+              ><button class="bg-[#574BFF] text-white rounded px-3 py-1.5">保存并执行</button>
+            </div>
           </div>
         </div>
       </section>
       <!-- 画板二：执行中态（进度/停止/实时通过率） -->
       <section class="bg-white border rounded-md">
-        <div class="px-3 py-2 border-b bg-slate-50 font-medium">画板二 · 执行进行态（SSE 实时进度 + 通过率刷新 + 停止）</div>
+        <div class="px-3 py-2 border-b bg-slate-50 font-medium">
+          画板二 · 执行进行态（SSE 实时进度 + 通过率刷新 + 停止）
+        </div>
         <div class="p-4 space-y-3 text-[13px]">
           <div class="flex items-center gap-3">
             <span class="text-blue-600 font-medium">执行中…</span>
-            <div class="flex-1 h-2 bg-slate-100 rounded overflow-hidden"><div class="h-full bg-[#574BFF] w-[62%]"></div></div>
+            <div class="flex-1 h-2 bg-slate-100 rounded overflow-hidden">
+              <div class="h-full bg-[#574BFF] w-[62%]"></div>
+            </div>
             <span class="text-slate-500 text-xs">5 / 8 完成</span>
             <span class="text-xs">通过率 <b class="text-green-600">60%</b>（实时）</span>
-            <button class="border border-red-300 text-red-500 rounded px-2.5 py-1 text-xs">■ 停止</button>
+            <button class="border border-red-300 text-red-500 rounded px-2.5 py-1 text-xs">
+              ■ 停止
+            </button>
           </div>
           <table class="w-full">
-            <thead class="text-slate-500 text-xs"><tr class="text-left"><th class="px-2 py-1.5">item</th><th class="px-2 py-1.5">类型</th><th class="px-2 py-1.5">状态</th></tr></thead>
+            <thead class="text-slate-500 text-xs">
+              <tr class="text-left">
+                <th class="px-2 py-1.5">item</th>
+                <th class="px-2 py-1.5">类型</th>
+                <th class="px-2 py-1.5">状态</th>
+              </tr>
+            </thead>
             <tbody class="divide-y">
-              <tr><td class="px-2 py-2">扫码下单正向 #A-101</td><td>接口</td><td class="text-green-600">PASS</td></tr>
-              <tr><td class="px-2 py-2">扫码全流程 #S-201</td><td>场景</td><td class="text-blue-600 animate-pulse">RUNNING…</td></tr>
-              <tr><td class="px-2 py-2 text-slate-400">余额支付正向 #F-301</td><td>功能</td><td class="text-slate-400">人工标记（不进引擎任务）</td></tr>
-              <tr><td class="px-2 py-2 text-slate-400">…余 3 项</td><td></td><td class="text-slate-400">PENDING</td></tr>
+              <tr>
+                <td class="px-2 py-2">扫码下单正向 #A-101</td>
+                <td>接口</td>
+                <td class="text-green-600">PASS</td>
+              </tr>
+              <tr>
+                <td class="px-2 py-2">扫码全流程 #S-201</td>
+                <td>场景</td>
+                <td class="text-blue-600 animate-pulse">RUNNING…</td>
+              </tr>
+              <tr>
+                <td class="px-2 py-2 text-slate-400">余额支付正向 #F-301</td>
+                <td>功能</td>
+                <td class="text-slate-400">人工标记（不进引擎任务）</td>
+              </tr>
+              <tr>
+                <td class="px-2 py-2 text-slate-400">…余 3 项</td>
+                <td></td>
+                <td class="text-slate-400">PENDING</td>
+              </tr>
             </tbody>
           </table>
-          <p class="text-xs text-slate-400">停止后已完成 item 状态保留、余项 SKIPPED；完成 Toast → 跳转计划报告</p>
+          <p class="text-xs text-slate-400">
+            停止后已完成 item 状态保留、余项 SKIPPED；完成 Toast → 跳转计划报告
+          </p>
         </div>
       </section>
       <!-- 画板三：脑图执行 Tab（S/E/B） -->
       <section class="bg-white border rounded-md">
-        <div class="px-3 py-2 border-b bg-slate-50 font-medium">画板三 · 「脑图执行」Tab（功能用例 S/E/B 快捷键 + 依赖 BLOCKED 提示）</div>
+        <div class="px-3 py-2 border-b bg-slate-50 font-medium">
+          画板三 · 「脑图执行」Tab（功能用例 S/E/B 快捷键 + 依赖 BLOCKED 提示）
+        </div>
         <div class="flex">
           <div class="flex-1 p-4">
             <div class="flex items-center gap-2 pb-2">
-              <span class="text-xs rounded border px-1.5 py-0.5 bg-green-50 text-green-700 border-green-200">S 成功</span>
-              <span class="text-xs rounded border px-1.5 py-0.5 bg-red-50 text-red-600 border-red-200">E 失败</span>
-              <span class="text-xs rounded border px-1.5 py-0.5 bg-orange-50 text-orange-600 border-orange-200">B 阻塞</span>
-              <span class="text-xs rounded border px-1.5 py-0.5 bg-slate-100 text-slate-500">K 跳过</span>
+              <span
+                class="text-xs rounded border px-1.5 py-0.5 bg-green-50 text-green-700 border-green-200"
+                >S 成功</span
+              >
+              <span
+                class="text-xs rounded border px-1.5 py-0.5 bg-red-50 text-red-600 border-red-200"
+                >E 失败</span
+              >
+              <span
+                class="text-xs rounded border px-1.5 py-0.5 bg-orange-50 text-orange-600 border-orange-200"
+                >B 阻塞</span
+              >
+              <span class="text-xs rounded border px-1.5 py-0.5 bg-slate-100 text-slate-500"
+                >K 跳过</span
+              >
               <span class="text-xs text-slate-400 ml-auto">选中节点后按键即标记</span>
             </div>
             <!-- 脑图示意：模块→用例 -->
             <div class="flex items-center gap-2 text-[13px]">
-              <div class="rounded-md border-2 border-blue-300 bg-blue-50 px-3 py-2 font-medium">支付域计划</div>
+              <div class="rounded-md border-2 border-blue-300 bg-blue-50 px-3 py-2 font-medium">
+                支付域计划
+              </div>
               <div class="w-6 h-px bg-slate-300"></div>
               <div class="space-y-2">
                 <div class="flex items-center gap-2">
                   <div class="rounded border border-blue-200 bg-white px-2.5 py-1.5">余额支付</div>
                   <div class="w-4 h-px bg-slate-300"></div>
-                  <div class="rounded border-l-4 border-l-green-500 border-slate-200 bg-white px-2.5 py-1.5">余额正向 <span class="text-[10px] text-green-600">PASS</span></div>
+                  <div
+                    class="rounded border-l-4 border-l-green-500 border-slate-200 bg-white px-2.5 py-1.5"
+                  >
+                    余额正向 <span class="text-[10px] text-green-600">PASS</span>
+                  </div>
                 </div>
                 <div class="flex items-center gap-2">
-                  <div class="rounded border border-blue-200 bg-white px-2.5 py-1.5 text-slate-400">扫码支付</div>
+                  <div class="rounded border border-blue-200 bg-white px-2.5 py-1.5 text-slate-400">
+                    扫码支付
+                  </div>
                   <div class="w-4 h-px bg-slate-300"></div>
-                  <div class="rounded border-l-4 border-l-red-500 border-slate-200 bg-white px-2.5 py-1.5 ring-2 ring-red-300">扫码限额 <span class="text-[10px] text-red-500">FAIL</span></div>
+                  <div
+                    class="rounded border-l-4 border-l-red-500 border-slate-200 bg-white px-2.5 py-1.5 ring-2 ring-red-300"
+                  >
+                    扫码限额 <span class="text-[10px] text-red-500">FAIL</span>
+                  </div>
                 </div>
                 <div class="flex items-center gap-2">
                   <div class="rounded border border-blue-200 bg-white px-2.5 py-1.5">退款</div>
                   <div class="w-4 h-px bg-slate-300"></div>
-                  <div class="rounded border-l-4 border-l-orange-400 border-slate-200 bg-white px-2.5 py-1.5">退款到余额 <span class="text-[10px] text-orange-500">BLOCKED</span></div>
+                  <div
+                    class="rounded border-l-4 border-l-orange-400 border-slate-200 bg-white px-2.5 py-1.5"
+                  >
+                    退款到余额 <span class="text-[10px] text-orange-500">BLOCKED</span>
+                  </div>
                 </div>
               </div>
             </div>
-            <div class="mt-3 bg-amber-50 border border-amber-200 text-amber-700 rounded px-3 py-2 text-xs flex items-center gap-2">
+            <div
+              class="mt-3 bg-amber-50 border border-amber-200 text-amber-700 rounded px-3 py-2 text-xs flex items-center gap-2"
+            >
               ⚠ 前置用例未通过：「扫码限额校验」FAIL —— 建议标记阻塞（B）
-              <button class="ml-auto border border-amber-300 rounded px-2 py-0.5 bg-white">仍要标记</button>
+              <button class="ml-auto border border-amber-300 rounded px-2 py-0.5 bg-white">
+                仍要标记
+              </button>
             </div>
           </div>
           <!-- 右：详情面板 -->
           <div class="w-[320px] border-l p-4 text-[13px] space-y-2">
             <p class="font-medium">退款到余额 #F-305</p>
             <div class="border rounded divide-y text-xs">
-              <p class="px-2 py-1.5 flex items-center gap-2"><input type="radio" /> 步骤1 发起退款 <span class="ml-auto text-slate-400">预期：退款单创建</span></p>
-              <p class="px-2 py-1.5 flex items-center gap-2"><input type="radio" checked /> 步骤2 到账校验 <span class="ml-auto text-slate-400">预期：余额增加</span></p>
+              <p class="px-2 py-1.5 flex items-center gap-2">
+                <input type="radio" /> 步骤1 发起退款
+                <span class="ml-auto text-slate-400">预期：退款单创建</span>
+              </p>
+              <p class="px-2 py-1.5 flex items-center gap-2">
+                <input type="radio" checked /> 步骤2 到账校验
+                <span class="ml-auto text-slate-400">预期：余额增加</span>
+              </p>
             </div>
             <p class="text-slate-500 text-xs">步骤结果（对位勾选，失败步骤可「新建缺陷」带出）</p>
-            <textarea class="border rounded px-2 py-1.5 w-full text-xs" rows="2" placeholder="实际结果（失败/阻塞时建议填写）"></textarea>
-            <div class="flex gap-2"><button class="border rounded px-2.5 py-1 text-xs">关联缺陷</button><button class="border rounded px-2.5 py-1 text-xs">新建缺陷</button><button class="bg-[#574BFF] text-white rounded px-2.5 py-1 text-xs ml-auto">提交标记 (B)</button></div>
+            <textarea
+              class="border rounded px-2 py-1.5 w-full text-xs"
+              rows="2"
+              placeholder="实际结果（失败/阻塞时建议填写）"
+            ></textarea>
+            <div class="flex gap-2">
+              <button class="border rounded px-2.5 py-1 text-xs">关联缺陷</button
+              ><button class="border rounded px-2.5 py-1 text-xs">新建缺陷</button
+              ><button class="bg-[#574BFF] text-white rounded px-2.5 py-1 text-xs ml-auto">
+                提交标记 (B)
+              </button>
+            </div>
           </div>
         </div>
       </section>

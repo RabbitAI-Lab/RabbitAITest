@@ -16,7 +16,8 @@ export default function FunctionHintPopover({ onInsert }: { onInsert?: (syntax: 
   const content = (
     <div className="max-h-[420px] w-[520px] overflow-y-auto">
       <p className="mb-2 text-xs text-[#87888D]">
-        渲染优先级：步骤提取 &gt; 步骤参数 &gt; 场景参数 &gt; 环境变量；管道用 `|` 叠加（如 `&#123;var|md5&#125;` 语义）
+        渲染优先级：步骤提取 &gt; 步骤参数 &gt; 场景参数 &gt; 环境变量；管道用 `|` 叠加（如
+        `&#123;var|md5&#125;` 语义）
       </p>
       {groups.map((g) => {
         const items = FUNCTION_CATALOG.filter((f) => f.group === g);
@@ -44,7 +45,12 @@ export default function FunctionHintPopover({ onInsert }: { onInsert?: (syntax: 
     </div>
   );
   return (
-    <Popover content={content} title="内置函数库（EXEC-003）" trigger="click" placement="bottomRight">
+    <Popover
+      content={content}
+      title="内置函数库（EXEC-003）"
+      trigger="click"
+      placement="bottomRight"
+    >
       <Buttonish />
     </Popover>
   );

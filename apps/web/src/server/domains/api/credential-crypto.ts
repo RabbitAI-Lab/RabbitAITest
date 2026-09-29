@@ -13,7 +13,9 @@ export function integrationSecretConfigured(): boolean {
 function deriveKey(platform: string): Buffer {
   const secret = Buffer.from(process.env[SECRET_ENV]!, "utf8");
   // HKDF-SHA256 → 32B 派生密钥（info=平台名，平台间密钥隔离）
-  return Buffer.from(hkdfSync("sha256", secret, Buffer.from("rabbit-integration"), Buffer.from(platform), 32));
+  return Buffer.from(
+    hkdfSync("sha256", secret, Buffer.from("rabbit-integration"), Buffer.from(platform), 32),
+  );
 }
 
 export function encryptCredential(platform: string, plaintext: string): string {

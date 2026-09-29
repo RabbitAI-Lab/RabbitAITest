@@ -101,7 +101,8 @@ export function PointsPanel({
     onError: (e: Error) => message.error(e.message),
   });
   const renamePoint = useMutation({
-    mutationFn: (v: { id: string; name: string }) => pointApi.update(projectId, planId, v.id, { name: v.name }),
+    mutationFn: (v: { id: string; name: string }) =>
+      pointApi.update(projectId, planId, v.id, { name: v.name }),
     onSuccess: () => {
       message.success("已重命名");
       invalidate();
@@ -140,9 +141,9 @@ export function PointsPanel({
     ? (flat.find((f) => f.p.id === selectedPoint)?.p.name ?? "测试点")
     : "未分组";
   const currentLabel = selectedPoint
-    ? (flat.find((f) => f.p.id === selectedPoint)?.p.inheritConfig
-        ? "继承配置：沿祖先链 → 计划默认"
-        : "显式配置")
+    ? flat.find((f) => f.p.id === selectedPoint)?.p.inheritConfig
+      ? "继承配置：沿祖先链 → 计划默认"
+      : "显式配置"
     : "执行配置：计划默认";
 
   const pointCases = cases.filter((c) =>
@@ -196,12 +197,15 @@ export function PointsPanel({
     {
       title: (
         <span
-          className={selectedPoint === null ? "text-[#574BFF] font-medium" : "text-[#A8ABB0] italic"}
+          className={
+            selectedPoint === null ? "text-[#574BFF] font-medium" : "text-[#A8ABB0] italic"
+          }
           data-testid="point-ungrouped"
         >
           未分组
           <span className="ml-1 text-[10px] border rounded px-1 bg-slate-100 text-slate-500">
-            全部 {ungrouped ? ungrouped.functional_case + ungrouped.api_case + ungrouped.scenario : 0}
+            全部{" "}
+            {ungrouped ? ungrouped.functional_case + ungrouped.api_case + ungrouped.scenario : 0}
           </span>
         </span>
       ),
@@ -268,11 +272,20 @@ export function PointsPanel({
             {canUpdate && (
               <>
                 {selectedPoint && (
-                  <Button size="small" onClick={() => setConfigOpen(true)} data-testid="btn-point-config">
+                  <Button
+                    size="small"
+                    onClick={() => setConfigOpen(true)}
+                    data-testid="btn-point-config"
+                  >
                     点配置
                   </Button>
                 )}
-                <Button size="small" icon={<Plus size={12} />} onClick={() => setLinkOpen(true)} data-testid="btn-link-to-point">
+                <Button
+                  size="small"
+                  icon={<Plus size={12} />}
+                  onClick={() => setLinkOpen(true)}
+                  data-testid="btn-link-to-point"
+                >
                   关联用例
                 </Button>
               </>
@@ -289,19 +302,25 @@ export function PointsPanel({
             </Button>
           </div>
         </div>
-        <Table<(PlanCaseRow & { pointId?: string | null })>
+        <Table<PlanCaseRow & { pointId?: string | null }>
           rowKey="refId"
           size="middle"
           dataSource={pointCases}
           pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
-          locale={{ emptyText: <Empty description="暂无挂载用例" image={Empty.PRESENTED_IMAGE_SIMPLE} /> }}
+          locale={{
+            emptyText: <Empty description="暂无挂载用例" image={Empty.PRESENTED_IMAGE_SIMPLE} />,
+          }}
           columns={[
             {
               title: "类型",
               width: 84,
               render: (_, r) => {
-                const t = REF_TYPE_TAG[(r.refType as string)] ?? REF_TYPE_TAG.functional_case!;
-                return <span className={`text-[10px] border rounded px-1.5 py-0.5 ${t.cls}`}>{t.label}</span>;
+                const t = REF_TYPE_TAG[r.refType as string] ?? REF_TYPE_TAG.functional_case!;
+                return (
+                  <span className={`text-[10px] border rounded px-1.5 py-0.5 ${t.cls}`}>
+                    {t.label}
+                  </span>
+                );
               },
             },
             { title: "名称", dataIndex: "name", ellipsis: true },
@@ -325,10 +344,26 @@ export function PointsPanel({
                     width: 150,
                     render: (_: unknown, r: PlanCaseRow & { pointId?: string | null }) => (
                       <span className="space-x-2 text-[#574BFF] text-xs">
-                        <a onClick={() => planApi.removeCase(projectId, planId, r.refId).then(() => { invalidate(); message.success("已移出"); }).catch((e: Error) => message.error(e.message))}>
+                        <a
+                          onClick={() =>
+                            planApi
+                              .removeCase(projectId, planId, r.refId)
+                              .then(() => {
+                                invalidate();
+                                message.success("已移出");
+                              })
+                              .catch((e: Error) => message.error(e.message))
+                          }
+                        >
                           移出
                         </a>
-                        <a onClick={() => { setMoveOpen({ refIds: [r.refId] }); setMoveSel(r.pointId ?? null); }} data-testid={`btn-move-ref-${r.refId}`}>
+                        <a
+                          onClick={() => {
+                            setMoveOpen({ refIds: [r.refId] });
+                            setMoveSel(r.pointId ?? null);
+                          }}
+                          data-testid={`btn-move-ref-${r.refId}`}
+                        >
                           移到其他点
                         </a>
                       </span>
@@ -345,7 +380,10 @@ export function PointsPanel({
         <PointConfigDrawer
           projectId={projectId}
           planId={planId}
-          point={(() => { const hit = flat.find((f) => f.p.id === selectedPoint); return hit ? hit.p : null; })()}
+          point={(() => {
+            const hit = flat.find((f) => f.p.id === selectedPoint);
+            return hit ? hit.p : null;
+          })()}
           open={configOpen}
           onClose={() => setConfigOpen(false)}
           onSaved={invalidate}
@@ -375,10 +413,15 @@ export function PointsPanel({
       >
         <div className="border rounded p-2 text-[13px] space-y-1">
           <label className="flex items-center gap-2">
-            <input type="radio" checked={moveSel === null} onChange={() => setMoveSel(null)} /> 未分组
+            <input type="radio" checked={moveSel === null} onChange={() => setMoveSel(null)} />{" "}
+            未分组
           </label>
           {flat.map((f) => (
-            <label key={f.p.id} className="flex items-center gap-2" style={{ paddingLeft: f.depth * 12 }}>
+            <label
+              key={f.p.id}
+              className="flex items-center gap-2"
+              style={{ paddingLeft: f.depth * 12 }}
+            >
               <input
                 type="radio"
                 checked={moveSel === f.p.id}
@@ -440,7 +483,11 @@ function buildPointTree(
             <a className="text-[#574BFF]" onClick={() => opts.onRename(n.id, n.name)}>
               ✎
             </a>
-            <Popconfirm title="删除测试点？" description="点下有用例或子点时将被拒绝" onConfirm={() => opts.onDelete(n.id)}>
+            <Popconfirm
+              title="删除测试点？"
+              description="点下有用例或子点时将被拒绝"
+              onConfirm={() => opts.onDelete(n.id)}
+            >
               <a className="text-red-400">🗑</a>
             </Popconfirm>
           </span>
@@ -498,13 +545,21 @@ function PointConfigDrawer({
     onError: (e: Error) => message.error(e.message),
   });
   return (
-    <Drawer title={`点配置 · ${point?.name ?? ""}`} open={open} onClose={onClose} width={360} data-testid="point-config-drawer">
+    <Drawer
+      title={`点配置 · ${point?.name ?? ""}`}
+      open={open}
+      onClose={onClose}
+      width={360}
+      data-testid="point-config-drawer"
+    >
       <div className="space-y-3 text-[13px]">
         <label className="flex items-center gap-2">
           <Switch size="small" checked={inherit} onChange={setInherit} />
           继承上级配置（链尾回退计划默认）
         </label>
-        <div className={`space-y-3 border rounded p-3 ${inherit ? "opacity-50 pointer-events-none" : ""}`}>
+        <div
+          className={`space-y-3 border rounded p-3 ${inherit ? "opacity-50 pointer-events-none" : ""}`}
+        >
           <div className="flex items-center gap-2">
             <span className="text-slate-500 w-16">环境</span>
             <Select
@@ -512,7 +567,10 @@ function PointConfigDrawer({
               allowClear
               value={envId ?? undefined}
               onChange={(v) => setEnvId(v ?? null)}
-              options={(envsQ.data?.items ?? []).map((e: { id: string; name: string }) => ({ value: e.id, label: e.name }))}
+              options={(envsQ.data?.items ?? []).map((e: { id: string; name: string }) => ({
+                value: e.id,
+                label: e.name,
+              }))}
               placeholder="计划默认"
               data-testid="point-config-env"
             />
@@ -527,7 +585,12 @@ function PointConfigDrawer({
         <p className="text-[11px] text-[#A8ABB0]">生效优先级：点显式 &gt; 祖先链 &gt; 计划默认</p>
         <div className="flex justify-end gap-2">
           <Button onClick={onClose}>取消</Button>
-          <Button type="primary" loading={save.isPending} onClick={() => save.mutate()} data-testid="btn-save-point-config">
+          <Button
+            type="primary"
+            loading={save.isPending}
+            onClick={() => save.mutate()}
+            data-testid="btn-save-point-config"
+          >
             保存
           </Button>
         </div>
@@ -666,7 +729,7 @@ function LinkPointCasesModal({
           setChecked(new Set());
         }}
         items={[
-          { key: "cases", label: "功能用例", },
+          { key: "cases", label: "功能用例" },
           { key: "apiCases", label: "接口用例" },
           { key: "scenarios", label: "场景" },
         ]}
@@ -702,38 +765,71 @@ function LinkPointCasesModal({
                 setPickApiId(v ?? null);
                 setChecked(new Set());
               }}
-              options={(apisQ.data?.items ?? []).map((a: { id: string; name: string; method: string; path: string }) => ({
-                value: a.id,
-                label: `${a.method} ${a.path} · ${a.name}`,
-              }))}
+              options={(apisQ.data?.items ?? []).map(
+                (a: { id: string; name: string; method: string; path: string }) => ({
+                  value: a.id,
+                  label: `${a.method} ${a.path} · ${a.name}`,
+                }),
+              )}
             />
           )}
-          <div className="border rounded divide-y max-h-[320px] overflow-auto text-[13px]" data-testid="link-candidates">
+          <div
+            className="border rounded divide-y max-h-[320px] overflow-auto text-[13px]"
+            data-testid="link-candidates"
+          >
             {tab === "cases" &&
               (casesQ.data?.items ?? []).map((c: { id: string; name: string; level: string }) => (
-                <label key={c.id} className="flex items-center gap-2 px-3 py-1.5 hover:bg-[#FAFBFC]">
-                  <input type="checkbox" checked={checked.has(c.id)} onChange={() => toggle(c.id)} /> {c.name}
+                <label
+                  key={c.id}
+                  className="flex items-center gap-2 px-3 py-1.5 hover:bg-[#FAFBFC]"
+                >
+                  <input
+                    type="checkbox"
+                    checked={checked.has(c.id)}
+                    onChange={() => toggle(c.id)}
+                  />{" "}
+                  {c.name}
                   <Tag className="ml-auto">{c.level}</Tag>
                 </label>
               ))}
             {tab === "apiCases" &&
               pickApiId &&
-              (apiCasesQ.data?.items ?? []).map((c: { id: string; name: string; level: string }) => (
-                <label key={c.id} className="flex items-center gap-2 px-3 py-1.5 hover:bg-[#FAFBFC]">
-                  <input type="checkbox" checked={checked.has(c.id)} onChange={() => toggle(c.id)} /> {c.name}
-                  <Tag className="ml-auto">{c.level}</Tag>
-                </label>
-              ))}
+              (apiCasesQ.data?.items ?? []).map(
+                (c: { id: string; name: string; level: string }) => (
+                  <label
+                    key={c.id}
+                    className="flex items-center gap-2 px-3 py-1.5 hover:bg-[#FAFBFC]"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={checked.has(c.id)}
+                      onChange={() => toggle(c.id)}
+                    />{" "}
+                    {c.name}
+                    <Tag className="ml-auto">{c.level}</Tag>
+                  </label>
+                ),
+              )}
             {tab === "apiCases" && !pickApiId && (
               <p className="px-3 py-6 text-center text-xs text-[#A8ABB0]">请先选择接口定义</p>
             )}
             {tab === "scenarios" &&
-              (scenariosQ.data?.items ?? []).map((s: { id: string; name: string; level: string }) => (
-                <label key={s.id} className="flex items-center gap-2 px-3 py-1.5 hover:bg-[#FAFBFC]">
-                  <input type="checkbox" checked={checked.has(s.id)} onChange={() => toggle(s.id)} /> {s.name}
-                  <Tag className="ml-auto">{s.level}</Tag>
-                </label>
-              ))}
+              (scenariosQ.data?.items ?? []).map(
+                (s: { id: string; name: string; level: string }) => (
+                  <label
+                    key={s.id}
+                    className="flex items-center gap-2 px-3 py-1.5 hover:bg-[#FAFBFC]"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={checked.has(s.id)}
+                      onChange={() => toggle(s.id)}
+                    />{" "}
+                    {s.name}
+                    <Tag className="ml-auto">{s.level}</Tag>
+                  </label>
+                ),
+              )}
           </div>
         </div>
       </div>

@@ -15,7 +15,11 @@ export const POST = withApiKey(async (ctx, req) => {
       where: { id: body.apiCaseId, deletedAt: null },
       select: { projectId: true },
     });
-    if (!apiCase) return NextResponse.json({ code: 40424, message: "接口用例不存在", data: null }, { status: 404 });
+    if (!apiCase)
+      return NextResponse.json(
+        { code: 40424, message: "接口用例不存在", data: null },
+        { status: 404 },
+      );
     await assertProjectVisible(ctx.userId, apiCase.projectId);
     const { taskId } = await createApiCaseTask(apiCase.projectId, ctx.userId, {
       caseIds: [body.apiCaseId],

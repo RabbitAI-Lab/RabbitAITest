@@ -11,7 +11,9 @@ export const POST = withProjectScope(async (ctx, req, seg) => {
     ctx.requireWritable();
     const { id } = await (seg as { params: Promise<{ id: string }> }).params;
     const body = (await req.json().catch(() => ({}))) as { enabled?: boolean };
-    return NextResponse.json(ok(await toggleSchedule(ctx.projectId, id, body.enabled !== false, ctx.userId)));
+    return NextResponse.json(
+      ok(await toggleSchedule(ctx.projectId, id, body.enabled !== false, ctx.userId)),
+    );
   } catch (err) {
     return toResponse(err);
   }

@@ -17,9 +17,7 @@ export const POST = withProjectScope(async (ctx, req) => {
     ctx.requireWritable();
     const parsed = environmentImportSchema.safeParse(await req.json());
     if (!parsed.success) return unprocessable(parsed.error.issues[0]?.message);
-    return NextResponse.json(
-      ok(await importEnvironments(ctx.projectId, ctx.userId, parsed.data)),
-    );
+    return NextResponse.json(ok(await importEnvironments(ctx.projectId, ctx.userId, parsed.data)));
   } catch (err) {
     return toResponse(err);
   }

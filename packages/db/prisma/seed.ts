@@ -90,7 +90,10 @@ async function main() {
   for (const org of orgs) {
     await ensureOrgPresetGroups(prisma, org.id);
     await ensureDefaultTemplates(prisma, org.id);
-    const orgAdminGroup = await prisma.group.findFirst({ where: { scope: 'org', orgId: org.id, name: '组织管理员' }, select: { id: true } });
+    const orgAdminGroup = await prisma.group.findFirst({
+      where: { scope: "org", orgId: org.id, name: "组织管理员" },
+      select: { id: true },
+    });
     if (orgAdminGroup) await addGroupMember(prisma, orgAdminGroup.id, org.ownerId);
   }
   const projects = await prisma.project.findMany({ select: { id: true } });
@@ -134,11 +137,23 @@ async function seedAiMockModel(): Promise<void> {
   const baseUrl = process.env.RABBIT_SEED_AI_MOCK_BASE;
   if (!baseUrl) return;
   const { createCipheriv, scryptSync, randomBytes } = await import("node:crypto");
-  const key = scryptSync(process.env.SESSION_SECRET ?? "dev-only-session-secret-32chars!!", "rabbit-ai-key", 32);
+  const key = scryptSync(
+    process.env.SESSION_SECRET ?? "dev-only-session-secret-32chars!!",
+    "rabbit-ai-key",
+    32,
+  );
   const iv = randomBytes(12);
   const cipher = createCipheriv("aes-256-gcm", key, iv);
-  const ct = Buffer.concat([cipher.update(["mock", "not", "a", "real", "key"].join("-"), "utf8"), cipher.final()]);
-  const apiKeyEnc = ["v1", iv.toString("base64"), cipher.getAuthTag().toString("base64"), ct.toString("base64")].join(":");
+  const ct = Buffer.concat([
+    cipher.update(["mock", "not", "a", "real", "key"].join("-"), "utf8"),
+    cipher.final(),
+  ]);
+  const apiKeyEnc = [
+    "v1",
+    iv.toString("base64"),
+    cipher.getAuthTag().toString("base64"),
+    ct.toString("base64"),
+  ].join(":");
   await prisma.aiModel.upsert({
     where: { id: "00000000-0000-0000-0000-0000000000a1" },
     update: { baseUrl, enabled: true, isDefault: true },

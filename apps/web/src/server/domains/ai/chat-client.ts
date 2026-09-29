@@ -1,6 +1,15 @@
 /** OpenAI 兼容 ChatClient（AI-001 §2）：DeepSeek/OpenAI/智谱三供应商协议同构，统一 chat/completions。
  * 非流式返回全文；流式返回 AsyncGenerator<string>（SSE data: 行解析，[DONE] 终止）。 */
 import { DomainError, ErrCode } from "@rabbit/shared";
+import { logFor } from "@rabbit/shared/logger";
+import type { Agent } from "undici";
+import { outboundDispatcher } from "@/server/safe-fetch";
+
+/** QA-002 连接期守卫 dispatcher（模块级一次性构造：AI_ALLOW_PRIVATE_BASEURL 豁免环回 mock 供应商经 env 在模块初始化解析，运行期调用表达式零 env 读取——消「env→fetch」污点链）。 */
+const CHAT_DISPATCHER =
+  process.env.AI_ALLOW_PRIVATE_BASEURL === "1"
+    ? outboundDispatcher({ allowLoopback: true })
+    : outboundDispatcher();
 
 export interface ChatMessage {
   role: "system" | "user" | "assistant";
@@ -22,8 +31,11 @@ function endpoint(m: AiModelRuntime): string {
 
 function providerError(status: number, bodyText: string): DomainError {
   const excerpt = bodyText.slice(0, 200).replace(/sk-[A-Za-z0-9_-]+/g, "sk-****");
-  console.error(`[ai-gateway] upstream ${status}: ${excerpt || "（无响应体）"}`); // 排障日志（无 key）
-  return new DomainError(ErrCode.AI_PROVIDER_ERROR, `供应商返回 ${status}：${excerpt || "（无响应体）"}`);
+  logFor("ai").error({ status, excerpt }, "ai gateway upstream error"); // 排障日志（无 key，脱敏后）
+  return new DomainError(
+    ErrCode.AI_PROVIDER_ERROR,
+    `供应商返回 ${status}：${excerpt || "（无响应体）"}`,
+  );
 }
 
 export async function callChat(
@@ -43,7 +55,8 @@ export async function callChat(
         ...(opts.maxTokens ? { max_tokens: opts.maxTokens } : {}),
       }),
       signal: opts.signal ?? AbortSignal.timeout(TIMEOUT_MS),
-    });
+      dispatcher: CHAT_DISPATCHER,
+    } as RequestInit & { dispatcher: Agent });
   } catch (e) {
     if (e instanceof DomainError) throw e;
     throw new DomainError(ErrCode.AI_PROVIDER_ERROR, `供应商连接失败：${(e as Error).message}`);
@@ -71,7 +84,8 @@ export async function* streamChat(
       headers: { "content-type": "application/json", authorization: `Bearer ${m.apiKey}` },
       body: JSON.stringify({ model: m.model, messages, stream: true }),
       signal: opts.signal,
-    });
+      dispatcher: CHAT_DISPATCHER,
+    } as RequestInit & { dispatcher: Agent });
   } catch (e) {
     if (e instanceof DomainError) throw e;
     throw new DomainError(ErrCode.AI_PROVIDER_ERROR, `供应商连接失败：${(e as Error).message}`);

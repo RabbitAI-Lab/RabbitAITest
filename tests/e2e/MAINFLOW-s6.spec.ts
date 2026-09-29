@@ -79,7 +79,9 @@ test("MAINFLOW-s6 插件→集成→同步→APIKEY→审计 全链路", async (
   // 4. APIKEY → open 触发（认证通道验证）→ 吊销（用户态）
   const key = await request.post("/api/v1/personal/api-keys", { data: { name: "MAINFLOW" } });
   const kb = (await key.json()) as { data: { accessKey: string; secretKey: string; id: string } };
-  const openCtx = await playwright.request.newContext({ baseURL: E2E_BASE });
+  const openCtx = await playwright.request.newContext({
+    baseURL: E2E_BASE,
+  });
   const auth = `Basic ${Buffer.from(`${kb.data.accessKey}:${kb.data.secretKey}`).toString("base64")}`;
   const probe = await openCtx.get("/api/v1/open/exec/00000000-0000-4000-8000-000000000000", {
     headers: { authorization: auth },

@@ -71,22 +71,18 @@ test("EXEC-002-01 默认池：节点 ONLINE + 并发编辑 4 + 新建池 License
     timeout: 15000,
   });
 
-  // 编辑并发 4 → 保存（PUT payload maxConcurrency=4）
+  // 编辑并发 4 → 保存（种子池并发=4：值未变时载荷按「仅携带改动」语义不含 maxConcurrency——S-future pools 页修正，
+  // 载荷断言移到下方 4→2 真变更处；本步仅断言保存成功与回显值）
   await page.getByTestId(`btn-edit-pool-${defPool.id}`).click();
   const modal = page.getByRole("dialog");
   await expect(modal.getByTestId("input-pool-concurrency")).toBeVisible();
   await modal.getByTestId("input-pool-concurrency").fill("4");
   const putApi = expectApi("**/api/v1/system/pools/*");
-  const putRaw = page.waitForResponse(
-    (r) => r.url().includes("/system/pools/") && r.request().method() === "PUT",
-  );
   await modal.getByRole("button", { name: /保\s*存/ }).click();
   const put = await putApi;
   expect(put.status).toBe(200);
   expect(put.code).toBe(0);
   expect((put.data as { maxConcurrency: number }).maxConcurrency).toBe(4);
-  const putRawRes = await putRaw;
-  expect((putRawRes.request().postDataJSON() as { maxConcurrency: number }).maxConcurrency).toBe(4);
   await expect(page.getByText("已保存，约一个心跳周期后生效")).toBeVisible();
 
   // T4 并发动态生效：4 → 2，一个心跳周期（engine 10s 心跳 + 页面 10s 自刷）后节点表槽位 total=2
@@ -95,15 +91,29 @@ test("EXEC-002-01 默认池：节点 ONLINE + 并发编辑 4 + 新建池 License
   await expect(modal2.getByTestId("input-pool-concurrency")).toBeVisible();
   await modal2.getByTestId("input-pool-concurrency").fill("2");
   const put2Api = expectApi("**/api/v1/system/pools/*");
+  const put2Raw = page.waitForResponse(
+    (r) => r.url().includes("/system/pools/") && r.request().method() === "PUT",
+  );
   await modal2.getByRole("button", { name: /保\s*存/ }).click();
   const put2 = await put2Api;
   expect(put2.status).toBe(200);
   expect((put2.data as { maxConcurrency: number }).maxConcurrency).toBe(2);
+  // 载荷断言（真变更 4→2：PUT 请求体必含 maxConcurrency=2）
+  const put2RawRes = await put2Raw;
+  expect((put2RawRes.request().postDataJSON() as { maxConcurrency: number }).maxConcurrency).toBe(
+    2,
+  );
   await expect
-    .poll(async () => page.getByTestId("pool-nodes").getByText("0÷2").count(), {
-      timeout: 35_000,
-      message: "并发下调至 2 后节点槽位应变为 0÷2",
-    })
+    .poll(
+      // 断言口径=槽位总数生效（x÷2）而非 busy=0：并行 worker 下其他用例持续提交任务，
+      // busy=0 的空闲窗口可能 35s 内不出现（S-future 复跑两连挂硬化——意图是验证下发生效，不要求引擎空闲）
+      async () =>
+        page
+          .getByTestId("pool-nodes")
+          .getByText(/^\d+÷2$/)
+          .count(),
+      { timeout: 35_000, message: "并发下调至 2 后节点槽位应变为 x÷2" },
+    )
     .toBeGreaterThan(0);
 
   // 恢复 4（不拖慢后续并行用例的批量执行），恢复动作不阻塞本用例收尾
@@ -117,8 +127,24 @@ test("EXEC-002-01 默认池：节点 ONLINE + 并发编辑 4 + 新建池 License
   expect(put4.status).toBe(200);
   expect((put4.data as { maxConcurrency: number }).maxConcurrency).toBe(4);
 
-  // 二态：新建资源池 = 企业版功能，License 未启用 → disabled
-  await expect(page.getByTestId("btn-new-pool")).toBeDisabled();
+  // 二态：新建资源池 = 企业版功能——社区版 disabled / 企业版 enabled（S9 勘误：ENTP spec 并行持证
+  // 时按钮解锁，门控 403/放行已在 ENTP-007 e2e+jmx 全覆盖）。读态与断言间存在并行持证竞态
+  // （读到社区→按钮随即被解锁）——重试环桥接：任一轮「读态↔按钮态」一致即过（≤30s）
+  for (let attempt = 0; attempt < 10; attempt++) {
+    const lic = await request.get("/api/v1/public/license-status");
+    const edition = ((await lic.json()) as { data: { edition: string } }).data.edition;
+    const disabledCount = await page
+      .getByTestId("btn-new-pool")
+      .evaluate((el) => ((el as HTMLButtonElement).disabled ? 1 : 0));
+    const expectDisabled = edition === "COMMUNITY" ? 1 : 0;
+    if (disabledCount === expectDisabled) break;
+    if (attempt === 9) {
+      throw new Error(`门控二态竞态未收敛：edition=${edition} disabled=${disabledCount === 1}`);
+    }
+    await page.waitForTimeout(3_000);
+    await page.reload();
+    await expect(page.getByTestId("pool-nodes")).toBeVisible();
+  }
 
   await expectNoConsoleErrors();
 });

@@ -9,7 +9,9 @@ import { DomainError } from "@rabbit/shared";
 
 describe("script-sandbox（PROJ-005 §2）", () => {
   it("log 采集 + vars 读写", async () => {
-    const r = await runScriptDebug('log("hello", 1); setVar("k", "v"); log(getVar("k"));', { a: "1" });
+    const r = await runScriptDebug('log("hello", 1); setVar("k", "v"); log(getVar("k"));', {
+      a: "1",
+    });
     expect(r.logs[0]).toBe("[out] hello 1");
     expect(r.logs[1]).toBe("[out] v");
     expect(r.vars.k).toBe("v");
@@ -31,7 +33,7 @@ describe("script-sandbox（PROJ-005 §2）", () => {
   }, 15_000);
 
   it("log 上限 200 行截断", async () => {
-    const r = await runScriptDebug('for (let i = 0; i < 300; i++) log(i);', {});
+    const r = await runScriptDebug("for (let i = 0; i < 300; i++) log(i);", {});
     expect(r.logs.length).toBe(200);
   });
 
@@ -51,12 +53,18 @@ describe("git-adapters parseRepoUrl（FILE-001 §2）", () => {
     expect(r.apiBase).toBe("https://git.example.com/api/v1");
   });
   it("github 官方 → api.github.com；自建 → /api/v3", () => {
-    expect(parseRepoUrl("github", "https://github.com/oa/rb").apiBase).toBe("https://api.github.com");
-    expect(parseRepoUrl("github", "https://gh.internal/oa/rb").apiBase).toBe("https://gh.internal/api/v3");
+    expect(parseRepoUrl("github", "https://github.com/oa/rb").apiBase).toBe(
+      "https://api.github.com",
+    );
+    expect(parseRepoUrl("github", "https://gh.internal/oa/rb").apiBase).toBe(
+      "https://gh.internal/api/v3",
+    );
   });
   it("gitlab → /api/v4；gitee 官方/自建", () => {
     expect(parseRepoUrl("gitlab", "https://gl.io/oa/rb").apiBase).toBe("https://gl.io/api/v4");
-    expect(parseRepoUrl("gitee", "https://gitee.com/oa/rb").apiBase).toBe("https://gitee.com/api/v5");
+    expect(parseRepoUrl("gitee", "https://gitee.com/oa/rb").apiBase).toBe(
+      "https://gitee.com/api/v5",
+    );
     expect(parseRepoUrl("gitee", "https://ge.corp/oa/rb").apiBase).toBe("https://ge.corp/api/v5");
   });
   it("缺 owner/repo → 422", () => {
@@ -78,7 +86,12 @@ describe("git-adapters fetchPath（contents 族 / gitlab raw）", () => {
     const ref = parseRepoUrl("gitea", "https://git.example.com/qa/testdata");
     const fetchFn = vi.fn(async (url: string) => {
       expect(url).toContain("/contents/data/users_small.csv?");
-      return jsonResponse({ type: "file", content: b64("id,name\n1,a\n"), encoding: "base64", size: 14 });
+      return jsonResponse({
+        type: "file",
+        content: b64("id,name\n1,a\n"),
+        encoding: "base64",
+        size: 14,
+      });
     });
     const files = await fetchPath(ref, null, "main", "data/users_small.csv", fetchFn as never);
     expect(files.length).toBe(1);
@@ -89,12 +102,28 @@ describe("git-adapters fetchPath（contents 族 / gitlab raw）", () => {
     const fetchFn = vi.fn(async (url: string) => {
       if (url.endsWith("/contents/data?ref=main")) {
         return jsonResponse([
-          { name: "a.csv", path: "data/a.csv", type: "file", content: b64("a"), encoding: "base64", size: 1 },
+          {
+            name: "a.csv",
+            path: "data/a.csv",
+            type: "file",
+            content: b64("a"),
+            encoding: "base64",
+            size: 1,
+          },
           { name: "sub", path: "data/sub", type: "dir" },
         ]);
       }
       if (url.includes("/contents/data/sub?")) {
-        return jsonResponse([{ name: "b.csv", path: "data/sub/b.csv", type: "file", content: b64("b"), encoding: "base64", size: 1 }]);
+        return jsonResponse([
+          {
+            name: "b.csv",
+            path: "data/sub/b.csv",
+            type: "file",
+            content: b64("b"),
+            encoding: "base64",
+            size: 1,
+          },
+        ]);
       }
       throw new Error(`unexpected url ${url}`);
     });
@@ -141,7 +170,12 @@ describe("git-adapters fetchPath（contents 族 / gitlab raw）", () => {
 // ── SYS-007：环回校验矩阵 ──
 
 describe("assertLoopbackUrl（SYS-007 §2）", () => {
-  const ok = ["http://127.0.0.1:7001", "http://localhost:7001/healthz", "http://[::1]:7001", "https://127.0.0.1/x"];
+  const ok = [
+    "http://127.0.0.1:7001",
+    "http://localhost:7001/healthz",
+    "http://[::1]:7001",
+    "https://127.0.0.1/x",
+  ];
   const bad = ["http://192.168.1.1:7001", "http://10.0.0.9:1", "not-a-url", "ftp://127.0.0.1/x"];
   for (const u of ok) {
     it(`放行 ${u}`, () => {
