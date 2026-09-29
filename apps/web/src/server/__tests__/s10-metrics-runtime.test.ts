@@ -28,7 +28,7 @@ describe("INFRA-008 runtimeBlock", () => {
     eventLoopLagMs: 2.25,
   };
 
-  it("五指标 HELP/TYPE/样本齐全，命名对齐 client_golang 惯例", () => {
+  it("五指标 HELP/TYPE/样本齐全，命名对齐 client_golang 惯例（INFRA-009：样本行带 process label）", () => {
     const block = runtimeBlock(snap);
     const names = [
       "rabbit_process_uptime_seconds",
@@ -41,12 +41,12 @@ describe("INFRA-008 runtimeBlock", () => {
       expect(
         block.some((l) => l === `# TYPE ${n} ${n.endsWith("_total") ? "counter" : "gauge"}`),
       ).toBe(true);
-      expect(block.some((l) => l.startsWith(`${n} `))).toBe(true);
+      expect(block.some((l) => l.startsWith(`${n}{process="web"}`))).toBe(true);
     }
-    expect(block).toContain("rabbit_process_uptime_seconds 12.5");
-    expect(block).toContain("rabbit_process_cpu_seconds_total 1.25");
-    expect(block).toContain("rabbit_process_resident_memory_bytes 123457");
-    expect(block).toContain("rabbit_process_eventloop_lag_ms 2.25");
+    expect(block).toContain('rabbit_process_uptime_seconds{process="web"} 12.5');
+    expect(block).toContain('rabbit_process_cpu_seconds_total{process="web"} 1.25');
+    expect(block).toContain('rabbit_process_resident_memory_bytes{process="web"} 123457');
+    expect(block).toContain('rabbit_process_eventloop_lag_ms{process="web"} 2.25');
   });
 
   it("非法数值（NaN/负数/Infinity）归 0——无 NaN 保证", () => {
@@ -57,10 +57,10 @@ describe("INFRA-008 runtimeBlock", () => {
       heapUsedBytes: 1,
       eventLoopLagMs: Number.NaN,
     });
-    expect(block).toContain("rabbit_process_uptime_seconds 0");
-    expect(block).toContain("rabbit_process_cpu_seconds_total 0");
-    expect(block).toContain("rabbit_process_resident_memory_bytes 0");
-    expect(block).toContain("rabbit_process_eventloop_lag_ms 0");
+    expect(block).toContain('rabbit_process_uptime_seconds{process="web"} 0');
+    expect(block).toContain('rabbit_process_cpu_seconds_total{process="web"} 0');
+    expect(block).toContain('rabbit_process_resident_memory_bytes{process="web"} 0');
+    expect(block).toContain('rabbit_process_eventloop_lag_ms{process="web"} 0');
   });
 });
 
