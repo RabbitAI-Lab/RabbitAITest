@@ -95,22 +95,32 @@ test("PLUG-004-T3 插件管理：浏览器 multipart 直传 dm 驱动 → 驱动
     expect(body.data?.manifest?.kind).toBe("driver");
   } else {
     expect(body.code).toBe(70005);
+    // 409 走 onError 分支：Modal 不自动关闭——Esc 收起，恢复可交互（PLUG-001-T5 同场景无后续操作未暴露）
+    await page.keyboard.press("Escape");
+    await expect(page.locator(".ant-modal-wrap")).toBeHidden({ timeout: 5000 });
   }
 
-  // UI 断言：dm 行 + kind=驱动徽标 + 启用开关（UI 启用走 runner 热加载 → worker 线程装载 CJS bundle）
+  // UI 断言：dm 行 + kind=驱动徽标（PLUG-001 既有组件零改动锚点）
   const row = page.getByRole("row").filter({ hasText: "dm" }).first();
   await expect(row).toBeVisible({ timeout: 15000 });
   await expect(row.getByText("驱动")).toBeVisible();
-  // 栈启动早期内嵌 plugin-runner 可能未就绪（health 缓存 5s）→ PUT 400·70004，退避重试点开关
-  for (let attempt = 0; attempt < 4; attempt++) {
-    if (attempt > 0) await page.waitForTimeout(5000);
-    await page.getByTestId("plugin-toggle-dm").click();
-    const up = await row
+
+  // 确保启用（aria-checked 驱动防 toggle 翻转；栈启动早期内嵌 runner 可能未就绪 400·70004 → 退避重试）
+  const sw = page.getByTestId("plugin-toggle-dm");
+  for (let attempt = 0; ; attempt++) {
+    if (attempt >= 6) throw new Error("dm 驱动启用后未进入运行中（runner 未就绪或加载失败）");
+    if ((await sw.getAttribute("aria-checked")) !== "true") {
+      await sw.click();
+      await page.waitForTimeout(2000);
+      continue;
+    }
+    const running = await row
       .getByText("运行中")
       .isVisible({ timeout: 8000 })
       .catch(() => false);
-    if (up) break;
-    if (attempt === 3) throw new Error("dm 驱动启用后未进入运行中（runner 未就绪或加载失败）");
+    if (running) break;
+    // aria-checked=true 但列表仍「停用/异常」：runner 装载未完成或状态未回刷，等一轮再核
+    await page.waitForTimeout(4000);
   }
   await expect(row.getByText("运行中")).toBeVisible();
 
