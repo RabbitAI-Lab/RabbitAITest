@@ -413,6 +413,31 @@
         }
       }
     },
+    "/api/v1/internal/plugins/drivers": {
+      "get": {
+        "summary": "GET /api/v1/internal/plugins/drivers",
+        "tags": [
+          "内部（引擎）"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/internal/plugins/protocols": {
       "get": {
         "summary": "GET /api/v1/internal/plugins/protocols",
