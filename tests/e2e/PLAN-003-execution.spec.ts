@@ -1,12 +1,13 @@
 import { test, expect, navFromHome } from "./fixtures";
+import { MOCK_BASE } from "./env";
 
 /**
  * PLAN-003 计划执行（规格 §5 T2/T3/T5）
  * 三类断言：UI（执行态/状态徽标/脑图执行）；Console（expectNoConsoleErrors）；接口（execute 201/回写 FAIL）。
- * mock 口径与 S3 一致（e2e 栈 :4001）。
+ * mock 口径与 S3 一致（e2e 栈 mock 随槽位，env.ts MOCK_BASE）。
  */
 
-const mockUrl = "http://127.0.0.1:4001/hello";
+const mockUrl = `${MOCK_BASE}/hello`;
 const apiSpec = () => ({
   spec: {
     method: "GET" as const,

@@ -308,7 +308,7 @@ test("API-002-04 列表行内执行：以已保存定义快捷调试并跳转报
   await createApiDef(request, projectId, {
     name,
     path: `/inline-${uniq}`,
-    request: bundle("GET", "http://127.0.0.1:4001/hello"),
+    request: bundle("GET", `${MOCK_BASE}/hello`),
   });
 
   await navFromHome(page, "接口定义");

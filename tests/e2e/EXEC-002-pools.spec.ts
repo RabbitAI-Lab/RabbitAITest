@@ -10,6 +10,7 @@ import {
   ok,
   pollTask,
 } from "./s2-helpers";
+import { E2E_BASE, MOCK_BASE } from "./env";
 
 /**
  * EXEC-002 资源池（规格：docs/sprint-2-api-core/EXEC-002-resource-pool.md）。
@@ -32,9 +33,7 @@ async function loginSeedAdmin(
   expect(res.status()).toBe(200);
   const ras = (res.headers()["set-cookie"] ?? "").split("ras=")[1]?.split(";")[0];
   expect(ras, "登录响应应下发 ras 会话 cookie").toBeTruthy();
-  await context.addCookies([
-    { name: "ras", value: ras!, url: process.env.E2E_BASE_URL ?? "http://localhost:3100" },
-  ]);
+  await context.addCookies([{ name: "ras", value: ras!, url: E2E_BASE }]);
 }
 
 test("EXEC-002-01 默认池：节点 ONLINE + 并发编辑 4 + 新建池 License 禁用", async ({
@@ -187,11 +186,11 @@ test("EXEC-002-02 停止二态：慢任务 STOPPED + SUCCESS 任务不可重跑�
   const fastDef = await createApiDef(request, projectId, {
     name: `快定义-${uniq}`,
     path: "/hello",
-    request: bundle("GET", "http://127.0.0.1:4001/hello"),
+    request: bundle("GET", `${MOCK_BASE}/hello`),
   });
   const fastCase = await createApiCase(request, projectId, fastDef.id, {
     name: `快用例-${uniq}`,
-    request: bundle("GET", "http://127.0.0.1:4001/hello"),
+    request: bundle("GET", `${MOCK_BASE}/hello`),
   });
   const fastTaskId = await executeCases(request, projectId, fastDef.id, { caseIds: [fastCase.id] });
   const fastFinal = await pollTask(request, projectId, fastTaskId);

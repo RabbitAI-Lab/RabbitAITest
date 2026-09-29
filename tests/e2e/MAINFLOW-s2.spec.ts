@@ -8,6 +8,7 @@ import {
   pickOption,
   updateApiDef,
 } from "./s2-helpers";
+import { E2E_BASE, MOCK_BASE } from "./env";
 
 /**
  * Sprint 2 主链路 E2E（sprint-overview 验收主线）—— Release Gate。
@@ -49,7 +50,7 @@ test("MAINFLOW-s2 Sprint2 主链路（环境→定义→调试→用例→批量
   await page.getByTestId("btn-add-var").click();
   const varRow = page.getByTestId("env-vars-row").first();
   await varRow.locator('input[placeholder="key"]').fill("base");
-  await varRow.locator('input[placeholder="value"]').fill("http://127.0.0.1:4001");
+  await varRow.locator('input[placeholder="value"]').fill(MOCK_BASE);
   await page.getByTestId("env-tab-http").click();
   await page.getByTestId("btn-add-http").click();
   const httpCard = page.getByTestId("env-http-card").first();
@@ -256,7 +257,7 @@ test("MAINFLOW-s2 Sprint2 主链路（环境→定义→调试→用例→批量
   const sharedRes = await shareP;
   expect(sharedRes.status()).toBe(201);
   const token = ((await sharedRes.json()) as { data: { token: string } }).data.token;
-  const BASE = process.env.E2E_BASE_URL ?? "http://localhost:3100";
+  const BASE = E2E_BASE;
   const anonCtx = await browser.newContext();
   const anonPage = await anonCtx.newPage();
   await anonPage.goto(`${BASE}/share/report/${token}`);

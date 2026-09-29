@@ -9,6 +9,7 @@ import {
   pollTask,
   submitDebugTask,
 } from "./s2-helpers";
+import { E2E_BASE, MOCK_BASE } from "./env";
 
 /**
  * RPT-002 报告与分享（规格：docs/sprint-2-api-core/RPT-002-report-share.md）。
@@ -92,7 +93,7 @@ test("RPT-002-01 报告主链路：详情钻取→分享免登→撤销空态→
   await expect(failRow.getByText("FAILED")).toBeVisible();
   await failRow.click();
   await expect(page.getByTestId("item-drilldown")).toBeVisible();
-  await expect(page.getByTestId("drill-request")).toContainText("http://127.0.0.1:4001/hello");
+  await expect(page.getByTestId("drill-request")).toContainText(`${MOCK_BASE}/hello`);
   await expect(page.getByTestId("asserts-table").locator("tr.bg-red-50").first()).toContainText(
     "500",
   );
@@ -119,7 +120,7 @@ test("RPT-002-01 报告主链路：详情钻取→分享免登→撤销空态→
   expect(shareUrlVal).toContain(`/share/report/${token}`);
 
   // 新开无 cookie context：免登只读视图 + 无操作按钮
-  const BASE = process.env.E2E_BASE_URL ?? "http://localhost:3100";
+  const BASE = E2E_BASE;
   const anonCtx = await browser.newContext();
   const anonPage = await anonCtx.newPage();
   await anonPage.goto(`${BASE}/share/report/${token}`);
@@ -202,7 +203,7 @@ test("RPT-002-02 api_debug 兼容：单请求视图保留（report-request/respo
 }) => {
   const { projectId } = authedPage;
   const taskId = await submitDebugTask(request, projectId, {
-    url: "http://127.0.0.1:4001/hello",
+    url: `${MOCK_BASE}/hello`,
   });
   expect((await pollTask(request, projectId, taskId)).status).toBe("SUCCESS");
 
@@ -218,7 +219,7 @@ test("RPT-002-02 api_debug 兼容：单请求视图保留（report-request/respo
   // S0 单请求布局：旧 testid 全保留
   await expect(page.getByTestId("report-status")).toHaveText("SUCCESS", { timeout: 15000 });
   await expect(page.getByTestId("report-request")).toContainText("GET");
-  await expect(page.getByTestId("report-request")).toContainText("http://127.0.0.1:4001/hello");
+  await expect(page.getByTestId("report-request")).toContainText(`${MOCK_BASE}/hello`);
   await expect(page.getByTestId("report-response")).toBeVisible();
   await expect(page.getByTestId("report-response-body")).toContainText("hello");
   await expect(page.getByTestId("assert-pass").first()).toBeVisible();

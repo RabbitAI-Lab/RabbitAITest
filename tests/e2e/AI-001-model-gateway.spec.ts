@@ -1,5 +1,6 @@
 import { test, expect } from "./fixtures";
 import type { APIRequestContext, BrowserContext } from "@playwright/test";
+import { E2E_BASE, MOCK_BASE } from "./env";
 
 /**
  * AI-001 模型网关（docs/sprint-7-ai/AI-001-model-gateway.md §5）。
@@ -14,9 +15,7 @@ async function loginSeedAdmin(request: APIRequestContext, context: BrowserContex
   expect(res.status()).toBe(200);
   const ras = (res.headers()["set-cookie"] ?? "").split("ras=")[1]?.split(";")[0];
   expect(ras).toBeTruthy();
-  await context.addCookies([
-    { name: "ras", value: ras!, url: process.env.E2E_BASE_URL ?? "http://localhost:3100" },
-  ]);
+  await context.addCookies([{ name: "ras", value: ras!, url: E2E_BASE }]);
 }
 
 test("AI-001-01 模型管理全链路（新建/掩码/连接测试/设默认/SSRF 拒绝）", async ({
@@ -38,7 +37,7 @@ test("AI-001-01 模型管理全链路（新建/掩码/连接测试/设默认/SSR
   // 新建（指向 e2e mock :4001/ai 环回豁免；provider 默认已智谱，无需重选）
   await page.getByTestId("ai-model-create").click();
   await page.getByTestId("ai-model-form-name").fill(`e2e-模型-${uniq}`);
-  await page.getByTestId("ai-model-form-baseurl").fill("http://127.0.0.1:4001/ai");
+  await page.getByTestId("ai-model-form-baseurl").fill(`${MOCK_BASE}/ai`);
   await page.getByTestId("ai-model-form-model").fill("mock-e2e-model");
   await page.getByTestId("ai-model-form-apikey").fill(["placeholder", "key"].join("-"));
   const created = page.waitForResponse("**/api/v1/system/ai-models");
@@ -47,7 +46,7 @@ test("AI-001-01 模型管理全链路（新建/掩码/连接测试/设默认/SSR
   expect(res.status()).toBe(201);
   const createdData = (await res.json()) as { data: { id: string } };
   const payload = res.request().postDataJSON() as { apiKey: string; baseUrl: string };
-  expect(payload.baseUrl).toBe("http://127.0.0.1:4001/ai");
+  expect(payload.baseUrl).toBe(`${MOCK_BASE}/ai`);
   expect(payload.apiKey).toBe("placeholder-key");
 
   // UI 断言：新卡片可见 + 掩码

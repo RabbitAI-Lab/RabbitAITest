@@ -7,6 +7,7 @@ import {
   executeCases,
   pollTask,
 } from "./s2-helpers";
+import { MOCK_BASE } from "./env";
 
 /**
  * SYS-006 任务中心（规格：docs/sprint-2-api-core/SYS-006-task-center.md）。
@@ -49,11 +50,11 @@ test("SYS-006-01 任务主链路：本项目行→终态操作两态→重跑「
   const okDef = await createApiDef(request, projectId, {
     name: `成功定义-${uniq}`,
     path: "/ok",
-    request: bundle("GET", "http://127.0.0.1:4001/hello"),
+    request: bundle("GET", `${MOCK_BASE}/hello`),
   });
   const okCase = await createApiCase(request, projectId, okDef.id, {
     name: `成功用例-${uniq}`,
-    request: bundle("GET", "http://127.0.0.1:4001/hello"),
+    request: bundle("GET", `${MOCK_BASE}/hello`),
   });
   const okTaskId = await executeCases(request, projectId, okDef.id, { caseIds: [okCase.id] });
   expect((await pollTask(request, projectId, okTaskId)).status).toBe("SUCCESS");

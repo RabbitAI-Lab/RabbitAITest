@@ -1,5 +1,6 @@
 import { test, expect, navFromHome } from "./fixtures";
 import { loginSeedAdmin, uploadPlugin } from "./s6-helpers";
+import { E2E_BASE, MOCK_WS_BASE } from "./env";
 
 /**
  * S-future PLUG-003 e2e（规格 §5 T9/T10）：上传启用 websocket 插件 → 调试页选协议 →
@@ -27,7 +28,7 @@ async function executeUntilProtocolReady(
       .getByTestId("req-protocol-config")
       .fill(
         JSON.stringify(
-          { url: "ws://127.0.0.1:4001/ws/echo", sendText: "hello-ws-rabbit", timeoutMs: 8000 },
+          { url: `${MOCK_WS_BASE}/ws/echo`, sendText: "hello-ws-rabbit", timeoutMs: 8000 },
           null,
           2,
         ),
@@ -75,10 +76,7 @@ test("PLUG-003-T9 上传启用 websocket → 调试页选协议 → 对 mock ws 
   expect(reg.status()).toBe(201);
   const ras = (reg.headers()["set-cookie"] ?? "").split("ras=")[1]?.split(";")[0];
   await context.clearCookies();
-  if (ras)
-    await context.addCookies([
-      { name: "ras", value: ras, url: process.env.E2E_BASE_URL ?? "http://localhost:3100" },
-    ]);
+  if (ras) await context.addCookies([{ name: "ras", value: ras, url: E2E_BASE }]);
 
   // 首次进入：选择器分组态与 HTTP 面折叠（画板一/二；页面行锚点=debug-url——编辑器自带行被页面 CSS 隐藏）
   await navFromHome(page, "接口调试");

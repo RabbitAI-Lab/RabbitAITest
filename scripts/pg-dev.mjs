@@ -1,16 +1,18 @@
 #!/usr/bin/env node
 /**
- * 独立 embedded-postgres 启动器（开发/脚本用，端口 5433）：
+ * 独立 embedded-postgres 启动器（开发/脚本用，端口 = 5440+slot，INFRA-005）：
  * PGDATA 已初始化（有 PG_VERSION）则跳过 initdb 直接 start；半初始化残留则清空重建。
  * 用法：node scripts/pg-dev.mjs   （进程常驻，Ctrl-C 退出）
  */
 import { existsSync, rmSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { rabbitEnv } from "./rabbit-env.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const dataDir = path.join(root, ".pgdata");
-const port = 5433;
+const ENV = rabbitEnv();
+const dataDir = path.join(root, ENV.dev.pgDataDir);
+const port = ENV.dev.pgPort;
 
 if (existsSync(dataDir) && !existsSync(path.join(dataDir, "PG_VERSION"))) {
   rmSync(dataDir, { recursive: true, force: true });
@@ -28,13 +30,14 @@ const pg = new EmbeddedPostgres({
 
 const fresh = !existsSync(path.join(dataDir, "PG_VERSION"));
 if (fresh) await pg.initialise();
+else rmSync(path.join(dataDir, "postmaster.pid"), { force: true });
 await pg.start();
 try {
-  await pg.createDatabase("rabbit");
+  await pg.createDatabase(ENV.dev.database);
 } catch {
   // 已存在
 }
 console.log(
-  `[pg-dev] ready :${port} fresh=${fresh} DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:${port}/rabbit`,
+  `[pg-dev] ready :${port} (slot=${ENV.slot}) fresh=${fresh} DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:${port}/${ENV.dev.database}`,
 );
 setInterval(() => {}, 60000);

@@ -1,4 +1,5 @@
 import { test, expect, navFromHome } from "./fixtures";
+import { MOCK_BASE, MOCK_PORT } from "./env";
 
 /**
  * 视觉快照用例（rules/testing.md §3.7）：为「高保真 ↔ 实现」还原度比对提供稳定截图。
@@ -78,7 +79,7 @@ test("VISUAL-debug 调试台", async ({ authedPage, page }) => {
 });
 
 test("VISUAL-report 执行报告（失败态展示断言明细）", async ({ authedPage, page }) => {
-  const MOCK_URL = "http://127.0.0.1:4001/hello"; // e2e mock 恒 :4001（global-setup 独占；不读 E2E_MOCK_URL 旧 4000 值）
+  const MOCK_URL = `${MOCK_BASE}/hello`; // e2e mock 恒 :4001（global-setup 独占；不读 E2E_MOCK_URL 旧 4000 值）
   await navFromHome(page, "接口调试");
   await page.getByTestId("debug-url").fill(MOCK_URL);
   await page.getByRole("tab", { name: "断言" }).click();
@@ -173,14 +174,14 @@ test("VISUAL-environments 环境管理列表（含示例数据）", async ({ aut
     data: {
       name: "测试环境",
       config: {
-        vars: [{ key: "base", value: "http://127.0.0.1:4001", enabled: true }],
+        vars: [{ key: "base", value: MOCK_BASE, enabled: true }],
         http: [
           {
             id: "def",
             name: "默认",
             protocol: "http",
             hostname: "127.0.0.1",
-            port: 4001,
+            port: MOCK_PORT,
             pathPrefix: "",
             conditions: {},
           },
@@ -224,7 +225,7 @@ test("VISUAL-tasks 任务中心（含示例任务）", async ({ authedPage, page
       type: "api_debug",
       request: {
         method: "GET",
-        url: "http://127.0.0.1:4001/hello",
+        url: `${MOCK_BASE}/hello`,
         headers: [],
         query: [],
         body: { kind: "none" },
@@ -260,7 +261,7 @@ test("VISUAL-reports 接口报告列表（含示例数据）", async ({ authedPa
       request: {
         spec: {
           method: "GET",
-          url: "http://127.0.0.1:4001/hello",
+          url: `${MOCK_BASE}/hello`,
           headers: [],
           query: [],
           body: { kind: "none" },
@@ -288,7 +289,7 @@ test("VISUAL-reports 接口报告列表（含示例数据）", async ({ authedPa
       request: {
         spec: {
           method: "GET",
-          url: "http://127.0.0.1:4001/hello",
+          url: `${MOCK_BASE}/hello`,
           headers: [],
           query: [],
           body: { kind: "none" },

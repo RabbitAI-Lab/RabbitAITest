@@ -3,7 +3,7 @@ import { test, expect, navFromHome } from "./fixtures";
 /**
  * AI-002 功能用例 AI 生成（docs/sprint-7-ai/AI-002-case-generation.md §5）。
  * 三类断言：UI（生成抽屉/草稿卡片/勾选导入）+ Console + 接口（生成 payload/草稿确定性/导入落库）。
- * 前置：global-setup 种子 mock 模型（e2e-mock-模型，baseUrl→e2e mock :4001）。
+ * 前置：global-setup 种子 mock 模型（e2e-mock-模型，baseUrl→e2e mock 槽位端口 4100+s）。
  */
 
 test("AI-002-01 AI 生成全链路（生成→勾选→导入用例列表）", async ({

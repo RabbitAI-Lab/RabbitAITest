@@ -9,7 +9,9 @@ import path from "node:path";
 
 /** S6 e2e 公共：管理员独立 API context（不覆盖浏览器 cookie——避免项目上下文丢失）+ 插件上传。 */
 
-export const E2E_BASE = process.env.E2E_BASE_URL ?? "http://localhost:3100";
+import { E2E_BASE as BASE, MOCK_BASE } from "./env";
+
+export const E2E_BASE = BASE;
 
 /** 浏览器会话注入管理员（仅系统页面 UI 用例） */
 export async function loginSeedAdmin(
@@ -91,5 +93,5 @@ export async function enablePlugin(request: APIRequestContext, id: string): Prom
   expect(body.data.ok).toBe(true);
 }
 
-/** e2e mock 三平台基址（:4001 与 MOCK_BASE 同进程——platform-mocks 与规则 mock 同端口） */
-export const PLATFORM_MOCK_BASE = process.env.E2E_MOCK_URL_BASE ?? "http://127.0.0.1:4001";
+/** e2e mock 三平台基址（随 worktree 槽位，与 MOCK_BASE 同进程——platform-mocks 与规则 mock 同端口） */
+export const PLATFORM_MOCK_BASE = MOCK_BASE;

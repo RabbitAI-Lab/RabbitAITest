@@ -5,6 +5,7 @@
  * 账号凭据经 authedPage fixture 注入（env 优先），本文件零凭据字面量。
  */
 import { test, expect } from "./fixtures";
+import { E2E_BASE } from "./env";
 
 // 随机 IP（每轮唯一）：固定 XFF 会跨轮残留 Redis 失败计数（10 分钟窗口），首轮累计导致次轮首个请求即 429
 const XFF = `10.88.${Math.floor(Math.random() * 250) + 1}.${Math.floor(Math.random() * 250) + 1}`;
@@ -85,7 +86,7 @@ test("QA-002-02 CSRF：跨源变更请求 403 10013（接口断言）+ 同源放
   // 同源 Origin → 放行（logout 200）
   const same = await request.post("/api/v1/auth/logout", {
     data: {},
-    headers: { origin: process.env.E2E_BASE_URL ?? "http://localhost:3100" },
+    headers: { origin: E2E_BASE },
   });
   expect(same.status()).toBe(200);
 });

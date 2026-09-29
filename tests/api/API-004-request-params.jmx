@@ -93,7 +93,7 @@
             <collectionProp name="Arguments.arguments">
               <elementProp name="" elementType="HTTPArgument">
                 <boolProp name="HTTPArgument.always_encode">false</boolProp>
-                <stringProp name="Argument.value">{&quot;name&quot;: &quot;jm参数环境-${TS}&quot;, &quot;config&quot;: {&quot;vars&quot;: [{&quot;key&quot;: &quot;base&quot;, &quot;value&quot;: &quot;http://127.0.0.1:4000&quot;, &quot;enabled&quot;: true}], &quot;http&quot;: [], &quot;hosts&quot;: [], &quot;database&quot;: [], &quot;pre&quot;: [], &quot;post&quot;: [], &quot;asserts&quot;: [], &quot;extracts&quot;: []}}</stringProp>
+                <stringProp name="Argument.value">{&quot;name&quot;: &quot;jm参数环境-${TS}&quot;, &quot;config&quot;: {&quot;vars&quot;: [{&quot;key&quot;: &quot;base&quot;, &quot;value&quot;: &quot;http://${__P(MOCKHOST,127.0.0.1)}:${__P(MOCKPORT,4000)}&quot;, &quot;enabled&quot;: true}], &quot;http&quot;: [], &quot;hosts&quot;: [], &quot;database&quot;: [], &quot;pre&quot;: [], &quot;post&quot;: [], &quot;asserts&quot;: [], &quot;extracts&quot;: []}}</stringProp>
                 <stringProp name="Argument.metadata">=</stringProp>
               </elementProp>
             </collectionProp>

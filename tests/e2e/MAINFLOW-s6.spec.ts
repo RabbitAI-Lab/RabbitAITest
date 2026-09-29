@@ -6,6 +6,7 @@ import {
   loginSeedAdmin,
   PLATFORM_MOCK_BASE,
 } from "./s6-helpers";
+import { E2E_BASE } from "./env";
 
 /**
  * MAINFLOW-s6：S6 主链路（插件上传启用 → 集成配置 → 缺陷推送拉取 → APIKEY CI → 审计留痕）。
@@ -79,7 +80,7 @@ test("MAINFLOW-s6 插件→集成→同步→APIKEY→审计 全链路", async (
   const key = await request.post("/api/v1/personal/api-keys", { data: { name: "MAINFLOW" } });
   const kb = (await key.json()) as { data: { accessKey: string; secretKey: string; id: string } };
   const openCtx = await playwright.request.newContext({
-    baseURL: process.env.E2E_BASE_URL ?? "http://localhost:3100",
+    baseURL: E2E_BASE,
   });
   const auth = `Basic ${Buffer.from(`${kb.data.accessKey}:${kb.data.secretKey}`).toString("base64")}`;
   const probe = await openCtx.get("/api/v1/open/exec/00000000-0000-4000-8000-000000000000", {

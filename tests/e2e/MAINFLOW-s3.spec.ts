@@ -10,6 +10,7 @@ import {
   scriptStep,
   waitStep,
 } from "./s3-helpers";
+import { MOCK_BASE } from "./env";
 
 /**
  * MAINFLOW-s3 场景自动化主链路（需求文档 §五 端到端可演示路径）：
@@ -26,7 +27,7 @@ test("MAINFLOW-s3 建场景→编排→CSV→执行→报告树→误报→导�
   const uniq = `MF${Date.now() % 1e7}`;
 
   // ── 准备：mock 定义（被引用步骤执行定义的 url——引用语义，用可达的 mock 内置端点） ──
-  const mockUrl = "http://127.0.0.1:4001/hello";
+  const mockUrl = `${MOCK_BASE}/hello`;
   const def = await createApiDef(request, pid, {
     name: `主链路定义-${uniq}`,
     path: "/hello",

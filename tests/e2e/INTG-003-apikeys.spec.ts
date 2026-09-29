@@ -1,4 +1,5 @@
 import { test, expect } from "./fixtures";
+import { E2E_BASE } from "./env";
 
 /**
  * INTG-003 APIKEY 与开放执行 API e2e（规格 §5：T2 CI 全流程 / T3 越权限流）。
@@ -30,7 +31,7 @@ test("INTG-003-T2 APIKEY 创建（一次性 sk 展示）→ open 触发执行 �
 
   // 隔离上下文：Basic ak:sk 调 open（不带 session）
   const openCtx = await playwright.request.newContext({
-    baseURL: process.env.E2E_BASE_URL ?? "http://localhost:3100",
+    baseURL: E2E_BASE,
   });
   const auth = `Basic ${Buffer.from(`${ak}:${sk}`).toString("base64")}`;
   const trigger = await openCtx.post("/api/v1/open/exec/api-case", {

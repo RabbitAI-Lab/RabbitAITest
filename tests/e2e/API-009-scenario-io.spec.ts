@@ -1,5 +1,6 @@
 import { test, expect, navFromHome } from "./fixtures";
 import { createScenario, customStep, saveSteps } from "./s3-helpers";
+import { MOCK_PORT } from "./env";
 
 /**
  * API-009 场景导入导出（规格：docs/sprint-3-scenario-automation/API-009-scenario-import-export.md）。
@@ -168,7 +169,7 @@ test("API-009-02 jmx 导入预览：JMeter 计划→格式探测 jmx（UI 预览
       <HTTPSamplerProxy testname="注册请求" enabled="true">
         <stringProp name="HTTPSampler.method">POST</stringProp>
         <stringProp name="HTTPSampler.domain">127.0.0.1</stringProp>
-        <stringProp name="HTTPSampler.port">4001</stringProp>
+        <stringProp name="HTTPSampler.port">${MOCK_PORT}</stringProp>
         <stringProp name="HTTPSampler.path">/mock/10001/users</stringProp>
       </HTTPSamplerProxy>
       <hashTree/>

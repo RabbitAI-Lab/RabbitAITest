@@ -1,4 +1,5 @@
 import { test, expect, navFromHome } from "./fixtures";
+import { MOCK_BASE } from "./env";
 
 /**
  * MAINFLOW-s4 主链路（sprint-overview §4 验收 1/2/8/9 压缩）：
@@ -6,7 +7,7 @@ import { test, expect, navFromHome } from "./fixtures";
  * 三类断言：UI/Console/接口。
  */
 
-const mockUrl = "http://127.0.0.1:4001/hello";
+const mockUrl = `${MOCK_BASE}/hello`;
 const spec = () => ({
   spec: {
     method: "GET" as const,

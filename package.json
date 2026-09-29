@@ -7,7 +7,7 @@
     "lint": "turbo run lint",
     "format": "oxfmt --ignore-path .oxfmtignore --write . || (echo \"[format] oxfmt 缺失，自动安装…\" && pnpm install && oxfmt --ignore-path .oxfmtignore --write .)",
     "typecheck": "turbo run typecheck",
-    "test": "turbo run test",
+    "test": "turbo run test && node --test scripts/*.test.mjs",
     "test:e2e": "playwright test -c tests/playwright.config.ts",
     "test:api": "bash scripts/run-api-tests.sh",
     "db:generate": "pnpm --filter @rabbit/db generate",

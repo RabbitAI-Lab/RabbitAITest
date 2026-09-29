@@ -5,12 +5,12 @@ import { expect, type APIRequestContext, type Page } from "@playwright/test";
  * 载荷口径与 tests/smoke/s2-smoke*.sh 对齐（packages/shared zod 契约）。
  */
 
-/** e2e mock 基址（:4001 独占端口，global-setup MOCK_PORT=4001 + web MOCK_PUBLIC_URL 对齐） */
-export const MOCK_BASE = process.env.E2E_MOCK_URL_BASE ?? "http://127.0.0.1:4001";
+/** e2e mock 基址与端口：随 worktree 槽位（INFRA-005，单一来源 ./env；
+ *  global-setup MOCK_PORT=4100+slot 与 web MOCK_PUBLIC_URL 对齐）。
+ *  写死 :4000/:4001 会在多 worktree 并行或无 dev mock 常驻时连接拒绝（2026-09-27 终验教训） */
+import { MOCK_BASE, MOCK_PORT } from "./env";
 
-/** 默认 HTTP 域名端口随 MOCK_BASE 推导（本地 :4001 / CI 经 E2E_MOCK_URL_BASE :4000）——
- *  写死 4000 会在本地无 dev mock 常驻时连接拒绝（2026-09-27 终验教训） */
-const MOCK_PORT = Number(new URL(MOCK_BASE).port) || 80;
+export { MOCK_BASE, MOCK_PORT };
 
 export type Kv = { key: string; value: string; enabled: boolean };
 

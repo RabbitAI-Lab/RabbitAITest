@@ -112,7 +112,7 @@ jobs:
     env:
       E2E_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/rabbit_e2e
       E2E_REDIS_URL: redis://127.0.0.1:6379
-      # e2e mock 由 global-setup 起在 :4001（E2E_MOCK_URL 旧 4000 值已废弃——曾指向 e2e 栈无监听端口）
+      # e2e mock 由 global-setup 起在 4100+slot（INFRA-005；CI slot0=4100。E2E_MOCK_URL 旧 4000 值已废弃——曾指向 e2e 栈无监听端口）
       GLM_API_KEY: ${{ secrets.GLM_API_KEY }}
       CI: "true"
     steps:
@@ -189,30 +189,31 @@ jobs:
           # S6：集成凭据加密密钥（jmx 断言值非真实凭据）；Swagger 同步目标为本地 mock → 放开私网出站
           export RABBIT_INTEGRATION_SECRET=ci-jm-integration-secret-32chars!!
           export OUTBOUND_ALLOW_PRIVATE=1
-          # 复用本地栈脚本环境（端口 3101）
+          # 复用本地栈脚本环境：端口随 worktree 槽位（INFRA-005，CI checkout=slot0：web 3200 / mock 4200）
           bash -c '
             set -a
-            export PORT=3101 WEB_URL=http://localhost:3101
+            eval "$(node scripts/rabbit-env.mjs --shell)"
+            export PORT=$RABBIT_JM_WEB_PORT WEB_URL=$RABBIT_JM_WEB_URL
             export REDIS_URL='"$REDIS_URL"' DATABASE_URL='"$DATABASE_URL"'
             export SESSION_SECRET=ci-jm-session-secret-32chars-ok!!!!!
             export INTERNAL_TOKEN=ci-internal-token SESSION_COOKIE_SECURE=false
             export RABBIT_INTEGRATION_SECRET='"$RABBIT_INTEGRATION_SECRET"'
             export OUTBOUND_ALLOW_PRIVATE=1
             export RABBIT_USER_LIMIT=1000 # 与 e2e 口径一致：全量套件注册用户数 >30（产品默认 30 不变）
-            # S7 AI：mock 供应商(:4000) 在环回——SSRF 守卫仅豁免环回；种子内置 mock 模型（baseUrl 含 /ai 前缀）
+            # S7 AI：mock 供应商(环回 4200+slot)——SSRF 守卫仅豁免环回；种子内置 mock 模型（baseUrl 含 /ai 前缀）
             export AI_ALLOW_PRIVATE_BASEURL=1
-            export RABBIT_SEED_AI_MOCK_BASE=http://127.0.0.1:4000/ai
+            export RABBIT_SEED_AI_MOCK_BASE=http://127.0.0.1:$RABBIT_JM_MOCK_PORT/ai
             pnpm --filter @rabbit/db migrate-deploy
             pnpm --filter @rabbit/db seed
             pnpm --filter web start > /tmp/web.log 2>&1 &
             pnpm --filter engine start > /tmp/engine.log 2>&1 &
-            pnpm --filter mock start > /tmp/mock.log 2>&1 &
+            MOCK_PORT=$RABBIT_JM_MOCK_PORT pnpm --filter mock start > /tmp/mock.log 2>&1 &
             for i in $(seq 1 90); do
-              code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3101/api/v1/system/ready || true)
+              code=$(curl -s -o /dev/null -w "%{http_code}" $RABBIT_JM_WEB_URL/api/v1/system/ready || true)
               [ "$code" = "200" ] && break; sleep 1
             done
             [ "$code" = "200" ] || { cat /tmp/web.log; exit 1; }
-            bash scripts/run-api-tests.sh http://localhost:3101
+            bash scripts/run-api-tests.sh $RABBIT_JM_WEB_URL
           '
       - uses: actions/upload-artifact@v4
         if: always()

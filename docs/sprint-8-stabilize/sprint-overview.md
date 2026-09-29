@@ -63,6 +63,7 @@
 | QA-001    | 性能基线     | Implemented | 接口契约=基准脚本 CLI 契约+阈值表（纯引擎/脚本类替代高保真）                 |
 | QA-002    | 安全加固     | Implemented | 接口契约=错误码+限流/守卫行为矩阵（纯后端类替代高保真）                      |
 | INFRA-004 | 可观测与备份 | Implemented | 排障包 UI 原型 docs/design/INFRA-004-observability-backup/；其余接口契约评审 |
+| INFRA-005 | 并行 worktree 槽位隔离 | Implemented | 接口契约评审（INFRA-005-parallel-slot-isolation.md §2：槽位推导/端口表/接入方式；2026-09-28 分支交付，端口/Redis 键空间/共享 /tmp 按 worktree 槽位隔离，单一事实源 scripts/rabbit-env.mjs，规则沉淀 rules/git-workflow §9） |
 
 ## 6. 交付自查（2026-09-28 回填）
 

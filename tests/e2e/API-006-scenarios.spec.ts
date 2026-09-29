@@ -17,6 +17,7 @@ import {
   scriptStep,
   waitStep,
 } from "./s3-helpers";
+import { MOCK_BASE } from "./env";
 
 /**
  * API-006 场景编排（规格：docs/sprint-3-scenario-automation/API-006-scenario-orchestration.md）。
@@ -83,7 +84,7 @@ test("API-006-02 步骤树编排：三类步骤 UI 添加→保存→重载回�
   const uniq = `S6${Date.now() % 1e7}`;
   const name = `编排场景-${uniq}`;
   const sc = await createScenario(request, pid, { name });
-  const mockUrl = "http://127.0.0.1:4001/hello";
+  const mockUrl = `${MOCK_BASE}/hello`;
 
   await page.goto(`/scenarios/${sc.id}`);
   await expect(page.getByTestId("step-tree-panel")).toBeVisible();
@@ -161,7 +162,7 @@ test("API-006-03 执行与场景报告：五卡+步骤树+步骤钻取", async (
 }) => {
   const pid = authedPage.projectId;
   const uniq = `S6${Date.now() % 1e7}`;
-  const mockUrl = "http://127.0.0.1:4001/hello";
+  const mockUrl = `${MOCK_BASE}/hello`;
 
   // API 造数：场景 = custom（成功）+ script + wait
   const sc = await createScenario(request, pid, { name: `报告场景-${uniq}` });

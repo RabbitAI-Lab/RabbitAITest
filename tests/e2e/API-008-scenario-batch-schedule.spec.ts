@@ -1,6 +1,7 @@
 import { test, expect, navFromHome } from "./fixtures";
 import { bundle, createApiDef, createMockRule, getMockUrl, pollTask } from "./s2-helpers";
 import { createScenario, customStep, defaultScenarioModuleId, saveSteps } from "./s3-helpers";
+import { MOCK_BASE } from "./env";
 
 /**
  * API-008 场景批量执行与定时任务（规格：docs/sprint-3-scenario-automation/API-008-scenario-execution-batch.md）。
@@ -15,7 +16,7 @@ test("API-008-01 批量执行：勾选 2 场景→弹窗串行→跳任务中心
 }) => {
   const pid = authedPage.projectId;
   const uniq = `S8${Date.now() % 1e7}`;
-  const mockUrl = "http://127.0.0.1:4001/hello";
+  const mockUrl = `${MOCK_BASE}/hello`;
 
   const a = await createScenario(request, pid, { name: `批量A-${uniq}` });
   const b = await createScenario(request, pid, { name: `批量B-${uniq}` });

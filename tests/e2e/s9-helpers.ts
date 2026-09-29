@@ -3,12 +3,13 @@
  * - loginSeedAdmin：种子管理员登录（系统级页面）
  * - issueDevLicense：与 web 同密钥（默认开发密钥）签发 License——e2e 栈未设 LICENSE_SIGNING_SECRET
  * - withLicense / cleanupEntp：License 加删（跨文件并行 workers=4 → 用后即删，缩小全局态窗口）
- * - MOCK_URL：mock IdP 基址（global-setup 起 mock 于 :4001；MOCK_PORT 透传）
+ * - MOCK_URL：mock IdP 基址（global-setup 起 mock，随 worktree 槽位；env.ts 单一来源）
  */
 import { createHmac } from "node:crypto";
 import { expect, type APIRequestContext, type BrowserContext } from "@playwright/test";
+import { E2E_BASE, MOCK_BASE } from "./env";
 
-export const MOCK_URL = `http://127.0.0.1:${process.env.MOCK_PORT ?? "4001"}`;
+export const MOCK_URL = MOCK_BASE;
 
 export async function loginSeedAdmin(
   request: APIRequestContext,
@@ -20,9 +21,7 @@ export async function loginSeedAdmin(
   expect(res.status()).toBe(200);
   const ras = (res.headers()["set-cookie"] ?? "").split("ras=")[1]?.split(";")[0];
   expect(ras, "登录响应应下发 ras 会话 cookie").toBeTruthy();
-  await context.addCookies([
-    { name: "ras", value: ras!, url: process.env.E2E_BASE_URL ?? "http://localhost:3100" },
-  ]);
+  await context.addCookies([{ name: "ras", value: ras!, url: E2E_BASE }]);
 }
 
 /** 与 license.service 同算法签发（开发密钥缺省；e2e 栈未覆盖 env）。 */

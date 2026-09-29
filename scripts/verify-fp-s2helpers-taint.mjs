@@ -49,8 +49,8 @@ for (const f of ["tests/e2e/s2-helpers.ts", "tests/e2e/s3-helpers.ts"]) {
 {
   const cfg = readFileSync(path.join(ROOT, "tests/playwright.config.ts"), "utf8");
   ok(
-    /baseURL:\s*process\.env\.E2E_BASE_URL \?\? "http:\/\/localhost:3100"/.test(cfg),
-    "playwright baseURL 默认 localhost:3100（污点值只能回到同一被测系统）",
+    /baseURL:\s*process\.env\.E2E_BASE_URL \?\? E\.e2e\.webUrl/.test(cfg),
+    "playwright baseURL 默认槽位 e2e web 基址（INFRA-005 rabbit-env；污点值只能回到同一被测系统）",
   );
 }
 

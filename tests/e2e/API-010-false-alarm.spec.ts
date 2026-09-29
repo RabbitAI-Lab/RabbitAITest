@@ -1,6 +1,7 @@
 import { test, expect, navFromHome } from "./fixtures";
 import { bundle, createApiDef, createMockRule, getMockUrl, pollTask } from "./s2-helpers";
 import { createScenario, customStep, executeScenario, saveSteps } from "./s3-helpers";
+import { MOCK_BASE } from "./env";
 
 /**
  * API-010 误报规则（规格：docs/sprint-3-scenario-automation/API-010-false-alarm-rules.md）。
@@ -72,7 +73,7 @@ test("API-010-02 误报改判链路：失败场景命中耗时规则→item=FAKE
 }) => {
   const pid = authedPage.projectId;
   const uniq = `SA${Date.now() % 1e7}`;
-  const mockUrl = "http://127.0.0.1:4001/hello";
+  const mockUrl = `${MOCK_BASE}/hello`;
 
   // 规则（体包含 hello：内置端点响应必命中）+ 失败场景（断言故意 eq 500）
   const rule = await request.post(`/api/v1/projects/${pid}/false-alarm-rules`, {

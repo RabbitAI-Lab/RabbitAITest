@@ -9,6 +9,7 @@ import {
   pollTask,
   submitDebugTask,
 } from "./s2-helpers";
+import { MOCK_BASE } from "./env";
 
 /**
  * API-004 请求参数体系（规格：docs/sprint-2-api-core/API-004-request-params.md）。
@@ -131,7 +132,7 @@ test("API-004-01 变量链路：${base} 渲染 + 前置 setVar + 变量断言 + 
     .click();
   await expect(page.getByTestId("item-drilldown")).toBeVisible();
   // 渲染后 URL（请求快照）：${base} 已替换为真实 mock 地址
-  await expect(page.getByTestId("drill-request")).toContainText("http://127.0.0.1:4001/hello");
+  await expect(page.getByTestId("drill-request")).toContainText(`${MOCK_BASE}/hello`);
   await expect(page.getByTestId("drill-request")).not.toContainText("${base}");
   await expect(page.getByTestId("extracts-table")).toContainText("svcState2");
   await expect(
@@ -158,7 +159,7 @@ test("API-004-02 断言失败二态：body_jsonpath 不存在值 → FAILED + �
   void authedPage;
   await navFromHome(page, "接口调试");
   await expect(page.getByTestId("debug-url")).toBeVisible();
-  await page.getByTestId("debug-url").fill("http://127.0.0.1:4001/hello");
+  await page.getByTestId("debug-url").fill(`${MOCK_BASE}/hello`);
 
   // 断言：body_jsonpath $.nope eq xyz（不存在 → 失败）
   await page.getByTestId("btn-add-assert").click();
@@ -191,7 +192,7 @@ test("API-004-03 脚本失败二态：前置 throw → FAILED + SCRIPT_ERROR 留
   const { projectId } = authedPage;
   // 直接 API 起一个前置脚本抛错的任务（UI 侧脚本编辑已由 API-004-01 覆盖）
   const taskId = await submitDebugTask(request, projectId, {
-    url: "http://127.0.0.1:4001/hello",
+    url: `${MOCK_BASE}/hello`,
     pre: [{ kind: "script", script: 'throw new Error("boom-script")' }],
   });
   const final = await pollTask(request, projectId, taskId);

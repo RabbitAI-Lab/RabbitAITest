@@ -7,6 +7,7 @@ import {
   loopForeachStep,
   saveSteps,
 } from "./s3-helpers";
+import { MOCK_BASE } from "./env";
 
 /**
  * API-007 场景参数化（规格：docs/sprint-3-scenario-automation/API-007-scenario-params-csv.md）。
@@ -87,7 +88,7 @@ test("API-007-02 foreach 列表迭代：3 值→3 迭代帧→报告迭代分组
 }) => {
   const pid = authedPage.projectId;
   const uniq = `S7${Date.now() % 1e7}`;
-  const mockUrl = "http://127.0.0.1:4001/hello";
+  const mockUrl = `${MOCK_BASE}/hello`;
 
   const sc = await createScenario(request, pid, {
     name: `迭代场景-${uniq}`,

@@ -1,5 +1,6 @@
 import { test, expect } from "./fixtures";
 import type { APIRequestContext, BrowserContext } from "@playwright/test";
+import { E2E_BASE } from "./env";
 
 /**
  * SYS-004 用户与三级用户组管理（docs/sprint-1-mvp-test-mgmt/SYS-004-user-group-management.md §5）：
@@ -20,9 +21,7 @@ async function loginSeedAdmin(request: APIRequestContext, context: BrowserContex
   const cookieHeader = res.headers()["set-cookie"] ?? "";
   const ras = cookieHeader.split("ras=")[1]?.split(";")[0];
   expect(ras, "登录响应应下发 ras 会话 cookie").toBeTruthy();
-  await context.addCookies([
-    { name: "ras", value: ras!, url: process.env.E2E_BASE_URL ?? "http://localhost:3100" },
-  ]);
+  await context.addCookies([{ name: "ras", value: ras!, url: E2E_BASE }]);
 }
 
 test("SYS-004-01 用户管理与用户组管理主链路（管理员）", async ({

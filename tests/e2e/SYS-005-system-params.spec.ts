@@ -1,5 +1,6 @@
 import { test, expect } from "./fixtures";
 import type { APIRequestContext, BrowserContext } from "@playwright/test";
+import { E2E_BASE } from "./env";
 
 /**
  * SYS-005 系统参数（docs/sprint-1-mvp-test-mgmt/SYS-005-system-params.md §5 T2）：
@@ -18,9 +19,7 @@ async function loginSeedAdmin(request: APIRequestContext, context: BrowserContex
   const cookieHeader = res.headers()["set-cookie"] ?? "";
   const ras = cookieHeader.split("ras=")[1]?.split(";")[0];
   expect(ras, "登录响应应下发 ras 会话 cookie").toBeTruthy();
-  await context.addCookies([
-    { name: "ras", value: ras!, url: process.env.E2E_BASE_URL ?? "http://localhost:3100" },
-  ]);
+  await context.addCookies([{ name: "ras", value: ras!, url: E2E_BASE }]);
 }
 
 test("SYS-005-01 参数保存与测试连接（管理员）", async ({
@@ -77,7 +76,7 @@ test("SYS-005-02 登录横幅配置并渲染（P-1）", async ({ request, contex
   await loginSeedAdmin(request, context);
   const banner = `欢迎来到 Rabbit 测试平台 ${Date.now() % 100000}`;
   const put = await request.put("/api/v1/system/params/basic", {
-    data: { group: "basic", value: { siteUrl: "http://localhost:3100", loginBanner: banner } },
+    data: { group: "basic", value: { siteUrl: E2E_BASE, loginBanner: banner } },
   });
   expect(put.status()).toBe(200);
 
@@ -91,6 +90,6 @@ test("SYS-005-02 登录横幅配置并渲染（P-1）", async ({ request, contex
   // 复位（避免影响 VISUAL-login 快照）
   await loginSeedAdmin(request, context);
   await request.put("/api/v1/system/params/basic", {
-    data: { group: "basic", value: { siteUrl: "http://localhost:3100", loginBanner: "" } },
+    data: { group: "basic", value: { siteUrl: E2E_BASE, loginBanner: "" } },
   });
 });

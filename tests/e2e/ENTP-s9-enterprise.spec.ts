@@ -11,6 +11,7 @@ import {
 } from "./s9-helpers";
 import { readUnreadTitles } from "./s5-helpers";
 import { createScenario, saveSteps, scriptStep, clickRetry } from "./s3-helpers";
+import { E2E_BASE, E2E_HOST, E2E_REDIS } from "./env";
 
 /**
  * Sprint 9 ENTP 全量 e2e（8 用例，单文件串行——License/主题为全局态，跨文件并行 workers=4 会互踩；
@@ -85,7 +86,7 @@ test("ENTP-007-02 到期提醒黄条 + 校验失败文案回显", async ({
   await expectNoConsoleErrors([
     {
       pageUrlPattern: "system/license",
-      textPattern: "POST http://localhost:3100/api/v1/system/license|Failed to load resource.*422",
+      textPattern: `POST ${E2E_BASE}/api/v1/system/license|Failed to load resource.*422`,
       reason: "篡改 License 提交是经页面的预期负路径探测（422 90003 回显断言即其 UI 证据）",
     },
   ]);
@@ -140,9 +141,7 @@ test("ENTP-001-01 建组织→切换器→项目过滤→结束消失；社区�
   });
   const ras = (ownerLogin.headers()["set-cookie"] ?? "").split("ras=")[1]?.split(";")[0];
   await context.clearCookies();
-  await context.addCookies([
-    { name: "ras", value: ras!, url: process.env.E2E_BASE_URL ?? "http://localhost:3100" },
-  ]);
+  await context.addCookies([{ name: "ras", value: ras!, url: E2E_BASE }]);
   await page.goto("/");
   await expect(page.getByTestId("org-switcher")).toBeVisible({ timeout: 15_000 });
   await page.getByTestId("org-switcher").click();
@@ -156,9 +155,7 @@ test("ENTP-001-01 建组织→切换器→项目过滤→结束消失；社区�
   await loginSeedAdmin(request, context);
   await request.patch(`/api/v1/orgs/${orgId}`, { data: { status: "ENDED" } });
   await context.clearCookies();
-  await context.addCookies([
-    { name: "ras", value: ras!, url: process.env.E2E_BASE_URL ?? "http://localhost:3100" },
-  ]);
+  await context.addCookies([{ name: "ras", value: ras!, url: E2E_BASE }]);
   await page.goto("/");
   await expect(page.getByTestId("org-switcher")).toHaveCount(0, { timeout: 15_000 });
 
@@ -170,7 +167,7 @@ test("ENTP-001-01 建组织→切换器→项目过滤→结束消失；社区�
   // 白名单：切换用户会话后，浏览器仍持旧项目上下文 → /info、/dashboard/* 404（防枚举）属预期切换噪声
   await expectNoConsoleErrors([
     {
-      pageUrlPattern: "localhost:3100/",
+      pageUrlPattern: `${E2E_HOST}/`,
       textPattern: "/api/v1/projects/.+/(info|dashboard/.+) @ |Failed to load resource.*404",
       reason: "组织切换后旧项目上下文 404（防枚举），切换器刷新即恢复",
     },
@@ -279,7 +276,7 @@ test("ENTP-002-01 OIDC mock 全链：配置→登录页入口→授权→回调�
   // 白名单：SSO 登录为新用户后，浏览器旧项目上下文 /info、/dashboard/* 404（防枚举）预期噪声
   await expectNoConsoleErrors([
     {
-      pageUrlPattern: "localhost:3100/",
+      pageUrlPattern: `${E2E_HOST}/`,
       textPattern: "/api/v1/projects/.+/(info|dashboard/.+) @ |Failed to load resource.*404",
       reason: "SSO 新用户会话下旧项目上下文 404（防枚举）",
     },
@@ -421,8 +418,8 @@ test("ENTP-006-01 建池→engine2 绑定（POOL_ID）→场景选池执行→�
     env: {
       ...process.env,
       POOL_ID: poolId,
-      REDIS_URL: process.env.E2E_REDIS_URL ?? "redis://127.0.0.1:6381",
-      WEB_URL: process.env.E2E_BASE_URL ?? "http://localhost:3100",
+      REDIS_URL: E2E_REDIS,
+      WEB_URL: E2E_BASE,
       INTERNAL_TOKEN: process.env.INTERNAL_TOKEN ?? "dev-internal-token",
     },
     stdio: "ignore",
