@@ -88,7 +88,9 @@ const run = async () => {
   await sleep(1200);
   const api2 = ctx.request;
   const bug = await (async () => {
-    const r = await api2.post(`${BASE}/api/v1/projects/${projectId}/bugs`, { data: { title: "验收演示：登录页偶发 500" } });
+    const r = await api2.post(`${BASE}/api/v1/projects/${projectId}/bugs`, {
+      data: { title: "验收演示：登录页偶发 500" },
+    });
     return (await r.json()).data;
   })();
   await page.goto(`${BASE}/bugs`);
@@ -103,7 +105,10 @@ const run = async () => {
   await api2.delete(`${BASE}/api/v1/projects/${projectId}/bugs/${bug.id}`);
   await page.getByTestId("tab-recycle").click();
   await sleep(1500);
-  await page.getByRole("row", { name: /验收演示/ }).getByRole("checkbox").check();
+  await page
+    .getByRole("row", { name: /验收演示/ })
+    .getByRole("checkbox")
+    .check();
   await page.getByTestId("btn-batch-restore-bugs").click();
   await sleep(1800);
 
@@ -117,7 +122,8 @@ const run = async () => {
         language: "javascript",
         tags: ["验收"],
         params: [{ name: "length", defaultValue: "8", required: true }],
-        content: 'const n = Number(getVar("param.length")||"8"); setVar("loginUser","u"+randomInt(1000,9999)); log("n="+n);',
+        content:
+          'const n = Number(getVar("param.length")||"8"); setVar("loginUser","u"+randomInt(1000,9999)); log("n="+n);',
       },
     });
     return (await r.json()).data;
@@ -152,11 +158,17 @@ const run = async () => {
   await page.getByRole("tab", { name: "环境组" }).click();
   await sleep(1200);
   const envIds = await (async () => {
-    const a = await api2.post(`${BASE}/api/v1/projects/${projectId}/environments`, { data: { name: "sit", config: {} } });
-    const b = await api2.post(`${BASE}/api/v1/projects/${projectId}/environments`, { data: { name: "uat", config: {} } });
+    const a = await api2.post(`${BASE}/api/v1/projects/${projectId}/environments`, {
+      data: { name: "sit", config: {} },
+    });
+    const b = await api2.post(`${BASE}/api/v1/projects/${projectId}/environments`, {
+      data: { name: "uat", config: {} },
+    });
     return [(await a.json()).data.id, (await b.json()).data.id];
   })();
-  await api2.post(`${BASE}/api/v1/projects/${projectId}/env-groups`, { data: { name: "验收-回归组", environmentIds: envIds } });
+  await api2.post(`${BASE}/api/v1/projects/${projectId}/env-groups`, {
+    data: { name: "验收-回归组", environmentIds: envIds },
+  });
   await page.reload();
   await page.getByRole("tab", { name: "环境组" }).click();
   await sleep(1800);
@@ -199,8 +211,15 @@ const run = async () => {
   await sleep(2200);
   await page.getByTestId("personal-menu-ai-model").click();
   await step(page, "模型设置：个人默认模型（优先于系统默认，AI 助手/生成生效）", 2200);
-  await page.locator('[data-testid^="personal-model-"] input[type="radio"]').first().check({ timeout: 15_000 }).catch(() => {});
-  await page.getByTestId("personal-ai-model-save").click({ force: true }).catch(() => {});
+  await page
+    .locator('[data-testid^="personal-model-"] input[type="radio"]')
+    .first()
+    .check({ timeout: 15_000 })
+    .catch(() => {});
+  await page
+    .getByTestId("personal-ai-model-save")
+    .click({ force: true })
+    .catch(() => {});
   await sleep(1800);
 
   // ── 8 AI 助手（个人模型）──
@@ -208,11 +227,19 @@ const run = async () => {
   await step(page, "⑧ 工作台 → AI 助手（走个人默认模型的演示 mock）", 1600);
   await page.getByTestId("topbar-ai-assistant").click();
   await sleep(1500);
-  await page.getByPlaceholder(/输入|提问/, { exact: false }).first().fill("用一句话设计登录密码错误的测试点").catch(() => {});
+  await page
+    .getByPlaceholder(/输入|提问/, { exact: false })
+    .first()
+    .fill("用一句话设计登录密码错误的测试点")
+    .catch(() => {});
   await page.keyboard.press("Enter").catch(() => {});
   await sleep(3500);
 
-  await step(page, "S5 验收演示结束 —— 六功能：通知机器人/缺陷协作/公共脚本/环境组/Git 仓库/个人中心", 3000);
+  await step(
+    page,
+    "S5 验收演示结束 —— 六功能：通知机器人/缺陷协作/公共脚本/环境组/Git 仓库/个人中心",
+    3000,
+  );
 
   await ctx.close();
   await browser.close();

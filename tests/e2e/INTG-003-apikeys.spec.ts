@@ -29,11 +29,16 @@ test("INTG-003-T2 APIKEY 创建（一次性 sk 展示）→ open 触发执行 �
   await page.getByRole("button", { name: "我已保存，关闭" }).click();
 
   // 隔离上下文：Basic ak:sk 调 open（不带 session）
-  const openCtx = await playwright.request.newContext({ baseURL: process.env.E2E_BASE_URL ?? "http://localhost:3100" });
+  const openCtx = await playwright.request.newContext({
+    baseURL: process.env.E2E_BASE_URL ?? "http://localhost:3100",
+  });
   const auth = `Basic ${Buffer.from(`${ak}:${sk}`).toString("base64")}`;
   const trigger = await openCtx.post("/api/v1/open/exec/api-case", {
     headers: { authorization: auth },
-    data: { apiCaseId: "00000000-0000-4000-8000-000000000000", envId: "00000000-0000-4000-8000-000000000000" },
+    data: {
+      apiCaseId: "00000000-0000-4000-8000-000000000000",
+      envId: "00000000-0000-4000-8000-000000000000",
+    },
   });
   // apiCase 不存在 → 404（认证已通过——非 401 即 APIKEY 通道生效）
   expect(trigger.status()).toBe(404);

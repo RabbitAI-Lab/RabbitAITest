@@ -109,6 +109,9 @@
       "name": "项目·message-config"
     },
     {
+      "name": "项目·message-templates"
+    },
+    {
       "name": "项目·mocks"
     },
     {
@@ -660,13 +663,181 @@
         }
       }
     },
+    "/api/v1/orgs/{orgId}/departments/{departmentId}/members/{userId}": {
+      "delete": {
+        "summary": "DELETE /api/v1/orgs/{orgId}/departments/{departmentId}/members/{userId}",
+        "tags": [
+          "组织"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orgs/{orgId}/departments/{departmentId}/members": {
+      "get": {
+        "summary": "GET /api/v1/orgs/{orgId}/departments/{departmentId}/members",
+        "tags": [
+          "组织"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "POST /api/v1/orgs/{orgId}/departments/{departmentId}/members",
+        "tags": [
+          "组织"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orgs/{orgId}/departments/{departmentId}": {
+      "delete": {
+        "summary": "DELETE /api/v1/orgs/{orgId}/departments/{departmentId}",
+        "tags": [
+          "组织"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "PATCH /api/v1/orgs/{orgId}/departments/{departmentId}",
+        "tags": [
+          "组织"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orgs/{orgId}/departments": {
+      "get": {
+        "summary": "GET /api/v1/orgs/{orgId}/departments",
+        "tags": [
+          "组织"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "POST /api/v1/orgs/{orgId}/departments",
+        "tags": [
+          "组织"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/orgs/{orgId}/field-defs/{id}": {
       "put": {
         "summary": "PUT /api/v1/orgs/{orgId}/field-defs/{id}",
         "tags": [
           "组织"
         ],
-        "x-permission": "ORG_TEMPLATE:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -690,7 +861,6 @@
         "tags": [
           "组织"
         ],
-        "x-permission": "ORG_TEMPLATE:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -716,7 +886,6 @@
         "tags": [
           "组织"
         ],
-        "x-permission": "ORG_TEMPLATE:READ",
         "security": [
           {
             "cookieAuth": []
@@ -740,7 +909,6 @@
         "tags": [
           "组织"
         ],
-        "x-permission": "ORG_TEMPLATE:READ",
         "security": [
           {
             "cookieAuth": []
@@ -766,7 +934,6 @@
         "tags": [
           "组织"
         ],
-        "x-permission": "ORG_GROUP:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -792,7 +959,6 @@
         "tags": [
           "组织"
         ],
-        "x-permission": "ORG_GROUP:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -818,7 +984,6 @@
         "tags": [
           "组织"
         ],
-        "x-permission": "ORG_GROUP:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -844,7 +1009,6 @@
         "tags": [
           "组织"
         ],
-        "x-permission": "ORG_GROUP:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -868,7 +1032,6 @@
         "tags": [
           "组织"
         ],
-        "x-permission": "ORG_GROUP:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -894,7 +1057,6 @@
         "tags": [
           "组织"
         ],
-        "x-permission": "ORG_GROUP:READ",
         "security": [
           {
             "cookieAuth": []
@@ -918,7 +1080,6 @@
         "tags": [
           "组织"
         ],
-        "x-permission": "ORG_GROUP:READ",
         "security": [
           {
             "cookieAuth": []
@@ -1040,7 +1201,6 @@
         "tags": [
           "组织"
         ],
-        "x-permission": "ORG_MEMBER:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -1066,7 +1226,6 @@
         "tags": [
           "组织"
         ],
-        "x-permission": "ORG_MEMBER:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -1092,7 +1251,6 @@
         "tags": [
           "组织"
         ],
-        "x-permission": "ORG_MEMBER:READ",
         "security": [
           {
             "cookieAuth": []
@@ -1118,7 +1276,6 @@
         "tags": [
           "组织"
         ],
-        "x-permission": "ORG_MEMBER:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -1144,7 +1301,6 @@
         "tags": [
           "组织"
         ],
-        "x-permission": "ORG_PROJECT:READ",
         "security": [
           {
             "cookieAuth": []
@@ -1168,7 +1324,54 @@
         "tags": [
           "组织"
         ],
-        "x-permission": "ORG_PROJECT:READ",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orgs/{orgId}": {
+      "delete": {
+        "summary": "DELETE /api/v1/orgs/{orgId}",
+        "tags": [
+          "组织"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "PATCH /api/v1/orgs/{orgId}",
+        "tags": [
+          "组织"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -1194,7 +1397,6 @@
         "tags": [
           "组织"
         ],
-        "x-permission": "ORG_TEMPLATE:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -1220,7 +1422,6 @@
         "tags": [
           "组织"
         ],
-        "x-permission": "ORG_TEMPLATE:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -1246,7 +1447,6 @@
         "tags": [
           "组织"
         ],
-        "x-permission": "ORG_TEMPLATE:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -1272,7 +1472,6 @@
         "tags": [
           "组织"
         ],
-        "x-permission": "ORG_TEMPLATE:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -1296,7 +1495,6 @@
         "tags": [
           "组织"
         ],
-        "x-permission": "ORG_TEMPLATE:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -1322,7 +1520,6 @@
         "tags": [
           "组织"
         ],
-        "x-permission": "ORG_TEMPLATE:READ",
         "security": [
           {
             "cookieAuth": []
@@ -1346,7 +1543,6 @@
         "tags": [
           "组织"
         ],
-        "x-permission": "ORG_TEMPLATE:READ",
         "security": [
           {
             "cookieAuth": []
@@ -1731,6 +1927,31 @@
         }
       }
     },
+    "/api/v1/personal/orgs": {
+      "get": {
+        "summary": "GET /api/v1/personal/orgs",
+        "tags": [
+          "个人中心"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/personal/permissions": {
       "get": {
         "summary": "GET /api/v1/personal/permissions",
@@ -2056,7 +2277,6 @@
         "tags": [
           "项目·apis"
         ],
-        "x-permission": "PROJECT_API:READ",
         "security": [
           {
             "cookieAuth": []
@@ -2080,7 +2300,6 @@
         "tags": [
           "项目·apis"
         ],
-        "x-permission": "PROJECT_API:READ",
         "security": [
           {
             "cookieAuth": []
@@ -2692,7 +2911,6 @@
         "tags": [
           "项目·attachments"
         ],
-        "x-permission": "PROJECT_BUG:READ",
         "security": [
           {
             "cookieAuth": []
@@ -2718,7 +2936,6 @@
         "tags": [
           "项目·attachments"
         ],
-        "x-permission": "PROJECT_BUG:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -2744,7 +2961,6 @@
         "tags": [
           "项目·attachments"
         ],
-        "x-permission": "PROJECT_BUG:CREATE",
         "security": [
           {
             "cookieAuth": []
@@ -2795,7 +3011,6 @@
         "tags": [
           "项目·bugs"
         ],
-        "x-permission": "PROJECT_BUG:READ",
         "security": [
           {
             "cookieAuth": []
@@ -2821,7 +3036,6 @@
         "tags": [
           "项目·bugs"
         ],
-        "x-permission": "PROJECT_BUG:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -2847,7 +3061,6 @@
         "tags": [
           "项目·bugs"
         ],
-        "x-permission": "PROJECT_BUG:READ",
         "security": [
           {
             "cookieAuth": []
@@ -2871,7 +3084,6 @@
         "tags": [
           "项目·bugs"
         ],
-        "x-permission": "PROJECT_BUG:READ",
         "security": [
           {
             "cookieAuth": []
@@ -2897,7 +3109,6 @@
         "tags": [
           "项目·bugs"
         ],
-        "x-permission": "PROJECT_BUG:READ",
         "security": [
           {
             "cookieAuth": []
@@ -2923,7 +3134,6 @@
         "tags": [
           "项目·bugs"
         ],
-        "x-permission": "PROJECT_BUG:READ",
         "security": [
           {
             "cookieAuth": []
@@ -2949,7 +3159,6 @@
         "tags": [
           "项目·bugs"
         ],
-        "x-permission": "PROJECT_BUG:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -2975,7 +3184,6 @@
         "tags": [
           "项目·bugs"
         ],
-        "x-permission": "PROJECT_BUG:READ",
         "security": [
           {
             "cookieAuth": []
@@ -2999,7 +3207,6 @@
         "tags": [
           "项目·bugs"
         ],
-        "x-permission": "PROJECT_BUG:READ",
         "security": [
           {
             "cookieAuth": []
@@ -3023,7 +3230,6 @@
         "tags": [
           "项目·bugs"
         ],
-        "x-permission": "PROJECT_BUG:READ",
         "security": [
           {
             "cookieAuth": []
@@ -3074,7 +3280,6 @@
         "tags": [
           "项目·bugs"
         ],
-        "x-permission": "PROJECT_BUG:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -3100,7 +3305,6 @@
         "tags": [
           "项目·bugs"
         ],
-        "x-permission": "PROJECT_BUG:DELETE",
         "security": [
           {
             "cookieAuth": []
@@ -3176,7 +3380,6 @@
         "tags": [
           "项目·bugs"
         ],
-        "x-permission": "PROJECT_BUG:READ",
         "security": [
           {
             "cookieAuth": []
@@ -3202,7 +3405,6 @@
         "tags": [
           "项目·bugs"
         ],
-        "x-permission": "PROJECT_BUG:READ",
         "security": [
           {
             "cookieAuth": []
@@ -3226,7 +3428,6 @@
         "tags": [
           "项目·bugs"
         ],
-        "x-permission": "PROJECT_BUG:READ",
         "security": [
           {
             "cookieAuth": []
@@ -3323,7 +3524,6 @@
         "tags": [
           "项目·cases"
         ],
-        "x-permission": "PROJECT_BUG:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -3349,7 +3549,6 @@
         "tags": [
           "项目·cases"
         ],
-        "x-permission": "PROJECT_BUG:READ",
         "security": [
           {
             "cookieAuth": []
@@ -3373,7 +3572,6 @@
         "tags": [
           "项目·cases"
         ],
-        "x-permission": "PROJECT_BUG:READ",
         "security": [
           {
             "cookieAuth": []
@@ -3399,7 +3597,6 @@
         "tags": [
           "项目·cases"
         ],
-        "x-permission": "PROJECT_CASE:READ",
         "security": [
           {
             "cookieAuth": []
@@ -3425,7 +3622,6 @@
         "tags": [
           "项目·cases"
         ],
-        "x-permission": "PROJECT_CASE:CREATE",
         "security": [
           {
             "cookieAuth": []
@@ -3451,7 +3647,6 @@
         "tags": [
           "项目·cases"
         ],
-        "x-permission": "PROJECT_CASE:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -3477,7 +3672,6 @@
         "tags": [
           "项目·cases"
         ],
-        "x-permission": "PROJECT_CASE:READ",
         "security": [
           {
             "cookieAuth": []
@@ -3501,7 +3695,6 @@
         "tags": [
           "项目·cases"
         ],
-        "x-permission": "PROJECT_CASE:READ",
         "security": [
           {
             "cookieAuth": []
@@ -3527,7 +3720,6 @@
         "tags": [
           "项目·cases"
         ],
-        "x-permission": "PROJECT_CASE:READ",
         "security": [
           {
             "cookieAuth": []
@@ -3551,7 +3743,6 @@
         "tags": [
           "项目·cases"
         ],
-        "x-permission": "PROJECT_CASE:READ",
         "security": [
           {
             "cookieAuth": []
@@ -3577,7 +3768,6 @@
         "tags": [
           "项目·cases"
         ],
-        "x-permission": "PROJECT_PLAN:READ",
         "security": [
           {
             "cookieAuth": []
@@ -3628,7 +3818,6 @@
         "tags": [
           "项目·cases"
         ],
-        "x-permission": "PROJECT_CASE_REVIEW:READ",
         "security": [
           {
             "cookieAuth": []
@@ -3654,7 +3843,6 @@
         "tags": [
           "项目·cases"
         ],
-        "x-permission": "PROJECT_CASE:READ",
         "security": [
           {
             "cookieAuth": []
@@ -3678,7 +3866,6 @@
         "tags": [
           "项目·cases"
         ],
-        "x-permission": "PROJECT_CASE:READ",
         "security": [
           {
             "cookieAuth": []
@@ -3702,7 +3889,6 @@
         "tags": [
           "项目·cases"
         ],
-        "x-permission": "PROJECT_CASE:READ",
         "security": [
           {
             "cookieAuth": []
@@ -3728,7 +3914,6 @@
         "tags": [
           "项目·cases"
         ],
-        "x-permission": "PROJECT_CASE:CREATE",
         "security": [
           {
             "cookieAuth": []
@@ -3754,7 +3939,6 @@
         "tags": [
           "项目·cases"
         ],
-        "x-permission": "PROJECT_CASE:DELETE",
         "security": [
           {
             "cookieAuth": []
@@ -3780,7 +3964,6 @@
         "tags": [
           "项目·cases"
         ],
-        "x-permission": "PROJECT_CASE:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -3806,7 +3989,6 @@
         "tags": [
           "项目·cases"
         ],
-        "x-permission": "PROJECT_CASE:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -3832,7 +4014,6 @@
         "tags": [
           "项目·cases"
         ],
-        "x-permission": "PROJECT_CASE:READ",
         "security": [
           {
             "cookieAuth": []
@@ -3858,7 +4039,6 @@
         "tags": [
           "项目·cases"
         ],
-        "x-permission": "PROJECT_CASE:CREATE",
         "security": [
           {
             "cookieAuth": []
@@ -3884,7 +4064,6 @@
         "tags": [
           "项目·cases"
         ],
-        "x-permission": "PROJECT_CASE:READ",
         "security": [
           {
             "cookieAuth": []
@@ -3910,7 +4089,6 @@
         "tags": [
           "项目·cases"
         ],
-        "x-permission": "PROJECT_CASE:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -3936,7 +4114,6 @@
         "tags": [
           "项目·cases"
         ],
-        "x-permission": "PROJECT_CASE:READ",
         "security": [
           {
             "cookieAuth": []
@@ -3960,7 +4137,6 @@
         "tags": [
           "项目·cases"
         ],
-        "x-permission": "PROJECT_CASE:READ",
         "security": [
           {
             "cookieAuth": []
@@ -3986,7 +4162,6 @@
         "tags": [
           "项目·close"
         ],
-        "x-permission": "ORG_PROJECT:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -4060,7 +4235,6 @@
         "tags": [
           "项目·comments"
         ],
-        "x-permission": "PROJECT_CASE:READ",
         "security": [
           {
             "cookieAuth": []
@@ -4084,7 +4258,6 @@
         "tags": [
           "项目·comments"
         ],
-        "x-permission": "PROJECT_CASE:READ",
         "security": [
           {
             "cookieAuth": []
@@ -5084,7 +5257,6 @@
         "tags": [
           "项目·groups"
         ],
-        "x-permission": "PROJECT_GROUP:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -5110,7 +5282,6 @@
         "tags": [
           "项目·groups"
         ],
-        "x-permission": "PROJECT_GROUP:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -5136,7 +5307,6 @@
         "tags": [
           "项目·groups"
         ],
-        "x-permission": "PROJECT_GROUP:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -5162,7 +5332,6 @@
         "tags": [
           "项目·groups"
         ],
-        "x-permission": "PROJECT_GROUP:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -5186,7 +5355,6 @@
         "tags": [
           "项目·groups"
         ],
-        "x-permission": "PROJECT_GROUP:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -5212,7 +5380,6 @@
         "tags": [
           "项目·groups"
         ],
-        "x-permission": "PROJECT_GROUP:READ",
         "security": [
           {
             "cookieAuth": []
@@ -5236,7 +5403,6 @@
         "tags": [
           "项目·groups"
         ],
-        "x-permission": "PROJECT_GROUP:READ",
         "security": [
           {
             "cookieAuth": []
@@ -5262,7 +5428,6 @@
         "tags": [
           "项目·info"
         ],
-        "x-permission": "PROJECT_MEMBER:READ",
         "security": [
           {
             "cookieAuth": []
@@ -5386,7 +5551,6 @@
         "tags": [
           "项目·members"
         ],
-        "x-permission": "PROJECT_MEMBER:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -5412,7 +5576,6 @@
         "tags": [
           "项目·members"
         ],
-        "x-permission": "PROJECT_MEMBER:READ",
         "security": [
           {
             "cookieAuth": []
@@ -5436,7 +5599,6 @@
         "tags": [
           "项目·members"
         ],
-        "x-permission": "PROJECT_MEMBER:READ",
         "security": [
           {
             "cookieAuth": []
@@ -5504,6 +5666,104 @@
         }
       }
     },
+    "/api/v1/projects/{projectId}/message-templates/{event}": {
+      "delete": {
+        "summary": "DELETE /api/v1/projects/{projectId}/message-templates/{event}",
+        "tags": [
+          "项目·message-templates"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{projectId}/message-templates/preview": {
+      "post": {
+        "summary": "POST /api/v1/projects/{projectId}/message-templates/preview",
+        "tags": [
+          "项目·message-templates"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{projectId}/message-templates": {
+      "get": {
+        "summary": "GET /api/v1/projects/{projectId}/message-templates",
+        "tags": [
+          "项目·message-templates"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "PUT /api/v1/projects/{projectId}/message-templates",
+        "tags": [
+          "项目·message-templates"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/projects/{projectId}/mocks/{mockId}/debug": {
       "post": {
         "summary": "POST /api/v1/projects/{projectId}/mocks/{mockId}/debug",
@@ -5535,7 +5795,6 @@
         "tags": [
           "项目·modules"
         ],
-        "x-permission": "PROJECT_CASE:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -5561,7 +5820,6 @@
         "tags": [
           "项目·modules"
         ],
-        "x-permission": "PROJECT_CASE:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -5585,7 +5843,6 @@
         "tags": [
           "项目·modules"
         ],
-        "x-permission": "PROJECT_CASE:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -5611,7 +5868,6 @@
         "tags": [
           "项目·modules"
         ],
-        "x-permission": "PROJECT_CASE:READ",
         "security": [
           {
             "cookieAuth": []
@@ -5635,7 +5891,6 @@
         "tags": [
           "项目·modules"
         ],
-        "x-permission": "PROJECT_CASE:READ",
         "security": [
           {
             "cookieAuth": []
@@ -5661,7 +5916,6 @@
         "tags": [
           "项目·plan-groups"
         ],
-        "x-permission": "PROJECT_PLAN:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -5687,7 +5941,6 @@
         "tags": [
           "项目·plan-groups"
         ],
-        "x-permission": "PROJECT_PLAN:READ",
         "security": [
           {
             "cookieAuth": []
@@ -5713,7 +5966,6 @@
         "tags": [
           "项目·plan-groups"
         ],
-        "x-permission": "PROJECT_PLAN:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -5739,7 +5991,6 @@
         "tags": [
           "项目·plan-groups"
         ],
-        "x-permission": "PROJECT_PLAN:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -5763,7 +6014,6 @@
         "tags": [
           "项目·plan-groups"
         ],
-        "x-permission": "PROJECT_PLAN:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -5789,7 +6039,6 @@
         "tags": [
           "项目·plan-groups"
         ],
-        "x-permission": "PROJECT_PLAN:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -5815,7 +6064,6 @@
         "tags": [
           "项目·plan-groups"
         ],
-        "x-permission": "PROJECT_PLAN:READ",
         "security": [
           {
             "cookieAuth": []
@@ -5839,7 +6087,6 @@
         "tags": [
           "项目·plan-groups"
         ],
-        "x-permission": "PROJECT_PLAN:READ",
         "security": [
           {
             "cookieAuth": []
@@ -5865,7 +6112,6 @@
         "tags": [
           "项目·plans"
         ],
-        "x-permission": "PROJECT_PLAN:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -5891,7 +6137,6 @@
         "tags": [
           "项目·plans"
         ],
-        "x-permission": "PROJECT_PLAN:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -5917,7 +6162,6 @@
         "tags": [
           "项目·plans"
         ],
-        "x-permission": "PROJECT_PLAN:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -5943,7 +6187,6 @@
         "tags": [
           "项目·plans"
         ],
-        "x-permission": "PROJECT_PLAN:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -5969,7 +6212,6 @@
         "tags": [
           "项目·plans"
         ],
-        "x-permission": "PROJECT_PLAN:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -5995,7 +6237,6 @@
         "tags": [
           "项目·plans"
         ],
-        "x-permission": "PROJECT_PLAN:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -6021,7 +6262,6 @@
         "tags": [
           "项目·plans"
         ],
-        "x-permission": "PROJECT_PLAN:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -6047,7 +6287,6 @@
         "tags": [
           "项目·plans"
         ],
-        "x-permission": "PROJECT_PLAN:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -6073,7 +6312,6 @@
         "tags": [
           "项目·plans"
         ],
-        "x-permission": "PROJECT_PLAN:READ",
         "security": [
           {
             "cookieAuth": []
@@ -6099,7 +6337,6 @@
         "tags": [
           "项目·plans"
         ],
-        "x-permission": "PROJECT_PLAN:READ",
         "security": [
           {
             "cookieAuth": []
@@ -6123,7 +6360,6 @@
         "tags": [
           "项目·plans"
         ],
-        "x-permission": "PROJECT_PLAN:READ",
         "security": [
           {
             "cookieAuth": []
@@ -6149,7 +6385,6 @@
         "tags": [
           "项目·plans"
         ],
-        "x-permission": "PROJECT_PLAN:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -6175,7 +6410,6 @@
         "tags": [
           "项目·plans"
         ],
-        "x-permission": "PROJECT_PLAN:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -6199,7 +6433,6 @@
         "tags": [
           "项目·plans"
         ],
-        "x-permission": "PROJECT_PLAN:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -6225,7 +6458,6 @@
         "tags": [
           "项目·plans"
         ],
-        "x-permission": "PROJECT_PLAN:READ",
         "security": [
           {
             "cookieAuth": []
@@ -6249,7 +6481,6 @@
         "tags": [
           "项目·plans"
         ],
-        "x-permission": "PROJECT_PLAN:READ",
         "security": [
           {
             "cookieAuth": []
@@ -6275,7 +6506,6 @@
         "tags": [
           "项目·plans"
         ],
-        "x-permission": "PROJECT_PLAN:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -6301,7 +6531,6 @@
         "tags": [
           "项目·plans"
         ],
-        "x-permission": "PROJECT_PLAN:READ",
         "security": [
           {
             "cookieAuth": []
@@ -6327,7 +6556,6 @@
         "tags": [
           "项目·plans"
         ],
-        "x-permission": "PROJECT_PLAN:READ",
         "security": [
           {
             "cookieAuth": []
@@ -6353,7 +6581,6 @@
         "tags": [
           "项目·plans"
         ],
-        "x-permission": "PROJECT_PLAN:READ",
         "security": [
           {
             "cookieAuth": []
@@ -6379,7 +6606,6 @@
         "tags": [
           "项目·plans"
         ],
-        "x-permission": "PROJECT_PLAN:READ",
         "security": [
           {
             "cookieAuth": []
@@ -6405,7 +6631,6 @@
         "tags": [
           "项目·plans"
         ],
-        "x-permission": "PROJECT_PLAN:READ",
         "security": [
           {
             "cookieAuth": []
@@ -6429,7 +6654,6 @@
         "tags": [
           "项目·plans"
         ],
-        "x-permission": "PROJECT_PLAN:READ",
         "security": [
           {
             "cookieAuth": []
@@ -6455,7 +6679,6 @@
         "tags": [
           "项目·plans"
         ],
-        "x-permission": "PROJECT_PLAN:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -6481,7 +6704,6 @@
         "tags": [
           "项目·plans"
         ],
-        "x-permission": "PROJECT_PLAN:READ",
         "security": [
           {
             "cookieAuth": []
@@ -6505,7 +6727,6 @@
         "tags": [
           "项目·plans"
         ],
-        "x-permission": "PROJECT_PLAN:READ",
         "security": [
           {
             "cookieAuth": []
@@ -6531,7 +6752,6 @@
         "tags": [
           "项目·plans"
         ],
-        "x-permission": "PROJECT_PLAN:READ",
         "security": [
           {
             "cookieAuth": []
@@ -6555,7 +6775,6 @@
         "tags": [
           "项目·plans"
         ],
-        "x-permission": "PROJECT_PLAN:READ",
         "security": [
           {
             "cookieAuth": []
@@ -6579,7 +6798,6 @@
         "tags": [
           "项目·plans"
         ],
-        "x-permission": "PROJECT_PLAN:READ",
         "security": [
           {
             "cookieAuth": []
@@ -6605,7 +6823,6 @@
         "tags": [
           "项目·plans"
         ],
-        "x-permission": "PROJECT_PLAN:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -6631,7 +6848,6 @@
         "tags": [
           "项目·plans"
         ],
-        "x-permission": "PROJECT_PLAN:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -6657,7 +6873,6 @@
         "tags": [
           "项目·plans"
         ],
-        "x-permission": "PROJECT_PLAN:READ",
         "security": [
           {
             "cookieAuth": []
@@ -6681,7 +6896,6 @@
         "tags": [
           "项目·plans"
         ],
-        "x-permission": "PROJECT_PLAN:READ",
         "security": [
           {
             "cookieAuth": []
@@ -6876,7 +7090,6 @@
         "tags": [
           "项目·reopen"
         ],
-        "x-permission": "ORG_PROJECT:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -7148,7 +7361,6 @@
         "tags": [
           "项目·restore"
         ],
-        "x-permission": "ORG_PROJECT:DELETE",
         "security": [
           {
             "cookieAuth": []
@@ -7174,7 +7386,6 @@
         "tags": [
           "项目·reviews"
         ],
-        "x-permission": "PROJECT_CASE_REVIEW:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -7200,7 +7411,6 @@
         "tags": [
           "项目·reviews"
         ],
-        "x-permission": "PROJECT_CASE_REVIEW:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -7226,7 +7436,6 @@
         "tags": [
           "项目·reviews"
         ],
-        "x-permission": "PROJECT_CASE_REVIEW:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -7252,7 +7461,6 @@
         "tags": [
           "项目·reviews"
         ],
-        "x-permission": "PROJECT_CASE_REVIEW:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -7278,7 +7486,6 @@
         "tags": [
           "项目·reviews"
         ],
-        "x-permission": "PROJECT_CASE_REVIEW:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -7304,7 +7511,6 @@
         "tags": [
           "项目·reviews"
         ],
-        "x-permission": "PROJECT_CASE_REVIEW:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -7330,7 +7536,6 @@
         "tags": [
           "项目·reviews"
         ],
-        "x-permission": "PROJECT_CASE_REVIEW:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -7356,7 +7561,6 @@
         "tags": [
           "项目·reviews"
         ],
-        "x-permission": "PROJECT_CASE_REVIEW:READ",
         "security": [
           {
             "cookieAuth": []
@@ -7380,7 +7584,6 @@
         "tags": [
           "项目·reviews"
         ],
-        "x-permission": "PROJECT_CASE_REVIEW:READ",
         "security": [
           {
             "cookieAuth": []
@@ -7406,7 +7609,6 @@
         "tags": [
           "项目·reviews"
         ],
-        "x-permission": "PROJECT_CASE_REVIEW:READ",
         "security": [
           {
             "cookieAuth": []
@@ -7430,7 +7632,6 @@
         "tags": [
           "项目·reviews"
         ],
-        "x-permission": "PROJECT_CASE_REVIEW:READ",
         "security": [
           {
             "cookieAuth": []
@@ -7454,7 +7655,6 @@
         "tags": [
           "项目·reviews"
         ],
-        "x-permission": "PROJECT_CASE_REVIEW:READ",
         "security": [
           {
             "cookieAuth": []
@@ -7480,7 +7680,6 @@
         "tags": [
           "项目·reviews"
         ],
-        "x-permission": "PROJECT_CASE_REVIEW:READ",
         "security": [
           {
             "cookieAuth": []
@@ -7504,7 +7703,6 @@
         "tags": [
           "项目·reviews"
         ],
-        "x-permission": "PROJECT_CASE_REVIEW:READ",
         "security": [
           {
             "cookieAuth": []
@@ -7920,7 +8118,6 @@
         "tags": [
           "项目·scenarios"
         ],
-        "x-permission": "PROJECT_SCENARIO:READ",
         "security": [
           {
             "cookieAuth": []
@@ -7944,7 +8141,6 @@
         "tags": [
           "项目·scenarios"
         ],
-        "x-permission": "PROJECT_SCENARIO:READ",
         "security": [
           {
             "cookieAuth": []
@@ -8412,7 +8608,6 @@
         "tags": [
           "项目·settings"
         ],
-        "x-permission": "PROJECT_CASE_REVIEW:READ",
         "security": [
           {
             "cookieAuth": []
@@ -8436,7 +8631,6 @@
         "tags": [
           "项目·settings"
         ],
-        "x-permission": "PROJECT_CASE_REVIEW:READ",
         "security": [
           {
             "cookieAuth": []
@@ -8608,7 +8802,6 @@
         "tags": [
           "项目·template-mode"
         ],
-        "x-permission": "PROJECT_TEMPLATE:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -8634,7 +8827,6 @@
         "tags": [
           "项目·template-mode"
         ],
-        "x-permission": "PROJECT_TEMPLATE:READ",
         "security": [
           {
             "cookieAuth": []
@@ -8660,7 +8852,6 @@
         "tags": [
           "项目·templates"
         ],
-        "x-permission": "PROJECT_TEMPLATE:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -8686,7 +8877,6 @@
         "tags": [
           "项目·templates"
         ],
-        "x-permission": "PROJECT_TEMPLATE:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -8712,7 +8902,6 @@
         "tags": [
           "项目·templates"
         ],
-        "x-permission": "PROJECT_TEMPLATE:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -8738,7 +8927,6 @@
         "tags": [
           "项目·templates"
         ],
-        "x-permission": "PROJECT_TEMPLATE:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -8762,7 +8950,6 @@
         "tags": [
           "项目·templates"
         ],
-        "x-permission": "PROJECT_TEMPLATE:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -8788,7 +8975,6 @@
         "tags": [
           "项目·templates"
         ],
-        "x-permission": "PROJECT_TEMPLATE:READ",
         "security": [
           {
             "cookieAuth": []
@@ -8812,7 +8998,6 @@
         "tags": [
           "项目·templates"
         ],
-        "x-permission": "PROJECT_TEMPLATE:READ",
         "security": [
           {
             "cookieAuth": []
@@ -8838,7 +9023,6 @@
         "tags": [
           "项目·views"
         ],
-        "x-permission": "PROJECT_CASE:READ",
         "security": [
           {
             "cookieAuth": []
@@ -8862,7 +9046,6 @@
         "tags": [
           "项目·views"
         ],
-        "x-permission": "PROJECT_CASE:READ",
         "security": [
           {
             "cookieAuth": []
@@ -8888,7 +9071,6 @@
         "tags": [
           "项目·views"
         ],
-        "x-permission": "PROJECT_CASE:READ",
         "security": [
           {
             "cookieAuth": []
@@ -8912,7 +9094,6 @@
         "tags": [
           "项目·views"
         ],
-        "x-permission": "PROJECT_CASE:READ",
         "security": [
           {
             "cookieAuth": []
@@ -8938,7 +9119,6 @@
         "tags": [
           "项目·workflows"
         ],
-        "x-permission": "PROJECT_TEMPLATE:READ",
         "security": [
           {
             "cookieAuth": []
@@ -8964,7 +9144,6 @@
         "tags": [
           "项目·workflows"
         ],
-        "x-permission": "PROJECT_TEMPLATE:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -8988,7 +9167,6 @@
         "tags": [
           "项目·workflows"
         ],
-        "x-permission": "PROJECT_TEMPLATE:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -9014,7 +9192,6 @@
         "tags": [
           "项目·workflows"
         ],
-        "x-permission": "PROJECT_TEMPLATE:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -9040,7 +9217,6 @@
         "tags": [
           "项目·workflows"
         ],
-        "x-permission": "PROJECT_TEMPLATE:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -9312,7 +9488,6 @@
         "tags": [
           "系统设置"
         ],
-        "x-permission": "SYSTEM_GROUP:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -9363,7 +9538,6 @@
         "tags": [
           "系统设置"
         ],
-        "x-permission": "SYSTEM_GROUP:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -9389,7 +9563,6 @@
         "tags": [
           "系统设置"
         ],
-        "x-permission": "SYSTEM_GROUP:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -9413,7 +9586,6 @@
         "tags": [
           "系统设置"
         ],
-        "x-permission": "SYSTEM_GROUP:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -9439,7 +9611,6 @@
         "tags": [
           "系统设置"
         ],
-        "x-permission": "SYSTEM_GROUP:READ",
         "security": [
           {
             "cookieAuth": []
@@ -9463,7 +9634,77 @@
         "tags": [
           "系统设置"
         ],
-        "x-permission": "SYSTEM_GROUP:READ",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/system/license": {
+      "get": {
+        "summary": "GET /api/v1/system/license",
+        "tags": [
+          "系统设置"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "POST /api/v1/system/license",
+        "tags": [
+          "系统设置"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "DELETE /api/v1/system/license",
+        "tags": [
+          "系统设置"
+        ],
         "security": [
           {
             "cookieAuth": []
@@ -9508,13 +9749,60 @@
         }
       }
     },
+    "/api/v1/system/orgs": {
+      "get": {
+        "summary": "GET /api/v1/system/orgs",
+        "tags": [
+          "系统设置"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "POST /api/v1/system/orgs",
+        "tags": [
+          "系统设置"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/system/params/{group}": {
       "put": {
         "summary": "PUT /api/v1/system/params/{group}",
         "tags": [
           "系统设置"
         ],
-        "x-permission": "SYSTEM_PARAM:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -9540,7 +9828,6 @@
         "tags": [
           "系统设置"
         ],
-        "x-permission": "SYSTEM_PARAM:READ",
         "security": [
           {
             "cookieAuth": []
@@ -9566,7 +9853,6 @@
         "tags": [
           "系统设置"
         ],
-        "x-permission": "SYSTEM_PARAM:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -9728,11 +10014,201 @@
             }
           }
         }
+      },
+      "delete": {
+        "summary": "DELETE /api/v1/system/pools/{poolId}",
+        "tags": [
+          "系统设置"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "PATCH /api/v1/system/pools/{poolId}",
+        "tags": [
+          "系统设置"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/v1/system/pools": {
       "get": {
         "summary": "GET /api/v1/system/pools",
+        "tags": [
+          "系统设置"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "POST /api/v1/system/pools",
+        "tags": [
+          "系统设置"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/system/sso/{authId}": {
+      "delete": {
+        "summary": "DELETE /api/v1/system/sso/{authId}",
+        "tags": [
+          "系统设置"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "PATCH /api/v1/system/sso/{authId}",
+        "tags": [
+          "系统设置"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/system/sso/{authId}/test-connection": {
+      "post": {
+        "summary": "POST /api/v1/system/sso/{authId}/test-connection",
+        "tags": [
+          "系统设置"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/system/sso": {
+      "get": {
+        "summary": "GET /api/v1/system/sso",
+        "tags": [
+          "系统设置"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "POST /api/v1/system/sso",
         "tags": [
           "系统设置"
         ],
@@ -9761,7 +10237,6 @@
         "tags": [
           "系统设置"
         ],
-        "x-permission": "SYSTEM_USER:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -9787,7 +10262,6 @@
         "tags": [
           "系统设置"
         ],
-        "x-permission": "SYSTEM_USER:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -9811,7 +10285,6 @@
         "tags": [
           "系统设置"
         ],
-        "x-permission": "SYSTEM_USER:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -9837,7 +10310,6 @@
         "tags": [
           "系统设置"
         ],
-        "x-permission": "SYSTEM_USER:UPDATE",
         "security": [
           {
             "cookieAuth": []
@@ -9863,7 +10335,6 @@
         "tags": [
           "系统设置"
         ],
-        "x-permission": "SYSTEM_USER:READ",
         "security": [
           {
             "cookieAuth": []
@@ -9887,7 +10358,6 @@
         "tags": [
           "系统设置"
         ],
-        "x-permission": "SYSTEM_USER:READ",
         "security": [
           {
             "cookieAuth": []

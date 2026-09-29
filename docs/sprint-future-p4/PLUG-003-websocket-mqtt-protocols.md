@@ -6,7 +6,7 @@
 | 所属迭代     | Sprint future — 远期 P4                                                                                                                   |
 | 优先级       | P4（远期增强级；本迭代唯一完整交付的协议域能力）                                                                                          |
 | 所属模块     | PLUG 插件体系（协议插件）/ API 接口测试（协议选择器）/ EXEC 引擎（采样器，零改动消费）                                                    |
-| 文档状态     | Implemented（2026-09-28 交付：功能+三层测试全绿；走查随验收）                                                                                                                                  |
+| 文档状态     | Implemented（2026-09-28 交付：功能+三层测试全绿；走查随验收）                                                                             |
 | 最后更新日期 | 2026-09-28                                                                                                                                |
 | 上游依赖     | PLUG-001（插件上传/启用管线）、PLUG-002（协议插件 SPI：SamplerPlugin/configSchema/buildSampler/SamplerResult）、api-conventions（错误码） |
 | 下游消费     | API-002（接口定义协议字段消费方）、API-005（mock ws echo 端点）、后续协议插件（TCP/SSH 等，按本规格模式复制）                             |

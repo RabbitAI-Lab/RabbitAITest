@@ -124,11 +124,7 @@ test("PROJ-001-02 成员管理：注册创建者即项目成员", async ({
 });
 
 /** P-2 回归（coverage-audit §10）：组织管理员拉系统用户进组织 → 项目成员添加（基线三级链路打通）。 */
-test("PROJ-001-03 组织成员加入 → 项目成员添加（P-2）", async ({
-  authedPage,
-  request,
-  page,
-}) => {
+test("PROJ-001-03 组织成员加入 → 项目成员添加（P-2）", async ({ authedPage, request, page }) => {
   const { projectId } = authedPage;
   // 候选用户：另注册一个（自建组织），对本组织是"系统用户"
   const email = `p2-org-${Date.now() % 100000}@rabbit.test`;
@@ -156,7 +152,9 @@ test("PROJ-001-03 组织成员加入 → 项目成员添加（P-2）", async ({
   await page.getByTestId("org-member-candidate-select").click();
   await page.keyboard.type(email.split("@")[0]);
   await page.locator(`.ant-select-item-option[title*="${email}"]`).first().click();
-  const addApi = page.waitForResponse((r) => r.url().includes("/members-add") && r.request().method() === "POST");
+  const addApi = page.waitForResponse(
+    (r) => r.url().includes("/members-add") && r.request().method() === "POST",
+  );
   await page.getByTestId("btn-add-org-member").click();
   const added = await addApi;
   expect(added.status()).toBe(201);

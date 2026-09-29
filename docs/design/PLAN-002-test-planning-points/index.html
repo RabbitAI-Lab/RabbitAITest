@@ -7,13 +7,16 @@
   </head>
   <body class="bg-slate-50 text-slate-800 text-sm">
     <header class="h-12 bg-white border-b flex items-center px-4 gap-3">
-      <span class="font-semibold">RabbitAITest</span><span class="border rounded px-2 py-0.5">演示项目 #1</span>
+      <span class="font-semibold">RabbitAITest</span
+      ><span class="border rounded px-2 py-0.5">演示项目 #1</span>
       <span class="ml-auto text-slate-400 text-xs">帮助 · 消息 · 用户</span>
     </header>
     <main class="p-4 space-y-4 max-w-[1200px]">
       <!-- 画板一：测试规划 Tab 全景（点树 + 右清单 + 点配置抽屉） -->
       <section class="bg-white border rounded-md">
-        <div class="px-3 py-2 border-b bg-slate-50 font-medium">画板一 · 计划详情「测试规划」Tab（左点树 + 右点内用例 + 点配置抽屉）</div>
+        <div class="px-3 py-2 border-b bg-slate-50 font-medium">
+          画板一 · 计划详情「测试规划」Tab（左点树 + 右点内用例 + 点配置抽屉）
+        </div>
         <div class="flex">
           <!-- 左：测试点树 -->
           <div class="w-[300px] border-r p-2 text-[13px]">
@@ -22,34 +25,65 @@
               <button class="text-[#574BFF] text-xs">＋ 父点</button>
             </div>
             <ul class="space-y-0.5">
-              <li class="group rounded px-2 py-1.5 bg-[#574BFF]/10 border border-[#574BFF]/30 flex items-center gap-1.5">
+              <li
+                class="group rounded px-2 py-1.5 bg-[#574BFF]/10 border border-[#574BFF]/30 flex items-center gap-1.5"
+              >
                 <span class="text-slate-400 text-xs">▾</span><span>支付域</span>
-                <span class="ml-auto flex gap-1 opacity-0 group-hover:opacity-100 text-xs"><a class="text-[#574BFF]">＋子</a><a class="text-[#574BFF]">✎</a><a class="text-red-400">🗑</a></span>
+                <span class="ml-auto flex gap-1 opacity-0 group-hover:opacity-100 text-xs"
+                  ><a class="text-[#574BFF]">＋子</a><a class="text-[#574BFF]">✎</a
+                  ><a class="text-red-400">🗑</a></span
+                >
               </li>
               <li class="group rounded px-2 py-1.5 pl-6 flex items-center gap-1.5">
                 <span class="text-slate-400 text-xs">▸</span><span>扫码支付</span>
-                <span class="text-[10px] border rounded px-1 bg-blue-50 text-blue-600 border-blue-200">接口 2</span><span class="text-[10px] border rounded px-1 bg-purple-50 text-purple-600 border-purple-200">场景 1</span>
-                <span class="ml-auto flex gap-1 opacity-0 group-hover:opacity-100 text-xs"><a class="text-[#574BFF]">＋子</a><a class="text-[#574BFF]">✎</a><a class="text-red-400">🗑</a></span>
+                <span
+                  class="text-[10px] border rounded px-1 bg-blue-50 text-blue-600 border-blue-200"
+                  >接口 2</span
+                ><span
+                  class="text-[10px] border rounded px-1 bg-purple-50 text-purple-600 border-purple-200"
+                  >场景 1</span
+                >
+                <span class="ml-auto flex gap-1 opacity-0 group-hover:opacity-100 text-xs"
+                  ><a class="text-[#574BFF]">＋子</a><a class="text-[#574BFF]">✎</a
+                  ><a class="text-red-400">🗑</a></span
+                >
               </li>
               <li class="group rounded px-2 py-1.5 pl-6 flex items-center gap-1.5">
                 <span class="text-slate-400 text-xs">▾</span><span>余额支付</span>
-                <span class="text-[10px] border rounded px-1 bg-green-50 text-green-600 border-green-200">功能 3</span>
-                <span class="ml-auto flex gap-1 opacity-0 group-hover:opacity-100 text-xs"><a class="text-[#574BFF]">＋子</a><a class="text-[#574BFF]">✎</a><a class="text-red-400">🗑</a></span>
+                <span
+                  class="text-[10px] border rounded px-1 bg-green-50 text-green-600 border-green-200"
+                  >功能 3</span
+                >
+                <span class="ml-auto flex gap-1 opacity-0 group-hover:opacity-100 text-xs"
+                  ><a class="text-[#574BFF]">＋子</a><a class="text-[#574BFF]">✎</a
+                  ><a class="text-red-400">🗑</a></span
+                >
               </li>
               <li class="group rounded px-2 py-1.5 pl-12 flex items-center gap-1.5 text-slate-600">
-                <span>退款子流程</span><span class="text-[10px] border rounded px-1 bg-green-50 text-green-600 border-green-200">功能 1</span>
+                <span>退款子流程</span
+                ><span
+                  class="text-[10px] border rounded px-1 bg-green-50 text-green-600 border-green-200"
+                  >功能 1</span
+                >
               </li>
               <li class="rounded px-2 py-1.5 text-slate-400 italic flex items-center gap-1.5">
-                <span>未分组</span><span class="text-[10px] border rounded px-1 bg-slate-100 text-slate-500">全部 4</span>
+                <span>未分组</span
+                ><span class="text-[10px] border rounded px-1 bg-slate-100 text-slate-500"
+                  >全部 4</span
+                >
               </li>
             </ul>
-            <p class="text-[11px] text-slate-400 px-2 pt-2">节点徽标=挂载用例数（功能/接口/场景分色）；「未分组」固定末位（pointId=null）</p>
+            <p class="text-[11px] text-slate-400 px-2 pt-2">
+              节点徽标=挂载用例数（功能/接口/场景分色）；「未分组」固定末位（pointId=null）
+            </p>
           </div>
           <!-- 中：右侧点内清单 -->
           <div class="flex-1">
             <div class="p-3 flex items-center gap-2 border-b">
               <span class="font-medium">扫码支付</span>
-              <span class="text-[10px] border rounded px-1.5 py-0.5 bg-slate-100 text-slate-500">继承配置：父点「支付域」</span>
+              <span class="text-[10px] border rounded px-1.5 py-0.5 bg-slate-100 text-slate-500"
+                >继承配置：父点「支付域」</span
+              >
               <div class="ml-auto flex gap-2">
                 <button class="border rounded-md px-3 py-1.5">点配置</button>
                 <button class="border rounded-md px-3 py-1.5">关联用例</button>
@@ -57,21 +91,50 @@
               </div>
             </div>
             <table class="w-full text-[13px]">
-              <thead class="text-slate-500 text-xs bg-slate-50"><tr class="text-left"><th class="px-3 py-2">类型</th><th class="px-3 py-2">名称</th><th class="px-3 py-2">执行人</th><th class="px-3 py-2">状态</th><th class="px-3 py-2">操作</th></tr></thead>
+              <thead class="text-slate-500 text-xs bg-slate-50">
+                <tr class="text-left">
+                  <th class="px-3 py-2">类型</th>
+                  <th class="px-3 py-2">名称</th>
+                  <th class="px-3 py-2">执行人</th>
+                  <th class="px-3 py-2">状态</th>
+                  <th class="px-3 py-2">操作</th>
+                </tr>
+              </thead>
               <tbody class="divide-y">
                 <tr>
-                  <td class="px-3 py-2"><span class="text-[10px] border rounded px-1.5 py-0.5 bg-blue-50 text-blue-600 border-blue-200">接口用例</span></td>
-                  <td class="px-3 py-2">扫码下单正向 #A-101</td><td class="px-3 py-2 text-slate-500">张三</td><td class="px-3 py-2 text-green-600 font-medium">PASS</td>
+                  <td class="px-3 py-2">
+                    <span
+                      class="text-[10px] border rounded px-1.5 py-0.5 bg-blue-50 text-blue-600 border-blue-200"
+                      >接口用例</span
+                    >
+                  </td>
+                  <td class="px-3 py-2">扫码下单正向 #A-101</td>
+                  <td class="px-3 py-2 text-slate-500">张三</td>
+                  <td class="px-3 py-2 text-green-600 font-medium">PASS</td>
                   <td class="px-3 py-2 space-x-2 text-[#574BFF]"><a>移出</a><a>移到其他点</a></td>
                 </tr>
                 <tr>
-                  <td class="px-3 py-2"><span class="text-[10px] border rounded px-1.5 py-0.5 bg-blue-50 text-blue-600 border-blue-200">接口用例</span></td>
-                  <td class="px-3 py-2">扫码限额校验 #A-102</td><td class="px-3 py-2 text-slate-500">张三</td><td class="px-3 py-2 text-red-500 font-medium">FAILED</td>
+                  <td class="px-3 py-2">
+                    <span
+                      class="text-[10px] border rounded px-1.5 py-0.5 bg-blue-50 text-blue-600 border-blue-200"
+                      >接口用例</span
+                    >
+                  </td>
+                  <td class="px-3 py-2">扫码限额校验 #A-102</td>
+                  <td class="px-3 py-2 text-slate-500">张三</td>
+                  <td class="px-3 py-2 text-red-500 font-medium">FAILED</td>
                   <td class="px-3 py-2 space-x-2 text-[#574BFF]"><a>移出</a><a>移到其他点</a></td>
                 </tr>
                 <tr>
-                  <td class="px-3 py-2"><span class="text-[10px] border rounded px-1.5 py-0.5 bg-purple-50 text-purple-600 border-purple-200">场景</span></td>
-                  <td class="px-3 py-2">扫码全流程 #S-201</td><td class="px-3 py-2 text-slate-500">李四</td><td class="px-3 py-2 text-slate-400">未执行</td>
+                  <td class="px-3 py-2">
+                    <span
+                      class="text-[10px] border rounded px-1.5 py-0.5 bg-purple-50 text-purple-600 border-purple-200"
+                      >场景</span
+                    >
+                  </td>
+                  <td class="px-3 py-2">扫码全流程 #S-201</td>
+                  <td class="px-3 py-2 text-slate-500">李四</td>
+                  <td class="px-3 py-2 text-slate-400">未执行</td>
                   <td class="px-3 py-2 space-x-2 text-[#574BFF]"><a>移出</a><a>移到其他点</a></td>
                 </tr>
               </tbody>
@@ -80,59 +143,119 @@
           <!-- 右：点配置抽屉 -->
           <div class="w-[300px] border-l p-4 text-[13px] space-y-3">
             <p class="font-medium">点配置 · 扫码支付</p>
-            <label class="flex items-center gap-2"><input type="checkbox" /> 继承上级配置（当前继承：支付域 → 计划默认）</label>
+            <label class="flex items-center gap-2"
+              ><input type="checkbox" /> 继承上级配置（当前继承：支付域 → 计划默认）</label
+            >
             <div class="space-y-2 border rounded p-2 disabled:opacity-50">
-              <div class="flex items-center gap-2"><span class="text-slate-500 w-16">环境</span><select class="border rounded px-2 py-1 flex-1"><option>MOCK-演示环境</option><option>预发</option></select></div>
-              <div class="flex items-center gap-2"><span class="text-slate-500 w-16">资源池</span><select class="border rounded px-2 py-1 flex-1"><option>LOCAL 默认池</option></select></div>
-              <label class="flex items-center gap-2"><input type="checkbox" checked /> 串行执行</label>
+              <div class="flex items-center gap-2">
+                <span class="text-slate-500 w-16">环境</span
+                ><select class="border rounded px-2 py-1 flex-1">
+                  <option>MOCK-演示环境</option>
+                  <option>预发</option>
+                </select>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-slate-500 w-16">资源池</span
+                ><select class="border rounded px-2 py-1 flex-1">
+                  <option>LOCAL 默认池</option>
+                </select>
+              </div>
+              <label class="flex items-center gap-2"
+                ><input type="checkbox" checked /> 串行执行</label
+              >
               <label class="flex items-center gap-2"><input type="checkbox" /> 失败停止</label>
             </div>
-            <p class="text-[11px] text-slate-400">关闭继承后本点显式配置；生效优先级：点显式 &gt; 祖先链 &gt; 计划默认</p>
-            <div class="flex justify-end gap-2"><button class="border rounded px-3 py-1.5">取消</button><button class="bg-[#574BFF] text-white rounded px-3 py-1.5">保存</button></div>
+            <p class="text-[11px] text-slate-400">
+              关闭继承后本点显式配置；生效优先级：点显式 &gt; 祖先链 &gt; 计划默认
+            </p>
+            <div class="flex justify-end gap-2">
+              <button class="border rounded px-3 py-1.5">取消</button
+              ><button class="bg-[#574BFF] text-white rounded px-3 py-1.5">保存</button>
+            </div>
           </div>
         </div>
       </section>
       <!-- 画板二：关联用例弹窗（三页签） -->
       <section class="bg-white border rounded-md">
-        <div class="px-3 py-2 border-b bg-slate-50 font-medium">画板二 · 关联用例弹窗（功能 / 接口 / 场景 三页签 + 挂载到点选择器）</div>
+        <div class="px-3 py-2 border-b bg-slate-50 font-medium">
+          画板二 · 关联用例弹窗（功能 / 接口 / 场景 三页签 + 挂载到点选择器）
+        </div>
         <div class="p-4 max-w-[860px] mx-auto border rounded shadow-lg text-[13px]">
-          <div class="flex items-center justify-between pb-2 border-b"><span class="font-medium">关联用例到「扫码支付」</span><a class="text-slate-400">✕</a></div>
+          <div class="flex items-center justify-between pb-2 border-b">
+            <span class="font-medium">关联用例到「扫码支付」</span><a class="text-slate-400">✕</a>
+          </div>
           <div class="flex gap-4 py-2 border-b text-xs">
-            <span class="pb-1 border-b-2 border-[#574BFF] text-[#574BFF] font-medium">功能用例</span>
+            <span class="pb-1 border-b-2 border-[#574BFF] text-[#574BFF] font-medium"
+              >功能用例</span
+            >
             <span class="text-slate-500">接口用例</span><span class="text-slate-500">场景</span>
           </div>
           <div class="flex gap-3 py-2">
             <div class="w-[220px] border rounded p-2 text-xs">
               <p class="text-slate-400 pb-1">模块树</p>
               <p class="rounded px-1.5 py-1 bg-[#574BFF]/10">支付</p>
-              <p class="px-1.5 py-1 pl-4">扫码</p><p class="px-1.5 py-1 pl-4 text-[#574BFF]">余额 <span class="text-slate-400">(3)</span></p>
+              <p class="px-1.5 py-1 pl-4">扫码</p>
+              <p class="px-1.5 py-1 pl-4 text-[#574BFF]">
+                余额 <span class="text-slate-400">(3)</span>
+              </p>
             </div>
             <div class="flex-1">
               <input class="border rounded px-2 py-1.5 w-full mb-2" placeholder="搜索用例名称" />
               <div class="border rounded divide-y">
-                <label class="flex items-center gap-2 px-2 py-1.5"><input type="checkbox" /> 余额支付正向用例 <span class="text-[10px] text-slate-400 ml-auto">P1</span></label>
-                <label class="flex items-center gap-2 px-2 py-1.5"><input type="checkbox" /> 余额不足提示用例 <span class="text-[10px] text-slate-400 ml-auto">P2</span></label>
-                <label class="flex items-center gap-2 px-2 py-1.5"><input type="checkbox" /> 余额退款用例 <span class="text-[10px] text-slate-400 ml-auto">P2</span></label>
+                <label class="flex items-center gap-2 px-2 py-1.5"
+                  ><input type="checkbox" /> 余额支付正向用例
+                  <span class="text-[10px] text-slate-400 ml-auto">P1</span></label
+                >
+                <label class="flex items-center gap-2 px-2 py-1.5"
+                  ><input type="checkbox" /> 余额不足提示用例
+                  <span class="text-[10px] text-slate-400 ml-auto">P2</span></label
+                >
+                <label class="flex items-center gap-2 px-2 py-1.5"
+                  ><input type="checkbox" /> 余额退款用例
+                  <span class="text-[10px] text-slate-400 ml-auto">P2</span></label
+                >
               </div>
               <div class="flex items-center gap-2 pt-3">
                 <span class="text-slate-500">挂载到点</span>
-                <select class="border rounded px-2 py-1"><option>扫码支付（当前）</option><option>支付域</option><option>未分组</option></select>
-                <span class="text-slate-400 text-xs">执行人</span><select class="border rounded px-2 py-1"><option>张三</option></select>
+                <select class="border rounded px-2 py-1">
+                  <option>扫码支付（当前）</option>
+                  <option>支付域</option>
+                  <option>未分组</option>
+                </select>
+                <span class="text-slate-400 text-xs">执行人</span
+                ><select class="border rounded px-2 py-1">
+                  <option>张三</option>
+                </select>
               </div>
             </div>
           </div>
-          <div class="flex justify-end gap-2 pt-2 border-t"><button class="border rounded px-3 py-1.5">取消</button><button class="bg-[#574BFF] text-white rounded px-3 py-1.5">关联 (2)</button></div>
+          <div class="flex justify-end gap-2 pt-2 border-t">
+            <button class="border rounded px-3 py-1.5">取消</button
+            ><button class="bg-[#574BFF] text-white rounded px-3 py-1.5">关联 (2)</button>
+          </div>
         </div>
       </section>
       <!-- 画板三：未分组 + 移动弹窗 + 删除校验 -->
       <section class="bg-white border rounded-md">
-        <div class="px-3 py-2 border-b bg-slate-50 font-medium">画板三 · 未分组清单 / 移动到其他点弹窗 / 删除非空点校验</div>
+        <div class="px-3 py-2 border-b bg-slate-50 font-medium">
+          画板三 · 未分组清单 / 移动到其他点弹窗 / 删除非空点校验
+        </div>
         <div class="grid grid-cols-3 gap-3 p-4 text-[13px]">
           <div class="border rounded p-3">
             <p class="text-slate-500 text-xs pb-2">未分组（4）</p>
             <div class="space-y-1.5">
-              <p class="flex items-center gap-2">登录正向用例 <span class="ml-auto space-x-2"><a class="text-[#574BFF]">移到点</a><a class="text-[#574BFF]">移出</a></span></p>
-              <p class="flex items-center gap-2">下单接口冒烟 <span class="ml-auto space-x-2"><a class="text-[#574BFF]">移到点</a><a class="text-[#574BFF]">移出</a></span></p>
+              <p class="flex items-center gap-2">
+                登录正向用例
+                <span class="ml-auto space-x-2"
+                  ><a class="text-[#574BFF]">移到点</a><a class="text-[#574BFF]">移出</a></span
+                >
+              </p>
+              <p class="flex items-center gap-2">
+                下单接口冒烟
+                <span class="ml-auto space-x-2"
+                  ><a class="text-[#574BFF]">移到点</a><a class="text-[#574BFF]">移出</a></span
+                >
+              </p>
               <p class="text-slate-400 text-xs pt-1">PLAN-001 老数据自动落「未分组」，无需迁移</p>
             </div>
           </div>
@@ -140,15 +263,24 @@
             <p class="font-medium pb-2">移动到其他点（2 项）</p>
             <div class="border rounded p-2 text-xs space-y-1">
               <label class="flex items-center gap-2"><input type="radio" name="mv" /> 支付域</label>
-              <label class="flex items-center gap-2"><input type="radio" name="mv" checked /> 扫码支付</label>
-              <label class="flex items-center gap-2"><input type="radio" name="mv" /> 余额支付</label>
+              <label class="flex items-center gap-2"
+                ><input type="radio" name="mv" checked /> 扫码支付</label
+              >
+              <label class="flex items-center gap-2"
+                ><input type="radio" name="mv" /> 余额支付</label
+              >
               <label class="flex items-center gap-2"><input type="radio" name="mv" /> 未分组</label>
             </div>
-            <div class="flex justify-end gap-2 pt-3"><button class="border rounded px-3 py-1.5">取消</button><button class="bg-[#574BFF] text-white rounded px-3 py-1.5">移动</button></div>
+            <div class="flex justify-end gap-2 pt-3">
+              <button class="border rounded px-3 py-1.5">取消</button
+              ><button class="bg-[#574BFF] text-white rounded px-3 py-1.5">移动</button>
+            </div>
           </div>
           <div class="border rounded p-3">
             <p class="text-slate-500 text-xs pb-2">删除非空点校验（Toast）</p>
-            <div class="bg-red-50 border border-red-200 text-red-600 rounded px-3 py-2 text-xs">删除失败：测试点「扫码支付」下还有 3 条用例，请先移出或移除</div>
+            <div class="bg-red-50 border border-red-200 text-red-600 rounded px-3 py-2 text-xs">
+              删除失败：测试点「扫码支付」下还有 3 条用例，请先移出或移除
+            </div>
             <p class="text-slate-400 text-xs pt-2">含子点同样拒绝（422 50012 POINT_NOT_EMPTY）</p>
           </div>
         </div>

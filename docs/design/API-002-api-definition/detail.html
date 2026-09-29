@@ -14,22 +14,40 @@
       <aside class="w-[208px] bg-white border-r py-3 shrink-0 text-[13px]">
         <p class="mx-2 px-3 py-[7px] rounded-md">工作台</p>
         <p class="px-4 pt-2 pb-1 text-xs text-slate-400">接口测试</p>
-        <p class="mx-2 px-3 py-[7px] rounded-md bg-[#574BFF]/10 text-[#574BFF] font-medium">接口定义</p>
+        <p class="mx-2 px-3 py-[7px] rounded-md bg-[#574BFF]/10 text-[#574BFF] font-medium">
+          接口定义
+        </p>
         <p class="px-3 py-1 text-xs text-slate-400">（其余导航同列表页）</p>
       </aside>
       <main class="flex-1 p-4 space-y-3">
         <!-- 头部：名称/method/path/状态/操作 -->
         <div class="bg-white border rounded-md p-3 flex items-center gap-2 flex-wrap">
           <input class="border rounded px-2 py-1.5 w-56 font-medium" value="查询宠物" />
-          <select class="border rounded px-2 py-1.5 w-24 text-green-600 font-bold"><option>GET</option></select>
+          <select class="border rounded px-2 py-1.5 w-24 text-green-600 font-bold">
+            <option>GET</option>
+          </select>
           <input class="border rounded px-2 py-1.5 w-72 font-mono" value="/pets/{id}" />
-          <select class="border rounded px-2 py-1.5"><option>调试中</option><option>已发布</option></select>
+          <select class="border rounded px-2 py-1.5">
+            <option>调试中</option>
+            <option>已发布</option>
+          </select>
           <span class="ml-auto flex items-center gap-2">
-            <select class="border rounded px-2 py-1.5"><option>环境：正式环境</option><option>环境：测试环境</option><option>不使用环境</option></select>
-            <button class="border rounded-md px-3 py-1.5" data-testid="proto-btn-history">变更历史</button>
+            <select class="border rounded px-2 py-1.5">
+              <option>环境：正式环境</option>
+              <option>环境：测试环境</option>
+              <option>不使用环境</option>
+            </select>
+            <button class="border rounded-md px-3 py-1.5" data-testid="proto-btn-history">
+              变更历史
+            </button>
             <button class="border rounded-md px-3 py-1.5">引用关系</button>
             <button class="border rounded-md px-3 py-1.5 text-[#FF4D4F]">删除</button>
-            <button class="bg-[#574BFF] text-white rounded-md px-4 py-1.5" data-testid="proto-btn-exec">保 存</button>
+            <button
+              class="bg-[#574BFF] text-white rounded-md px-4 py-1.5"
+              data-testid="proto-btn-exec"
+            >
+              保 存
+            </button>
           </span>
         </div>
         <!-- 三页签 -->
@@ -43,11 +61,18 @@
             <!-- 左：请求编辑器（API-004 七区，独立高保真见 API-004 目录） -->
             <div class="flex-1 min-w-0">
               <div class="flex gap-2">
-                <select class="border rounded px-2 py-1.5 w-20"><option>GET</option></select>
-                <input class="flex-1 border rounded px-2 py-1.5 font-mono" value="${base}/pets/${petId}" />
+                <select class="border rounded px-2 py-1.5 w-20">
+                  <option>GET</option>
+                </select>
+                <input
+                  class="flex-1 border rounded px-2 py-1.5 font-mono"
+                  value="${base}/pets/${petId}"
+                />
                 <button class="bg-[#574BFF] text-white rounded-md px-4">执 行</button>
               </div>
-              <p class="text-xs text-slate-400 mt-1">URL 支持 ${var} 渲染；相对路径按环境域名拼接（路径条件 > 模块 > 默认）</p>
+              <p class="text-xs text-slate-400 mt-1">
+                URL 支持 ${var} 渲染；相对路径按环境域名拼接（路径条件 > 模块 > 默认）
+              </p>
               <div class="flex gap-1 mt-2 border-b text-[13px]">
                 <span class="px-3 py-1.5 border-b-2 border-[#574BFF] text-[#574BFF]">参数</span>
                 <span class="px-3 py-1.5 text-slate-500">认证</span>
@@ -59,23 +84,44 @@
               </div>
               <div class="pt-2 space-y-1.5 text-[13px]">
                 <p class="text-slate-500 font-medium">Query 参数</p>
-                <div class="flex gap-2 items-center"><input class="border rounded px-2 py-1 w-40" value="kind" checked /><input class="border rounded px-2 py-1 flex-1" value="dog" /><span class="text-slate-300">✕</span></div>
-                <div class="flex gap-2 items-center"><input class="border rounded px-2 py-1 w-40" placeholder="key" /><input class="border rounded px-2 py-1 flex-1" placeholder="value" /><span class="text-[#574BFF]">＋ 添加</span></div>
+                <div class="flex gap-2 items-center">
+                  <input class="border rounded px-2 py-1 w-40" value="kind" checked /><input
+                    class="border rounded px-2 py-1 flex-1"
+                    value="dog"
+                  /><span class="text-slate-300">✕</span>
+                </div>
+                <div class="flex gap-2 items-center">
+                  <input class="border rounded px-2 py-1 w-40" placeholder="key" /><input
+                    class="border rounded px-2 py-1 flex-1"
+                    placeholder="value"
+                  /><span class="text-[#574BFF]">＋ 添加</span>
+                </div>
                 <p class="text-slate-500 font-medium pt-2">Headers</p>
-                <div class="flex gap-2 items-center"><input class="border rounded px-2 py-1 w-40" value="Authorization" /><input class="border rounded px-2 py-1 flex-1 font-mono text-xs" value="Bearer ${token}" /><span class="text-slate-300">✕</span></div>
+                <div class="flex gap-2 items-center">
+                  <input class="border rounded px-2 py-1 w-40" value="Authorization" /><input
+                    class="border rounded px-2 py-1 flex-1 font-mono text-xs"
+                    value="Bearer ${token}"
+                  /><span class="text-slate-300">✕</span>
+                </div>
               </div>
             </div>
             <!-- 右：默认响应编辑 + 最近执行摘要 -->
             <div class="w-96 shrink-0 space-y-3">
               <div class="border rounded-md p-3">
-                <p class="font-medium mb-2 flex items-center gap-2">默认响应 <span class="text-xs text-slate-400">（Mock「跟随 API」的响应源）</span></p>
+                <p class="font-medium mb-2 flex items-center gap-2">
+                  默认响应 <span class="text-xs text-slate-400">（Mock「跟随 API」的响应源）</span>
+                </p>
                 <div class="flex gap-2 items-center mb-2">
                   <span class="text-xs text-slate-500">状态码</span>
                   <input class="border rounded px-2 py-1 w-16" value="200" />
                   <span class="text-xs text-slate-500 ml-2">Content-Type</span>
-                  <input class="border rounded px-2 py-1 w-40 font-mono text-xs" value="application/json" />
+                  <input
+                    class="border rounded px-2 py-1 w-40 font-mono text-xs"
+                    value="application/json"
+                  />
                 </div>
-                <textarea class="border rounded w-full h-28 p-2 font-mono text-xs" rows="4">{
+                <textarea class="border rounded w-full h-28 p-2 font-mono text-xs" rows="4">
+{
   "code": 0,
   "data": { "id": 1, "name": "阿黄", "kind": "dog" }
 }</textarea>
@@ -95,15 +141,23 @@
         <div class="bg-white border rounded-md p-3 text-[13px]" data-testid="proto-panel-history">
           <p class="font-medium mb-2">变更历史（抽屉）</p>
           <div class="space-y-1.5 text-slate-600">
-            <p><span class="text-slate-400">2026-09-27 10:20</span> admin 修改了 <b>请求体</b>：raw_json 内容更新</p>
-            <p><span class="text-slate-400">2026-09-26 18:02</span> admin 将状态 调试中 → 已发布（version 3）</p>
+            <p>
+              <span class="text-slate-400">2026-09-27 10:20</span> admin 修改了
+              <b>请求体</b>：raw_json 内容更新
+            </p>
+            <p>
+              <span class="text-slate-400">2026-09-26 18:02</span> admin 将状态 调试中 →
+              已发布（version 3）
+            </p>
             <p><span class="text-slate-400">2026-09-25 09:44</span> admin 创建定义（version 1）</p>
           </div>
         </div>
         <!-- 引用关系抽屉（示意） -->
         <div class="bg-white border rounded-md p-3 text-[13px]">
           <p class="font-medium mb-2">引用关系（抽屉）</p>
-          <p class="text-slate-600">被 3 个接口用例引用 · 被 2 个测试计划关联 ·（场景引用 S3 接入）</p>
+          <p class="text-slate-600">
+            被 3 个接口用例引用 · 被 2 个测试计划关联 ·（场景引用 S3 接入）
+          </p>
         </div>
       </main>
     </div>

@@ -16,7 +16,9 @@ export default function ApiKeysPage() {
   const { message } = useApp();
   const [createOpen, setCreateOpen] = useState(false);
   const [name, setName] = useState("");
-  const [created, setCreated] = useState<(ApiKeyRow & { accessKey: string; secretKey: string }) | null>(null);
+  const [created, setCreated] = useState<
+    (ApiKeyRow & { accessKey: string; secretKey: string }) | null
+  >(null);
   const [copied, setCopied] = useState("");
 
   const { data, isLoading } = useQuery({ queryKey: ["api-keys"], queryFn: apiKeyApi.list });
@@ -54,20 +56,35 @@ export default function ApiKeysPage() {
 
   const columns = [
     { title: "名称", dataIndex: "name" },
-    { title: "Access Key", dataIndex: "prefix", render: (v: string, r: ApiKeyRow) => (
-      <Space size={4}>
-        <code className="text-xs">{v}…</code>
-        {!r.revokedAt && (
-          <Button size="small" type="link" onClick={() => copy(v, r.id)}>
-            复制前缀
-          </Button>
-        )}
-      </Space>
-    ) },
-    { title: "最近使用", dataIndex: "lastUsedAt", render: (v: string | null) => <span className="text-xs text-gray-400">{fmt(v)}</span> },
-    { title: "创建时间", dataIndex: "createdAt", render: (v: string) => <span className="text-xs text-gray-400">{fmt(v)}</span> },
-    { title: "状态", dataIndex: "revokedAt", render: (v: string | null) =>
-      v ? <Tag>已吊销</Tag> : <Tag color="success">生效中</Tag> },
+    {
+      title: "Access Key",
+      dataIndex: "prefix",
+      render: (v: string, r: ApiKeyRow) => (
+        <Space size={4}>
+          <code className="text-xs">{v}…</code>
+          {!r.revokedAt && (
+            <Button size="small" type="link" onClick={() => copy(v, r.id)}>
+              复制前缀
+            </Button>
+          )}
+        </Space>
+      ),
+    },
+    {
+      title: "最近使用",
+      dataIndex: "lastUsedAt",
+      render: (v: string | null) => <span className="text-xs text-gray-400">{fmt(v)}</span>,
+    },
+    {
+      title: "创建时间",
+      dataIndex: "createdAt",
+      render: (v: string) => <span className="text-xs text-gray-400">{fmt(v)}</span>,
+    },
+    {
+      title: "状态",
+      dataIndex: "revokedAt",
+      render: (v: string | null) => (v ? <Tag>已吊销</Tag> : <Tag color="success">生效中</Tag>),
+    },
     {
       title: "操作",
       render: (_: unknown, r: ApiKeyRow) =>
@@ -102,7 +119,14 @@ export default function ApiKeysPage() {
           </Button>
         }
       />
-      <Table rowKey="id" size="small" loading={isLoading} columns={columns} dataSource={data ?? []} pagination={false} />
+      <Table
+        rowKey="id"
+        size="small"
+        loading={isLoading}
+        columns={columns}
+        dataSource={data ?? []}
+        pagination={false}
+      />
 
       <Modal
         title={created ? "创建成功" : "新建 APIKEY"}
@@ -118,7 +142,13 @@ export default function ApiKeysPage() {
               <Button key="cancel" onClick={() => setCreateOpen(false)}>
                 取消
               </Button>,
-              <Button key="ok" type="primary" disabled={!name.trim()} loading={create.isPending} onClick={() => create.mutate()}>
+              <Button
+                key="ok"
+                type="primary"
+                disabled={!name.trim()}
+                loading={create.isPending}
+                onClick={() => create.mutate()}
+              >
                 创建
               </Button>,
             ]
@@ -127,7 +157,11 @@ export default function ApiKeysPage() {
       >
         {created ? (
           <div className="space-y-3">
-            <Alert type="warning" showIcon message="Secret Key 仅此一次展示，关闭后不可再查看，请立即复制保存。" />
+            <Alert
+              type="warning"
+              showIcon
+              message="Secret Key 仅此一次展示，关闭后不可再查看，请立即复制保存。"
+            />
             <div>
               <Typography.Text type="secondary" className="text-xs">
                 Access Key

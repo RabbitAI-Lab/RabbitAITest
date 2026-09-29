@@ -1,9 +1,18 @@
 /** S6 单测：凭据加密矩阵 + runner 基址守卫 + APIKEY 头解析/格式 + 平台状态映射。 */
 import { describe, expect, it, beforeEach, afterEach } from "vitest";
-import { encryptCredential, decryptCredential, integrationSecretConfigured, maskCredential } from "../credential-crypto";
+import {
+  encryptCredential,
+  decryptCredential,
+  integrationSecretConfigured,
+  maskCredential,
+} from "../credential-crypto";
 import { assertRunnerBaseUrl } from "@/server/plugin-runner.client";
 import { parseAuthHeader } from "../apikey.service";
-import { PLATFORM_STATUS_DEFAULT_MAPPING, PLATFORM_META, pluginManifestSchema } from "@rabbit/shared";
+import {
+  PLATFORM_STATUS_DEFAULT_MAPPING,
+  PLATFORM_META,
+  pluginManifestSchema,
+} from "@rabbit/shared";
 
 const SECRET = "x".repeat(32);
 
@@ -75,7 +84,10 @@ describe("APIKEY 头解析（INTG-003 §2）", () => {
   });
 
   it("Bearer 通道（ak.sk 点分隔）", () => {
-    expect(parseAuthHeader("Bearer rakABC.skXYZ")).toEqual({ accessKey: "rakABC", secretKey: "skXYZ" });
+    expect(parseAuthHeader("Bearer rakABC.skXYZ")).toEqual({
+      accessKey: "rakABC",
+      secretKey: "skXYZ",
+    });
   });
 
   it("非法形态 → null", () => {
@@ -89,7 +101,13 @@ describe("APIKEY 头解析（INTG-003 §2）", () => {
 
 describe("插件清单与平台元数据（PLUG-001/INTG-002）", () => {
   it("manifest 校验矩阵", () => {
-    const valid = { name: "jira-platform", kind: "platform", version: "1.0.0", spiVersion: "1.0", entry: "index.js" };
+    const valid = {
+      name: "jira-platform",
+      kind: "platform",
+      version: "1.0.0",
+      spiVersion: "1.0",
+      entry: "index.js",
+    };
     expect(pluginManifestSchema.safeParse(valid).success).toBe(true);
     expect(pluginManifestSchema.safeParse({ ...valid, name: "Bad_Name" }).success).toBe(false);
     expect(pluginManifestSchema.safeParse({ ...valid, kind: "other" }).success).toBe(false);

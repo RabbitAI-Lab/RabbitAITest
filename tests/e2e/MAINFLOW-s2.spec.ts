@@ -1,5 +1,13 @@
 import { test, expect, navFromHome } from "./fixtures";
-import { bundle, createApiCase, createApiDef, getMockUrl, ok, pickOption, updateApiDef } from "./s2-helpers";
+import {
+  bundle,
+  createApiCase,
+  createApiDef,
+  getMockUrl,
+  ok,
+  pickOption,
+  updateApiDef,
+} from "./s2-helpers";
 
 /**
  * Sprint 2 主链路 E2E（sprint-overview 验收主线）—— Release Gate。
@@ -49,7 +57,10 @@ test("MAINFLOW-s2 Sprint2 主链路（环境→定义→调试→用例→批量
   await httpCard.locator('input[placeholder="hostname"]').fill("127.0.0.1");
   await httpCard.locator('input[placeholder^="/前缀"]').fill("");
   const envSaveRaw = page.waitForResponse(
-    (r) => r.url().includes("/environments/") && !r.url().includes("copy") && r.request().method() === "PUT",
+    (r) =>
+      r.url().includes("/environments/") &&
+      !r.url().includes("copy") &&
+      r.request().method() === "PUT",
   );
   await page.getByTestId("btn-save-env").click();
   const envSaved = await envSaveRaw;
@@ -93,9 +104,18 @@ test("MAINFLOW-s2 Sprint2 主链路（环境→定义→调试→用例→批量
       await request.get(`/api/v1/projects/${projectId}/apis/${defId}/mock-url`),
     )
   ).url.replace("/pets/{id}", "");
-  const envDetail = await ok<{ config: { vars: { key: string; value: string; enabled: boolean }[]; http: unknown[]; hosts: unknown[]; database: unknown[]; pre: unknown[]; post: unknown[]; asserts: unknown[]; extracts: unknown[] } }>(
-    await request.get(`/api/v1/projects/${projectId}/environments/${envId}`),
-  );
+  const envDetail = await ok<{
+    config: {
+      vars: { key: string; value: string; enabled: boolean }[];
+      http: unknown[];
+      hosts: unknown[];
+      database: unknown[];
+      pre: unknown[];
+      post: unknown[];
+      asserts: unknown[];
+      extracts: unknown[];
+    };
+  }>(await request.get(`/api/v1/projects/${projectId}/environments/${envId}`));
   const envPut = await request.put(`/api/v1/projects/${projectId}/environments/${envId}`, {
     data: {
       name: envName,
@@ -119,12 +139,18 @@ test("MAINFLOW-s2 Sprint2 主链路（环境→定义→调试→用例→批量
 
   // ═══ 3. 保存（v2，payload 含完整参数体系）→ 选环境执行调试成功（UI）═══
   await page.getByTestId("input-api-path").fill("${base}/pets/9");
-  const saveRaw = page.waitForResponse((r) => /\/apis\/[^/]+$/.test(r.url()) && r.request().method() === "PUT");
+  const saveRaw = page.waitForResponse(
+    (r) => /\/apis\/[^/]+$/.test(r.url()) && r.request().method() === "PUT",
+  );
   await page.getByTestId("btn-save-api").click();
   const savedRes = await saveRaw;
   expect(savedRes.status()).toBe(200);
   const savedPayload = savedRes.request().postDataJSON() as {
-    request: { spec: { url: string; query: { key: string }[] }; asserts: unknown[]; extracts: unknown[] };
+    request: {
+      spec: { url: string; query: { key: string }[] };
+      asserts: unknown[];
+      extracts: unknown[];
+    };
   };
   expect(savedPayload.request.spec.url).toBe("${base}/pets/9");
   expect(savedPayload.request.spec.query.map((q) => q.key)).toContain("kind");
@@ -168,7 +194,11 @@ test("MAINFLOW-s2 Sprint2 主链路（环境→定义→调试→用例→批量
       await row.getByRole("button", { name: /编\s*辑/ }).click();
       const drawer = page.locator(".ant-drawer-content-wrapper");
       await drawer.getByTestId("req-tab-asserts").click();
-      await drawer.getByTestId("assert-row").first().locator('input[placeholder="200"]').fill("500");
+      await drawer
+        .getByTestId("assert-row")
+        .first()
+        .locator('input[placeholder="200"]')
+        .fill("500");
       await drawer.getByTestId("btn-save-case").click();
       await expect(page.getByText("用例已保存")).toBeVisible();
     }
@@ -176,8 +206,14 @@ test("MAINFLOW-s2 Sprint2 主链路（环境→定义→调试→用例→批量
   await expect(caseTable.getByRole("row", { name: new RegExp(passCase) })).toBeVisible();
   await expect(caseTable.getByRole("row", { name: new RegExp(failCase) })).toBeVisible();
 
-  await caseTable.getByRole("row", { name: new RegExp(passCase) }).locator("input[type=checkbox]").check();
-  await caseTable.getByRole("row", { name: new RegExp(failCase) }).locator("input[type=checkbox]").check();
+  await caseTable
+    .getByRole("row", { name: new RegExp(passCase) })
+    .locator("input[type=checkbox]")
+    .check();
+  await caseTable
+    .getByRole("row", { name: new RegExp(failCase) })
+    .locator("input[type=checkbox]")
+    .check();
   await page.getByTestId("btn-batch-exec").click();
   const batchModal = page.getByRole("dialog");
   await pickOption(page, batchModal.getByTestId("env-select"), envName);
@@ -189,7 +225,9 @@ test("MAINFLOW-s2 Sprint2 主链路（环境→定义→调试→用例→批量
 
   // 任务中心：终态 FAILED
   await expect(page).toHaveURL(/\/tasks/, { timeout: 10000 });
-  const taskRow = page.getByTestId("task-list-table").getByRole("row", { name: new RegExp(taskId.slice(0, 8)) });
+  const taskRow = page
+    .getByTestId("task-list-table")
+    .getByRole("row", { name: new RegExp(taskId.slice(0, 8)) });
   await expect(taskRow).toBeVisible();
   await expect(taskRow.getByText("FAILED", { exact: true })).toBeVisible({ timeout: 30000 });
 
@@ -197,15 +235,22 @@ test("MAINFLOW-s2 Sprint2 主链路（环境→定义→调试→用例→批量
   await taskRow.getByRole("button", { name: "查看报告" }).click();
   await expect(page).toHaveURL(new RegExp(`/reports/${taskId}`), { timeout: 10000 });
   await expect(page.getByTestId("report-status")).toHaveText("FAILED", { timeout: 30000 });
-  const failRow = page.getByTestId("report-items-table").getByRole("row", { name: new RegExp(failCase) });
+  const failRow = page
+    .getByTestId("report-items-table")
+    .getByRole("row", { name: new RegExp(failCase) });
   await failRow.click();
   await expect(page.getByTestId("item-drilldown")).toBeVisible();
-  const failAssertRow = page.getByTestId("asserts-table").locator("tbody tr").filter({ hasText: "状态码" });
+  const failAssertRow = page
+    .getByTestId("asserts-table")
+    .locator("tbody tr")
+    .filter({ hasText: "状态码" });
   await expect(failAssertRow).toContainText("500");
   await expect(failAssertRow).toContainText("200"); // 实际值
 
   // ═══ 7. 分享链接免登访问 ═══
-  const shareP = page.waitForResponse((r) => /\/shares$/.test(r.url()) && r.request().method() === "POST");
+  const shareP = page.waitForResponse(
+    (r) => /\/shares$/.test(r.url()) && r.request().method() === "POST",
+  );
   await page.getByTestId("btn-share-report").click();
   await page.getByTestId("btn-create-share").click();
   const sharedRes = await shareP;
@@ -217,7 +262,9 @@ test("MAINFLOW-s2 Sprint2 主链路（环境→定义→调试→用例→批量
   await anonPage.goto(`${BASE}/share/report/${token}`);
   await expect(anonPage.getByTestId("share-report-view")).toBeVisible({ timeout: 15000 });
   await expect(anonPage.getByTestId("share-banner")).toContainText("只读分享");
-  await expect(anonPage.getByTestId("report-items-table").getByRole("row", { name: new RegExp(passCase) })).toBeVisible();
+  await expect(
+    anonPage.getByTestId("report-items-table").getByRole("row", { name: new RegExp(passCase) }),
+  ).toBeVisible();
   await anonCtx.close();
   await page.locator(".ant-modal-close").click();
 
@@ -229,7 +276,9 @@ test("MAINFLOW-s2 Sprint2 主链路（环境→定义→调试→用例→批量
   await page.getByRole("link", { name: defName }).click();
   await page.getByTestId("api-tab-mock").click();
   await expect(page.getByTestId("mock-url-box")).toContainText("/pets/{id}");
-  await expect(page.getByTestId("mock-rule-table").getByRole("row", { name: new RegExp(`狗规则-${uniq}`) })).toBeVisible();
+  await expect(
+    page.getByTestId("mock-rule-table").getByRole("row", { name: new RegExp(`狗规则-${uniq}`) }),
+  ).toBeVisible();
   await page.getByTestId("btn-new-mock").click();
   const mockModal = page.getByRole("dialog");
   await mockModal.getByTestId("input-mock-name").fill(`兜底规则-${uniq}`);
@@ -239,7 +288,10 @@ test("MAINFLOW-s2 Sprint2 主链路（环境→定义→调试→用例→批量
   const mockCreated = await mockCreateApi;
   expect(mockCreated.status).toBe(201);
 
-  const freshMockBase = (await getMockUrl(page.request, projectId, defId)).replace("/pets/{id}", "");
+  const freshMockBase = (await getMockUrl(page.request, projectId, defId)).replace(
+    "/pets/{id}",
+    "",
+  );
   const hitFallback = await page.request.get(`${freshMockBase}/pets/9`);
   expect(hitFallback.status()).toBe(200);
   expect(await hitFallback.text()).toBe('{"ui":"fallback-rule"}');
@@ -247,7 +299,9 @@ test("MAINFLOW-s2 Sprint2 主链路（环境→定义→调试→用例→批量
   expect(await hitDog.text()).toBe(hitBody);
 
   // ═══ 9. 功能用例关联接口用例 ═══
-  const funcRes = await request.post(`/api/v1/projects/${projectId}/cases`, { data: { name: funcCase } });
+  const funcRes = await request.post(`/api/v1/projects/${projectId}/cases`, {
+    data: { name: funcCase },
+  });
   expect(funcRes.status()).toBe(201);
   const caseListRes = await request.get(`/api/v1/projects/${projectId}/apis/${defId}/cases`);
   const apiCaseId = (await ok<{ items: { name: string; id: string }[] }>(caseListRes)).items.find(
@@ -261,7 +315,10 @@ test("MAINFLOW-s2 Sprint2 主链路（环境→定义→调试→用例→批量
   await page.getByTestId("btn-link-api").click();
   const picker = page.getByTestId("api-ref-picker");
   await picker.getByTestId("api-ref-picker-search").fill(uniq); // 定义名与用例名同含 uniq
-  await picker.getByRole("row", { name: new RegExp(`/pets/\\{id\\}`) }).first().click();
+  await picker
+    .getByRole("row", { name: new RegExp(`/pets/\\{id\\}`) })
+    .first()
+    .click();
   const option = picker.getByTestId("api-case-option").filter({ hasText: passCase });
   await expect(option).toBeVisible();
   await option.locator('input[type="checkbox"]').check();

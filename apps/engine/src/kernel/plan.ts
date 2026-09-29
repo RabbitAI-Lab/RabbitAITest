@@ -28,7 +28,14 @@ export async function runPlanItem(
   const env = item.envSnapshot ?? taskEnv;
   if (item.refKind === "scenario") {
     const r = await runScenarioItem(
-      { redis: deps.redis, writer: deps.writer, env, tempVars: {}, envVarUpdates: deps.envVarUpdates, counter: deps.counter },
+      {
+        redis: deps.redis,
+        writer: deps.writer,
+        env,
+        tempVars: {},
+        envVarUpdates: deps.envVarUpdates,
+        counter: deps.counter,
+      },
       item.command,
     );
     return { status: r.status, message: r.message };

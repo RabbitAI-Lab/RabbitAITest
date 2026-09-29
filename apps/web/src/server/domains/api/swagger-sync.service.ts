@@ -13,7 +13,10 @@ import { assertSafeOutboundUrl } from "./outbound-guard";
 import { outboundDispatcher } from "@/server/safe-fetch";
 
 /** 出站 dispatcher（模块级一次性构造：测试栈豁免经 env 在模块初始化解析，运行期调用表达式零 env 读取——消「env→fetch」污点链）。 */
-const SYNC_DISPATCHER = process.env.OUTBOUND_ALLOW_PRIVATE === "1" ? outboundDispatcher({ allowPrivate: true }) : outboundDispatcher();
+const SYNC_DISPATCHER =
+  process.env.OUTBOUND_ALLOW_PRIVATE === "1"
+    ? outboundDispatcher({ allowPrivate: true })
+    : outboundDispatcher();
 
 type TaskSave = ReturnType<typeof swaggerSyncTaskSaveSchema.parse>;
 

@@ -26,7 +26,14 @@ function customStep(name: string, url: string): ScenarioStepNode {
     enabled: true,
     config: {
       bundle: {
-        request: { method: "GET", url, headers: [], query: [], body: { kind: "none" }, auth: { kind: "none" } },
+        request: {
+          method: "GET",
+          url,
+          headers: [],
+          query: [],
+          body: { kind: "none" },
+          auth: { kind: "none" },
+        },
         asserts: [],
         pre: [],
         post: [],
@@ -37,7 +44,9 @@ function customStep(name: string, url: string): ScenarioStepNode {
   };
 }
 
-function makeItem(over: Partial<ScenarioItemCommand> & { steps: ScenarioStepNode[] }): ScenarioItemCommand {
+function makeItem(
+  over: Partial<ScenarioItemCommand> & { steps: ScenarioStepNode[] },
+): ScenarioItemCommand {
   return {
     itemId: UUID,
     scenarioId: UUID,
@@ -53,9 +62,21 @@ function makeItem(over: Partial<ScenarioItemCommand> & { steps: ScenarioStepNode
 
 function makeDeps(vars: Record<string, string> = {}) {
   const frames: { type: string }[] = [];
-  const writer = { emit: vi.fn(async (f: { type: string }) => { frames.push(f); }) } as unknown as EventWriter;
+  const writer = {
+    emit: vi.fn(async (f: { type: string }) => {
+      frames.push(f);
+    }),
+  } as unknown as EventWriter;
   const redis = { exists: vi.fn(async () => 0) } as unknown as Redis;
-  return { redis, writer, env: undefined, tempVars: { ...vars }, envVarUpdates: [], counter: new Map(), frames };
+  return {
+    redis,
+    writer,
+    env: undefined,
+    tempVars: { ...vars },
+    envVarUpdates: [],
+    counter: new Map(),
+    frames,
+  };
 }
 
 beforeEach(() => {
@@ -66,11 +87,19 @@ describe("runScenarioItem（API-006 控制器语义）", () => {
   it("顺序执行：两步全成 → SUCCESS，stepPath 按执行序 0/1", async () => {
     const calls: Call[] = [];
     runStepMock.mockImplementation(async (_r, _w, _e, vars, step) => {
-      calls.push({ url: step.request.url, stepPath: step.stepPath, iteration: step.iteration, vars: { ...vars } });
+      calls.push({
+        url: step.request.url,
+        stepPath: step.stepPath,
+        iteration: step.iteration,
+        vars: { ...vars },
+      });
       return { status: "SUCCESS", message: "" };
     });
     const deps = makeDeps();
-    const out = await runScenarioItem(deps, makeItem({ steps: [customStep("a", "/a"), customStep("b", "/b")] }));
+    const out = await runScenarioItem(
+      deps,
+      makeItem({ steps: [customStep("a", "/a"), customStep("b", "/b")] }),
+    );
     expect(out.status).toBe("SUCCESS");
     expect(calls.map((c) => c.stepPath)).toEqual(["0.0", "0.1"]);
   });
@@ -78,14 +107,28 @@ describe("runScenarioItem（API-006 控制器语义）", () => {
   it("count 循环：count=2 包 1 子步骤 → 2 次执行，iteration=1/2，stepPath=0.0", async () => {
     const calls: Call[] = [];
     runStepMock.mockImplementation(async (_r, _w, _e, _v, step) => {
-      calls.push({ url: step.request.url, stepPath: step.stepPath, iteration: step.iteration, vars: {} });
+      calls.push({
+        url: step.request.url,
+        stepPath: step.stepPath,
+        iteration: step.iteration,
+        vars: {},
+      });
       return { status: "SUCCESS", message: "" };
     });
     const deps = makeDeps();
     const out = await runScenarioItem(
       deps,
       makeItem({
-        steps: [{ uid: "u-loop", stepType: "loop", name: "循环", enabled: true, config: { mode: "count", count: 2 }, children: [customStep("s", "/s")] }],
+        steps: [
+          {
+            uid: "u-loop",
+            stepType: "loop",
+            name: "循环",
+            enabled: true,
+            config: { mode: "count", count: 2 },
+            children: [customStep("s", "/s")],
+          },
+        ],
       }),
     );
     expect(out.status).toBe("SUCCESS");
@@ -97,7 +140,12 @@ describe("runScenarioItem（API-006 控制器语义）", () => {
   it("foreach 循环：iterations 3 行逐行注入迭代变量（item=row 值，row 保留字）", async () => {
     const calls: Call[] = [];
     runStepMock.mockImplementation(async (_r, _w, _e, vars, step) => {
-      calls.push({ url: step.request.url, stepPath: step.stepPath, iteration: step.iteration, vars: { ...vars } });
+      calls.push({
+        url: step.request.url,
+        stepPath: step.stepPath,
+        iteration: step.iteration,
+        vars: { ...vars },
+      });
       return { status: "SUCCESS", message: "" };
     });
     const deps = makeDeps();
@@ -134,11 +182,21 @@ describe("runScenarioItem（API-006 控制器语义）", () => {
   it("失败规则=abort：首步失败 → 余步不执行（SKIPPED），item=FAILED", async () => {
     const calls: Call[] = [];
     runStepMock.mockImplementation(async (_r, _w, _e, _v, step) => {
-      calls.push({ url: step.request.url, stepPath: step.stepPath, iteration: step.iteration, vars: {} });
-      return step.request.url.includes("fail") ? { status: "FAILED", message: "断言失败" } : { status: "SUCCESS", message: "" };
+      calls.push({
+        url: step.request.url,
+        stepPath: step.stepPath,
+        iteration: step.iteration,
+        vars: {},
+      });
+      return step.request.url.includes("fail")
+        ? { status: "FAILED", message: "断言失败" }
+        : { status: "SUCCESS", message: "" };
     });
     const deps = makeDeps();
-    const out = await runScenarioItem(deps, makeItem({ steps: [customStep("bad", "/fail"), customStep("next", "/ok")] }));
+    const out = await runScenarioItem(
+      deps,
+      makeItem({ steps: [customStep("bad", "/fail"), customStep("next", "/ok")] }),
+    );
     expect(out.status).toBe("FAILED");
     expect(out.failureKind).toBe("ASSERT_FAILED");
     expect(calls).toHaveLength(1);
@@ -149,8 +207,15 @@ describe("runScenarioItem（API-006 控制器语义）", () => {
   it("失败规则=continue：失败步骤后余步仍执行，item=FAILED（有失败）", async () => {
     const calls: Call[] = [];
     runStepMock.mockImplementation(async (_r, _w, _e, _v, step) => {
-      calls.push({ url: step.request.url, stepPath: step.stepPath, iteration: step.iteration, vars: {} });
-      return step.request.url.includes("fail") ? { status: "FAILED", message: "断言失败" } : { status: "SUCCESS", message: "" };
+      calls.push({
+        url: step.request.url,
+        stepPath: step.stepPath,
+        iteration: step.iteration,
+        vars: {},
+      });
+      return step.request.url.includes("fail")
+        ? { status: "FAILED", message: "断言失败" }
+        : { status: "SUCCESS", message: "" };
     });
     const deps = makeDeps();
     const out = await runScenarioItem(
@@ -167,7 +232,12 @@ describe("runScenarioItem（API-006 控制器语义）", () => {
   it("condition 表达式为 false → 子树 SKIPPED，item=SUCCESS", async () => {
     const calls: Call[] = [];
     runStepMock.mockImplementation(async (_r, _w, _e, _v, step) => {
-      calls.push({ url: step.request.url, stepPath: step.stepPath, iteration: step.iteration, vars: {} });
+      calls.push({
+        url: step.request.url,
+        stepPath: step.stepPath,
+        iteration: step.iteration,
+        vars: {},
+      });
       return { status: "SUCCESS", message: "" };
     });
     const deps = makeDeps({ flag: "0" });
@@ -195,7 +265,12 @@ describe("runScenarioItem（API-006 控制器语义）", () => {
   it("script 步骤写变量 → 后续步骤 tempVars 可见；wait 步骤不发请求", async () => {
     const calls: Call[] = [];
     runStepMock.mockImplementation(async (_r, _w, _e, vars, step) => {
-      calls.push({ url: step.request.url, stepPath: step.stepPath, iteration: step.iteration, vars: { ...vars } });
+      calls.push({
+        url: step.request.url,
+        stepPath: step.stepPath,
+        iteration: step.iteration,
+        vars: { ...vars },
+      });
       return { status: "SUCCESS", message: "" };
     });
     const deps = makeDeps();
@@ -203,8 +278,22 @@ describe("runScenarioItem（API-006 控制器语义）", () => {
       deps,
       makeItem({
         steps: [
-          { uid: "u-sc", stepType: "script", name: "脚本", enabled: true, config: { script: 'setVar("token", "abc")' }, children: [] },
-          { uid: "u-wait", stepType: "wait", name: "等待", enabled: true, config: { ms: 5 }, children: [] },
+          {
+            uid: "u-sc",
+            stepType: "script",
+            name: "脚本",
+            enabled: true,
+            config: { script: 'setVar("token", "abc")' },
+            children: [],
+          },
+          {
+            uid: "u-wait",
+            stepType: "wait",
+            name: "等待",
+            enabled: true,
+            config: { ms: 5 },
+            children: [],
+          },
           customStep("use", "/use"),
         ],
       }),
@@ -219,7 +308,12 @@ describe("runScenarioItem（API-006 控制器语义）", () => {
   it("禁用步骤 → 不执行（step-skip reason=disabled）", async () => {
     const calls: Call[] = [];
     runStepMock.mockImplementation(async (_r, _w, _e, _v, step) => {
-      calls.push({ url: step.request.url, stepPath: step.stepPath, iteration: step.iteration, vars: {} });
+      calls.push({
+        url: step.request.url,
+        stepPath: step.stepPath,
+        iteration: step.iteration,
+        vars: {},
+      });
       return { status: "SUCCESS", message: "" };
     });
     const off = customStep("off", "/off");
@@ -251,11 +345,17 @@ describe("runScenarioItem（API-006 控制器语义）", () => {
     await runScenarioItem(
       deps,
       makeItem({
-        params: { constants: [{ name: "host", value: "h1", description: "" }], lists: [], csv: { columns: [], rows: [] } },
+        params: {
+          constants: [{ name: "host", value: "h1", description: "" }],
+          lists: [],
+          csv: { columns: [], rows: [] },
+        },
         steps: [customStep("s", "/s")],
       }),
     );
-    const vf = deps.frames.find((f) => f.type === "log" && (f as { kind?: string }).kind === "vars-final") as { message: string } | undefined;
+    const vf = deps.frames.find(
+      (f) => f.type === "log" && (f as { kind?: string }).kind === "vars-final",
+    ) as { message: string } | undefined;
     expect(vf).toBeTruthy();
     expect(JSON.parse(vf!.message)).toMatchObject({ host: "h1" });
   });

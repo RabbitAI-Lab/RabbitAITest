@@ -53,7 +53,11 @@ export function AiAssistantDrawer({ open, onClose }: { open: boolean; onClose: (
     queryFn: listAiConversations,
     enabled: open,
   });
-  const models = useQuery({ queryKey: ["ai-model-picker"], queryFn: listEnabledAiModels, enabled: open });
+  const models = useQuery({
+    queryKey: ["ai-model-picker"],
+    queryFn: listEnabledAiModels,
+    enabled: open,
+  });
   const history = useQuery({
     queryKey: ["ai-messages", activeId],
     queryFn: () => listAiMessages(activeId!),
@@ -63,7 +67,11 @@ export function AiAssistantDrawer({ open, onClose }: { open: boolean; onClose: (
   useEffect(() => {
     if (!history.data) return;
     setMessages(
-      history.data.list.map((m) => ({ id: m.id, role: m.role as "user" | "assistant", text: m.text })),
+      history.data.list.map((m) => ({
+        id: m.id,
+        role: m.role as "user" | "assistant",
+        text: m.text,
+      })),
     );
   }, [history.data]);
 
@@ -78,7 +86,11 @@ export function AiAssistantDrawer({ open, onClose }: { open: boolean; onClose: (
     if (!content.trim() || sending) return;
     setInput("");
     setSending(true);
-    setMessages((prev) => [...prev, { id: `u-${Date.now()}`, role: "user", text: content }, { id: `a-${Date.now()}`, role: "assistant", text: "", streaming: true }]);
+    setMessages((prev) => [
+      ...prev,
+      { id: `u-${Date.now()}`, role: "user", text: content },
+      { id: `a-${Date.now()}`, role: "assistant", text: "", streaming: true },
+    ]);
     const abort = new AbortController();
     abortRef.current = abort;
     let assistantId = `a-${Date.now()}`;
@@ -86,15 +98,30 @@ export function AiAssistantDrawer({ open, onClose }: { open: boolean; onClose: (
       { conversationId: activeId ?? undefined, content, modelId },
       (frame) => {
         if (frame.type === "delta") {
-          setMessages((prev) => prev.map((m) => (m.streaming ? { ...m, text: m.text + frame.text } : m)));
+          setMessages((prev) =>
+            prev.map((m) => (m.streaming ? { ...m, text: m.text + frame.text } : m)),
+          );
         } else if (frame.type === "done") {
           assistantId = frame.messageId;
-          setMessages((prev) => prev.map((m) => (m.streaming ? { ...m, id: assistantId, streaming: false } : m)));
+          setMessages((prev) =>
+            prev.map((m) => (m.streaming ? { ...m, id: assistantId, streaming: false } : m)),
+          );
           if (!activeId) setActiveId(frame.conversationId);
           void qc.invalidateQueries({ queryKey: ["ai-conversations"] });
         } else if (frame.type === "error") {
           // 错误帧：助手消息标记错误（半截不落库，服务端未保存）
-          setMessages((prev) => prev.filter((m) => !m.streaming).concat([{ id: assistantId, role: "assistant", text: "", error: `✗ ${frame.message}（${frame.code}）——本条未保存，可重试` }]));
+          setMessages((prev) =>
+            prev
+              .filter((m) => !m.streaming)
+              .concat([
+                {
+                  id: assistantId,
+                  role: "assistant",
+                  text: "",
+                  error: `✗ ${frame.message}（${frame.code}）——本条未保存，可重试`,
+                },
+              ]),
+          );
         }
       },
       abort.signal,
@@ -255,11 +282,18 @@ export function AiAssistantDrawer({ open, onClose }: { open: boolean; onClose: (
                   className="w-full max-w-sm"
                   vertical
                   items={PROMPT_ITEMS}
-                  onItemClick={({ data }) => setInput(String(data.description ?? "").replace(/[「」]/g, ""))}
+                  onItemClick={({ data }) =>
+                    setInput(String(data.description ?? "").replace(/[「」]/g, ""))
+                  }
                 />
               </div>
             ) : (
-              <Bubble.List className="h-full px-4 py-4" autoScroll roles={roles} items={bubbleItems} />
+              <Bubble.List
+                className="h-full px-4 py-4"
+                autoScroll
+                roles={roles}
+                items={bubbleItems}
+              />
             )}
           </div>
 
@@ -272,7 +306,9 @@ export function AiAssistantDrawer({ open, onClose }: { open: boolean; onClose: (
               onCancel={() => abortRef.current?.abort()}
               placeholder="输入问题…（Enter 发送 / Shift+Enter 换行）"
               components={{
-                input: (p) => <Input.TextArea {...p} variant="borderless" data-testid="ai-chat-input" />,
+                input: (p) => (
+                  <Input.TextArea {...p} variant="borderless" data-testid="ai-chat-input" />
+                ),
               }}
               actions={(_, { components: { SendButton, LoadingButton } }) => (
                 <div className="flex items-center gap-2 w-full">

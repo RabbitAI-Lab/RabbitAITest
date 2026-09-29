@@ -1,10 +1,29 @@
 "use client";
 
-import { Button, Empty, Input, Modal, Popconfirm, Select, Switch, Table, Tag, Tooltip, Upload } from "antd";
+import {
+  Button,
+  Empty,
+  Input,
+  Modal,
+  Popconfirm,
+  Select,
+  Switch,
+  Table,
+  Tag,
+  Tooltip,
+  Upload,
+} from "antd";
 import { FolderInput, Pencil, Trash2, UploadCloud } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { fileApi, fileRecycleApi, moduleApi, ApiError, type FileRow, type ModuleNodeDto } from "@rabbit/api-client";
+import {
+  fileApi,
+  fileRecycleApi,
+  moduleApi,
+  ApiError,
+  type FileRow,
+  type ModuleNodeDto,
+} from "@rabbit/api-client";
 import { FileReposModal } from "./file-repos";
 import { ModuleTreePanel } from "@/components/ModuleTreePanel";
 import { useApp } from "@/hooks/useApp";
@@ -15,10 +34,7 @@ import { useProjectStore } from "@/stores/project";
 
 const fmtTime = (v: string) => v.replace("T", " ").slice(0, 16);
 
-const flattenModules = (
-  nodes: ModuleNodeDto[],
-  depth = 0,
-): (ModuleNodeDto & { depth: number })[] =>
+const flattenModules = (nodes: ModuleNodeDto[], depth = 0): (ModuleNodeDto & { depth: number })[] =>
   nodes.flatMap((n) => [{ ...n, depth }, ...flattenModules(n.children, depth + 1)]);
 
 export default function FilesPage() {
@@ -76,11 +92,17 @@ export default function FilesPage() {
   });
 
   const updateFile = useMutation({
-    mutationFn: ({ id, body }: { id: string; body: { name?: string; moduleId?: string; jarEnabled?: boolean } }) =>
-      fileApi.update(projectId!, id, body),
+    mutationFn: ({
+      id,
+      body,
+    }: {
+      id: string;
+      body: { name?: string; moduleId?: string; jarEnabled?: boolean };
+    }) => fileApi.update(projectId!, id, body),
     onSuccess: (_r, v) => {
       invalidate();
-      if (v.body.jarEnabled !== undefined) message.success(v.body.jarEnabled ? "JAR 已启用：项目内前后置脚本可引用" : "JAR 已禁用");
+      if (v.body.jarEnabled !== undefined)
+        message.success(v.body.jarEnabled ? "JAR 已启用：项目内前后置脚本可引用" : "JAR 已禁用");
       else if (v.body.name !== undefined) message.success("已重命名");
       else message.success("已移动");
     },
@@ -156,8 +178,8 @@ export default function FilesPage() {
                 拖拽文件到此处或<span className="text-[#574BFF]">点击上传</span>（支持多文件）
               </span>
               <span className="text-xs text-[#A8ABB0]">
-                类型白名单 jar / csv / js / ts / json / txt / xmind / zip / png / jpg / jpeg / xlsx ·
-                单文件大小上限由系统参数控制（SYS-005 file.maxSizeMB）
+                类型白名单 jar / csv / js / ts / json / txt / xmind / zip / png / jpg / jpeg / xlsx
+                · 单文件大小上限由系统参数控制（SYS-005 file.maxSizeMB）
               </span>
             </p>
           </Upload.Dragger>
@@ -197,7 +219,9 @@ export default function FilesPage() {
             </button>
           </div>
           <span className="text-xs text-[#A8ABB0] ml-auto">
-            {view === "list" ? "同名文件允许上传，按上传时间区分 · 下载走鉴权流式 · 删除为软删" : "恢复回到原模块；彻底删除=物理删并清理对象存储（不可恢复）"}
+            {view === "list"
+              ? "同名文件允许上传，按上传时间区分 · 下载走鉴权流式 · 删除为软删"
+              : "恢复回到原模块；彻底删除=物理删并清理对象存储（不可恢复）"}
           </span>
           {view === "list" && can("PROJECT_FILE:CREATE") && (
             <Button size="small" onClick={() => setReposOpen(true)} data-testid="btn-file-repos">
@@ -260,14 +284,25 @@ export default function FilesPage() {
                 ),
             },
             ...(view === "recycle"
-              ? [{ title: "删除时间", dataIndex: "deletedAt", width: 140, render: (v: string | null) => <span className="text-[#87888D]">{fmtTime(v ?? "")}</span> }]
+              ? [
+                  {
+                    title: "删除时间",
+                    dataIndex: "deletedAt",
+                    width: 140,
+                    render: (v: string | null) => (
+                      <span className="text-[#87888D]">{fmtTime(v ?? "")}</span>
+                    ),
+                  },
+                ]
               : []),
             { title: "大小", dataIndex: "sizeText", width: 90 },
             {
               title: "模块",
               dataIndex: "moduleId",
               width: 120,
-              render: (id: string | null) => <span className="text-[#646A73]">{moduleName(id)}</span>,
+              render: (id: string | null) => (
+                <span className="text-[#646A73]">{moduleName(id)}</span>
+              ),
             },
             {
               title: "JAR",
@@ -280,7 +315,9 @@ export default function FilesPage() {
                       size="small"
                       checked={row.jarEnabled}
                       disabled={!canUpdate}
-                      onChange={(jarEnabled) => updateFile.mutate({ id: row.id, body: { jarEnabled } })}
+                      onChange={(jarEnabled) =>
+                        updateFile.mutate({ id: row.id, body: { jarEnabled } })
+                      }
                       data-testid={`jar-switch-${row.id}`}
                     />
                   </Tooltip>
@@ -312,17 +349,38 @@ export default function FilesPage() {
                   </Button>
                   {view === "recycle" ? (
                     <>
-                      <Button type="link" size="small" className="!px-0" onClick={() => restoreFile.mutate(row.id)} data-testid={`file-restore-${row.id}`}>
+                      <Button
+                        type="link"
+                        size="small"
+                        className="!px-0"
+                        onClick={() => restoreFile.mutate(row.id)}
+                        data-testid={`file-restore-${row.id}`}
+                      >
                         恢复
                       </Button>
-                      <Popconfirm title="彻底删除不可恢复（记录+对象存储一并清理）" onConfirm={() => purgeFile.mutate(row.id)}>
-                        <Button type="link" size="small" danger className="!px-0" data-testid={`file-purge-${row.id}`}>
+                      <Popconfirm
+                        title="彻底删除不可恢复（记录+对象存储一并清理）"
+                        onConfirm={() => purgeFile.mutate(row.id)}
+                      >
+                        <Button
+                          type="link"
+                          size="small"
+                          danger
+                          className="!px-0"
+                          data-testid={`file-purge-${row.id}`}
+                        >
                           彻底删除
                         </Button>
                       </Popconfirm>
                     </>
                   ) : row.repoId && row.repoPlatform ? (
-                    <Button type="link" size="small" className="!px-0" loading={syncFile.isPending && syncFile.variables === row.id} onClick={() => syncFile.mutate(row.id)}>
+                    <Button
+                      type="link"
+                      size="small"
+                      className="!px-0"
+                      loading={syncFile.isPending && syncFile.variables === row.id}
+                      onClick={() => syncFile.mutate(row.id)}
+                    >
                       重新拉取
                     </Button>
                   ) : null}
@@ -360,7 +418,13 @@ export default function FilesPage() {
                       description="软删除；被执行引用时任务将 CONFIG_ERROR"
                       onConfirm={() => removeFile.mutate(row.id)}
                     >
-                      <Button type="link" size="small" danger className="!px-0" icon={<Trash2 size={12} />}>
+                      <Button
+                        type="link"
+                        size="small"
+                        danger
+                        className="!px-0"
+                        icon={<Trash2 size={12} />}
+                      >
                         删除
                       </Button>
                     </Popconfirm>
@@ -404,7 +468,8 @@ export default function FilesPage() {
         open={Boolean(moveTarget)}
         onCancel={() => setMoveTarget(null)}
         onOk={() => {
-          if (moveTarget && moveModuleId) updateFile.mutate({ id: moveTarget.id, body: { moduleId: moveModuleId } });
+          if (moveTarget && moveModuleId)
+            updateFile.mutate({ id: moveTarget.id, body: { moduleId: moveModuleId } });
           setMoveTarget(null);
         }}
         okButtonProps={{ disabled: !moveModuleId }}
@@ -422,7 +487,9 @@ export default function FilesPage() {
       </Modal>
 
       {/* S5 FILE-001：存储库管理 */}
-      {reposOpen && projectId && <FileReposModal projectId={projectId} onClose={() => setReposOpen(false)} />}
+      {reposOpen && projectId && (
+        <FileReposModal projectId={projectId} onClose={() => setReposOpen(false)} />
+      )}
     </div>
   );
 }

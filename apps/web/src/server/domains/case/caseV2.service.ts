@@ -66,7 +66,10 @@ type SerializedCase = ReturnType<typeof serialize>;
 export function buildDiffPartitions(
   before: SerializedCase,
   after: SerializedCase,
-): { fields: { key: string; from: unknown; to: unknown }[]; steps?: { added: number; removed: number; changed: number } } | null {
+): {
+  fields: { key: string; from: unknown; to: unknown }[];
+  steps?: { added: number; removed: number; changed: number };
+} | null {
   const fields: { key: string; from: unknown; to: unknown }[] = [];
   for (const f of ["name", "level", "precondition"] as const) {
     if (JSON.stringify(before[f]) !== JSON.stringify(after[f]))
@@ -85,7 +88,9 @@ export function buildDiffPartitions(
     const aKeys = new Map(aSteps.map((s, i) => [keyOf(s), i]));
     const added = aSteps.filter((s) => !bKeys.has(keyOf(s))).length;
     const removed = bSteps.filter((s) => !aKeys.has(keyOf(s))).length;
-    const changed = aSteps.filter((s, i) => bKeys.has(keyOf(s)) && bKeys.get(keyOf(s)) !== i).length;
+    const changed = aSteps.filter(
+      (s, i) => bKeys.has(keyOf(s)) && bKeys.get(keyOf(s)) !== i,
+    ).length;
     steps = { added, removed, changed };
   }
   if (fields.length === 0 && !steps) return null;

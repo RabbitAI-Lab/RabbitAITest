@@ -40,7 +40,11 @@ function text(v: unknown): string {
 }
 
 function propOf(node: XmlNode, name: string): string {
-  const merged = [...alwaysArray(node["stringProp"]), ...alwaysArray(node["longProp"]), ...alwaysArray(node["boolProp"])];
+  const merged = [
+    ...alwaysArray(node["stringProp"]),
+    ...alwaysArray(node["longProp"]),
+    ...alwaysArray(node["boolProp"]),
+  ];
   for (const p of merged) {
     if (text((p as XmlNode)["@_name"]) === name) return text(p);
   }
@@ -68,7 +72,8 @@ export function parseJmx(jmxText: string): JmxParseResult {
   } catch (e) {
     throw new Error(`jmx XML 解析失败：${e instanceof Error ? e.message : String(e)}`);
   }
-  if (/<(!DOCTYPE|ENTITY)/i.test(jmxText)) warnings.push("检测到 DTD/实体声明，已按安全策略忽略外部实体");
+  if (/<(!DOCTYPE|ENTITY)/i.test(jmxText))
+    warnings.push("检测到 DTD/实体声明，已按安全策略忽略外部实体");
   const root = (doc["jmeterTestPlan"] ?? {}) as XmlNode;
   const planNode = (root["TestPlan"] ?? root["hashTree"] ?? {}) as XmlNode;
   const scenarioName = text(planNode["@_testname"]) || "JMeter 导入场景";
@@ -81,7 +86,10 @@ export function parseJmx(jmxText: string): JmxParseResult {
   return { scenarioName, steps, csv, warnings };
 }
 
-function collectCsv(root: XmlNode, warnings: string[]): { columns: string[]; rows: string[][] } | null {
+function collectCsv(
+  root: XmlNode,
+  warnings: string[],
+): { columns: string[]; rows: string[][] } | null {
   const found = findAllByKey(root, "CSVDataSet");
   if (found.length === 0) return null;
   const first = found[0] as XmlNode;
@@ -89,8 +97,12 @@ function collectCsv(root: XmlNode, warnings: string[]): { columns: string[]; row
   const varNames = propOf(first, "variableNames");
   const delimiter = propOf(first, "delimiter") || ",";
   if (!varNames) return null;
-  const columns = varNames.split(delimiter).map((c) => c.trim()).filter(Boolean);
-  if (!filename) warnings.push("CSVDataSet 未配置 filename，CSV 参数按空表导入（可后续在参数区关联文件）");
+  const columns = varNames
+    .split(delimiter)
+    .map((c) => c.trim())
+    .filter(Boolean);
+  if (!filename)
+    warnings.push("CSVDataSet 未配置 filename，CSV 参数按空表导入（可后续在参数区关联文件）");
   return { columns, rows: [] };
 }
 
@@ -108,7 +120,11 @@ function findAllByKey(node: XmlNode, key: string): XmlNode[] {
 }
 
 /** jmx 结构约定：控制器与其子级 hashTree 平级成对出现（对象键序=文档序，据此配对）。 */
-function mapHashTreeChildren(parent: XmlNode, csv: { columns: string[] } | null, warnings: string[]): JmxStepNode[] {
+function mapHashTreeChildren(
+  parent: XmlNode,
+  csv: { columns: string[] } | null,
+  warnings: string[],
+): JmxStepNode[] {
   const out: JmxStepNode[] = [];
   const entries = Object.entries(parent);
   let threadGroupCount = 0;
@@ -142,7 +158,9 @@ function mapHashTreeChildren(parent: XmlNode, csv: { columns: string[] } | null,
     }
   }
   if (threadGroupCount > 1) {
-    warnings.push(`检出 ${threadGroupCount} 个线程组，仅映射首个（多组=并发语义，经批量执行并行模式表达）`);
+    warnings.push(
+      `检出 ${threadGroupCount} 个线程组，仅映射首个（多组=并发语义，经批量执行并行模式表达）`,
+    );
   }
   return out;
 }
@@ -158,7 +176,11 @@ function findSiblingHashTree(entries: [string, unknown][], from: number): XmlNod
   return null;
 }
 
-function mapLevel(hashTree: XmlNode, csv: { columns: string[] } | null, warnings: string[]): JmxStepNode[] {
+function mapLevel(
+  hashTree: XmlNode,
+  csv: { columns: string[] } | null,
+  warnings: string[],
+): JmxStepNode[] {
   const out: JmxStepNode[] = [];
   // 内嵌 hashTree 键（采样器常挂在子 hashTree 内）：递归展开
   for (const h of alwaysArray(hashTree["hashTree"])) {
@@ -173,9 +195,17 @@ function mapLevel(hashTree: XmlNode, csv: { columns: string[] } | null, warnings
     const protocol = propOf(sampler, "HTTPSampler.protocol") || "http";
     const body = propOf(sampler, "Argument.value");
     const args = alwaysArray((alwaysArray(sampler["arguments"])[0] ?? {})["Argument"]);
-    const queryRows = args.map((a) => ({ key: propOf(a, "Argument.name"), value: propOf(a, "Argument.value"), enabled: true }));
-    const hostPart = domain ? `${domain}${port && port !== "80" && port !== "443" ? `:${port}` : ""}` : "";
-    const url = domain ? `${protocol}://${hostPart}${path.startsWith("/") ? path : `/${path}`}` : path;
+    const queryRows = args.map((a) => ({
+      key: propOf(a, "Argument.name"),
+      value: propOf(a, "Argument.value"),
+      enabled: true,
+    }));
+    const hostPart = domain
+      ? `${domain}${port && port !== "80" && port !== "443" ? `:${port}` : ""}`
+      : "";
+    const url = domain
+      ? `${protocol}://${hostPart}${path.startsWith("/") ? path : `/${path}`}`
+      : path;
     const isJson = body.trimStart().startsWith("{") || body.trimStart().startsWith("[");
     out.push({
       uid: nextUid("req"),
@@ -185,11 +215,17 @@ function mapLevel(hashTree: XmlNode, csv: { columns: string[] } | null, warnings
       config: {
         bundle: {
           request: {
-            method: (["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"].includes(method) ? method : "GET"),
+            method: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"].includes(method)
+              ? method
+              : "GET",
             url,
             headers: [],
             query: queryRows.filter((q) => q.key),
-            body: body ? (isJson ? { kind: "raw_json", content: body } : { kind: "raw_text", content: body }) : { kind: "none" },
+            body: body
+              ? isJson
+                ? { kind: "raw_json", content: body }
+                : { kind: "raw_text", content: body }
+              : { kind: "none" },
             auth: { kind: "none" },
           },
           asserts: [{ kind: "status_code", path: "", op: "eq", expected: "200" }],
@@ -204,7 +240,14 @@ function mapLevel(hashTree: XmlNode, csv: { columns: string[] } | null, warnings
       const lang = propOf(js, "scriptLanguage");
       if (lang && lang !== "javascript") warnings.push(`JSR223 语言 ${lang} 不支持，已跳过`);
       else {
-        out.push({ uid: nextUid("script"), stepType: "script", name: text(js["@_testname"]) || "前置脚本", enabled: true, config: { script: propOf(js, "script") }, children: [] });
+        out.push({
+          uid: nextUid("script"),
+          stepType: "script",
+          name: text(js["@_testname"]) || "前置脚本",
+          enabled: true,
+          config: { script: propOf(js, "script") },
+          children: [],
+        });
       }
     }
   }
@@ -214,15 +257,37 @@ function mapLevel(hashTree: XmlNode, csv: { columns: string[] } | null, warnings
       warnings.push(`JSR223Sampler 语言 ${lang} 不支持，已跳过`);
       continue;
     }
-    out.push({ uid: nextUid("script"), stepType: "script", name: text(js["@_testname"]) || "脚本", enabled: text(js["@_enabled"]) !== "false", config: { script: propOf(js, "script") }, children: [] });
+    out.push({
+      uid: nextUid("script"),
+      stepType: "script",
+      name: text(js["@_testname"]) || "脚本",
+      enabled: text(js["@_enabled"]) !== "false",
+      config: { script: propOf(js, "script") },
+      children: [],
+    });
   }
   for (const t of alwaysArray(hashTree["ConstantTimer"])) {
-    out.push({ uid: nextUid("wait"), stepType: "wait", name: text(t["@_testname"]) || "等待", enabled: true, config: { ms: Math.min(30000, Math.max(1, Number(propOf(t, "ConstantTimer.delay") || "1000"))) }, children: [] });
+    out.push({
+      uid: nextUid("wait"),
+      stepType: "wait",
+      name: text(t["@_testname"]) || "等待",
+      enabled: true,
+      config: {
+        ms: Math.min(30000, Math.max(1, Number(propOf(t, "ConstantTimer.delay") || "1000"))),
+      },
+      children: [],
+    });
   }
   const csvSets = alwaysArray(hashTree["CSVDataSet"]);
   if (csvSets.length > 0 && csv && csv.columns.length > 0) {
     const varNames = propOf(csvSets[0] ?? {}, "variableNames");
-    const firstCol = varNames.split(/[,;\t]/).map((c) => c.trim()).filter(Boolean)[0] ?? csv.columns[0] ?? "col1";
+    const firstCol =
+      varNames
+        .split(/[,;\t]/)
+        .map((c) => c.trim())
+        .filter(Boolean)[0] ??
+      csv.columns[0] ??
+      "col1";
     return [
       {
         uid: nextUid("loop"),

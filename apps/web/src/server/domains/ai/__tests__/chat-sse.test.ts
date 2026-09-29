@@ -13,11 +13,21 @@ vi.mock("@rabbit/db", () => {
     aiConversation: {
       findFirst: vi.fn(async () => null),
       create: vi.fn(async ({ data }: { data: { userId: string; title: string } }) => {
-        const c = { id: `conv-${state.conversations.length + 1}`, userId: data.userId, title: data.title, deletedAt: null };
+        const c = {
+          id: `conv-${state.conversations.length + 1}`,
+          userId: data.userId,
+          title: data.title,
+          deletedAt: null,
+        };
         state.conversations.push(c);
         return c;
       }),
-      update: vi.fn(async ({ where, data }: { where: { id: string }; data: Record<string, unknown> }) => ({ ...where, ...data })),
+      update: vi.fn(
+        async ({ where, data }: { where: { id: string }; data: Record<string, unknown> }) => ({
+          ...where,
+          ...data,
+        }),
+      ),
     },
     aiMessage: {
       create: vi.fn(async ({ data }: { data: { role: string; content: unknown } }) => {
@@ -32,14 +42,23 @@ vi.mock("@rabbit/db", () => {
   return { prisma };
 });
 
-vi.mock("../model.service", () => ({ resolveRuntimeForUser: vi.fn(async () => ({ id: "model-1" })) }));
+vi.mock("../model.service", () => ({
+  resolveRuntimeForUser: vi.fn(async () => ({ id: "model-1" })),
+}));
 vi.mock("../chat-client", () => ({ streamChat: vi.fn() }));
 
 import { prisma } from "@rabbit/db";
 import { chat } from "../chat.service";
 import { streamChat } from "../chat-client";
 
-const state = (prisma as unknown as { __state: { conversations: unknown[]; messages: { id: string; role: string; content: unknown }[] } }).__state;
+const state = (
+  prisma as unknown as {
+    __state: {
+      conversations: unknown[];
+      messages: { id: string; role: string; content: unknown }[];
+    };
+  }
+).__state;
 
 async function readFrames(res: Response) {
   expect(res.headers.get("content-type")).toContain("text/event-stream");
@@ -47,7 +66,18 @@ async function readFrames(res: Response) {
   return body
     .trim()
     .split("\n\n")
-    .map((line) => JSON.parse(line.replace(/^data: /, "")) as { type: string; text?: string; code?: number; message?: string; messageId?: string; conversationId?: string; title?: string });
+    .map(
+      (line) =>
+        JSON.parse(line.replace(/^data: /, "")) as {
+          type: string;
+          text?: string;
+          code?: number;
+          message?: string;
+          messageId?: string;
+          conversationId?: string;
+          title?: string;
+        },
+    );
 }
 
 beforeEach(() => {
@@ -67,7 +97,12 @@ describe("AI-004 chat SSE 帧序列", () => {
     const res = await chat("u1", { content: long });
 
     const frames = await readFrames(res);
-    expect(frames.map((f) => f.type)).toEqual([AI_SSE.delta, AI_SSE.delta, AI_SSE.delta, AI_SSE.done]);
+    expect(frames.map((f) => f.type)).toEqual([
+      AI_SSE.delta,
+      AI_SSE.delta,
+      AI_SSE.delta,
+      AI_SSE.done,
+    ]);
     expect(frames.slice(0, 3).map((f) => f.text)).toEqual(["你", "好", "！"]);
     const done = frames[3]!;
     expect(done.conversationId).toBe("conv-1");

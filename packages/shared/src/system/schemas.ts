@@ -66,11 +66,35 @@ export const cleanupParamSchema = z.object({
   logRetentionDays: z.number().int().min(7).max(3650),
   changeLogRetentionDays: z.number().int().min(7).max(3650),
 });
+// ── 界面设置（S9 ENTP-004；THEME 特性门控，图片内联 dataUrl ≤200KB）──
+export const dataUrlImage = z
+  .string()
+  .max(280_000) // base64 膨胀后 200KB 二进制 ≈ 270KB 文本，留余量后由服务端二次校验字节
+  .refine(
+    (v) => v === "" || /^data:image\/(png|jpeg|svg\+xml);base64,/.test(v),
+    "仅支持 png/jpeg/svg dataUrl 或空串",
+  );
+export const themeParamSchema = z.object({
+  primaryColor: z
+    .string()
+    .regex(/^#[0-9a-fA-F]{6}$/, "主题色须为 #RRGGBB")
+    .default("#574BFF"),
+  followPrimary: z.boolean().default(true),
+  siteName: z.string().max(64).default("RabbitAITest"),
+  slogan: z.string().max(128).default(""),
+  loginLogo: dataUrlImage.default(""),
+  loginBg: dataUrlImage.default(""),
+  icon: dataUrlImage.default(""),
+  platformName: z.string().max(64).default("RabbitAITest"),
+  platformLogo: dataUrlImage.default(""),
+  helpUrl: z.string().max(512).default(""),
+});
 export const paramGroupSchema = z.discriminatedUnion("group", [
   z.object({ group: z.literal("basic"), value: basicParamSchema }),
   z.object({ group: z.literal("smtp"), value: smtpParamSchema }),
   z.object({ group: z.literal("file"), value: fileParamSchema }),
   z.object({ group: z.literal("cleanup"), value: cleanupParamSchema }),
+  z.object({ group: z.literal("theme"), value: themeParamSchema }),
 ]);
 
 /** 兼容导出：实际生效值以 config.userLimit（RABBIT_USER_LIMIT 可配）为准 */

@@ -1,8 +1,15 @@
-/** EXEC-002 资源池（公开面）：默认池详情/并发编辑（心跳下发）/节点在线态判定。新建删除=ENTP-006 不提供端点。
+/** EXEC-002 资源池（公开面）：默认池详情/并发编辑（心跳下发）/节点在线态判定。
+ * S9 ENTP-006：多池 CRUD（create/updateEntp/delete/assertExecutable——License MULTI_POOL 门控在路由层）。
  * S-future EXEC-004：默认池 type NODE↔K8S 切换 + k8s 四项配置（config Json 载体，token 只写不读）+
  * 连通性测试（safe-fetch 池守卫口径：https 强制、环回/非路由拒、私网放行）；调度面零变化（两型同构单 exec 队列）。 */
 import { DomainError, ErrCode, config, poolK8sConfigSchema } from "@rabbit/shared";
-import type { PoolK8sConfig, PoolK8sConfigView, PoolUpdateInput } from "@rabbit/shared";
+import type {
+  PoolK8sConfig,
+  PoolK8sConfigView,
+  PoolUpdateInput,
+  PoolCreateInput,
+  PoolEntpUpdateInput,
+} from "@rabbit/shared";
 import type { Agent } from "undici";
 import { outboundDispatcher } from "@/server/safe-fetch";
 import { recordAudit } from "@/server/domains/system/audit.service";
@@ -67,6 +74,7 @@ function serializePool(
     status: string;
     lastBeatAt: Date | null;
     updatedAt: Date;
+    orgScope?: unknown;
     config: unknown;
   },
 ) {
@@ -79,7 +87,8 @@ function serializePool(
     isDefault: p.isDefault,
     maxConcurrency: p.maxConcurrency,
     status: p.status,
-    canDelete: false, // 标准版单默认池不可删（License 门控 ENTP-006）
+    orgScope: p.orgScope ?? "ALL", // S9 ENTP-006：ALL | [orgId]
+    canDelete: !p.isDefault, // 默认池保护（社区版单池语义）；有历史任务的池删除时再校验
     lastBeatAt: p.lastBeatAt?.toISOString() ?? null,
     // S-future EXEC-004 §4：k8s 配置摘要（token 永不回明文）
     k8s: k8sView(p),
@@ -160,10 +169,88 @@ export async function updatePool(id: string, input: PoolUpdateInput) {
   return getPool(pool.id);
 }
 
+// ── S9 ENTP-006：多池 CRUD（License MULTI_POOL 门控在路由层）──
+
+export async function createPool(input: PoolCreateInput) {
+  const dup = await prisma.resourcePool.findFirst({
+    where: { name: input.name },
+    select: { id: true },
+  });
+  if (dup) throw new DomainError(ErrCode.POOL_NAME_EXISTS, "资源池名称已存在");
+  const created = await prisma.resourcePool.create({
+    data: {
+      name: input.name,
+      type: input.type,
+      maxConcurrency: input.maxConcurrency,
+      orgScope: input.orgScope as unknown as object,
+      isDefault: false,
+      status: "ACTIVE",
+    },
+    select: { id: true },
+  });
+  return getPool(created.id);
+}
+
+export async function updatePoolEntp(id: string, input: PoolEntpUpdateInput) {
+  const pool = await prisma.resourcePool.findUnique({ where: { id } });
+  if (!pool) throw new DomainError(ErrCode.POOL_NOT_FOUND, "资源池不存在");
+  if (input.name && input.name !== pool.name) {
+    const dup = await prisma.resourcePool.findFirst({
+      where: { name: input.name },
+      select: { id: true },
+    });
+    if (dup) throw new DomainError(ErrCode.POOL_NAME_EXISTS, "资源池名称已存在");
+  }
+  if (input.status === "DISABLED" && pool.isDefault)
+    throw new DomainError(ErrCode.POOL_DEFAULT_UNDISABLEABLE, "默认资源池不可禁用");
+  if (input.maxConcurrency !== undefined && (input.maxConcurrency < 2 || input.maxConcurrency > 64))
+    throw new DomainError(ErrCode.VALIDATION_FAILED, "最大并发取值 2-64");
+  await prisma.resourcePool.update({
+    where: { id },
+    data: {
+      ...(input.name ? { name: input.name } : {}),
+      ...(input.maxConcurrency !== undefined ? { maxConcurrency: input.maxConcurrency } : {}),
+      ...(input.orgScope !== undefined ? { orgScope: input.orgScope as unknown as object } : {}),
+      ...(input.status ? { status: input.status } : {}),
+    },
+  });
+  return getPool(id);
+}
+
+export async function deletePool(id: string) {
+  const pool = await prisma.resourcePool.findUnique({ where: { id } });
+  if (!pool) throw new DomainError(ErrCode.POOL_NOT_FOUND, "资源池不存在");
+  if (pool.isDefault)
+    throw new DomainError(ErrCode.POOL_DEFAULT_UNDELETABLE, "默认资源池不可删除（社区版单池保护）");
+  const taskCount = await prisma.execTask.count({ where: { poolId: id } });
+  if (taskCount > 0) throw new DomainError(ErrCode.POOL_HAS_TASKS, "资源池存在历史任务，不可删除");
+  await prisma.resourcePool.delete({ where: { id } });
+  return { id };
+}
+
+/** 执行入口池校验（ENTP-006）：存在 + ACTIVE + 应用组织含 orgId。 */
+export async function assertPoolExecutable(
+  poolId: string | null | undefined,
+  orgId: string | null,
+): Promise<string | null> {
+  if (!poolId || poolId === config.defaultPoolId) return config.defaultPoolId;
+  const pool = await prisma.resourcePool.findUnique({ where: { id: poolId } });
+  if (!pool) throw new DomainError(ErrCode.POOL_NOT_FOUND, "资源池不存在");
+  if (pool.status !== "ACTIVE")
+    throw new DomainError(ErrCode.POOL_DISABLED, "资源池已禁用，不可执行");
+  const scope = pool.orgScope;
+  if (orgId && Array.isArray(scope) && !scope.includes(orgId))
+    throw new DomainError(ErrCode.POOL_ORG_NOT_ALLOWED, "资源池未应用到当前组织");
+  return pool.id;
+}
+
 /** K8S apiServer 探测 dispatcher（模块级实例，v0.7.1 口径：调用方持 dispatcher 直连 fetch——
  * 守卫口径=私网放行、环回/链路本地/非路由拒（管理员配置面）；测试栈 POOL_K8S_ALLOW_LOOPBACK=1 换环回豁免实例） */
 const poolK8sDispatcher = outboundDispatcher({ allowPrivateKeepLoopback: true });
-const poolK8sLoopbackDispatcher = outboundDispatcher({ allowPrivateKeepLoopback: true, allowLoopback: true });
+const poolK8sLoopbackDispatcher = outboundDispatcher({
+  allowPrivateKeepLoopback: true,
+  allowLoopback: true,
+});
 
 /** 连通性测试（EXEC-004 §2：test=true 只试连不落库；探测 apiServer /version）。 */
 export async function testPoolK8sConnection(id: string, input: PoolUpdateInput) {

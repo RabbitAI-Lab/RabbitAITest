@@ -36,8 +36,12 @@
         <p class="mx-2 px-3 py-[7px] rounded-md">成员管理</p>
         <p class="mx-2 px-3 py-[7px] rounded-md">用户组</p>
         <p class="mx-2 px-3 py-[7px] rounded-md">模板管理</p>
-        <p class="mx-2 px-3 py-[7px] rounded-md bg-[#574BFF]/10 text-[#574BFF] font-medium relative">
-          <span class="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 rounded-r bg-[#574BFF]"></span>
+        <p
+          class="mx-2 px-3 py-[7px] rounded-md bg-[#574BFF]/10 text-[#574BFF] font-medium relative"
+        >
+          <span
+            class="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 rounded-r bg-[#574BFF]"
+          ></span>
           环境管理
         </p>
         <p class="px-4 pt-3 pb-1 text-xs text-slate-400">系统设置</p>
@@ -48,12 +52,24 @@
       </aside>
       <main class="flex-1 p-4 space-y-3">
         <!-- 列表卡片 -->
-        <div class="bg-white border rounded-md flex flex-col min-h-[420px]" data-testid="proto-env-list">
+        <div
+          class="bg-white border rounded-md flex flex-col min-h-[420px]"
+          data-testid="proto-env-list"
+        >
           <div class="flex items-center gap-2 px-3 py-2.5 border-b flex-wrap">
             <span class="font-medium mr-2">环境管理</span>
-            <button class="bg-[#574BFF] text-white rounded-md px-3 py-1.5" data-testid="proto-env-new">新建环境</button>
-            <button class="border rounded-md px-3 py-1.5" data-testid="proto-env-import-btn">导入</button>
-            <span class="ml-auto text-xs text-slate-400">入口：项目设置 → 环境管理 · perm PROJECT_ENV:READ</span>
+            <button
+              class="bg-[#574BFF] text-white rounded-md px-3 py-1.5"
+              data-testid="proto-env-new"
+            >
+              新建环境
+            </button>
+            <button class="border rounded-md px-3 py-1.5" data-testid="proto-env-import-btn">
+              导入
+            </button>
+            <span class="ml-auto text-xs text-slate-400"
+              >入口：项目设置 → 环境管理 · perm PROJECT_ENV:READ</span
+            >
           </div>
           <table class="w-full text-[13px]">
             <thead class="text-slate-500 bg-slate-50 border-b">
@@ -67,36 +83,49 @@
             </thead>
             <tbody>
               <tr class="border-b hover:bg-slate-50 cursor-pointer" data-testid="proto-env-row-1">
-                <td class="px-3 py-2.5">测试环境 <span class="text-slate-400 text-xs">ENV-001</span></td>
+                <td class="px-3 py-2.5">
+                  测试环境 <span class="text-slate-400 text-xs">ENV-001</span>
+                </td>
                 <td class="px-3 py-2.5">3</td>
                 <td class="px-3 py-2.5">2</td>
                 <td class="px-3 py-2.5 text-slate-400">2026-09-27 10:12</td>
                 <td class="px-3 py-2.5 space-x-2 text-[#574BFF]">
-                  <span>编辑</span><span>复制</span><span>导出</span><span class="text-[#FF4D4F]">删除</span>
+                  <span>编辑</span><span>复制</span><span>导出</span
+                  ><span class="text-[#FF4D4F]">删除</span>
                 </td>
               </tr>
               <tr class="border-b hover:bg-slate-50">
-                <td class="px-3 py-2.5">预发环境 <span class="text-slate-400 text-xs">ENV-002</span></td>
+                <td class="px-3 py-2.5">
+                  预发环境 <span class="text-slate-400 text-xs">ENV-002</span>
+                </td>
                 <td class="px-3 py-2.5">5</td>
                 <td class="px-3 py-2.5">2</td>
                 <td class="px-3 py-2.5 text-slate-400">2026-09-26 18:40</td>
                 <td class="px-3 py-2.5 space-x-2 text-[#574BFF]">
-                  <span>编辑</span><span>复制</span><span>导出</span><span class="text-[#FF4D4F]">删除</span>
+                  <span>编辑</span><span>复制</span><span>导出</span
+                  ><span class="text-[#FF4D4F]">删除</span>
                 </td>
               </tr>
               <tr class="hover:bg-slate-50">
-                <td class="px-3 py-2.5">正式环境 <span class="text-slate-400 text-xs">ENV-003</span></td>
+                <td class="px-3 py-2.5">
+                  正式环境 <span class="text-slate-400 text-xs">ENV-003</span>
+                </td>
                 <td class="px-3 py-2.5">12</td>
                 <td class="px-3 py-2.5">4</td>
                 <td class="px-3 py-2.5 text-slate-400">2026-09-25 09:30</td>
                 <td class="px-3 py-2.5 space-x-2 text-[#574BFF]">
-                  <span>编辑</span><span>复制</span><span>导出</span><span class="text-[#FF4D4F]">删除</span>
+                  <span>编辑</span><span>复制</span><span>导出</span
+                  ><span class="text-[#FF4D4F]">删除</span>
                 </td>
               </tr>
             </tbody>
           </table>
-          <div class="mt-auto flex items-center justify-between px-3 py-2 border-t text-xs text-slate-500">
-            <span>共 3 条 · 每页 20 条 · 复制副本命名「xxx_copy」 · 导出为 JSON 下载 · 删除为软删</span>
+          <div
+            class="mt-auto flex items-center justify-between px-3 py-2 border-t text-xs text-slate-500"
+          >
+            <span
+              >共 3 条 · 每页 20 条 · 复制副本命名「xxx_copy」 · 导出为 JSON 下载 · 删除为软删</span
+            >
             <span class="flex gap-1">
               <button class="border rounded px-2 py-0.5">‹</button>
               <button class="border rounded px-2 py-0.5 bg-[#574BFF] text-white">1</button>
@@ -113,7 +142,10 @@
 
         <!-- 导入环境弹窗（叠放示意） -->
         <div class="space-y-1" data-testid="proto-env-import-modal">
-          <p class="text-xs text-slate-400">「导入环境」弹窗示意（工具栏「导入」触发）：粘贴 JSON → 逐环境 zod 校验 → 同名按开关覆盖/跳过 → 校验报告</p>
+          <p class="text-xs text-slate-400">
+            「导入环境」弹窗示意（工具栏「导入」触发）：粘贴 JSON → 逐环境 zod 校验 →
+            同名按开关覆盖/跳过 → 校验报告
+          </p>
           <div class="rounded-md bg-black/20 p-8 flex items-start justify-center">
             <div class="bg-white border rounded-lg w-[620px] shadow-lg">
               <div class="flex items-center justify-between px-4 py-3 border-b">
@@ -122,7 +154,8 @@
               <div class="p-4 space-y-3 text-[13px]">
                 <div>
                   <p class="mb-1 text-slate-500">粘贴环境 JSON（数组，单次 ≤ 50 个环境）</p>
-                  <textarea class="border rounded w-full h-24 p-2 font-mono text-xs">[
+                  <textarea class="border rounded w-full h-24 p-2 font-mono text-xs">
+[
   { "name": "测试环境", "config": { "vars": [ … ], "http": [ … ], "hosts": [ … ] } },
   { "name": "性能环境", "config": { … } },
   { "name": "灰度环境", "config": { … } }
@@ -130,8 +163,12 @@
                 </div>
                 <label class="flex items-start gap-2">
                   <input type="checkbox" class="mt-0.5" data-testid="proto-env-import-overwrite" />
-                  <span>同名环境覆盖
-                    <span class="block text-xs text-slate-400">开启：同名环境被覆盖且 version 重置为 1 · 关闭：同名跳过并计入校验报告；导入不产生「部分成功」（全合法才落库）</span>
+                  <span
+                    >同名环境覆盖
+                    <span class="block text-xs text-slate-400"
+                      >开启：同名环境被覆盖且 version 重置为 1 ·
+                      关闭：同名跳过并计入校验报告；导入不产生「部分成功」（全合法才落库）</span
+                    >
                   </span>
                 </label>
                 <div class="border rounded p-2 bg-slate-50 text-xs">
@@ -143,7 +180,12 @@
                 </div>
                 <div class="flex justify-end gap-2 pt-1">
                   <button class="border rounded-md px-3 py-1.5">取 消</button>
-                  <button class="bg-[#574BFF] text-white rounded-md px-3 py-1.5" data-testid="proto-env-import-submit">开始导入</button>
+                  <button
+                    class="bg-[#574BFF] text-white rounded-md px-3 py-1.5"
+                    data-testid="proto-env-import-submit"
+                  >
+                    开始导入
+                  </button>
                 </div>
               </div>
             </div>

@@ -1,20 +1,20 @@
 # 禅道 / TAPD 对接（平台适配器 ×2）
 
-| 元信息项     | 内容                                                                                                                                  |
-| ------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
-| 文档编号     | INTG-002                                                                                                                              |
-| 所属迭代     | Sprint 6 — 集成与插件                                                                                                                 |
-| 优先级       | P2（迭代内）                                                                                                                          |
-| 所属模块     | 组织设置（org 域）+ 缺陷管理（bug 域）+ 插件运行时                                                                                     |
-| 文档状态     | Implemented（2026-09-27 交付：代码+单测+JMeter+Playwright 全绿、CI 六作业全绿；高保真走查随验收） |
-| 最后更新日期 | 2026-09-27                                                                                                                            |
-| 上游依赖     | INTG-001（集成编排/加密/同步状态机全复用）、PLUG-001                                                                                   |
-| 下游消费     | S7（同步数据分析）                                                                                                                    |
-| 上游依据     | 需求文档 §二「三方同步：Jira/禅道/TAPD」；功能清单 §8.4 禅道（GET/PATH_INFO 请求型）、TAPD                                             |
-| 对标基线     | 功能清单 §8.4/§9.2 服务集成：禅道/TAPD 插件为**社区版**（与 Jira 企业版口径对照）；§七 双向同步                                        |
-| 关联架构文档 | plugin-architecture.md（PlatformPlugin SPI 单一接口多平台适配）；INTG-001 §4（端点/模型/权限全部复用）                                 |
-| 高保真确认   | 待确认（原型 docs/design/INTG-001-jira-integration/ 三平台卡片共用布局——禅道/TAPD 复用同原型，配置抽屉差异见 §3）                       |
-| 工作量估算   | 插件 4 人日 / 后端 1 人日 / 前端 1 人日                                                                                               |
+| 元信息项     | 内容                                                                                                              |
+| ------------ | ----------------------------------------------------------------------------------------------------------------- |
+| 文档编号     | INTG-002                                                                                                          |
+| 所属迭代     | Sprint 6 — 集成与插件                                                                                             |
+| 优先级       | P2（迭代内）                                                                                                      |
+| 所属模块     | 组织设置（org 域）+ 缺陷管理（bug 域）+ 插件运行时                                                                |
+| 文档状态     | Implemented（2026-09-27 交付：代码+单测+JMeter+Playwright 全绿、CI 六作业全绿；高保真走查随验收）                 |
+| 最后更新日期 | 2026-09-27                                                                                                        |
+| 上游依赖     | INTG-001（集成编排/加密/同步状态机全复用）、PLUG-001                                                              |
+| 下游消费     | S7（同步数据分析）                                                                                                |
+| 上游依据     | 需求文档 §二「三方同步：Jira/禅道/TAPD」；功能清单 §8.4 禅道（GET/PATH_INFO 请求型）、TAPD                        |
+| 对标基线     | 功能清单 §8.4/§9.2 服务集成：禅道/TAPD 插件为**社区版**（与 Jira 企业版口径对照）；§七 双向同步                   |
+| 关联架构文档 | plugin-architecture.md（PlatformPlugin SPI 单一接口多平台适配）；INTG-001 §4（端点/模型/权限全部复用）            |
+| 高保真确认   | 待确认（原型 docs/design/INTG-001-jira-integration/ 三平台卡片共用布局——禅道/TAPD 复用同原型，配置抽屉差异见 §3） |
+| 工作量估算   | 插件 4 人日 / 后端 1 人日 / 前端 1 人日                                                                           |
 
 ## 1. 概述
 
@@ -24,14 +24,14 @@
 
 ### 1.2 范围边界（能力行 → §5 用例映射）
 
-| 能力                                                                                       | P1 ✅ | 后续                                         |
-| ------------------------------------------------------------------------------------------- | ----- | -------------------------------------------- |
-| 禅道适配器：REST（GET 请求型）模式——address+account+password；token 会话（POST user-login 取 token） | ✅     | PATH_INFO 请求型（基线列两型，REST 先行，登记） |
-| 禅道方法：testConnection（get-user-info）/createIssue（bug-create）/updateIssue/syncBugs（bug-list by product+日期） | ✅     | 需求/工单同步（基线缺陷先行）                |
-| TAPD 适配器：Basic Auth（api_user/api_password）；testConnection（auth verify）/createIssue（/bugs）/updateIssue/syncBugs（/bugs by workspace_id+modified） | ✅     | —                                            |
-| 平台标识注册：platform ∈ jira|zentao|tapd（Plugin.kind=platform，name 区分）；组织集成页三卡片全可用 | ✅     | 更多平台（飞书等，基线个人账号绑定范围）     |
-| 差异字段映射：禅道 product 为项目关联键（projectKey=product id）；TAPD workspace_id 同义；状态映射表各自内置默认（禅道 closed/resolved、TAPD resolved/rejected） | ✅     | —                                            |
-| 编排复用：加密/测试连接/推送拉取状态机/定时/同步历史/断链保护——INTG-001 原样                 | ✅     | —                                            |
+| 能力                                                                                                                                                             | P1 ✅  | 后续                                                            |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | --------------------------------------------------------------- |
+| 禅道适配器：REST（GET 请求型）模式——address+account+password；token 会话（POST user-login 取 token）                                                             | ✅     | PATH_INFO 请求型（基线列两型，REST 先行，登记）                 |
+| 禅道方法：testConnection（get-user-info）/createIssue（bug-create）/updateIssue/syncBugs（bug-list by product+日期）                                             | ✅     | 需求/工单同步（基线缺陷先行）                                   |
+| TAPD 适配器：Basic Auth（api_user/api_password）；testConnection（auth verify）/createIssue（/bugs）/updateIssue/syncBugs（/bugs by workspace_id+modified）      | ✅     | —                                                               |
+| 平台标识注册：platform ∈ jira                                                                                                                                    | zentao | tapd（Plugin.kind=platform，name 区分）；组织集成页三卡片全可用 | ✅  | 更多平台（飞书等，基线个人账号绑定范围） |
+| 差异字段映射：禅道 product 为项目关联键（projectKey=product id）；TAPD workspace_id 同义；状态映射表各自内置默认（禅道 closed/resolved、TAPD resolved/rejected） | ✅     | —                                                               |
+| 编排复用：加密/测试连接/推送拉取状态机/定时/同步历史/断链保护——INTG-001 原样                                                                                     | ✅     | —                                                               |
 
 ### 1.3 前置依赖
 

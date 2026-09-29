@@ -26,11 +26,14 @@ export function buildPlatformMocks(): Hono {
 
   // ── Jira（REST v2 子集）──
   app.get("/rest/api/2/myself", (c) => {
-    if (c.req.header("authorization")?.includes("Zm9vOmJhcg==")) return c.json({ errorMessages: ["Unauthorized"] }, 401);
+    if (c.req.header("authorization")?.includes("Zm9vOmJhcg=="))
+      return c.json({ errorMessages: ["Unauthorized"] }, 401);
     return c.json({ displayName: "Mock Jira User", emailAddress: "mock-jira@example.com" });
   });
   app.post("/rest/api/2/issue", async (c) => {
-    const body = (await c.req.json()) as { fields: { project: { key: string }; summary: string; description: string } };
+    const body = (await c.req.json()) as {
+      fields: { project: { key: string }; summary: string; description: string };
+    };
     seq += 1;
     const key = `${body.fields.project.key}-${seq}`;
     platformState.set(key, {
@@ -56,7 +59,14 @@ export function buildPlatformMocks(): Hono {
     const projectKey = /project\s*=\s*"([^"]+)"/.exec(jql)?.[1] ?? "";
     const issues = [...platformState.values()].filter((i) => i.key.startsWith(`${projectKey}-`));
     return c.json({
-      issues: issues.map((i) => ({ key: i.key, fields: { summary: i.summary, status: { name: i.status === "in progress" ? "In Progress" : i.status }, updated: i.updatedAt } })),
+      issues: issues.map((i) => ({
+        key: i.key,
+        fields: {
+          summary: i.summary,
+          status: { name: i.status === "in progress" ? "In Progress" : i.status },
+          updated: i.updatedAt,
+        },
+      })),
     });
   });
 
@@ -97,7 +107,15 @@ export function buildPlatformMocks(): Hono {
     if (!zentaoAuthed(c)) return c.json({ error: "unauthorized" }, 401);
     const product = c.req.query("product") ?? "";
     const bugs = [...platformState.values()].filter((i) => i.key.startsWith("#"));
-    return c.json({ bugs: bugs.map((b) => ({ id: Number(b.key.slice(1)), title: b.summary, status: b.status, lastEditedDate: b.updatedAt, product: Number(product) || 1 })) });
+    return c.json({
+      bugs: bugs.map((b) => ({
+        id: Number(b.key.slice(1)),
+        title: b.summary,
+        status: b.status,
+        lastEditedDate: b.updatedAt,
+        product: Number(product) || 1,
+      })),
+    });
   });
 
   // ── TAPD（v1 子集：Basic Auth + bugs）──
@@ -128,7 +146,15 @@ export function buildPlatformMocks(): Hono {
     const workspace = c.req.query("workspace_id") ?? "";
     const data = [...platformState.values()]
       .filter((i) => i.key.startsWith("tapd-"))
-      .map((i) => ({ Bug: { id: i.key.slice(5), title: i.summary, status: i.status, modified: i.updatedAt, workspace_id: workspace } }));
+      .map((i) => ({
+        Bug: {
+          id: i.key.slice(5),
+          title: i.summary,
+          status: i.status,
+          modified: i.updatedAt,
+          workspace_id: workspace,
+        },
+      }));
     return c.json({ status: 1, data });
   });
 

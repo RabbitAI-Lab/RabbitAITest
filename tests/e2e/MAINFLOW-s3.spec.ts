@@ -56,13 +56,20 @@ test("MAINFLOW-s3 建场景→编排→CSV→执行→报告树→误报→导�
   await page.getByTestId("scenario-tab-step").click();
   const addStep = async (menu: string) => {
     await page.getByTestId("btn-add-root-step").click();
-    await clickRetry(page, page.locator(".ant-dropdown-menu-item").filter({ hasText: menu }).first());
+    await clickRetry(
+      page,
+      page.locator(".ant-dropdown-menu-item").filter({ hasText: menu }).first(),
+    );
   };
   // 3.1 引用接口（目标选择器选 mock 定义）
   await addStep("接口步骤");
   await expect(page.getByTestId("step-config-ref")).toBeVisible();
   await page.getByTestId("ref-picker-api").click();
-  await page.locator(".ant-select-dropdown:not(.ant-select-dropdown-hidden)").getByText(`主链路定义-${uniq}`).first().click();
+  await page
+    .locator(".ant-select-dropdown:not(.ant-select-dropdown-hidden)")
+    .getByText(`主链路定义-${uniq}`)
+    .first()
+    .click();
   // 3.2 自定义请求（mock URL）
   await addStep("自定义步骤");
   await page.getByTestId("req-url").fill(mockUrl);
@@ -81,15 +88,31 @@ test("MAINFLOW-s3 建场景→编排→CSV→执行→报告树→误报→导�
   await expect(page.getByText(/已保存（v\d+）/)).toBeVisible();
 
   // 重载后 API 补条件/仅一次子树与断言（覆盖 7 类编排，UI 交互已验证代表性类型）
-  const detail = await request.get(`/api/v1/projects/${pid}/scenarios?keyword=${encodeURIComponent(`主链路场景-${uniq}`)}`);
+  const detail = await request.get(
+    `/api/v1/projects/${pid}/scenarios?keyword=${encodeURIComponent(`主链路场景-${uniq}`)}`,
+  );
   const list = (await detail.json()) as { data: { items: { id: string; num: number }[] } };
   const sc = list.data.items[0]!;
   await saveSteps(request, pid, sc.id, [
-    { uid: "mf-ref", stepType: "ref_api", name: "引用接口", enabled: true, config: { refId: def.id }, children: [] },
+    {
+      uid: "mf-ref",
+      stepType: "ref_api",
+      name: "引用接口",
+      enabled: true,
+      config: { refId: def.id },
+      children: [],
+    },
     customStep("自定义请求", mockUrl),
     loopForeachStep("遍历城市", "cities", customStep("城市请求", mockUrl)),
     conditionStep("条件分支", 'getVar("trace") === "mfs3"', [customStep("分支内请求", mockUrl)]),
-    { uid: "mf-once", stepType: "once", name: "仅一次", enabled: true, config: {}, children: [customStep("一次性请求", mockUrl)] },
+    {
+      uid: "mf-once",
+      stepType: "once",
+      name: "仅一次",
+      enabled: true,
+      config: {},
+      children: [customStep("一次性请求", mockUrl)],
+    },
     scriptStep("埋变量", 'setVar("trace", "mfs3")'),
     waitStep("歇一下", 5),
   ]);
@@ -119,14 +142,21 @@ test("MAINFLOW-s3 建场景→编排→CSV→执行→报告树→误报→导�
 
   // ── 6. 误报规则（API 建 + 再造一次失败执行验证 FAKE_ERROR） ──
   await request.post(`/api/v1/projects/${pid}/false-alarm-rules`, {
-    data: { name: `主链路误报-${uniq}`, matcher: { bodyContains: "hello" }, enabled: true, description: "" },
+    data: {
+      name: `主链路误报-${uniq}`,
+      matcher: { bodyContains: "hello" },
+      enabled: true,
+      description: "",
+    },
   });
   const failSc = await createScenario(request, pid, { name: `主链路失败件-${uniq}` });
   await saveSteps(request, pid, failSc.id, [
     customStep("必败", mockUrl, [{ kind: "status_code", path: "", op: "eq", expected: "500" }]),
   ]);
   const failTask = await (async () => {
-    const r = await request.post(`/api/v1/projects/${pid}/scenarios/${failSc.id}/execute`, { data: {} });
+    const r = await request.post(`/api/v1/projects/${pid}/scenarios/${failSc.id}/execute`, {
+      data: {},
+    });
     return ((await r.json()) as { data: { taskId: string } }).data.taskId;
   })();
   await pollTask(request, pid, failTask);

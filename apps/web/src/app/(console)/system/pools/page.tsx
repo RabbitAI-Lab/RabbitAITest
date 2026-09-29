@@ -8,8 +8,11 @@ import {
   Input,
   InputNumber,
   Modal,
+  Popconfirm,
   Progress,
   Radio,
+  Select,
+  Switch,
   Table,
   Tag,
   Tooltip,
@@ -17,13 +20,17 @@ import {
 import { Lock, Pencil, RefreshCw } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { poolApi, type PoolRow } from "@rabbit/api-client";
+import { orgAdminApi, poolApi, poolEntpApi, type PoolRow } from "@rabbit/api-client";
 import { PageHeader } from "@/components/PageHeader";
 import { useApp } from "@/hooks/useApp";
 import { usePermissions } from "@/hooks/usePermissions";
+import { useEntp } from "@/hooks/useEntp";
 
-/** EXEC-002：系统 › 资源池（默认池并发编辑 + 节点心跳 10s 轮询）。
- * S-future EXEC-004：默认池 NODE↔K8S 型切换 + k8s 四项配置（token 只写不读）+ 连通性试连（不落库）。 */
+/**
+ * EXEC-002 资源池：默认池并发编辑（心跳下发）+ 节点心跳表。
+ * S9 ENTP-006：多池 CRUD（新建/启停/删除/orgScope 应用组织——MULTI_POOL License 门控）。
+ * S-future EXEC-004：默认池 type NODE↔K8S 切换 + k8s 四项配置（token 只写不读）+ 连通性试连。
+ */
 
 const relTime = (iso: string | null) => {
   if (!iso) return "—";
@@ -71,12 +78,25 @@ export default function ResourcePoolsPage() {
   const { canGlobal } = usePermissions();
   const canRead = canGlobal("SYSTEM_POOL:READ");
   const canUpdate = canGlobal("SYSTEM_POOL:UPDATE");
+  const canCreate = canGlobal("ENTP_POOL:CREATE");
+  const canManage = canGlobal("ENTP_POOL:UPDATE");
+  const canDelete = canGlobal("ENTP_POOL:DELETE");
+  const entp = useEntp();
+  const multiPool = entp.can("MULTI_POOL");
 
   const [editing, setEditing] = useState<PoolRow | null>(null);
   const [maxConcurrency, setMaxConcurrency] = useState<number>(8);
   const [poolType, setPoolType] = useState<"NODE" | "K8S">("NODE");
   const [k8s, setK8s] = useState<K8sForm>(emptyK8s);
   const [testResult, setTestResult] = useState<{ ok: boolean; text: string } | null>(null);
+  const [creating, setCreating] = useState(false);
+  const [createForm, setCreateForm] = useState<{
+    name: string;
+    type: "NODE" | "K8S";
+    maxConcurrency: number;
+    orgAll: boolean;
+    orgIds: string[];
+  }>({ name: "", type: "NODE", maxConcurrency: 8, orgAll: true, orgIds: [] });
 
   const poolsQ = useQuery({
     queryKey: ["system-pools"],
@@ -84,6 +104,14 @@ export default function ResourcePoolsPage() {
     refetchInterval: 10_000,
     enabled: canRead,
   });
+
+  const orgsQ = useQuery({
+    queryKey: ["system-orgs-for-pool"],
+    queryFn: () => orgAdminApi.list(),
+    enabled: creating,
+  });
+
+  const refresh = () => void qc.invalidateQueries({ queryKey: ["system-pools"] });
 
   const updatePool = useMutation({
     mutationFn: ({ id, body }: { id: string; body: Parameters<typeof poolApi.update>[1] }) =>
@@ -102,6 +130,41 @@ export default function ResourcePoolsPage() {
     onSuccess: (r) =>
       setTestResult({ ok: true, text: `连接成功 · Kubernetes ${r.k8sVersion}（配置未落库）` }),
     onError: (e) => setTestResult({ ok: false, text: e instanceof Error ? e.message : "连接失败" }),
+  });
+
+  const createMut = useMutation({
+    mutationFn: () =>
+      poolEntpApi.create({
+        name: createForm.name,
+        type: createForm.type,
+        maxConcurrency: createForm.maxConcurrency,
+        orgScope: createForm.orgAll ? "ALL" : createForm.orgIds,
+      }),
+    onSuccess: (p) => {
+      message.success(`资源池「${p.name}」已创建——以 POOL_ID=${p.id} 启动执行引擎后节点自动注册`);
+      setCreating(false);
+      refresh();
+    },
+    onError: (e) => message.error(e instanceof Error ? e.message : "创建失败"),
+  });
+
+  const toggleMut = useMutation({
+    mutationFn: (v: { id: string; status: "ACTIVE" | "DISABLED" }) =>
+      poolEntpApi.updateEntp(v.id, { status: v.status }),
+    onSuccess: () => {
+      message.success("状态已更新");
+      refresh();
+    },
+    onError: (e) => message.error(e instanceof Error ? e.message : "操作失败"),
+  });
+
+  const removeMut = useMutation({
+    mutationFn: (id: string) => poolEntpApi.remove(id),
+    onSuccess: () => {
+      message.success("资源池已删除");
+      refresh();
+    },
+    onError: (e) => message.error(e instanceof Error ? e.message : "删除失败"),
   });
 
   if (!canRead) {
@@ -131,6 +194,12 @@ export default function ResourcePoolsPage() {
   // 并发仅在用户改动时携带：恒带表单值会在多管理员/并行操作下把他人刚写入的并发覆盖回打开弹窗时的旧值
   // （EXEC-004 与 EXEC-002 e2e 并行互写默认池暴露——服务端 PUT 为部分更新语义）
   const concurrencyTouched = editing !== null && maxConcurrency !== editing.maxConcurrency;
+  const k8sFormTouched =
+    poolType === "K8S" &&
+    (k8s.apiServer.trim() !== (editing?.k8s?.apiServer ?? "") ||
+      k8s.namespace.trim() !== (editing?.k8s?.namespace ?? "") ||
+      k8s.token.trim() !== "" ||
+      k8s.image.trim() !== (editing?.k8s?.image ?? "rabbitaitest/task-runner:latest"));
   const buildBody = () => ({
     ...(concurrencyTouched ? { maxConcurrency } : {}),
     ...(poolType !== editing?.type || k8sFormTouched ? { type: poolType } : {}),
@@ -145,12 +214,6 @@ export default function ResourcePoolsPage() {
         }
       : {}),
   });
-  const k8sFormTouched =
-    poolType === "K8S" &&
-    (k8s.apiServer.trim() !== (editing?.k8s?.apiServer ?? "") ||
-      k8s.namespace.trim() !== (editing?.k8s?.namespace ?? "") ||
-      k8s.token.trim() !== "" ||
-      k8s.image.trim() !== (editing?.k8s?.image ?? "rabbitaitest/task-runner:latest"));
 
   const k8sValid =
     poolType === "K8S"
@@ -166,11 +229,31 @@ export default function ResourcePoolsPage() {
         sub="系统 › 资源池 · 默认池并发经心跳响应下发（engine 动态调整 Worker 并发）· 10s 自动刷新"
         extra={
           <>
-            <Tooltip title="企业版功能（License 未启用）">
-              <Button disabled icon={<Lock size={13} />} data-testid="btn-new-pool">
-                新建资源池
-              </Button>
-            </Tooltip>
+            {canCreate &&
+              (multiPool ? (
+                <Button
+                  type="primary"
+                  onClick={() => {
+                    setCreateForm({
+                      name: "",
+                      type: "NODE",
+                      maxConcurrency: 8,
+                      orgAll: true,
+                      orgIds: [],
+                    });
+                    setCreating(true);
+                  }}
+                  data-testid="btn-new-pool"
+                >
+                  新建资源池
+                </Button>
+              ) : (
+                <Tooltip title="企业版功能（License 未启用）">
+                  <Button disabled icon={<Lock size={13} />} data-testid="btn-new-pool">
+                    新建资源池
+                  </Button>
+                </Tooltip>
+              ))}
             <Button
               icon={<RefreshCw size={13} />}
               onClick={() => void qc.invalidateQueries({ queryKey: ["system-pools"] })}
@@ -185,6 +268,7 @@ export default function ResourcePoolsPage() {
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 mb-4">
         {pools.map((p) => {
           const online = p.nodes.filter((n) => n.state === "ONLINE").length;
+          const scope = (p as PoolRow & { orgScope?: "ALL" | string[] }).orgScope ?? "ALL";
           return (
             <div key={p.id} className="rabbit-card p-4" data-testid={`pool-card-${p.id}`}>
               <div className="flex items-center gap-2">
@@ -195,6 +279,11 @@ export default function ResourcePoolsPage() {
                 {p.isDefault && (
                   <Tag color="purple" bordered={false}>
                     默认 · 不可删
+                  </Tag>
+                )}
+                {!p.isDefault && (
+                  <Tag color={p.status === "ACTIVE" ? "green" : "default"} bordered={false}>
+                    {p.status === "ACTIVE" ? "启用" : "已禁用"}
                   </Tag>
                 )}
                 <span className="ml-auto flex items-center gap-3 text-[13px] text-[#646A73]">
@@ -213,6 +302,30 @@ export default function ResourcePoolsPage() {
                     >
                       编辑
                     </Button>
+                  )}
+                  {canManage && multiPool && !p.isDefault && (
+                    <Button
+                      size="small"
+                      onClick={() =>
+                        toggleMut.mutate({
+                          id: p.id,
+                          status: p.status === "ACTIVE" ? "DISABLED" : "ACTIVE",
+                        })
+                      }
+                      data-testid={`btn-toggle-pool-${p.id}`}
+                    >
+                      {p.status === "ACTIVE" ? "禁用" : "启用"}
+                    </Button>
+                  )}
+                  {canDelete && multiPool && !p.isDefault && (
+                    <Popconfirm
+                      title="删除该资源池？（有历史任务的池将被拒绝）"
+                      onConfirm={() => removeMut.mutate(p.id)}
+                    >
+                      <Button size="small" danger data-testid={`btn-delete-pool-${p.id}`}>
+                        删除
+                      </Button>
+                    </Popconfirm>
                   )}
                 </span>
               </div>
@@ -247,10 +360,17 @@ export default function ResourcePoolsPage() {
                 </div>
               )}
               <p className="text-xs text-[#A8ABB0] mt-2">
+                应用组织：{scope === "ALL" ? "全部" : `${(scope as string[]).length} 个指定组织`} ·{" "}
                 {p.type === "K8S"
-                  ? "K8S 型：worker 以 task-runner Deployment 部署（清单模板见 EXEC-004 附录 A），注册/心跳/调度契约与 NODE 型同构"
-                  : "社区版单默认池；调度 = 单队列自然负载均衡（扩容 = 起新 engine 进程节点）"}{" "}
+                  ? "K8S 型：worker 以 task-runner Deployment 部署（EXEC-004 附录 A），注册/心跳/调度契约与 NODE 型同构"
+                  : "NODE 型：多池隔离=exec-pool-{poolId} 队列（ENTP-006）"}{" "}
                 · 最近心跳：{relTime(p.lastBeatAt)}
+                {multiPool && !p.isDefault && p.nodes.length === 0 && (
+                  <span className="ml-2 text-[#574BFF]">
+                    尚无节点——以 <span className="font-mono">POOL_ID={p.id}</span> 启动 engine
+                    自动注册
+                  </span>
+                )}
               </p>
             </div>
           );
@@ -444,8 +564,87 @@ export default function ResourcePoolsPage() {
             </div>
           )}
           <p className="text-xs text-[#A8ABB0]">
-            并发经心跳响应下发，约一个心跳周期后生效。默认池不可删除与新建（企业版 License 门控）；
-            K8S→NODE 切换保留 k8s 配置（休眠），再切回免重填。
+            并发经心跳响应下发，约一个心跳周期后生效。默认池不可禁用/删除（ENTP-006 保护）；K8S→NODE
+            切换保留 k8s 配置（休眠），再切回免重填。
+          </p>
+        </div>
+      </Modal>
+
+      {/* 新建资源池（ENTP-006） */}
+      <Modal
+        title="新建资源池"
+        open={creating}
+        onCancel={() => setCreating(false)}
+        okText="创 建"
+        confirmLoading={createMut.isPending}
+        okButtonProps={{
+          disabled:
+            !createForm.name.trim() || (!createForm.orgAll && createForm.orgIds.length === 0),
+        }}
+        onOk={() => createMut.mutate()}
+      >
+        <div className="space-y-3 py-1 text-[13px]">
+          <div>
+            <p className="text-[#646A73] text-xs mb-1">名称</p>
+            <Input
+              value={createForm.name}
+              onChange={(e) => setCreateForm({ ...createForm, name: e.target.value })}
+              placeholder="如：企业高性能池"
+              data-testid="input-pool-name"
+            />
+          </div>
+          <div>
+            <p className="text-[#646A73] text-xs mb-1">类型</p>
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <Button
+                type={createForm.type === "NODE" ? "primary" : "default"}
+                onClick={() => setCreateForm({ ...createForm, type: "NODE" })}
+              >
+                NODE（节点型）
+              </Button>
+              <Button
+                type={createForm.type === "K8S" ? "primary" : "default"}
+                onClick={() => setCreateForm({ ...createForm, type: "K8S" })}
+              >
+                K8S <span className="text-[10px] opacity-60">（配置建后编辑）</span>
+              </Button>
+            </div>
+          </div>
+          <div>
+            <p className="text-[#646A73] text-xs mb-1">最大并发（2-64）</p>
+            <InputNumber
+              min={2}
+              max={64}
+              value={createForm.maxConcurrency}
+              onChange={(v) => setCreateForm({ ...createForm, maxConcurrency: v ?? 8 })}
+              data-testid="input-new-pool-concurrency"
+            />
+          </div>
+          <div>
+            <p className="text-[#646A73] text-xs mb-1">应用组织</p>
+            <div className="flex items-center gap-2 mb-1.5">
+              <Switch
+                size="small"
+                checked={createForm.orgAll}
+                onChange={(v) => setCreateForm({ ...createForm, orgAll: v })}
+              />
+              <span className="text-xs">全部组织</span>
+            </div>
+            {!createForm.orgAll && (
+              <Select
+                mode="multiple"
+                className="w-full"
+                placeholder="选择组织"
+                value={createForm.orgIds}
+                onChange={(v) => setCreateForm({ ...createForm, orgIds: v })}
+                options={(orgsQ.data?.items ?? []).map((o) => ({ value: o.id, label: o.name }))}
+                data-testid="select-pool-orgs"
+              />
+            )}
+          </div>
+          <p className="text-xs text-[#A8ABB0]">
+            新建后节点为空——在目标机器以 <span className="font-mono">POOL_ID=&lt;池ID&gt;</span>{" "}
+            启动执行引擎自动注册
           </p>
         </div>
       </Modal>

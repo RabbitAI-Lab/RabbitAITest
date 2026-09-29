@@ -39,7 +39,11 @@ export function PlanExecBar({
   const [configOpen, setConfigOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [runningTask, setRunningTask] = useState<string | null>(null);
-  const [cfg, setCfg] = useState<{ envId?: string | null; mode: "serial" | "parallel"; stopOnFail: boolean }>({
+  const [cfg, setCfg] = useState<{
+    envId?: string | null;
+    mode: "serial" | "parallel";
+    stopOnFail: boolean;
+  }>({
     mode: "serial",
     stopOnFail: false,
   });
@@ -69,7 +73,12 @@ export function PlanExecBar({
     refetchInterval: runningTask ? 2000 : false,
   });
   const first = executionsQ.data?.items?.[0];
-  if (runningTask && first && ["SUCCESS", "FAILED", "STOPPED"].includes(first.status) && first.taskId === runningTask) {
+  if (
+    runningTask &&
+    first &&
+    ["SUCCESS", "FAILED", "STOPPED"].includes(first.status) &&
+    first.taskId === runningTask
+  ) {
     setRunningTask(null);
     message.success(`执行完成（${TASK_META[first.status]?.label ?? first.status}），正在打开报告…`);
     router.push(`/reports/${first.taskId}`);
@@ -79,7 +88,10 @@ export function PlanExecBar({
   return (
     <div className="flex items-center gap-2">
       {executing && (
-        <span className="flex items-center gap-2 text-[13px] text-[#1677FF]" data-testid="plan-exec-running">
+        <span
+          className="flex items-center gap-2 text-[13px] text-[#1677FF]"
+          data-testid="plan-exec-running"
+        >
           <Loader2 size={14} className="animate-spin" /> 执行中…
           <Button
             size="small"
@@ -127,7 +139,12 @@ export function PlanExecBar({
         </>
       )}
 
-      <Drawer title="执行配置（计划默认，可被点配置覆盖）" open={configOpen} onClose={() => setConfigOpen(false)} width={380}>
+      <Drawer
+        title="执行配置（计划默认，可被点配置覆盖）"
+        open={configOpen}
+        onClose={() => setConfigOpen(false)}
+        width={380}
+      >
         <div className="space-y-3 text-[13px]">
           <div className="flex items-center gap-2">
             <span className="text-slate-500 w-16">环境</span>
@@ -137,20 +154,32 @@ export function PlanExecBar({
               placeholder="无"
               value={cfg.envId ?? undefined}
               onChange={(v) => setCfg((c) => ({ ...c, envId: v ?? null }))}
-              options={(envsQ.data?.items ?? []).map((e: { id: string; name: string }) => ({ value: e.id, label: e.name }))}
+              options={(envsQ.data?.items ?? []).map((e: { id: string; name: string }) => ({
+                value: e.id,
+                label: e.name,
+              }))}
               data-testid="exec-config-env"
             />
           </div>
           <label className="flex items-center gap-2">
-            <Switch size="small" checked={cfg.mode === "parallel"} onChange={(v) => setCfg((c) => ({ ...c, mode: v ? "parallel" : "serial" }))} />
+            <Switch
+              size="small"
+              checked={cfg.mode === "parallel"}
+              onChange={(v) => setCfg((c) => ({ ...c, mode: v ? "parallel" : "serial" }))}
+            />
             并行执行（关闭=串行）
           </label>
           <label className="flex items-center gap-2">
-            <Switch size="small" checked={cfg.stopOnFail} onChange={(v) => setCfg((c) => ({ ...c, stopOnFail: v }))} />
+            <Switch
+              size="small"
+              checked={cfg.stopOnFail}
+              onChange={(v) => setCfg((c) => ({ ...c, stopOnFail: v }))}
+            />
             失败停止（余项 SKIPPED）
           </label>
           <p className="text-[11px] text-[#A8ABB0]">
-            生效优先级：本次显式 &gt; 测试点显式（继承链）&gt; 计划默认；点级环境在「测试规划」Tab 配置
+            生效优先级：本次显式 &gt; 测试点显式（继承链）&gt; 计划默认；点级环境在「测试规划」Tab
+            配置
           </p>
           {pointOptions.length > 0 && (
             <div className="border rounded p-2 text-xs text-slate-500">
@@ -191,12 +220,14 @@ export function PlanExecBar({
             {
               title: "耗时",
               width: 90,
-              render: (_, r: { durationMs: number | null }) => (r.durationMs == null ? "—" : `${(r.durationMs / 1000).toFixed(1)}s`),
+              render: (_, r: { durationMs: number | null }) =>
+                r.durationMs == null ? "—" : `${(r.durationMs / 1000).toFixed(1)}s`,
             },
             {
               title: "发起时间",
               width: 150,
-              render: (_, r: { createdAt: string }) => new Date(r.createdAt).toLocaleString("zh-CN"),
+              render: (_, r: { createdAt: string }) =>
+                new Date(r.createdAt).toLocaleString("zh-CN"),
             },
             {
               title: "",
@@ -257,7 +288,13 @@ export function RunRefButton({
     onError: (e: Error) => message.error(e.message),
   });
   return (
-    <Button size="small" loading={run.isPending} disabled={disabled} onClick={() => run.mutate()} data-testid={`btn-run-ref-${refId}`}>
+    <Button
+      size="small"
+      loading={run.isPending}
+      disabled={disabled}
+      onClick={() => run.mutate()}
+      data-testid={`btn-run-ref-${refId}`}
+    >
       ▶
     </Button>
   );

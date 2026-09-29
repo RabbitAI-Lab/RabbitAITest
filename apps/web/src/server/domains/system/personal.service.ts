@@ -13,7 +13,12 @@ export async function getMe(userId: string) {
     select: { email: true, name: true, phone: true, createdAt: true },
   });
   if (!u) throw new DomainError(ErrCode.USER_NOT_FOUND, "用户不存在");
-  return { email: u.email, name: u.name, phone: u.phone ?? "", createdAt: u.createdAt.toISOString() };
+  return {
+    email: u.email,
+    name: u.name,
+    phone: u.phone ?? "",
+    createdAt: u.createdAt.toISOString(),
+  };
 }
 
 export async function updateMe(userId: string, input: { name: string; phone: string }) {
@@ -73,7 +78,10 @@ export function assertLoopbackUrl(address: string): URL {
   }
   const host = url.hostname.replace(/^\[|\]$/g, "").toLowerCase();
   if (host !== "127.0.0.1" && host !== "localhost" && host !== "::1" && host !== "[::1]") {
-    throw new DomainError(ErrCode.PERSONAL_LOCAL_RUNNER_INVALID, "本地 runner 地址仅允许环回（127.0.0.1/localhost/::1）");
+    throw new DomainError(
+      ErrCode.PERSONAL_LOCAL_RUNNER_INVALID,
+      "本地 runner 地址仅允许环回（127.0.0.1/localhost/::1）",
+    );
   }
   return url;
 }
@@ -87,13 +95,20 @@ export async function putLocalRunner(
   await prisma.userPreference.upsert({
     where: { userId_projectId_key: { userId, projectId: "", key: "local_runner" } },
     update: { value: toJson({ address, preferLocal: input.preferLocal }) },
-    create: { userId, projectId: "", key: "local_runner", value: toJson({ address, preferLocal: input.preferLocal }) },
+    create: {
+      userId,
+      projectId: "",
+      key: "local_runner",
+      value: toJson({ address, preferLocal: input.preferLocal }),
+    },
   });
   return { address, preferLocal: input.preferLocal };
 }
 
 /** 连通检测（3s 超时；GET address；仅环回——SSRF 面收敛）。 */
-export async function checkLocalRunner(userId: string): Promise<{ reachable: boolean; detail: string }> {
+export async function checkLocalRunner(
+  userId: string,
+): Promise<{ reachable: boolean; detail: string }> {
   const { address } = await getLocalRunner(userId);
   if (!address) throw new DomainError(ErrCode.VALIDATION_FAILED, "尚未配置地址");
   assertLoopbackUrl(address);

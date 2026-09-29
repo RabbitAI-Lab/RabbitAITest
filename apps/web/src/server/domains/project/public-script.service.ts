@@ -46,7 +46,9 @@ function serialize(s: {
     language: s.language,
     status: s.status,
     tags: Array.isArray(s.tags) ? (s.tags as string[]) : [],
-    params: Array.isArray(s.params) ? (s.params as { name: string; defaultValue: string; required: boolean }[]) : [],
+    params: Array.isArray(s.params)
+      ? (s.params as { name: string; defaultValue: string; required: boolean }[])
+      : [],
     content: s.content,
     createdAt: s.createdAt.toISOString(),
     updatedAt: s.updatedAt.toISOString(),
@@ -75,7 +77,10 @@ async function getScript(projectId: string, id: string) {
 export async function createPublicScript(projectId: string, input: PublicScriptUpsertInput) {
   const count = await prisma.publicScript.count({ where: { projectId, deletedAt: null } });
   if (count >= PUBLIC_SCRIPT_LIMIT) {
-    throw new DomainError(ErrCode.SCRIPT_LIMIT_EXCEEDED, `公共脚本数量超出上限（${PUBLIC_SCRIPT_LIMIT}/项目）`);
+    throw new DomainError(
+      ErrCode.SCRIPT_LIMIT_EXCEEDED,
+      `公共脚本数量超出上限（${PUBLIC_SCRIPT_LIMIT}/项目）`,
+    );
   }
   validate(input);
   const dup = await prisma.publicScript.findFirst({
@@ -122,7 +127,11 @@ export async function updatePublicScript(
 }
 
 /** 状态流转：DRAFT→ENABLED（发布校验内容与参数）；ENABLED→DRAFT（停用）。 */
-export async function setPublicScriptStatus(projectId: string, id: string, status: "DRAFT" | "ENABLED") {
+export async function setPublicScriptStatus(
+  projectId: string,
+  id: string,
+  status: "DRAFT" | "ENABLED",
+) {
   const existing = await getScript(projectId, id);
   if (existing.status === status) return serialize(existing);
   if (status === "ENABLED") {
@@ -131,7 +140,8 @@ export async function setPublicScriptStatus(projectId: string, id: string, statu
         name: existing.name,
         language: "javascript",
         tags: [],
-        params: (existing.params as { name: string; defaultValue: string; required: boolean }[]) ?? [],
+        params:
+          (existing.params as { name: string; defaultValue: string; required: boolean }[]) ?? [],
         content: existing.content,
       },
       true,
@@ -154,7 +164,8 @@ function walkSteps(steps: unknown, scriptId: string): boolean {
   if (!Array.isArray(steps)) return false;
   return steps.some((raw) => {
     const st = raw as { config?: { pre?: unknown; post?: unknown }; children?: unknown };
-    if (processorHits(st?.config?.pre, scriptId) || processorHits(st?.config?.post, scriptId)) return true;
+    if (processorHits(st?.config?.pre, scriptId) || processorHits(st?.config?.post, scriptId))
+      return true;
     if (walkSteps(st?.children, scriptId)) return true;
     return false;
   });
@@ -180,7 +191,11 @@ export async function listScriptReferences(projectId: string, scriptId: string) 
   });
   for (const sc of scenarios) {
     const cfg = sc.config as { prePost?: { pre?: unknown; post?: unknown } } | null;
-    if (processorHits(cfg?.prePost?.pre, scriptId) || processorHits(cfg?.prePost?.post, scriptId) || walkSteps(sc.steps, scriptId)) {
+    if (
+      processorHits(cfg?.prePost?.pre, scriptId) ||
+      processorHits(cfg?.prePost?.post, scriptId) ||
+      walkSteps(sc.steps, scriptId)
+    ) {
       refs.push({ type: "scenario", id: sc.id, name: sc.name });
     }
   }
@@ -203,7 +218,11 @@ export async function deletePublicScript(projectId: string, id: string, force = 
   if (!force) {
     const { references } = await listScriptReferences(projectId, id);
     if (references.length > 0) {
-      throw new DomainError(ErrCode.SCRIPT_IN_USE, "公共脚本正被引用，禁止删除（可强制删除）", references);
+      throw new DomainError(
+        ErrCode.SCRIPT_IN_USE,
+        "公共脚本正被引用，禁止删除（可强制删除）",
+        references,
+      );
     }
   }
   await prisma.publicScript.update({ where: { id }, data: { deletedAt: new Date() } });
@@ -248,9 +267,7 @@ export async function resolveScriptRefs(
 ): Promise<Processor[]> {
   const refIds = [
     ...new Set(
-      processors.flatMap((p) =>
-        p.kind === "script" && p.scriptRef ? [p.scriptRef.scriptId] : [],
-      ),
+      processors.flatMap((p) => (p.kind === "script" && p.scriptRef ? [p.scriptRef.scriptId] : [])),
     ),
   ];
   if (refIds.length === 0) return processors;
@@ -269,7 +286,10 @@ export async function resolveScriptRefs(
           `引用的公共脚本不存在或未发布：${s?.name ?? scriptRef.scriptId.slice(0, 8)}`,
         );
       }
-      const defs = (Array.isArray(s.params) ? s.params : []) as { name: string; defaultValue: string }[];
+      const defs = (Array.isArray(s.params) ? s.params : []) as {
+        name: string;
+        defaultValue: string;
+      }[];
       const prologue: string[] = [
         `// [public-script] ${s.name}（引用展开，编辑请回项目设置-公共脚本）`,
         ...defs

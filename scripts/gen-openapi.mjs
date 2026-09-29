@@ -115,7 +115,7 @@ const doc = {
 const json = JSON.stringify(doc, null, 2) + "\n";
 
 // ── 手写路径审计（门禁 4）：s1.ts + s2.ts 的路径必须都在注册表 ──
-const s1 = [ "s1", "s2" ]
+const s1 = ["s1", "s2"]
   .map((f) => readFileSync(path.join(ROOT, `packages/api-client/src/${f}.ts`), "utf8"))
   .join("\n");
 const handPaths = new Set();

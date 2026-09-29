@@ -631,13 +631,14 @@ export const execCallbackSchema = z.object({
 });
 export type ExecCallback = z.infer<typeof execCallbackSchema>;
 
-/** 心跳与注册（EXEC-002 v2：slots=总并发，busy=在执数；响应下发 maxConcurrency）。 */
+/** 心跳与注册（EXEC-002 v2：slots=总并发，busy=在执数；响应下发 maxConcurrency；poolId=S9 ENTP-006 引擎绑定池，缺省默认池兼容旧引擎）。 */
 export const heartbeatSchema = z.object({
   nodeId: z.string(),
   version: z.string(),
   slots: z.number().int(),
   busy: z.number().int().default(0),
   ts: z.number(),
+  poolId: z.string().uuid().optional(),
 });
 export type Heartbeat = z.infer<typeof heartbeatSchema>;
 

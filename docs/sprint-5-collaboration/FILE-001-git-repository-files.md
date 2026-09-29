@@ -1,20 +1,20 @@
 # Git 仓库文件（存储库对接 · 按分支+路径拉取 · 文件回收站）
 
-| 字段           | 内容                                                                                                       |
-| -------------- | ------------------------------------------------------------------------------------------------------------ |
-| 文档编号       | FILE-001                                                                                                     |
-| 所属迭代       | Sprint 5 — 协作通知                                                                                          |
-| 优先级         | P2（迭代内 P1）                                                                                              |
-| 所属模块       | project 域（file 服务扩展：repo 管理+REST adapter+拉取落存储）                                                |
-| 文档状态       | Implemented（2026-09-28 交付：代码+单测 18（adapter 矩阵）+ JMeter 1 + Playwright 3 全绿；走查随验收） |                                                                                       |
-| 最后更新日期   | 2026-09-28                                                                                                   |
-| 上游依赖       | PROJ-004（文件管理/模块树/JAR 启用制/软删、登记「Git 存储库 ❌S5」与「回收站 UI 随 S3 统一——未兑现」）、S6 出站守卫与 AES-GCM 加密先例 |
-| 下游消费       | S8 QA-001/002（覆盖率核对「存储库对接」行、SSRF 收口）                                                       |
-| 上游依据       | 需求文档 §三 M2（文件管理：Git 存储库 Gitea/GitHub/GitLab/Gitee 按分支+路径拉取）；功能清单 §8.3              |
-| 对标基线       | 功能清单 §8.3：存储库对接（Gitea、GitHub、GitLab、Gitee——Token 连接、按分支+路径拉取文件）、文件下载/删除/移动（既有） |
-| 关联架构文档   | test-domain-model.md §2（file_repos/file_items）与 §6（本规格补列例外登记）；api-conventions §4（回收站横切）；rules/security.md（SSRF/token 加密不回显） |
-| 高保真确认     | 待确认（原型 docs/design/FILE-001-git-repository-files/，人工确认待 Sprint 验收走查）                         |
-| 工作量估算     | 后端 2.5 人日 / 前端 1.5 人日 / 联调 1 人日                                                                   |
+| 字段         | 内容                                                                                                                                                      |
+| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 文档编号     | FILE-001                                                                                                                                                  |
+| 所属迭代     | Sprint 5 — 协作通知                                                                                                                                       |
+| 优先级       | P2（迭代内 P1）                                                                                                                                           |
+| 所属模块     | project 域（file 服务扩展：repo 管理+REST adapter+拉取落存储）                                                                                            |
+| 文档状态     | Implemented（2026-09-28 交付：代码+单测 18（adapter 矩阵）+ JMeter 1 + Playwright 3 全绿；走查随验收）                                                    |     |
+| 最后更新日期 | 2026-09-28                                                                                                                                                |
+| 上游依赖     | PROJ-004（文件管理/模块树/JAR 启用制/软删、登记「Git 存储库 ❌S5」与「回收站 UI 随 S3 统一——未兑现」）、S6 出站守卫与 AES-GCM 加密先例                    |
+| 下游消费     | S8 QA-001/002（覆盖率核对「存储库对接」行、SSRF 收口）                                                                                                    |
+| 上游依据     | 需求文档 §三 M2（文件管理：Git 存储库 Gitea/GitHub/GitLab/Gitee 按分支+路径拉取）；功能清单 §8.3                                                          |
+| 对标基线     | 功能清单 §8.3：存储库对接（Gitea、GitHub、GitLab、Gitee——Token 连接、按分支+路径拉取文件）、文件下载/删除/移动（既有）                                    |
+| 关联架构文档 | test-domain-model.md §2（file_repos/file_items）与 §6（本规格补列例外登记）；api-conventions §4（回收站横切）；rules/security.md（SSRF/token 加密不回显） |
+| 高保真确认   | 待确认（原型 docs/design/FILE-001-git-repository-files/，人工确认待 Sprint 验收走查）                                                                     |
+| 工作量估算   | 后端 2.5 人日 / 前端 1.5 人日 / 联调 1 人日                                                                                                               |
 
 ## 1. 概述
 
@@ -24,18 +24,18 @@
 
 ### 1.2 范围边界（能力行 → §5 用例映射）
 
-| 能力                                                                                                  | P1 ✅ | 后续                                                  |
-| ----------------------------------------------------------------------------------------------------- | ----- | ----------------------------------------------------- |
-| 仓库 CRUD：platform(gitea\|github\|gitlab\|gitee)/url(https 仓库地址)/token(可空，AES-256-GCM 加密落库，回显掩码 hasToken)；上限 10/项目 | ✅     | —                                                      |
-| token 加密：复用 S6 RABBIT_INTEGRATION_SECRET 派生密钥体系；PATCH 空 token=不更新；接口永不回显明文    | ✅     | 独立密钥域 Backlog                                     |
-| 连接测试：`POST {id}/test` → 平台 repo 元信息探活（2xx=成功，401/403=凭据失效提示）                     | ✅     | —                                                      |
-| SSRF 出站守卫：url 命中私网/环回/元数据/CGNAT/ULA 拒 + DNS 复检；测试栈 OUTBOUND_ALLOW_PRIVATE=1 先例   | ✅     | —                                                      |
-| 按分支+路径拉取：`POST {id}/pull {branch, path}`（path=文件或目录；目录递归深度≤3、文件数≤50、单文件≤SYS-005 file.maxSizeMB）→storage 存储→FileItem（branch/repoPath 溯源）；同名同路径重复拉取=覆盖更新（size/storageKey 刷新） | ✅     | 仓库整树同步/定时同步 Backlog；子模块/PR 集成 Backlog |
-| 仓库文件标识：文件列表来源徽标（平台 tag）+branch/repoPath 列展示；单文件「重新拉取」行操作              | ✅     | 版本对比/diff Backlog                                  |
-| 文件回收站（PROJ-004 兑现）：`?recycled=true` 过滤+单条恢复+彻底删除（物理删+storage 对象清理）          | ✅     | 批量恢复 Backlog                                       |
-| 模块树移动/下载/JAR 启用（既有 PROJ-004 能力对仓库文件同样适用）                                        | ✅     | —                                                      |
-| 卡片视图                                                                                               | ❌     | 沿用 PROJ-004 简化登记                                 |
-| SSH 认证/密码认证                                                                                      | ❌     | Backlog（Token-only，基线口径）                        |
+| 能力                                                                                                                                                                                                                             | P1 ✅ | 后续                                                  |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- | ----------------------------------------------------- |
+| 仓库 CRUD：platform(gitea\|github\|gitlab\|gitee)/url(https 仓库地址)/token(可空，AES-256-GCM 加密落库，回显掩码 hasToken)；上限 10/项目                                                                                         | ✅    | —                                                     |
+| token 加密：复用 S6 RABBIT_INTEGRATION_SECRET 派生密钥体系；PATCH 空 token=不更新；接口永不回显明文                                                                                                                              | ✅    | 独立密钥域 Backlog                                    |
+| 连接测试：`POST {id}/test` → 平台 repo 元信息探活（2xx=成功，401/403=凭据失效提示）                                                                                                                                              | ✅    | —                                                     |
+| SSRF 出站守卫：url 命中私网/环回/元数据/CGNAT/ULA 拒 + DNS 复检；测试栈 OUTBOUND_ALLOW_PRIVATE=1 先例                                                                                                                            | ✅    | —                                                     |
+| 按分支+路径拉取：`POST {id}/pull {branch, path}`（path=文件或目录；目录递归深度≤3、文件数≤50、单文件≤SYS-005 file.maxSizeMB）→storage 存储→FileItem（branch/repoPath 溯源）；同名同路径重复拉取=覆盖更新（size/storageKey 刷新） | ✅    | 仓库整树同步/定时同步 Backlog；子模块/PR 集成 Backlog |
+| 仓库文件标识：文件列表来源徽标（平台 tag）+branch/repoPath 列展示；单文件「重新拉取」行操作                                                                                                                                      | ✅    | 版本对比/diff Backlog                                 |
+| 文件回收站（PROJ-004 兑现）：`?recycled=true` 过滤+单条恢复+彻底删除（物理删+storage 对象清理）                                                                                                                                  | ✅    | 批量恢复 Backlog                                      |
+| 模块树移动/下载/JAR 启用（既有 PROJ-004 能力对仓库文件同样适用）                                                                                                                                                                 | ✅    | —                                                     |
+| 卡片视图                                                                                                                                                                                                                         | ❌    | 沿用 PROJ-004 简化登记                                |
+| SSH 认证/密码认证                                                                                                                                                                                                                | ❌    | Backlog（Token-only，基线口径）                       |
 
 ### 1.3 前置依赖
 

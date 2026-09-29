@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="utf-8" />
+    <title>ENTP-006 多资源池（池 CRUD · 绑定引擎 · 执行选池）</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-slate-50 text-slate-800 text-sm">
+    <header class="h-12 bg-white border-b flex items-center px-4 gap-3">
+      <span class="font-semibold">RabbitAITest</span
+      ><span class="border rounded px-2 py-0.5">系统设置 · 资源池 /system/pools</span>
+      <span class="ml-auto text-slate-400 text-xs">帮助</span
+      ><span class="text-slate-500">admin</span>
+    </header>
+    <main class="p-4 space-y-4 max-w-[1200px]">
+      <!-- 画板一：多池列表 -->
+      <section class="bg-white border rounded-md">
+        <div class="px-3 py-2 border-b bg-slate-50 font-medium">
+          画板一 · 资源池管理（多池卡片 + 新建/编辑弹窗；社区版=仅默认池+新建禁用）
+        </div>
+        <div class="flex">
+          <div class="flex-1 p-4 grid grid-cols-2 gap-3">
+            <div class="border rounded-md p-3">
+              <div class="flex items-center gap-2">
+                <p class="font-medium">默认资源池</p>
+                <span class="text-[10px] border rounded px-1.5 py-0.5 bg-slate-100 text-slate-500"
+                  >NODE</span
+                >
+                <span
+                  class="text-[10px] border rounded px-1.5 py-0.5 bg-[#574BFF]/10 text-[#574BFF] border-[#574BFF]/30"
+                  >默认 · 不可删</span
+                >
+                <span
+                  class="ml-auto text-[10px] border rounded px-1.5 py-0.5 bg-emerald-50 text-emerald-600 border-emerald-200"
+                  >启用</span
+                >
+              </div>
+              <div class="mt-2 text-xs text-slate-500 space-y-0.5">
+                <p>应用组织：全部</p>
+                <p>最大并发：<b>4</b>（热调生效）</p>
+              </div>
+              <div class="mt-2 border-t pt-2 text-xs">
+                <p class="text-slate-400 mb-1">节点（心跳自动注册）</p>
+                <p class="font-mono text-[11px]">
+                  node-84214 · v0.4.0 · <span class="text-emerald-600">ONLINE</span> · 槽位 2/4
+                </p>
+              </div>
+              <div class="mt-2 flex gap-2 text-xs">
+                <button class="border rounded px-2.5 py-1 text-[#574BFF]">编辑</button>
+                <button class="border rounded px-2.5 py-1 text-slate-300 cursor-not-allowed">
+                  禁用
+                </button>
+                <button class="border rounded px-2.5 py-1 text-slate-300 cursor-not-allowed">
+                  删除
+                </button>
+                <span class="text-[10px] text-slate-400 self-center"
+                  >（默认池保护：不可禁用/删除）</span
+                >
+              </div>
+            </div>
+            <div class="border rounded-md p-3">
+              <div class="flex items-center gap-2">
+                <p class="font-medium">企业高性能池</p>
+                <span
+                  class="text-[10px] border rounded px-1.5 py-0.5 bg-blue-50 text-blue-600 border-blue-200"
+                  >NODE</span
+                >
+                <span
+                  class="ml-auto text-[10px] border rounded px-1.5 py-0.5 bg-emerald-50 text-emerald-600 border-emerald-200"
+                  >启用</span
+                >
+              </div>
+              <div class="mt-2 text-xs text-slate-500 space-y-0.5">
+                <p>应用组织：<span title="orgScope">电商事业部</span></p>
+                <p>最大并发：<b>16</b></p>
+              </div>
+              <div class="mt-2 border-t pt-2 text-xs">
+                <p class="text-slate-400 mb-1">节点</p>
+                <p class="font-mono text-[11px]">
+                  node-91007 · v0.4.0 · <span class="text-emerald-600">ONLINE</span> · 槽位 0/16
+                </p>
+              </div>
+              <div class="mt-2 flex gap-2 text-xs">
+                <button class="border rounded px-2.5 py-1 text-[#574BFF]">编辑</button>
+                <button class="border rounded px-2.5 py-1 text-[#FF4D4F]">禁用</button>
+                <button class="border rounded px-2.5 py-1 text-[#FF4D4F]">删除</button>
+              </div>
+            </div>
+            <div class="border rounded-md p-3 opacity-70">
+              <div class="flex items-center gap-2">
+                <p class="font-medium">K8S 弹性池</p>
+                <span
+                  class="text-[10px] border rounded px-1.5 py-0.5 bg-purple-50 text-purple-600 border-purple-200"
+                  >K8S</span
+                >
+                <span
+                  class="ml-auto text-[10px] border rounded px-1.5 py-0.5 bg-slate-100 text-slate-500"
+                  >已禁用</span
+                >
+              </div>
+              <div class="mt-2 text-xs text-slate-500 space-y-0.5">
+                <p>应用组织：全部</p>
+                <p>最大并发：<b>32</b>（K8S 部署链后续迭代，仅类型展示）</p>
+              </div>
+              <div class="mt-2 border-t pt-2 text-xs text-slate-400">
+                <p>尚无节点 —— 等待执行引擎绑定</p>
+                <p
+                  class="font-mono text-[11px] mt-1 bg-slate-50 border rounded px-1.5 py-1 flex items-center justify-between"
+                >
+                  POOL_ID=&lt;本池ID&gt; pnpm --filter engine start
+                  <a class="text-[#574BFF]">复制</a>
+                </p>
+              </div>
+              <div class="mt-2 flex gap-2 text-xs">
+                <button class="border rounded px-2.5 py-1 text-[#574BFF]">编辑</button>
+                <button class="border rounded px-2.5 py-1 text-[#574BFF]">启用</button>
+                <button class="border rounded px-2.5 py-1 text-[#FF4D4F]">删除</button>
+              </div>
+            </div>
+            <div
+              class="border border-dashed rounded-md p-3 flex flex-col items-center justify-center text-slate-400 text-xs gap-2"
+            >
+              <p>新建资源池（企业版）</p>
+              <button class="bg-[#574BFF] text-white rounded-md px-3 py-1.5">＋ 新建资源池</button>
+              <button
+                class="bg-[#574BFF]/30 text-white rounded-md px-3 py-1.5 cursor-not-allowed flex items-center gap-1"
+              >
+                🔒 ＋ 新建资源池
+              </button>
+              <p class="text-[10px]">（右=社区版禁用态，现状保留）</p>
+            </div>
+          </div>
+          <!-- 新建/编辑弹窗 -->
+          <div class="w-[340px] border-l p-4 text-[13px] space-y-3">
+            <p class="font-medium">新建资源池</p>
+            <div>
+              <p class="text-slate-500 text-xs mb-1">名称</p>
+              <input class="border rounded px-2 py-1.5 w-full" placeholder="如：企业高性能池" />
+            </div>
+            <div>
+              <p class="text-slate-500 text-xs mb-1">类型</p>
+              <div class="grid grid-cols-2 gap-2 text-xs">
+                <button class="border rounded py-1.5 bg-[#574BFF] text-white">
+                  NODE（节点型）
+                </button>
+                <button class="border rounded py-1.5">
+                  K8S <span class="text-[10px] text-slate-400">（部署链后续）</span>
+                </button>
+              </div>
+            </div>
+            <div>
+              <p class="text-slate-500 text-xs mb-1">最大并发（2-64）</p>
+              <input class="border rounded px-2 py-1.5 w-full" value="16" />
+            </div>
+            <div>
+              <p class="text-slate-500 text-xs mb-1">应用组织</p>
+              <div class="border rounded px-2 py-1.5 text-xs flex items-center justify-between">
+                <label class="flex items-center gap-1.5"><input type="checkbox" /> 全部</label>
+              </div>
+              <div
+                class="border rounded px-2 py-1.5 text-xs mt-1 flex items-center justify-between text-slate-600"
+              >
+                电商事业部 <input type="checkbox" checked />
+              </div>
+              <p class="text-[11px] text-slate-400 mt-1">指定组织后，其他组织的执行不可选该池</p>
+            </div>
+            <p class="text-[11px] text-slate-400">
+              新建后节点为空——在目标机器以
+              <span class="font-mono">POOL_ID=&lt;池ID&gt;</span> 启动执行引擎自动注册
+            </p>
+            <div class="flex gap-2">
+              <button class="bg-[#574BFF] text-white rounded px-4 py-1.5">确定</button
+              ><button class="border rounded px-4 py-1.5">取消</button>
+            </div>
+            <div class="border-t pt-2 text-[11px] text-red-500 space-y-1">
+              <p>保护规则：默认池删除→409 90030；禁用→422 90031</p>
+              <p>有历史任务的池删除→409 90036</p>
+            </div>
+          </div>
+        </div>
+      </section>
+      <!-- 画板二：执行选池 -->
+      <section class="bg-white border rounded-md">
+        <div class="px-3 py-2 border-b bg-slate-50 font-medium">
+          画板二 · 场景执行弹窗「资源池」下拉（计划执行同构）
+        </div>
+        <div class="flex">
+          <div class="w-[380px] p-4 text-[13px] space-y-3 border-r">
+            <p class="font-medium">执行场景「下单主链路」</p>
+            <div>
+              <p class="text-slate-500 text-xs mb-1">资源池</p>
+              <div class="border rounded px-2 py-1.5 flex items-center justify-between">
+                <span
+                  >企业高性能池 <span class="text-[10px] text-slate-400">（2 节点可用）</span></span
+                ><span class="text-slate-300 text-xs">▾</span>
+              </div>
+              <div class="border rounded mt-1 divide-y text-xs shadow-lg bg-white">
+                <div class="px-2 py-1.5 hover:bg-slate-50">
+                  默认资源池 <span class="text-[10px] text-slate-400">默认</span>
+                </div>
+                <div class="px-2 py-1.5 bg-slate-50 flex items-center justify-between">
+                  企业高性能池 <span class="text-[#574BFF] text-[10px]">✓</span>
+                </div>
+                <div class="px-2 py-1.5 text-slate-300">
+                  K8S 弹性池 <span class="text-[10px]">已禁用，不可选</span>
+                </div>
+                <div class="px-2 py-1.5 hidden text-slate-300">
+                  某跨组织池（不在本组织可选范围）
+                </div>
+              </div>
+            </div>
+            <div class="flex gap-2">
+              <button class="bg-[#574BFF] text-white rounded px-4 py-1.5 text-xs">执 行</button
+              ><button class="border rounded px-4 py-1.5 text-xs">取消</button>
+            </div>
+            <p class="text-[11px] text-slate-400">
+              不选=默认资源池；选禁用池（API 直调）→422 90032
+            </p>
+          </div>
+          <div class="flex-1 p-4 text-[13px]">
+            <p class="text-slate-500 text-xs mb-2">执行结果（任务详情 / 报告显示所属池）</p>
+            <div class="border rounded p-3 space-y-1.5 text-xs">
+              <p class="flex items-center gap-2">
+                任务 T-20260928-001 · <span class="text-emerald-600 font-medium">SUCCESS</span>
+              </p>
+              <p class="text-slate-500">
+                所属资源池：<b>企业高性能池</b>（exec:{poolId} 队列 · node-91007 执行）
+              </p>
+              <p class="text-slate-400 font-mono text-[11px]">
+                默认池任务互不影响（队列隔离）——默认池任务可并行执行
+              </p>
+            </div>
+            <p class="mt-3 text-[11px] text-slate-400">
+              引擎绑定：一台机器一个 engine 进程绑定一个池（POOL_ID
+              环境变量）；未设置=默认池（现状行为完全不变）
+            </p>
+          </div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

@@ -10,7 +10,9 @@ export const POST = withProjectScope(async (ctx, _req, seg) => {
   try {
     ctx.requirePerm("PROJECT_MESSAGE:UPDATE");
     const { robotId } = await (seg as Seg).params;
-    return okResponse(await svc.testRobot(ctx.projectId, robotId, { userId: ctx.userId, email: ctx.email }));
+    return okResponse(
+      await svc.testRobot(ctx.projectId, robotId, { userId: ctx.userId, email: ctx.email }),
+    );
   } catch (err) {
     return toResponse(err);
   }

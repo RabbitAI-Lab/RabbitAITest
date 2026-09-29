@@ -28,10 +28,9 @@ export const POST = withProjectScope(async (ctx, req, seg) => {
     const { apiId } = await (seg as { params: Promise<{ apiId: string }> }).params;
     const parsed = mockUpsertSchema.safeParse(await req.json());
     if (!parsed.success) return unprocessable(parsed.error.issues[0]?.message);
-    return NextResponse.json(
-      ok(await createMock(ctx.projectId, ctx.userId, apiId, parsed.data)),
-      { status: 201 },
-    );
+    return NextResponse.json(ok(await createMock(ctx.projectId, ctx.userId, apiId, parsed.data)), {
+      status: 201,
+    });
   } catch (err) {
     return toResponse(err);
   }

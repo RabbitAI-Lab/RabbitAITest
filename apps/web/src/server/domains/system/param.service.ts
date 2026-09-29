@@ -17,6 +17,19 @@ const DEFAULTS = {
     lastRunAt: null as string | null,
     lastRunCount: 0,
   },
+  /** S9 ENTP-004 界面设置（默认=现状视觉；图片字段空串=用默认） */
+  theme: {
+    primaryColor: "#574BFF",
+    followPrimary: true,
+    siteName: "RabbitAITest",
+    slogan: "",
+    loginLogo: "",
+    loginBg: "",
+    icon: "",
+    platformName: "RabbitAITest",
+    platformLogo: "",
+    helpUrl: "",
+  },
 } as const;
 
 /** SMTP 密码 AES-256-GCM 加密（rules/security：密钥不出现在源码/日志）。 */
@@ -66,22 +79,24 @@ export async function readParam<K extends keyof typeof DEFAULTS>(
 
 /** 全量读取（SMTP 密码脱敏为 ******）。 */
 export async function getParams() {
-  const [base, smtp, file, cleanup] = await Promise.all([
+  const [base, smtp, file, cleanup, theme] = await Promise.all([
     readParam("base"),
     readParam("smtp"),
     readParam("file"),
     readParam("cleanup"),
+    readParam("theme"),
   ]);
   return {
     base,
     smtp: { ...smtp, pass: smtp.pass ? "******" : "" },
     file,
     cleanup,
+    theme,
   };
 }
 
 export async function updateParam(
-  group: "basic" | "smtp" | "file" | "cleanup",
+  group: "basic" | "smtp" | "file" | "cleanup" | "theme",
   value: Record<string, unknown>,
 ): Promise<void> {
   let stored: Record<string, unknown> = { ...value };
@@ -107,6 +122,18 @@ export async function updateParam(
     // 保留上次运行信息
     const prev = await readParam("cleanup");
     stored = { ...value, lastRunAt: prev.lastRunAt, lastRunCount: prev.lastRunCount };
+  }
+  if (group === "theme") {
+    // ENTP-004：dataUrl 图片二进制上限 200KB（base64 解码后计）
+    for (const key of ["loginLogo", "loginBg", "icon", "platformLogo"] as const) {
+      const v = String(stored[key] ?? "");
+      if (v.startsWith("data:")) {
+        const b64 = v.slice(v.indexOf(",") + 1);
+        const bytes = Math.floor((b64.length * 3) / 4);
+        if (bytes > 200 * 1024)
+          throw new DomainError(ErrCode.THEME_IMAGE_TOO_LARGE, "图片不能超过 200KB");
+      }
+    }
   }
   await prisma.systemParam.upsert({
     where: { key: group === "basic" ? "base" : group },
@@ -160,4 +187,9 @@ export { encryptSecret, decryptSecret };
 export async function publicLoginBanner(): Promise<string> {
   const base = await readParam("base");
   return String(base.loginBanner ?? "");
+}
+
+/** 公开主题（ENTP-004：登录页/控制台品牌消费；未配置=默认值）。 */
+export async function publicTheme(): Promise<Record<string, unknown>> {
+  return readParam("theme");
 }

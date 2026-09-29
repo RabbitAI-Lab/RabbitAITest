@@ -39,7 +39,11 @@ export function toResponse(err: unknown): NextResponse {
     const status =
       err.code === ErrCode.UNAUTHENTICATED
         ? 401
-        : err.code === ErrCode.FORBIDDEN || err.code === ErrCode.CSRF_REJECTED
+        : err.code === ErrCode.FORBIDDEN ||
+            err.code === ErrCode.CSRF_REJECTED ||
+            // 90xxx 企业版门控（S9 ENTP-007）
+            err.code === ErrCode.LICENSE_REQUIRED ||
+            err.code === ErrCode.LICENSE_FEATURE_NOT_ENABLED
           ? 403
           : (
                 [
@@ -79,10 +83,23 @@ export function toResponse(err: unknown): NextResponse {
                   ErrCode.ENV_GROUP_NOT_FOUND,
                   ErrCode.FILE_REPO_NOT_FOUND,
                   ErrCode.NOTIFICATION_NOT_FOUND,
+                  // S9 ENTP
+                  ErrCode.SSO_SOURCE_NOT_FOUND,
+                  ErrCode.DEPARTMENT_NOT_FOUND,
                 ] as number[]
               ).includes(err.code)
             ? 404
-            : err.code === ErrCode.VERSION_CONFLICT || err.code === ErrCode.SCRIPT_IN_USE
+            : err.code === ErrCode.VERSION_CONFLICT ||
+                err.code === ErrCode.SCRIPT_IN_USE ||
+                // S9 ENTP 409（组织/池/部门冲突与保护）
+                err.code === ErrCode.ORG_NAME_EXISTS ||
+                err.code === ErrCode.ORG_DEFAULT_PROTECTED ||
+                err.code === ErrCode.POOL_DEFAULT_UNDELETABLE ||
+                err.code === ErrCode.POOL_NAME_EXISTS ||
+                err.code === ErrCode.POOL_HAS_TASKS ||
+                err.code === ErrCode.DEPARTMENT_NAME_EXISTS ||
+                err.code === ErrCode.DEPARTMENT_HAS_CHILDREN ||
+                err.code === ErrCode.SSO_ACCOUNT_CONFLICT
               ? 409
               : err.code === ErrCode.VALIDATION_FAILED ||
                   (
@@ -151,6 +168,24 @@ export function toResponse(err: unknown): NextResponse {
                       ErrCode.PERSONAL_LOCAL_RUNNER_INVALID,
                       ErrCode.PERSONAL_AI_MODEL_INVALID,
                       ErrCode.PACK_NOT_ALLOWED,
+                      // S9 ENTP（90xxx 422 面：License 校验/SSO 配置与状态/组织确认/池规则/部门环/模板事件/主题图片）
+                      ErrCode.LICENSE_FORMAT_INVALID,
+                      ErrCode.LICENSE_SIGNATURE_INVALID,
+                      ErrCode.LICENSE_EXPIRED,
+                      ErrCode.SSO_SOURCE_DISABLED,
+                      ErrCode.SSO_STATE_INVALID,
+                      ErrCode.SSO_USER_MAPPING_FAILED,
+                      ErrCode.SSO_CONFIG_INVALID,
+                      ErrCode.ORG_DELETE_CONFIRM_REQUIRED,
+                      ErrCode.ORG_OWNER_IMMUTABLE,
+                      ErrCode.POOL_DEFAULT_UNDISABLEABLE,
+                      ErrCode.POOL_DISABLED,
+                      ErrCode.POOL_TYPE_INVALID,
+                      ErrCode.POOL_ORG_NOT_ALLOWED,
+                      ErrCode.DEPARTMENT_CYCLE,
+                      ErrCode.DEPARTMENT_MEMBER_NOT_IN_ORG,
+                      ErrCode.TEMPLATE_EVENT_INVALID,
+                      ErrCode.THEME_IMAGE_TOO_LARGE,
                       // S-future（PLUG-003/TOOL-001/002/EXEC-004/RPT-004）
                       ErrCode.PROTOCOL_PLUGIN_LOAD_FAILED,
                       ErrCode.OPEN_SYNC_VALIDATION_FAILED,
@@ -165,8 +200,9 @@ export function toResponse(err: unknown): NextResponse {
                     err.code === ErrCode.PLUGIN_DELETE_FORBIDDEN
                   ? 409
                   : err.code === ErrCode.AI_PROVIDER_ERROR ||
-                      err.code === ErrCode.POOL_K8S_UNREACHABLE
-                    ? 502 // 供应商上游/apiServer 探测失败（网关语义；透出上游状态不泄 token）
+                      err.code === ErrCode.SSO_PROVIDER_ERROR || // 供应商上游失败（透出上游状态不泄 key）
+                      err.code === ErrCode.POOL_K8S_UNREACHABLE // apiServer 探测失败（透出上游状态不泄 token）
+                    ? 502
                     : err.code === ErrCode.OPEN_RATE_LIMITED ||
                         err.code === ErrCode.LOGIN_RATE_LIMITED
                       ? 429

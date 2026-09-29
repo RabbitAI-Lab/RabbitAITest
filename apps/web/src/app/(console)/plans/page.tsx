@@ -259,7 +259,12 @@ function GroupMembersTable({
                   description="移出后该计划回到未分组平铺展示。"
                   onConfirm={() => onMoveOut(m)}
                 >
-                  <Button type="link" size="small" className="!px-0" data-testid={`plan-move-out-${m.id}`}>
+                  <Button
+                    type="link"
+                    size="small"
+                    className="!px-0"
+                    data-testid={`plan-move-out-${m.id}`}
+                  >
                     移出组
                   </Button>
                 </Popconfirm>
@@ -376,9 +381,7 @@ export default function PlanListPage() {
   });
   const groupArchive = useMutation({
     mutationFn: ({ id, archived }: { id: string; archived: boolean }) =>
-      archived
-        ? planGroupApi.archive(projectId!, id)
-        : planGroupApi.unarchive(projectId!, id),
+      archived ? planGroupApi.archive(projectId!, id) : planGroupApi.unarchive(projectId!, id),
     onSuccess: (_r, p) => {
       invalidate();
       message.success(p.archived ? "分组已归档" : "分组已恢复");
@@ -417,7 +420,9 @@ export default function PlanListPage() {
       setSelectedKeys([]);
       message.success(
         `${p.archived ? "已归档" : "已恢复"} ${r.affected} 个计划${
-          r.cascadedGroups > 0 ? `，${r.cascadedGroups} 个分组级联${p.archived ? "归档" : "恢复"}` : ""
+          r.cascadedGroups > 0
+            ? `，${r.cascadedGroups} 个分组级联${p.archived ? "归档" : "恢复"}`
+            : ""
         }`,
       );
     },
@@ -482,8 +487,7 @@ export default function PlanListPage() {
     (g) => matchName(g.name) || g.members.some((m) => matchName(m.name)),
   );
   const ungrouped = (data?.ungrouped ?? []).filter((m) => matchName(m.name));
-  const totalPlans =
-    groups.reduce((s, g) => s + g.aggregate.memberCount, 0) + ungrouped.length;
+  const totalPlans = groups.reduce((s, g) => s + g.aggregate.memberCount, 0) + ungrouped.length;
 
   type ListRow =
     | { key: string; kind: "group"; group: PlanGroupRow }
@@ -505,9 +509,7 @@ export default function PlanListPage() {
     }
   }, [data, expandedInited]);
 
-  const selectedIds = selectedKeys
-    .filter((k) => k.startsWith("p:"))
-    .map((k) => k.slice(2));
+  const selectedIds = selectedKeys.filter((k) => k.startsWith("p:")).map((k) => k.slice(2));
   const allGroups = data?.groups ?? [];
 
   return (
@@ -534,7 +536,11 @@ export default function PlanListPage() {
               </span>
             </div>
             {canCreate && (
-              <Button icon={<FolderPlus size={14} />} onClick={openGroupCreate} data-testid="btn-new-plan-group">
+              <Button
+                icon={<FolderPlus size={14} />}
+                onClick={openGroupCreate}
+                data-testid="btn-new-plan-group"
+              >
                 新建计划组
               </Button>
             )}
@@ -571,7 +577,11 @@ export default function PlanListPage() {
             <span className="text-[13px]">已选 {selectedIds.length} 个计划</span>
             {canUpdate && (
               <Popconfirm
-                title={archivedView ? `恢复 ${selectedIds.length} 个计划？` : `归档 ${selectedIds.length} 个计划？`}
+                title={
+                  archivedView
+                    ? `恢复 ${selectedIds.length} 个计划？`
+                    : `归档 ${selectedIds.length} 个计划？`
+                }
                 description={
                   archivedView
                     ? "恢复后计划恢复可编辑；当某分组内成员全部恢复时，该分组将级联恢复。"
@@ -615,7 +625,9 @@ export default function PlanListPage() {
             expandedRowRender: (row) =>
               row.kind === "group" ? (
                 <GroupMembersTable
-                  members={kw ? row.group.members.filter((m) => matchName(m.name)) : row.group.members}
+                  members={
+                    kw ? row.group.members.filter((m) => matchName(m.name)) : row.group.members
+                  }
                   projectId={projectId}
                   canUpdate={canUpdate}
                   onMoveOut={(m) => movePlan.mutate({ planId: m.id, groupId: null })}
@@ -691,7 +703,8 @@ export default function PlanListPage() {
                         className="text-[10px] rounded px-1 py-0.5 bg-[#52C41A]/10 text-[#52C41A]"
                         data-testid={`group-threshold-badge-${row.group.id}`}
                       >
-                        达标 {row.group.aggregate.thresholdMetCount}/{row.group.aggregate.memberCount}
+                        达标 {row.group.aggregate.thresholdMetCount}/
+                        {row.group.aggregate.memberCount}
                       </span>
                     </span>
                   )

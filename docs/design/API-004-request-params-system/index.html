@@ -21,8 +21,12 @@
         <p class="mx-2 px-3 py-[7px] rounded-md">测试计划</p>
         <p class="mx-2 px-3 py-[7px] rounded-md">缺陷管理</p>
         <p class="px-4 pt-3 pb-1 text-xs text-slate-400">接口测试</p>
-        <p class="mx-2 px-3 py-[7px] rounded-md bg-[#574BFF]/10 text-[#574BFF] font-medium relative">
-          <span class="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 rounded-r bg-[#574BFF]"></span>
+        <p
+          class="mx-2 px-3 py-[7px] rounded-md bg-[#574BFF]/10 text-[#574BFF] font-medium relative"
+        >
+          <span
+            class="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 rounded-r bg-[#574BFF]"
+          ></span>
           接口定义
         </p>
         <p class="mx-2 px-3 py-[7px] rounded-md">接口调试</p>
@@ -49,25 +53,58 @@
       </aside>
       <main class="flex-1 min-w-0 p-4 space-y-3">
         <!-- 说明条：组件定位 -->
-        <div class="bg-white border rounded-md px-3 py-2 text-[13px] text-slate-500 flex items-center gap-3 flex-wrap">
-          <span class="font-medium text-slate-700">统一请求编辑器 &lt;RequestEditor/&gt;（apps/web/src/components/api/）</span>
-          <span>宿主：接口调试 /debug · 接口定义 API 页签 · 接口用例编辑抽屉（组件同源，见 API-002 / API-003 原型）</span>
-          <span class="ml-auto text-xs text-slate-400">静态原型：七个 Tab 态平铺展示，线上仅显示当前 Tab</span>
+        <div
+          class="bg-white border rounded-md px-3 py-2 text-[13px] text-slate-500 flex items-center gap-3 flex-wrap"
+        >
+          <span class="font-medium text-slate-700"
+            >统一请求编辑器 &lt;RequestEditor/&gt;（apps/web/src/components/api/）</span
+          >
+          <span
+            >宿主：接口调试 /debug · 接口定义 API 页签 · 接口用例编辑抽屉（组件同源，见 API-002 /
+            API-003 原型）</span
+          >
+          <span class="ml-auto text-xs text-slate-400"
+            >静态原型：七个 Tab 态平铺展示，线上仅显示当前 Tab</span
+          >
         </div>
 
         <!-- ============ 编辑器框架：method（8）+ URL（${var} 高亮）+ 环境选择 + 执行 ============ -->
         <div class="bg-white border rounded-md p-3 space-y-2" data-testid="proto-request-editor">
           <div class="flex gap-2 items-center flex-wrap">
-            <select class="border rounded px-2 py-1.5 w-24 text-green-600 font-bold" data-testid="debug-method">
-              <option>GET</option><option>POST</option><option>PUT</option><option>DELETE</option>
-              <option>PATCH</option><option>HEAD</option><option>OPTIONS</option><option>CONNECT</option>
+            <select
+              class="border rounded px-2 py-1.5 w-24 text-green-600 font-bold"
+              data-testid="debug-method"
+            >
+              <option>GET</option>
+              <option>POST</option>
+              <option>PUT</option>
+              <option>DELETE</option>
+              <option>PATCH</option>
+              <option>HEAD</option>
+              <option>OPTIONS</option>
+              <option>CONNECT</option>
             </select>
             <!-- URL 输入：${var} 浅紫底高亮（原 input 以静态 span 呈现渲染态） -->
-            <div class="flex-1 min-w-[280px] flex items-center border rounded px-2 py-1.5 bg-white font-mono text-[13px]" data-testid="debug-url">
-              <span class="bg-[#574BFF]/10 text-[#574BFF] rounded px-1">${base}</span><span>/pets/</span><span class="bg-[#574BFF]/10 text-[#574BFF] rounded px-1">${petId}</span><span class="w-px h-4 bg-slate-300 ml-1"></span>
+            <div
+              class="flex-1 min-w-[280px] flex items-center border rounded px-2 py-1.5 bg-white font-mono text-[13px]"
+              data-testid="debug-url"
+            >
+              <span class="bg-[#574BFF]/10 text-[#574BFF] rounded px-1">${base}</span
+              ><span>/pets/</span
+              ><span class="bg-[#574BFF]/10 text-[#574BFF] rounded px-1">${petId}</span
+              ><span class="w-px h-4 bg-slate-300 ml-1"></span>
             </div>
-            <select class="border rounded px-2 py-1.5"><option>环境：测试环境</option><option>环境：正式环境</option><option>不使用环境</option></select>
-            <button class="bg-[#574BFF] text-white rounded-md px-4 py-1.5" data-testid="btn-execute">执 行</button>
+            <select class="border rounded px-2 py-1.5">
+              <option>环境：测试环境</option>
+              <option>环境：正式环境</option>
+              <option>不使用环境</option>
+            </select>
+            <button
+              class="bg-[#574BFF] text-white rounded-md px-4 py-1.5"
+              data-testid="btn-execute"
+            >
+              执 行
+            </button>
           </div>
           <div class="flex items-center gap-2 flex-wrap text-xs text-slate-400">
             <span>method 8 种色板：</span>
@@ -79,14 +116,19 @@
             <span class="text-slate-600 font-bold">HEAD</span>
             <span class="text-teal-600 font-bold">OPTIONS</span>
             <span class="text-slate-400 font-bold">CONNECT</span>
-            <span class="ml-4">${var} 作用域链：临时 &gt; 任务参数 &gt; 环境 &gt; 全局参数；相对路径按环境域名拼接（路径条件 &gt; 模块 &gt; 默认）</span>
+            <span class="ml-4"
+              >${var} 作用域链：临时 &gt; 任务参数 &gt; 环境 &gt;
+              全局参数；相对路径按环境域名拼接（路径条件 &gt; 模块 &gt; 默认）</span
+            >
           </div>
         </div>
 
         <!-- ============ Tab ①/7 参数（Query / Headers 两组 KV 行） ============ -->
         <div class="bg-white border rounded-md">
           <div class="px-3 flex gap-1 border-b text-[13px]">
-            <span class="px-3 py-1.5 border-b-2 border-[#574BFF] text-[#574BFF] font-medium">参数</span>
+            <span class="px-3 py-1.5 border-b-2 border-[#574BFF] text-[#574BFF] font-medium"
+              >参数</span
+            >
             <span class="px-3 py-1.5 text-slate-500">认证</span>
             <span class="px-3 py-1.5 text-slate-500">请求体</span>
             <span class="px-3 py-1.5 text-slate-500">前置</span>
@@ -107,11 +149,21 @@
                 <!-- 禁用态示例：取消勾选后整行置灰 -->
                 <div class="flex gap-2 items-center opacity-50">
                   <input type="checkbox" />
-                  <input class="border rounded px-2 py-1 w-36 bg-slate-50" value="verbose" disabled />
-                  <input class="border rounded px-2 py-1 flex-1 bg-slate-50" value="true" disabled />
+                  <input
+                    class="border rounded px-2 py-1 w-36 bg-slate-50"
+                    value="verbose"
+                    disabled
+                  />
+                  <input
+                    class="border rounded px-2 py-1 flex-1 bg-slate-50"
+                    value="true"
+                    disabled
+                  />
                   <span class="text-slate-300 w-6 text-center">✕</span>
                 </div>
-                <div class="flex gap-2 items-center"><span class="w-4"></span><button class="text-[#574BFF]">＋ 添加</button></div>
+                <div class="flex gap-2 items-center">
+                  <span class="w-4"></span><button class="text-[#574BFF]">＋ 添加</button>
+                </div>
               </div>
             </div>
             <div>
@@ -120,15 +172,21 @@
                 <div class="flex gap-2 items-center">
                   <input type="checkbox" checked class="accent-[#574BFF]" />
                   <input class="border rounded px-2 py-1 w-36" value="Authorization" />
-                  <div class="flex-1 border rounded px-2 py-1 font-mono text-xs flex items-center gap-0.5 bg-white">
+                  <div
+                    class="flex-1 border rounded px-2 py-1 font-mono text-xs flex items-center gap-0.5 bg-white"
+                  >
                     Bearer <span class="bg-[#574BFF]/10 text-[#574BFF] rounded px-1">${token}</span>
                   </div>
                   <span class="text-slate-300 w-6 text-center">✕</span>
                 </div>
-                <div class="flex gap-2 items-center"><span class="w-4"></span><button class="text-[#574BFF]">＋ 添加</button></div>
+                <div class="flex gap-2 items-center">
+                  <span class="w-4"></span><button class="text-[#574BFF]">＋ 添加</button>
+                </div>
               </div>
             </div>
-            <p class="text-xs text-slate-400">行首勾选 = 启用/禁用该行（禁用行执行时跳过）；空态：仅剩「＋ 添加」行内引导</p>
+            <p class="text-xs text-slate-400">
+              行首勾选 = 启用/禁用该行（禁用行执行时跳过）；空态：仅剩「＋ 添加」行内引导
+            </p>
           </div>
         </div>
 
@@ -136,7 +194,9 @@
         <div class="bg-white border rounded-md">
           <div class="px-3 flex gap-1 border-b text-[13px]">
             <span class="px-3 py-1.5 text-slate-500">参数</span>
-            <span class="px-3 py-1.5 border-b-2 border-[#574BFF] text-[#574BFF] font-medium">认证</span>
+            <span class="px-3 py-1.5 border-b-2 border-[#574BFF] text-[#574BFF] font-medium"
+              >认证</span
+            >
             <span class="px-3 py-1.5 text-slate-500">请求体</span>
             <span class="px-3 py-1.5 text-slate-500">前置</span>
             <span class="px-3 py-1.5 text-slate-500">后置</span>
@@ -145,17 +205,34 @@
           </div>
           <div class="p-3 space-y-2.5 text-[13px]">
             <div class="flex gap-5">
-              <label class="flex items-center gap-1.5"><input type="radio" name="auth-demo" /> NoAuth</label>
-              <label class="flex items-center gap-1.5"><input type="radio" name="auth-demo" checked /> Basic</label>
-              <label class="flex items-center gap-1.5"><input type="radio" name="auth-demo" /> Digest</label>
+              <label class="flex items-center gap-1.5"
+                ><input type="radio" name="auth-demo" /> NoAuth</label
+              >
+              <label class="flex items-center gap-1.5"
+                ><input type="radio" name="auth-demo" checked /> Basic</label
+              >
+              <label class="flex items-center gap-1.5"
+                ><input type="radio" name="auth-demo" /> Digest</label
+              >
             </div>
             <!-- Basic 选中 → 凭据区展开 -->
             <div class="border rounded-md p-2.5 bg-slate-50 space-y-2">
               <div class="flex gap-2 flex-wrap items-center">
-                <span class="w-14 text-right text-slate-500">用户名</span><input class="border rounded px-2 py-1 flex-1 min-w-[140px] bg-white" value="admin" />
-                <span class="w-10 text-right text-slate-500">密码</span><input class="border rounded px-2 py-1 flex-1 min-w-[140px] bg-white font-mono" value="rabbit123" />
+                <span class="w-14 text-right text-slate-500">用户名</span
+                ><input
+                  class="border rounded px-2 py-1 flex-1 min-w-[140px] bg-white"
+                  value="admin"
+                />
+                <span class="w-10 text-right text-slate-500">密码</span
+                ><input
+                  class="border rounded px-2 py-1 flex-1 min-w-[140px] bg-white font-mono"
+                  value="rabbit123"
+                />
               </div>
-              <p class="text-xs text-slate-400">Digest：401 + WWW-Authenticate: Digest 挑战自动重试一次（RFC7616 MD5, qop=auth）；仍 401 → 原响应进入断言</p>
+              <p class="text-xs text-slate-400">
+                Digest：401 + WWW-Authenticate: Digest 挑战自动重试一次（RFC7616 MD5, qop=auth）；仍
+                401 → 原响应进入断言
+              </p>
             </div>
             <!-- NoAuth 选中态示意：凭据区收起，仅一行灰字
             <div class="border rounded-md p-2.5 text-slate-400 text-xs">未选择认证方式，请求将直接发送（NoAuth）</div>
@@ -168,7 +245,9 @@
           <div class="px-3 flex gap-1 border-b text-[13px]">
             <span class="px-3 py-1.5 text-slate-500">参数</span>
             <span class="px-3 py-1.5 text-slate-500">认证</span>
-            <span class="px-3 py-1.5 border-b-2 border-[#574BFF] text-[#574BFF] font-medium">请求体</span>
+            <span class="px-3 py-1.5 border-b-2 border-[#574BFF] text-[#574BFF] font-medium"
+              >请求体</span
+            >
             <span class="px-3 py-1.5 text-slate-500">前置</span>
             <span class="px-3 py-1.5 text-slate-500">后置</span>
             <span class="px-3 py-1.5 text-slate-500">断言</span>
@@ -176,33 +255,57 @@
           </div>
           <div class="p-3 space-y-2.5 text-[13px]">
             <div class="flex gap-4 flex-wrap">
-              <label class="flex items-center gap-1.5"><input type="radio" name="body-demo" /> none</label>
-              <label class="flex items-center gap-1.5"><input type="radio" name="body-demo" checked /> form-data</label>
-              <label class="flex items-center gap-1.5"><input type="radio" name="body-demo" /> x-www-form-urlencoded</label>
-              <label class="flex items-center gap-1.5"><input type="radio" name="body-demo" /> json</label>
-              <label class="flex items-center gap-1.5"><input type="radio" name="body-demo" /> xml</label>
-              <label class="flex items-center gap-1.5"><input type="radio" name="body-demo" /> raw 文本</label>
-              <label class="flex items-center gap-1.5"><input type="radio" name="body-demo" /> binary</label>
+              <label class="flex items-center gap-1.5"
+                ><input type="radio" name="body-demo" /> none</label
+              >
+              <label class="flex items-center gap-1.5"
+                ><input type="radio" name="body-demo" checked /> form-data</label
+              >
+              <label class="flex items-center gap-1.5"
+                ><input type="radio" name="body-demo" /> x-www-form-urlencoded</label
+              >
+              <label class="flex items-center gap-1.5"
+                ><input type="radio" name="body-demo" /> json</label
+              >
+              <label class="flex items-center gap-1.5"
+                ><input type="radio" name="body-demo" /> xml</label
+              >
+              <label class="flex items-center gap-1.5"
+                ><input type="radio" name="body-demo" /> raw 文本</label
+              >
+              <label class="flex items-center gap-1.5"
+                ><input type="radio" name="body-demo" /> binary</label
+              >
             </div>
             <!-- form-data 选中态：key + 类型下拉(text|file) + value/文件选择 -->
             <div class="space-y-1.5">
               <div class="flex gap-2 items-center">
                 <input class="border rounded px-2 py-1 w-36" value="name" />
-                <select class="border rounded px-2 py-1.5 w-20 text-xs"><option>text</option><option>file</option></select>
+                <select class="border rounded px-2 py-1.5 w-20 text-xs">
+                  <option>text</option>
+                  <option>file</option>
+                </select>
                 <input class="border rounded px-2 py-1 flex-1" value="阿黄" />
                 <span class="text-slate-300 w-6 text-center">✕</span>
               </div>
               <div class="flex gap-2 items-center">
                 <input class="border rounded px-2 py-1 w-36" value="photo" />
-                <select class="border rounded px-2 py-1.5 w-20 text-xs"><option>text</option><option selected>file</option></select>
-                <span class="flex-1 border rounded px-2 py-1 flex items-center gap-2 text-xs bg-white">
+                <select class="border rounded px-2 py-1.5 w-20 text-xs">
+                  <option>text</option>
+                  <option selected>file</option>
+                </select>
+                <span
+                  class="flex-1 border rounded px-2 py-1 flex items-center gap-2 text-xs bg-white"
+                >
                   📄 pet-photo.jpg <span class="text-slate-400">1.2 MB</span>
                   <button class="ml-auto border rounded px-2 py-0.5">选择文件</button>
                 </span>
                 <span class="text-slate-300 w-6 text-center">✕</span>
               </div>
               <button class="text-[#574BFF]">＋ 添加</button>
-              <p class="text-xs text-slate-400">文件经 PROJ-004 文件管理引用（internal 端点），engine 拉取字节流组装 multipart</p>
+              <p class="text-xs text-slate-400">
+                文件经 PROJ-004 文件管理引用（internal 端点），engine 拉取字节流组装 multipart
+              </p>
             </div>
             <!-- x-www-form-urlencoded 选中态：同 KV 行（无 file 类型），此处示意一行
             <div class="flex gap-2 items-center"><input class="border rounded px-2 py-1 w-36" value="status" /><input class="border rounded px-2 py-1 flex-1" value="sold" /><span class="text-slate-300">✕</span></div>
@@ -211,10 +314,15 @@
             <div class="border-t pt-2.5">
               <p class="text-xs text-slate-400 mb-1">json / xml / raw 文本 选中态（示意）：</p>
               <div class="flex gap-2 items-center mb-1">
-                <select class="border rounded px-2 py-1 text-xs"><option>Content-Type: application/json</option><option>application/xml</option><option>text/plain</option></select>
+                <select class="border rounded px-2 py-1 text-xs">
+                  <option>Content-Type: application/json</option>
+                  <option>application/xml</option>
+                  <option>text/plain</option>
+                </select>
                 <span class="text-xs text-slate-400">${var} 在文本内同样高亮渲染</span>
               </div>
-              <textarea class="border rounded w-full h-24 p-2 font-mono text-xs" rows="3">{
+              <textarea class="border rounded w-full h-24 p-2 font-mono text-xs" rows="3">
+{
   "name": "${petName}",
   "kind": "dog"
 }</textarea>
@@ -222,9 +330,13 @@
             <!-- binary 选中态：文件选择器卡 -->
             <div class="border-t pt-2.5">
               <p class="text-xs text-slate-400 mb-1">binary 选中态（文件选择器卡）：</p>
-              <div class="border-2 border-dashed rounded-md p-4 flex flex-col items-center gap-1.5 text-slate-500">
+              <div
+                class="border-2 border-dashed rounded-md p-4 flex flex-col items-center gap-1.5 text-slate-500"
+              >
                 <span>📄 payload.bin <span class="text-xs text-slate-400">256 KB</span></span>
-                <span class="text-xs">点击或拖拽替换文件 · 整体作为请求体发送（application/octet-stream）</span>
+                <span class="text-xs"
+                  >点击或拖拽替换文件 · 整体作为请求体发送（application/octet-stream）</span
+                >
                 <button class="border rounded px-3 py-1 text-xs">选择文件</button>
               </div>
             </div>
@@ -240,7 +352,9 @@
             <span class="px-3 py-1.5 text-slate-500">参数</span>
             <span class="px-3 py-1.5 text-slate-500">认证</span>
             <span class="px-3 py-1.5 text-slate-500">请求体</span>
-            <span class="px-3 py-1.5 border-b-2 border-[#574BFF] text-[#574BFF] font-medium">前置</span>
+            <span class="px-3 py-1.5 border-b-2 border-[#574BFF] text-[#574BFF] font-medium"
+              >前置</span
+            >
             <span class="px-3 py-1.5 text-slate-500">后置</span>
             <span class="px-3 py-1.5 text-slate-500">断言</span>
             <span class="px-3 py-1.5 text-slate-500">设置</span>
@@ -252,17 +366,26 @@
                 <span class="text-xs text-slate-400">1</span>
                 <span class="font-medium">脚本</span>
                 <span class="text-xs text-slate-400">quickjs · 同步执行 ≤5s · 无 IO</span>
-                <span class="ml-auto flex gap-2.5 text-slate-400"><span title="上移">↑</span><span title="下移">↓</span><span title="删除">✕</span></span>
+                <span class="ml-auto flex gap-2.5 text-slate-400"
+                  ><span title="上移">↑</span><span title="下移">↓</span
+                  ><span title="删除">✕</span></span
+                >
               </div>
               <div class="p-2.5 space-y-1.5">
-                <textarea class="border rounded w-full h-20 p-2 font-mono text-xs leading-5" rows="3">// 前置脚本（内置 API：log / vars.get|set / env.get / sleep / randomInt / now）
+                <textarea
+                  class="border rounded w-full h-20 p-2 font-mono text-xs leading-5"
+                  rows="3"
+                >
+// 前置脚本（内置 API：log / vars.get|set / env.get / sleep / randomInt / now）
 vars.set("ts", String(now()));
 vars.set("petName", "阿黄-" + randomInt(1, 100));
 log("petId=" + vars.get("petId") + " env.base=" + env.get("base"));</textarea>
                 <!-- 「片段 ▾」下拉：内置代码片段（静态展开态，预留下拉悬浮空间） -->
                 <div class="flex justify-end relative pb-32">
                   <button class="border rounded px-2.5 py-1 text-xs">片段 ▾</button>
-                  <div class="absolute right-0 top-8 z-10 w-44 bg-white border rounded-md shadow py-1">
+                  <div
+                    class="absolute right-0 top-8 z-10 w-44 bg-white border rounded-md shadow py-1"
+                  >
                     <p class="px-3 py-1.5 hover:bg-slate-50 cursor-default">等待 1 秒</p>
                     <p class="px-3 py-1.5 hover:bg-slate-50 cursor-default">生成时间戳</p>
                     <p class="px-3 py-1.5 hover:bg-slate-50 cursor-default">生成随机数</p>
@@ -277,23 +400,37 @@ log("petId=" + vars.get("petId") + " env.base=" + env.get("base"));</textarea>
                 <span class="text-xs text-slate-400">2</span>
                 <span class="font-medium">SQL</span>
                 <span class="text-xs text-slate-400">PostgreSQL · 首行结果 → 变量映射</span>
-                <span class="ml-auto flex gap-2.5 text-slate-400"><span>↑</span><span>↓</span><span>✕</span></span>
+                <span class="ml-auto flex gap-2.5 text-slate-400"
+                  ><span>↑</span><span>↓</span><span>✕</span></span
+                >
               </div>
               <div class="p-2.5 space-y-1.5">
                 <div class="flex gap-2 items-center">
                   <span class="text-slate-500 w-16 text-right">数据源</span>
-                  <select class="border rounded px-2 py-1 flex-1"><option>演示库（PG · 环境配置 database）</option><option>测试环境库</option></select>
+                  <select class="border rounded px-2 py-1 flex-1">
+                    <option>演示库（PG · 环境配置 database）</option>
+                    <option>测试环境库</option>
+                  </select>
                 </div>
-                <textarea class="border rounded w-full h-16 p-2 font-mono text-xs leading-5" rows="2">SELECT id, name FROM pets WHERE kind = 'dog' ORDER BY id LIMIT 1;</textarea>
+                <textarea
+                  class="border rounded w-full h-16 p-2 font-mono text-xs leading-5"
+                  rows="2"
+                >
+SELECT id, name FROM pets WHERE kind = 'dog' ORDER BY id LIMIT 1;</textarea>
                 <p class="text-slate-500">变量映射（列名 → 变量名）</p>
                 <div class="flex gap-2 items-center">
-                  <select class="border rounded px-2 py-1 w-36"><option>id</option><option>name</option></select>
+                  <select class="border rounded px-2 py-1 w-36">
+                    <option>id</option>
+                    <option>name</option>
+                  </select>
                   <span class="text-slate-400">→</span>
                   <input class="border rounded px-2 py-1 w-36" value="petId" />
                   <span class="text-slate-300">✕</span>
                 </div>
                 <div class="flex gap-2 items-center">
-                  <select class="border rounded px-2 py-1 w-36"><option>name</option></select>
+                  <select class="border rounded px-2 py-1 w-36">
+                    <option>name</option>
+                  </select>
                   <span class="text-slate-400">→</span>
                   <input class="border rounded px-2 py-1 w-36" value="petName" />
                   <span class="text-slate-300">✕</span>
@@ -307,7 +444,9 @@ log("petId=" + vars.get("petId") + " env.base=" + env.get("base"));</textarea>
                 <span class="text-xs text-slate-400">3</span>
                 <span class="font-medium">等待</span>
                 <span class="text-xs text-slate-400">sleep(ms)</span>
-                <span class="ml-auto flex gap-2.5 text-slate-400"><span>↑</span><span>↓</span><span>✕</span></span>
+                <span class="ml-auto flex gap-2.5 text-slate-400"
+                  ><span>↑</span><span>↓</span><span>✕</span></span
+                >
               </div>
               <div class="p-2.5 flex gap-2 items-center">
                 <span class="text-slate-500">等待</span>
@@ -317,7 +456,9 @@ log("petId=" + vars.get("petId") + " env.base=" + env.get("base"));</textarea>
             </div>
             <div class="flex items-center gap-3">
               <button class="text-[#574BFF]">＋ 添加处理器</button>
-              <span class="text-xs text-slate-400">类型：脚本 / SQL / 等待 · 顺序即执行序（↑↓ 调整）</span>
+              <span class="text-xs text-slate-400"
+                >类型：脚本 / SQL / 等待 · 顺序即执行序（↑↓ 调整）</span
+              >
             </div>
             <!-- 空态：无处理器时
             <div class="border border-dashed rounded-md py-6 text-center text-slate-400">暂无前置处理器，「＋ 添加处理器」从脚本 / SQL / 等待开始</div>
@@ -332,7 +473,9 @@ log("petId=" + vars.get("petId") + " env.base=" + env.get("base"));</textarea>
             <span class="px-3 py-1.5 text-slate-500">认证</span>
             <span class="px-3 py-1.5 text-slate-500">请求体</span>
             <span class="px-3 py-1.5 text-slate-500">前置</span>
-            <span class="px-3 py-1.5 border-b-2 border-[#574BFF] text-[#574BFF] font-medium">后置</span>
+            <span class="px-3 py-1.5 border-b-2 border-[#574BFF] text-[#574BFF] font-medium"
+              >后置</span
+            >
             <span class="px-3 py-1.5 text-slate-500">断言</span>
             <span class="px-3 py-1.5 text-slate-500">设置</span>
           </div>
@@ -343,10 +486,16 @@ log("petId=" + vars.get("petId") + " env.base=" + env.get("base"));</textarea>
                 <span class="text-xs text-slate-400">1</span>
                 <span class="font-medium">脚本</span>
                 <span class="text-xs text-slate-400">同前置三件套：脚本 / SQL / 等待</span>
-                <span class="ml-auto flex gap-2.5 text-slate-400"><span>↑</span><span>↓</span><span>✕</span></span>
+                <span class="ml-auto flex gap-2.5 text-slate-400"
+                  ><span>↑</span><span>↓</span><span>✕</span></span
+                >
               </div>
               <div class="p-2.5">
-                <textarea class="border rounded w-full h-16 p-2 font-mono text-xs leading-5" rows="2">log("status checked at " + now());</textarea>
+                <textarea
+                  class="border rounded w-full h-16 p-2 font-mono text-xs leading-5"
+                  rows="2"
+                >
+log("status checked at " + now());</textarea>
               </div>
             </div>
             <!-- 提取器表格 -->
@@ -365,30 +514,93 @@ log("petId=" + vars.get("petId") + " env.base=" + env.get("base"));</textarea>
               </thead>
               <tbody>
                 <tr class="border-b">
-                  <td class="px-2 py-1.5"><select class="border rounded px-1.5 py-1 w-full"><option>body</option><option>headers</option></select></td>
-                  <td class="px-2 py-1.5"><select class="border rounded px-1.5 py-1 w-full"><option>JSONPath</option><option>正则</option></select></td>
-                  <td class="px-2 py-1.5"><input class="border rounded px-2 py-1 w-full font-mono text-xs" value="$.data.token" /></td>
-                  <td class="px-2 py-1.5"><select class="border rounded px-1.5 py-1 w-full"><option>首个</option><option>随机</option><option>第 N 个</option></select></td>
-                  <td class="px-2 py-1.5"><input class="border rounded px-2 py-1 w-full font-mono text-xs" value="token" /></td>
-                  <td class="px-2 py-1.5"><select class="border rounded px-1.5 py-1 w-full"><option>临时</option><option>环境</option></select></td>
+                  <td class="px-2 py-1.5">
+                    <select class="border rounded px-1.5 py-1 w-full">
+                      <option>body</option>
+                      <option>headers</option>
+                    </select>
+                  </td>
+                  <td class="px-2 py-1.5">
+                    <select class="border rounded px-1.5 py-1 w-full">
+                      <option>JSONPath</option>
+                      <option>正则</option>
+                    </select>
+                  </td>
+                  <td class="px-2 py-1.5">
+                    <input
+                      class="border rounded px-2 py-1 w-full font-mono text-xs"
+                      value="$.data.token"
+                    />
+                  </td>
+                  <td class="px-2 py-1.5">
+                    <select class="border rounded px-1.5 py-1 w-full">
+                      <option>首个</option>
+                      <option>随机</option>
+                      <option>第 N 个</option>
+                    </select>
+                  </td>
+                  <td class="px-2 py-1.5">
+                    <input
+                      class="border rounded px-2 py-1 w-full font-mono text-xs"
+                      value="token"
+                    />
+                  </td>
+                  <td class="px-2 py-1.5">
+                    <select class="border rounded px-1.5 py-1 w-full">
+                      <option>临时</option>
+                      <option>环境</option>
+                    </select>
+                  </td>
                   <td class="px-2 py-1.5 text-slate-300 text-center">✕</td>
                 </tr>
                 <tr>
-                  <td class="px-2 py-1.5"><select class="border rounded px-1.5 py-1 w-full"><option>headers</option><option>body</option></select></td>
-                  <td class="px-2 py-1.5"><select class="border rounded px-1.5 py-1 w-full"><option>正则</option><option>JSONPath</option></select></td>
-                  <td class="px-2 py-1.5"><input class="border rounded px-2 py-1 w-full font-mono text-xs" value="X-Request-Id: (\w+)" /></td>
+                  <td class="px-2 py-1.5">
+                    <select class="border rounded px-1.5 py-1 w-full">
+                      <option>headers</option>
+                      <option>body</option>
+                    </select>
+                  </td>
+                  <td class="px-2 py-1.5">
+                    <select class="border rounded px-1.5 py-1 w-full">
+                      <option>正则</option>
+                      <option>JSONPath</option>
+                    </select>
+                  </td>
+                  <td class="px-2 py-1.5">
+                    <input
+                      class="border rounded px-2 py-1 w-full font-mono text-xs"
+                      value="X-Request-Id: (\w+)"
+                    />
+                  </td>
                   <td class="px-2 py-1.5 flex items-center gap-1">
-                    <select class="border rounded px-1.5 py-1"><option>第 N 个</option><option>首个</option><option>随机</option></select>
+                    <select class="border rounded px-1.5 py-1">
+                      <option>第 N 个</option>
+                      <option>首个</option>
+                      <option>随机</option>
+                    </select>
                     <input class="border rounded px-1.5 py-1 w-12" value="2" />
                   </td>
-                  <td class="px-2 py-1.5"><input class="border rounded px-2 py-1 w-full font-mono text-xs" value="requestId" /></td>
-                  <td class="px-2 py-1.5"><select class="border rounded px-1.5 py-1 w-full"><option>环境</option><option>临时</option></select></td>
+                  <td class="px-2 py-1.5">
+                    <input
+                      class="border rounded px-2 py-1 w-full font-mono text-xs"
+                      value="requestId"
+                    />
+                  </td>
+                  <td class="px-2 py-1.5">
+                    <select class="border rounded px-1.5 py-1 w-full">
+                      <option>环境</option>
+                      <option>临时</option>
+                    </select>
+                  </td>
                   <td class="px-2 py-1.5 text-slate-300 text-center">✕</td>
                 </tr>
               </tbody>
             </table>
             <button class="text-[#574BFF]">＋ 添加提取</button>
-            <p class="text-xs text-slate-400">作用域=临时 → 任务内后续步骤可见；=环境 → 随回调 varUpdates 写回 Environment（last-write-wins，报告留痕）</p>
+            <p class="text-xs text-slate-400">
+              作用域=临时 → 任务内后续步骤可见；=环境 → 随回调 varUpdates 写回
+              Environment（last-write-wins，报告留痕）
+            </p>
             <!-- 空态：无提取器时
             <div class="border border-dashed rounded-md py-5 text-center text-slate-400">暂无提取器，「＋ 添加提取」创建第一条</div>
             -->
@@ -403,12 +615,15 @@ log("petId=" + vars.get("petId") + " env.base=" + env.get("base"));</textarea>
             <span class="px-3 py-1.5 text-slate-500">请求体</span>
             <span class="px-3 py-1.5 text-slate-500">前置</span>
             <span class="px-3 py-1.5 text-slate-500">后置</span>
-            <span class="px-3 py-1.5 border-b-2 border-[#574BFF] text-[#574BFF] font-medium">断言</span>
+            <span class="px-3 py-1.5 border-b-2 border-[#574BFF] text-[#574BFF] font-medium"
+              >断言</span
+            >
             <span class="px-3 py-1.5 text-slate-500">设置</span>
           </div>
           <div class="p-3 space-y-2 text-[13px]">
             <p class="text-xs text-slate-400">
-              类型 6 种：状态码 / 响应头 / 响应体 JSONPath / 响应体正则 / 响应时间(ms) / 变量 · 操作符 7 种：eq / contains / lt / le / gt / ge / regex
+              类型 6 种：状态码 / 响应头 / 响应体 JSONPath / 响应体正则 / 响应时间(ms) / 变量 ·
+              操作符 7 种：eq / contains / lt / le / gt / ge / regex
             </p>
             <table class="w-full text-[13px]">
               <thead class="text-slate-500 bg-slate-50 border-b">
@@ -423,34 +638,112 @@ log("petId=" + vars.get("petId") + " env.base=" + env.get("base"));</textarea>
               </thead>
               <tbody>
                 <tr class="border-b">
-                  <td class="px-2 py-1.5"><select class="border rounded px-1.5 py-1 w-full"><option>状态码</option><option>响应头</option><option>响应体 JSONPath</option><option>响应体正则</option><option>响应时间</option><option>变量</option></select></td>
-                  <td class="px-2 py-1.5"><input class="border rounded px-2 py-1 w-full bg-slate-50" placeholder="—" disabled /></td>
-                  <td class="px-2 py-1.5"><select class="border rounded px-1.5 py-1 w-full"><option>eq</option><option>contains</option><option>lt</option><option>le</option><option>gt</option><option>ge</option><option>regex</option></select></td>
-                  <td class="px-2 py-1.5"><input class="border rounded px-2 py-1 w-full font-mono text-xs" value="200" /></td>
+                  <td class="px-2 py-1.5">
+                    <select class="border rounded px-1.5 py-1 w-full">
+                      <option>状态码</option>
+                      <option>响应头</option>
+                      <option>响应体 JSONPath</option>
+                      <option>响应体正则</option>
+                      <option>响应时间</option>
+                      <option>变量</option>
+                    </select>
+                  </td>
+                  <td class="px-2 py-1.5">
+                    <input
+                      class="border rounded px-2 py-1 w-full bg-slate-50"
+                      placeholder="—"
+                      disabled
+                    />
+                  </td>
+                  <td class="px-2 py-1.5">
+                    <select class="border rounded px-1.5 py-1 w-full">
+                      <option>eq</option>
+                      <option>contains</option>
+                      <option>lt</option>
+                      <option>le</option>
+                      <option>gt</option>
+                      <option>ge</option>
+                      <option>regex</option>
+                    </select>
+                  </td>
+                  <td class="px-2 py-1.5">
+                    <input class="border rounded px-2 py-1 w-full font-mono text-xs" value="200" />
+                  </td>
                   <td class="px-2 py-1.5 text-green-600">✓ 通过</td>
                   <td class="px-2 py-1.5 text-slate-300 text-center">✕</td>
                 </tr>
                 <tr class="border-b">
-                  <td class="px-2 py-1.5"><select class="border rounded px-1.5 py-1 w-full"><option>响应体 JSONPath</option><option>状态码</option><option>响应头</option><option>响应体正则</option><option>响应时间</option><option>变量</option></select></td>
-                  <td class="px-2 py-1.5"><input class="border rounded px-2 py-1 w-full font-mono text-xs" value="$.data.kind" /></td>
-                  <td class="px-2 py-1.5"><select class="border rounded px-1.5 py-1 w-full"><option>eq</option><option>contains</option></select></td>
-                  <td class="px-2 py-1.5"><input class="border rounded px-2 py-1 w-full font-mono text-xs" value="dog" /></td>
+                  <td class="px-2 py-1.5">
+                    <select class="border rounded px-1.5 py-1 w-full">
+                      <option>响应体 JSONPath</option>
+                      <option>状态码</option>
+                      <option>响应头</option>
+                      <option>响应体正则</option>
+                      <option>响应时间</option>
+                      <option>变量</option>
+                    </select>
+                  </td>
+                  <td class="px-2 py-1.5">
+                    <input
+                      class="border rounded px-2 py-1 w-full font-mono text-xs"
+                      value="$.data.kind"
+                    />
+                  </td>
+                  <td class="px-2 py-1.5">
+                    <select class="border rounded px-1.5 py-1 w-full">
+                      <option>eq</option>
+                      <option>contains</option>
+                    </select>
+                  </td>
+                  <td class="px-2 py-1.5">
+                    <input class="border rounded px-2 py-1 w-full font-mono text-xs" value="dog" />
+                  </td>
                   <td class="px-2 py-1.5 text-green-600">✓ 通过</td>
                   <td class="px-2 py-1.5 text-slate-300 text-center">✕</td>
                 </tr>
                 <!-- 失败态示例（红）：断言不过 = ASSERT_FAILED -->
                 <tr class="bg-red-50">
-                  <td class="px-2 py-1.5"><select class="border rounded px-1.5 py-1 w-full text-red-600"><option>响应时间</option><option>状态码</option><option>响应头</option><option>响应体 JSONPath</option><option>响应体正则</option><option>变量</option></select></td>
-                  <td class="px-2 py-1.5"><input class="border rounded px-2 py-1 w-full bg-slate-50" placeholder="—" disabled /></td>
-                  <td class="px-2 py-1.5"><select class="border rounded px-1.5 py-1 w-full"><option>lt</option><option>le</option><option>gt</option><option>ge</option></select></td>
-                  <td class="px-2 py-1.5"><input class="border rounded px-2 py-1 w-full font-mono text-xs text-red-600" value="500" /></td>
+                  <td class="px-2 py-1.5">
+                    <select class="border rounded px-1.5 py-1 w-full text-red-600">
+                      <option>响应时间</option>
+                      <option>状态码</option>
+                      <option>响应头</option>
+                      <option>响应体 JSONPath</option>
+                      <option>响应体正则</option>
+                      <option>变量</option>
+                    </select>
+                  </td>
+                  <td class="px-2 py-1.5">
+                    <input
+                      class="border rounded px-2 py-1 w-full bg-slate-50"
+                      placeholder="—"
+                      disabled
+                    />
+                  </td>
+                  <td class="px-2 py-1.5">
+                    <select class="border rounded px-1.5 py-1 w-full">
+                      <option>lt</option>
+                      <option>le</option>
+                      <option>gt</option>
+                      <option>ge</option>
+                    </select>
+                  </td>
+                  <td class="px-2 py-1.5">
+                    <input
+                      class="border rounded px-2 py-1 w-full font-mono text-xs text-red-600"
+                      value="500"
+                    />
+                  </td>
                   <td class="px-2 py-1.5 text-[#FF4D4F]">✗ 失败 · 实际 812ms</td>
                   <td class="px-2 py-1.5 text-slate-300 text-center">✕</td>
                 </tr>
               </tbody>
             </table>
             <button class="text-[#574BFF]">＋ 添加断言</button>
-            <p class="text-xs text-slate-400">「结果」列仅执行报告回显（编辑态不显示此列）；失败语义：断言不过=ASSERT_FAILED，脚本异常/超时=SCRIPT_ERROR，SQL 失败=CONFIG_ERROR</p>
+            <p class="text-xs text-slate-400">
+              「结果」列仅执行报告回显（编辑态不显示此列）；失败语义：断言不过=ASSERT_FAILED，脚本异常/超时=SCRIPT_ERROR，SQL
+              失败=CONFIG_ERROR
+            </p>
             <!-- 空态：无断言时
             <div class="border border-dashed rounded-md py-5 text-center text-slate-400">暂无断言，「＋ 添加断言」创建第一条</div>
             -->
@@ -466,44 +759,72 @@ log("petId=" + vars.get("petId") + " env.base=" + env.get("base"));</textarea>
             <span class="px-3 py-1.5 text-slate-500">前置</span>
             <span class="px-3 py-1.5 text-slate-500">后置</span>
             <span class="px-3 py-1.5 text-slate-500">断言</span>
-            <span class="px-3 py-1.5 border-b-2 border-[#574BFF] text-[#574BFF] font-medium">设置</span>
+            <span class="px-3 py-1.5 border-b-2 border-[#574BFF] text-[#574BFF] font-medium"
+              >设置</span
+            >
           </div>
           <div class="p-3 divide-y text-[13px]">
             <div class="flex items-center gap-3 pb-3">
               <span class="w-28 text-slate-500">超时 timeoutMs</span>
               <input class="border rounded px-2 py-1 w-24" value="10000" />
               <span class="text-slate-500">ms</span>
-              <span class="text-xs text-slate-400">1000–120000 · 连接/响应共享单值口径（undici 两段已映射）</span>
+              <span class="text-xs text-slate-400"
+                >1000–120000 · 连接/响应共享单值口径（undici 两段已映射）</span
+              >
             </div>
             <div class="flex items-center gap-3 py-3">
               <span class="w-28 text-slate-500">跟随重定向</span>
-              <span class="inline-flex w-9 h-5 items-center rounded-full bg-[#574BFF] relative"><span class="absolute right-0.5 w-4 h-4 rounded-full bg-white"></span></span>
+              <span class="inline-flex w-9 h-5 items-center rounded-full bg-[#574BFF] relative"
+                ><span class="absolute right-0.5 w-4 h-4 rounded-full bg-white"></span
+              ></span>
               <span class="text-xs text-slate-400">开启 · 最多 5 次 · 307/308 保持方法</span>
             </div>
             <div class="flex items-center gap-3 py-3">
               <span class="w-28 text-slate-500">跳过前置处理器</span>
-              <span class="inline-flex w-9 h-5 items-center rounded-full bg-slate-300 relative"><span class="absolute left-0.5 w-4 h-4 rounded-full bg-white"></span></span>
+              <span class="inline-flex w-9 h-5 items-center rounded-full bg-slate-300 relative"
+                ><span class="absolute left-0.5 w-4 h-4 rounded-full bg-white"></span
+              ></span>
               <span class="text-xs text-slate-400">环境全局开关之外的单请求覆写</span>
             </div>
             <div class="flex items-center gap-3 pt-3">
               <span class="w-28 text-slate-500">跳过后置处理器</span>
-              <span class="inline-flex w-9 h-5 items-center rounded-full bg-slate-300 relative"><span class="absolute left-0.5 w-4 h-4 rounded-full bg-white"></span></span>
+              <span class="inline-flex w-9 h-5 items-center rounded-full bg-slate-300 relative"
+                ><span class="absolute left-0.5 w-4 h-4 rounded-full bg-white"></span
+              ></span>
             </div>
           </div>
         </div>
 
         <!-- ============ 底部注释区：调试页 /debug 复用说明（旧 testid 锚点保持） ============ -->
-        <div class="bg-white border rounded-md p-3 space-y-2 text-[13px]" data-testid="proto-debug-reuse">
+        <div
+          class="bg-white border rounded-md p-3 space-y-2 text-[13px]"
+          data-testid="proto-debug-reuse"
+        >
           <p class="font-medium">调试页（/debug）沿用本编辑器 —— S0 布局换芯</p>
-          <p class="text-slate-500">仅保留左侧「调试历史」栏（最近 20 条），右侧请求构造整块替换为 &lt;RequestEditor/&gt;；既有 testid 锚点保持不变（API-001 用例不回归破坏）：</p>
+          <p class="text-slate-500">
+            仅保留左侧「调试历史」栏（最近 20 条），右侧请求构造整块替换为
+            &lt;RequestEditor/&gt;；既有 testid 锚点保持不变（API-001 用例不回归破坏）：
+          </p>
           <div class="flex gap-3 items-start">
             <!-- 左：调试历史（沿用） -->
             <div class="w-52 shrink-0 border rounded-md">
               <p class="px-3 py-2 border-b font-medium text-xs">调试历史</p>
               <div class="p-2 space-y-1 text-xs">
-                <div class="rounded bg-slate-50 px-2 py-1.5 flex items-center gap-2"><span class="font-bold text-green-600">GET</span><span class="truncate flex-1">/pets/1</span><span class="w-2 h-2 rounded-full bg-green-500"></span></div>
-                <div class="rounded px-2 py-1.5 flex items-center gap-2"><span class="font-bold text-amber-600">POST</span><span class="truncate flex-1">/pets</span><span class="w-2 h-2 rounded-full bg-red-500"></span></div>
-                <div class="rounded px-2 py-1.5 flex items-center gap-2"><span class="font-bold text-green-600">GET</span><span class="truncate flex-1">/orders/9</span><span class="w-2 h-2 rounded-full bg-green-500"></span></div>
+                <div class="rounded bg-slate-50 px-2 py-1.5 flex items-center gap-2">
+                  <span class="font-bold text-green-600">GET</span
+                  ><span class="truncate flex-1">/pets/1</span
+                  ><span class="w-2 h-2 rounded-full bg-green-500"></span>
+                </div>
+                <div class="rounded px-2 py-1.5 flex items-center gap-2">
+                  <span class="font-bold text-amber-600">POST</span
+                  ><span class="truncate flex-1">/pets</span
+                  ><span class="w-2 h-2 rounded-full bg-red-500"></span>
+                </div>
+                <div class="rounded px-2 py-1.5 flex items-center gap-2">
+                  <span class="font-bold text-green-600">GET</span
+                  ><span class="truncate flex-1">/orders/9</span
+                  ><span class="w-2 h-2 rounded-full bg-green-500"></span>
+                </div>
               </div>
               <p class="text-[11px] text-slate-400 px-3 pb-2">最近 20 条 · 点击回看报告</p>
             </div>
@@ -511,13 +832,23 @@ log("petId=" + vars.get("petId") + " env.base=" + env.get("base"));</textarea>
             <div class="flex-1 border rounded-md p-2.5 space-y-1.5">
               <div class="flex gap-2 items-center">
                 <span class="border rounded px-2 py-1 text-green-600 font-bold text-xs">GET</span>
-                <span class="flex-1 border rounded px-2 py-1 font-mono text-xs flex items-center">${base}/pets/${petId}</span>
-                <span class="bg-[#574BFF] text-white rounded px-3 py-1 text-xs" data-testid="btn-execute">执 行</span>
+                <span class="flex-1 border rounded px-2 py-1 font-mono text-xs flex items-center"
+                  >${base}/pets/${petId}</span
+                >
+                <span
+                  class="bg-[#574BFF] text-white rounded px-3 py-1 text-xs"
+                  data-testid="btn-execute"
+                  >执 行</span
+                >
               </div>
               <div class="flex gap-3 text-xs text-slate-400 pt-0.5">
-                <span>参数</span><span>认证</span><span>请求体</span><span>前置</span><span>后置</span><span class="text-[#574BFF]">断言</span><span>设置</span>
+                <span>参数</span><span>认证</span><span>请求体</span><span>前置</span
+                ><span>后置</span><span class="text-[#574BFF]">断言</span><span>设置</span>
               </div>
-              <p class="text-xs text-slate-400">testid 落位：debug-url → URL 输入 · debug-method → method · btn-execute → 执行按钮 · debug-asserts → 断言面板（上方七区均已标注）</p>
+              <p class="text-xs text-slate-400">
+                testid 落位：debug-url → URL 输入 · debug-method → method · btn-execute → 执行按钮 ·
+                debug-asserts → 断言面板（上方七区均已标注）
+              </p>
             </div>
           </div>
         </div>

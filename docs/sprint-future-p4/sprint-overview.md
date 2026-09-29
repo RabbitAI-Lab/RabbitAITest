@@ -62,16 +62,16 @@
 
 ## 5. 规格清单与状态
 
-| 编号     | 名称                | 状态                                      | 原型/契约                                               |
-| -------- | ------------------- | ----------------------------------------- | ------------------------------------------------------- |
-| LOAD-001 | 性能测试模块占位    | Implemented（2026-09-28）                | 原型 docs/design/LOAD-001-load-placeholder/（三态）     |
-| LOAD-002 | 分布式压测架构稿    | Implemented（架构稿交付；无代码面豁免）   | 纯架构规格（拓扑+契约冻结，评审替代原型）               |
-| UIT-001  | UI 测试模块占位     | Implemented（2026-09-28）                | 原型 docs/design/UIT-001-uit-placeholder/（三态）       |
-| PLUG-003 | WebSocket/MQTT 协议 | Implemented（2026-09-28）                | 原型 docs/design/PLUG-003-websocket-mqtt/（选择器四态） |
-| TOOL-001 | IDEA 插件同步契约   | Implemented（2026-09-28）                | 接口契约评审（纯后端类替代高保真）                      |
-| TOOL-002 | 浏览器插件采集契约  | Implemented（2026-09-28）                | 接口契约评审（纯后端类替代高保真）                      |
-| RPT-004  | 报告高级分析        | Implemented（2026-09-28）                | 原型 docs/design/RPT-004-report-analytics/（三态）      |
-| EXEC-004 | K8S 型资源池        | Implemented（2026-09-28）                | 原型 docs/design/EXEC-004-k8s-resource-pool/（四态）    |
+| 编号     | 名称                | 状态                                    | 原型/契约                                               |
+| -------- | ------------------- | --------------------------------------- | ------------------------------------------------------- |
+| LOAD-001 | 性能测试模块占位    | Implemented（2026-09-28）               | 原型 docs/design/LOAD-001-load-placeholder/（三态）     |
+| LOAD-002 | 分布式压测架构稿    | Implemented（架构稿交付；无代码面豁免） | 纯架构规格（拓扑+契约冻结，评审替代原型）               |
+| UIT-001  | UI 测试模块占位     | Implemented（2026-09-28）               | 原型 docs/design/UIT-001-uit-placeholder/（三态）       |
+| PLUG-003 | WebSocket/MQTT 协议 | Implemented（2026-09-28）               | 原型 docs/design/PLUG-003-websocket-mqtt/（选择器四态） |
+| TOOL-001 | IDEA 插件同步契约   | Implemented（2026-09-28）               | 接口契约评审（纯后端类替代高保真）                      |
+| TOOL-002 | 浏览器插件采集契约  | Implemented（2026-09-28）               | 接口契约评审（纯后端类替代高保真）                      |
+| RPT-004  | 报告高级分析        | Implemented（2026-09-28）               | 原型 docs/design/RPT-004-report-analytics/（三态）      |
+| EXEC-004 | K8S 型资源池        | Implemented（2026-09-28）               | 原型 docs/design/EXEC-004-k8s-resource-pool/（四态）    |
 
 ## 6. 迭代主线（浏览器可演示端到端）
 
@@ -79,16 +79,16 @@
 
 ## 7. 交付自查（2026-09-28 回填）
 
-| 验收标准 | 结果 | 证据 |
-| -------- | ---- | ---- |
-| 1. 插件链路（上传→启用→选协议→执行→报告；40511 兑现） | ✅ | e2e PLUG-003-T9：ws 对 mock /ws/echo 执行 SUCCESS 且响应回显 hello-ws-rabbit；T10 未启用 mqtt 保存 422·40511；jmx PLUG-003 四类（含 409 版本递增）全绿 |
-| 2. mqtt 插件与 open 契约 | ✅ | 单测内嵌 mini broker 19 用例（探活/通配/CONNACK 拒/超时/编解码矩阵）；TOOL 两 jmx：sync created=3→重放 updated=3、capture 脱敏+skipped、Basic/Bearer、101 条 10024 |
-| 3. 统计页 | ✅ | RPT-004-T6 调试执行后 Σtotal≥1 + 7 天切换 days=7 负载断言；T6b 空态引导；jmx days=13/abc 422·60422 |
-| 4. K8S 池 | ✅ | e2e T8 切换→保存→掩码→休眠往返（apiServer/namespace 回填）；jmx T3-0 缺 token 50422/T3-2 非 https 20422/收尾恢复 NODE；单测守卫矩阵 9 例+试连三态 |
-| 5. 占位复刻 | ✅ | e2e 开关→导航显隐→占位页能力清单口径；池 DTO loadTest/uiTest=false（jmx contains 断言）；权限单测（预置组映射） |
-| 6. mqtt 执行正确性口径 | ✅ | 单测内嵌 broker 判定（jmx/e2e 不依赖外部 broker，规格登记）；websocket 真执行在 e2e |
-| 7. 三层测试齐备 | ✅ | 单测 348（新增 116：engine 19+shared 13+web 84）；JMeter 新增 7 计划（LOAD-002 豁免登记）四类×四断言；Playwright 新增 5 spec 8 用例三类断言（TOOL 两规格 UI 豁免登记） |
-| 8. 快照与审计 | ✅ | OpenAPI 277→284 paths（+stats/+api-sync/+api-definitions/+api-capture/+plugins/protocols/+pools PUT 扩展…）--check 过；typecheck 13/13；format 全绿（顺手修 S6 原型 INTG-003 `<uuid>` 未转义致 oxfmt 解析失败） |
+| 验收标准                                              | 结果 | 证据                                                                                                                                                                                                            |
+| ----------------------------------------------------- | ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. 插件链路（上传→启用→选协议→执行→报告；40511 兑现） | ✅   | e2e PLUG-003-T9：ws 对 mock /ws/echo 执行 SUCCESS 且响应回显 hello-ws-rabbit；T10 未启用 mqtt 保存 422·40511；jmx PLUG-003 四类（含 409 版本递增）全绿                                                          |
+| 2. mqtt 插件与 open 契约                              | ✅   | 单测内嵌 mini broker 19 用例（探活/通配/CONNACK 拒/超时/编解码矩阵）；TOOL 两 jmx：sync created=3→重放 updated=3、capture 脱敏+skipped、Basic/Bearer、101 条 10024                                              |
+| 3. 统计页                                             | ✅   | RPT-004-T6 调试执行后 Σtotal≥1 + 7 天切换 days=7 负载断言；T6b 空态引导；jmx days=13/abc 422·60422                                                                                                              |
+| 4. K8S 池                                             | ✅   | e2e T8 切换→保存→掩码→休眠往返（apiServer/namespace 回填）；jmx T3-0 缺 token 50422/T3-2 非 https 20422/收尾恢复 NODE；单测守卫矩阵 9 例+试连三态                                                               |
+| 5. 占位复刻                                           | ✅   | e2e 开关→导航显隐→占位页能力清单口径；池 DTO loadTest/uiTest=false（jmx contains 断言）；权限单测（预置组映射）                                                                                                 |
+| 6. mqtt 执行正确性口径                                | ✅   | 单测内嵌 broker 判定（jmx/e2e 不依赖外部 broker，规格登记）；websocket 真执行在 e2e                                                                                                                             |
+| 7. 三层测试齐备                                       | ✅   | 单测 348（新增 116：engine 19+shared 13+web 84）；JMeter 新增 7 计划（LOAD-002 豁免登记）四类×四断言；Playwright 新增 5 spec 8 用例三类断言（TOOL 两规格 UI 豁免登记）                                          |
+| 8. 快照与审计                                         | ✅   | OpenAPI 277→284 paths（+stats/+api-sync/+api-definitions/+api-capture/+plugins/protocols/+pools PUT 扩展…）--check 过；typecheck 13/13；format 全绿（顺手修 S6 原型 INTG-003 `<uuid>` 未转义致 oxfmt 解析失败） |
 
 ### 7.2 实现过程缺陷与教训（首红/返工记录）
 

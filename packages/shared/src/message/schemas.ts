@@ -52,7 +52,10 @@ export const messageEventConfigSchema = z.object({
 });
 export type MessageEventConfig = z.infer<typeof messageEventConfigSchema>;
 
-export const messageEventsConfigSchema = z.record(z.enum(MESSAGE_EVENT_KEYS), messageEventConfigSchema);
+export const messageEventsConfigSchema = z.record(
+  z.enum(MESSAGE_EVENT_KEYS),
+  messageEventConfigSchema,
+);
 export type MessageEventsConfig = z.infer<typeof messageEventsConfigSchema>;
 
 export const notificationItemSchema = z.object({
@@ -64,3 +67,136 @@ export const notificationItemSchema = z.object({
   createdAt: z.string().datetime(),
 });
 export type NotificationItem = z.infer<typeof notificationItemSchema>;
+
+// ── 自定义消息模板（S9 ENTP-005；MSG_TEMPLATE 特性门控）──
+
+/**
+ * 事件 → 可用变量目录（公共三变量 + 对象变量）。
+ * 渲染规则：`${var}` 全量替换；未知变量保留原样（容错）。
+ */
+export const TEMPLATE_VARS: Record<MessageEventKey, { name: string; label: string }[]> = {
+  BUG_CREATED: [
+    { name: "project", label: "项目名" },
+    { name: "actorName", label: "操作人" },
+    { name: "time", label: "时间" },
+    { name: "title", label: "缺陷标题" },
+    { name: "status", label: "缺陷状态" },
+    { name: "severity", label: "严重程度" },
+    { name: "assignee", label: "处理人" },
+    { name: "handler", label: "经办人" },
+    { name: "platform", label: "平台" },
+  ],
+  BUG_UPDATED: [
+    { name: "project", label: "项目名" },
+    { name: "actorName", label: "操作人" },
+    { name: "time", label: "时间" },
+    { name: "title", label: "缺陷标题" },
+    { name: "status", label: "缺陷状态" },
+    { name: "severity", label: "严重程度" },
+    { name: "assignee", label: "处理人" },
+  ],
+  BUG_DELETED: [
+    { name: "project", label: "项目名" },
+    { name: "actorName", label: "操作人" },
+    { name: "time", label: "时间" },
+    { name: "title", label: "缺陷标题" },
+  ],
+  BUG_COMMENT: [
+    { name: "project", label: "项目名" },
+    { name: "actorName", label: "评论人" },
+    { name: "time", label: "时间" },
+    { name: "title", label: "对象标题" },
+    { name: "comment", label: "评论摘要" },
+  ],
+  BUG_TRANSITION: [
+    { name: "project", label: "项目名" },
+    { name: "actorName", label: "操作人" },
+    { name: "time", label: "时间" },
+    { name: "title", label: "缺陷标题" },
+    { name: "fromStatus", label: "原状态" },
+    { name: "toStatus", label: "目标状态" },
+  ],
+  REVIEW_COMMENT: [
+    { name: "project", label: "项目名" },
+    { name: "actorName", label: "评论人" },
+    { name: "time", label: "时间" },
+    { name: "title", label: "评审名" },
+    { name: "comment", label: "评论摘要" },
+  ],
+  CASE_COMMENT: [
+    { name: "project", label: "项目名" },
+    { name: "actorName", label: "评论人" },
+    { name: "time", label: "时间" },
+    { name: "title", label: "用例名" },
+    { name: "comment", label: "评论摘要" },
+  ],
+  PLAN_EXEC_COMPLETED: [
+    { name: "project", label: "项目名" },
+    { name: "actorName", label: "触发人" },
+    { name: "time", label: "时间" },
+    { name: "name", label: "计划名" },
+    { name: "result", label: "结果（通过率）" },
+    { name: "passed", label: "通过数" },
+    { name: "total", label: "总数" },
+  ],
+  SCENARIO_EXEC_COMPLETED: [
+    { name: "project", label: "项目名" },
+    { name: "actorName", label: "触发人" },
+    { name: "time", label: "时间" },
+    { name: "name", label: "场景名" },
+    { name: "result", label: "结果" },
+    { name: "passed", label: "通过数" },
+    { name: "total", label: "总数" },
+    { name: "source", label: "来源（手动/定时）" },
+  ],
+  SCHEDULE_ENABLED: [
+    { name: "project", label: "项目名" },
+    { name: "actorName", label: "操作人" },
+    { name: "time", label: "时间" },
+    { name: "name", label: "定时任务名" },
+    { name: "cron", label: "CRON" },
+  ],
+  SCHEDULE_DISABLED: [
+    { name: "project", label: "项目名" },
+    { name: "actorName", label: "操作人" },
+    { name: "time", label: "时间" },
+    { name: "name", label: "定时任务名" },
+    { name: "cron", label: "CRON" },
+  ],
+};
+
+/** 公共变量（每事件恒可用）。 */
+export const TEMPLATE_COMMON_VARS = [
+  { name: "project", label: "项目名" },
+  { name: "actorName", label: "操作人" },
+  { name: "time", label: "时间" },
+] as const;
+
+export const messageTemplateUpsertSchema = z.object({
+  event: z.enum(MESSAGE_EVENT_KEYS),
+  title: z.string().min(1).max(128),
+  content: z.string().min(1).max(1024),
+});
+export type MessageTemplateUpsert = z.infer<typeof messageTemplateUpsertSchema>;
+
+export const messageTemplatePreviewSchema = messageTemplateUpsertSchema;
+
+export const messageTemplateItemSchema = z.object({
+  event: z.enum(MESSAGE_EVENT_KEYS),
+  title: z.string(),
+  content: z.string(),
+  customized: z.boolean(),
+  updatedAt: z.string().datetime().nullable(),
+});
+export type MessageTemplateItem = z.infer<typeof messageTemplateItemSchema>;
+
+/** `${var}` 渲染：未知变量保留原样（容错，不报错）。 */
+export function renderMessageTemplate(
+  text: string,
+  vars: Record<string, string | number | null | undefined>,
+): string {
+  return text.replace(/\$\{([a-zA-Z_][a-zA-Z0-9_]*)\}/g, (raw, name: string) => {
+    const v = vars[name];
+    return v === undefined || v === null ? raw : String(v);
+  });
+}

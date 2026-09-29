@@ -24,7 +24,12 @@ describe("matchPath", () => {
 });
 
 describe("pickRule", () => {
-  const req = (over: Partial<Record<"method" | "path" | "body", string>> & { query?: Record<string, string>; headers?: Record<string, string> } = {}) => ({
+  const req = (
+    over: Partial<Record<"method" | "path" | "body", string>> & {
+      query?: Record<string, string>;
+      headers?: Record<string, string>;
+    } = {},
+  ) => ({
     method: over.method ?? "GET",
     path: over.path ?? "/pets/9",
     query: over.query ?? {},
@@ -45,8 +50,28 @@ describe("pickRule", () => {
       pathTemplate: "/pets",
       matchers: { headers: [{ key: "X-Trace", value: "t1" }], query: [], bodyContains: "阿黄" },
     });
-    expect(pickRule([r], req({ method: "POST", path: "/pets", headers: { "x-trace": "t1" }, body: '{"name":"阿黄"}' }))?.rule.id).toBe("r1");
-    expect(pickRule([r], req({ method: "POST", path: "/pets", headers: { "x-trace": "t1" }, body: '{"name":"cat"}' }))).toBeUndefined();
+    expect(
+      pickRule(
+        [r],
+        req({
+          method: "POST",
+          path: "/pets",
+          headers: { "x-trace": "t1" },
+          body: '{"name":"阿黄"}',
+        }),
+      )?.rule.id,
+    ).toBe("r1");
+    expect(
+      pickRule(
+        [r],
+        req({
+          method: "POST",
+          path: "/pets",
+          headers: { "x-trace": "t1" },
+          body: '{"name":"cat"}',
+        }),
+      ),
+    ).toBeUndefined();
   });
   it("条件最多者优先（精确 > 宽松）", () => {
     const loose = rule({ id: "loose", matchers: { headers: [], query: [] } });

@@ -33,10 +33,9 @@ export const POST = withProjectScope(async (ctx, req, seg) => {
     const { caseId } = await (seg as { params: Promise<{ caseId: string }> }).params;
     const parsed = caseApiRefCreateSchema.safeParse(await req.json());
     if (!parsed.success) return unprocessable(parsed.error.issues[0]?.message);
-    return NextResponse.json(
-      ok(await addCaseApiRefs(ctx.projectId, caseId, parsed.data.refIds)),
-      { status: 201 },
-    );
+    return NextResponse.json(ok(await addCaseApiRefs(ctx.projectId, caseId, parsed.data.refIds)), {
+      status: 201,
+    });
   } catch (err) {
     return toResponse(err);
   }
@@ -50,9 +49,7 @@ export const DELETE = withProjectScope(async (ctx, req, seg) => {
     const refId = new URL(req.url).searchParams.get("refId") ?? "";
     const parsed = z.string().uuid().safeParse(refId);
     if (!parsed.success) return unprocessable("refId 必填且为合法 UUID");
-    return NextResponse.json(
-      ok(await removeCaseApiRef(ctx.projectId, caseId, parsed.data)),
-    );
+    return NextResponse.json(ok(await removeCaseApiRef(ctx.projectId, caseId, parsed.data)));
   } catch (err) {
     return toResponse(err);
   }

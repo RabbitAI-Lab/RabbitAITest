@@ -70,9 +70,15 @@ export default function createTapdPlugin() {
       });
       return { platformKey };
     },
-    async syncBugs(cfg: PlatformConfig, projectKey: string, since?: string): Promise<PlatformBug[]> {
+    async syncBugs(
+      cfg: PlatformConfig,
+      projectKey: string,
+      since?: string,
+    ): Promise<PlatformBug[]> {
       const sinceDate = since ? new Date(since) : undefined;
-      const sinceParam = sinceDate ? `&modified=${encodeURIComponent(`>=${sinceDate!.toISOString().slice(0, 19).replace("T", " ")}`)}` : "";
+      const sinceParam = sinceDate
+        ? `&modified=${encodeURIComponent(`>=${sinceDate!.toISOString().slice(0, 19).replace("T", " ")}`)}`
+        : "";
       const res = await request<{ data: Array<{ Bug: TapdBug }> }>(
         cfg,
         `/bugs?workspace_id=${encodeURIComponent(projectKey)}&limit=100&order=modified desc${sinceParam}`,
@@ -97,7 +103,8 @@ export default function createTapdPlugin() {
 function translateFields(fields: Record<string, unknown>): Record<string, unknown> {
   const out: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(fields)) {
-    if (v !== null && v !== undefined) out[`custom_field_${k}`] = typeof v === "object" ? JSON.stringify(v) : String(v);
+    if (v !== null && v !== undefined)
+      out[`custom_field_${k}`] = typeof v === "object" ? JSON.stringify(v) : String(v);
   }
   return out;
 }

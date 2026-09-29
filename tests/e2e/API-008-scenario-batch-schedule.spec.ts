@@ -34,21 +34,29 @@ test("API-008-01 批量执行：勾选 2 场景→弹窗串行→跳任务中心
   await page.getByRole("button", { name: "执 行", exact: true }).click();
   const res = await fired;
   expect(res.status()).toBe(201);
-  const payload = res.request().postDataJSON() as { scenarioIds: string[]; mode: string; stopOnFail: boolean };
+  const payload = res.request().postDataJSON() as {
+    scenarioIds: string[];
+    mode: string;
+    stopOnFail: boolean;
+  };
   expect(payload.scenarioIds).toHaveLength(2);
   expect(payload.mode).toBe("serial");
   expect(payload.stopOnFail).toBe(false);
 
   // 跳任务中心（focus 高亮行 + scenario 类型标签）
   await expect(page.getByTestId("task-center")).toBeVisible();
-  await expect(page.getByText("批量A-" + uniq).or(page.locator('[data-testid^="task-row-"]').first())).toBeVisible();
+  await expect(
+    page.getByText("批量A-" + uniq).or(page.locator('[data-testid^="task-row-"]').first()),
+  ).toBeVisible();
 
   // 接口断言：报告 2 执行项全成功
   const body = (await res.json()) as { data: { taskId: string } };
   const final = await pollTask(request, pid, body.data.taskId);
   expect(final.status).toBe("SUCCESS");
   const rep = await request.get(`/api/v1/projects/${pid}/reports/${body.data.taskId}`);
-  const detail = (await rep.json()) as { data: { summary: { total: number; passed: number }; items: unknown[] } };
+  const detail = (await rep.json()) as {
+    data: { summary: { total: number; passed: number }; items: unknown[] };
+  };
   expect(detail.data.summary.total).toBe(2);
   expect(detail.data.summary.passed).toBe(2);
   expect(detail.data.items).toHaveLength(2);
@@ -77,7 +85,11 @@ test("API-008-02 定时任务：cron Tab 新建→列表→启停→立即执行
   await page.getByTestId("input-schedule-cron").fill("0 9 * * *");
   await page.getByText("每天 09:00").first().click(); // 收起说明并确认人话展示
   await page.getByTestId("select-schedule-scenarios").click();
-  await page.locator(".ant-select-dropdown:not(.ant-select-dropdown-hidden)").getByText(`定时场景-${uniq}`).first().click();
+  await page
+    .locator(".ant-select-dropdown:not(.ant-select-dropdown-hidden)")
+    .getByText(`定时场景-${uniq}`)
+    .first()
+    .click();
   await page.keyboard.press("Escape");
   const created = page.waitForResponse("**/api/v1/projects/*/scenario-schedules");
   await page.getByTestId("btn-save-schedule").click();
@@ -104,7 +116,10 @@ test("API-008-02 定时任务：cron Tab 新建→列表→启停→立即执行
   await expect(page.getByTestId("schedule-panel").getByText("每天 09:00")).toBeVisible();
 
   // 立即执行（接口断言返回 taskId）
-  const runRes = await request.post(`/api/v1/projects/${pid}/scenario-schedules/${createdData.data.id}/run`, { data: {} });
+  const runRes = await request.post(
+    `/api/v1/projects/${pid}/scenario-schedules/${createdData.data.id}/run`,
+    { data: {} },
+  );
   expect(runRes.status()).toBe(201);
   const runBody = (await runRes.json()) as { data: { taskId?: string } };
   expect(runBody.data.taskId).toBeTruthy();

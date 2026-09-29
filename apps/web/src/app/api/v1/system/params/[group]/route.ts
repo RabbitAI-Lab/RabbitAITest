@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
-import { toResponse, okResponse, withSystemPerm } from '@/server/guard';
-import { paramGroupSchema } from '@rabbit/shared';
-import * as svc from '@/server/domains/system/param.service';
-import { recordAudit, flushAudit } from '@/server/domains/system/audit.service';
+import { toResponse, okResponse, withSystemPerm } from "@/server/guard";
+import { paramGroupSchema } from "@rabbit/shared";
+import * as svc from "@/server/domains/system/param.service";
+import { assertEntpEnabled } from "@/server/domains/entp/license.service";
+import { recordAudit, flushAudit } from "@/server/domains/system/audit.service";
 
-export const PUT = withSystemPerm('SYSTEM_PARAM:UPDATE')(async (ctx, req, seg) => {
+export const PUT = withSystemPerm("SYSTEM_PARAM:UPDATE")(async (ctx, req, seg) => {
   try {
     const { group } = await (seg as { params: Promise<{ group: string }> }).params;
     const pp = paramGroupSchema.safeParse(await req.json());
@@ -16,7 +17,11 @@ export const PUT = withSystemPerm('SYSTEM_PARAM:UPDATE')(async (ctx, req, seg) =
     }
     const parsed = pp.data;
     if (parsed.group !== group) {
-      return okResponse({ ok: false, message: '参数组不匹配' }, 422);
+      return okResponse({ ok: false, message: "参数组不匹配" }, 422);
+    }
+    // S9 ENTP-004：界面设置组经 THEME 特性门控（读 public/theme 不门控，社区版回默认值）
+    if (parsed.group === "theme") {
+      await assertEntpEnabled("THEME");
     }
     await svc.updateParam(parsed.group, parsed.value);
     // SYS-008 回补清单：系统参数写操作审计（detail 白名单——参数值不含敏感面，仅记组名）
@@ -30,5 +35,7 @@ export const PUT = withSystemPerm('SYSTEM_PARAM:UPDATE')(async (ctx, req, seg) =
     });
     void flushAudit();
     return okResponse({ ok: true });
-  } catch (err) { return toResponse(err); }
+  } catch (err) {
+    return toResponse(err);
+  }
 });

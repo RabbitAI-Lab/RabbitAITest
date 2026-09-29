@@ -7,27 +7,50 @@
   </head>
   <body class="bg-slate-50 text-slate-800 text-sm">
     <header class="h-12 bg-white border-b flex items-center px-4 gap-3">
-      <span class="font-semibold">RabbitAITest</span><span class="border rounded px-2 py-0.5">演示项目 #1</span>
+      <span class="font-semibold">RabbitAITest</span
+      ><span class="border rounded px-2 py-0.5">演示项目 #1</span>
       <span class="ml-auto text-slate-400 text-xs">帮助 · 消息 · 用户</span>
     </header>
     <main class="p-4 space-y-4 max-w-[1200px]">
       <!-- 画板一：依赖 Tab + 选择器弹窗 -->
       <section class="bg-white border rounded-md">
-        <div class="px-3 py-2 border-b bg-slate-50 font-medium">画板一 · 用例详情「依赖关系」Tab（前/后置双列表 + 添加选择器弹窗）</div>
+        <div class="px-3 py-2 border-b bg-slate-50 font-medium">
+          画板一 · 用例详情「依赖关系」Tab（前/后置双列表 + 添加选择器弹窗）
+        </div>
         <div class="flex">
           <div class="flex-1 flex gap-3 p-4 text-[13px]">
             <div class="flex-1 border rounded">
-              <div class="flex items-center justify-between px-3 h-10 border-b bg-slate-50"><span class="font-medium">前置用例（2）</span><button class="text-[#574BFF] text-xs">＋ 添加前置</button></div>
-              <div class="divide-y">
-                <p class="px-3 py-2 flex items-center gap-2">登录正向用例 <span class="text-[10px] text-slate-400">P1</span><a class="ml-auto text-[#574BFF] text-xs">跳转</a><a class="text-red-400 text-xs">移除</a></p>
-                <p class="px-3 py-2 flex items-center gap-2">绑卡用例 <span class="text-[10px] text-slate-400">P2</span><a class="ml-auto text-[#574BFF] text-xs">跳转</a><a class="text-red-400 text-xs">移除</a></p>
+              <div class="flex items-center justify-between px-3 h-10 border-b bg-slate-50">
+                <span class="font-medium">前置用例（2）</span
+                ><button class="text-[#574BFF] text-xs">＋ 添加前置</button>
               </div>
-              <p class="px-3 py-2 text-[11px] text-slate-400 border-t">前置全部通过后再执行本用例（执行联动见 PLAN-003）</p>
+              <div class="divide-y">
+                <p class="px-3 py-2 flex items-center gap-2">
+                  登录正向用例 <span class="text-[10px] text-slate-400">P1</span
+                  ><a class="ml-auto text-[#574BFF] text-xs">跳转</a
+                  ><a class="text-red-400 text-xs">移除</a>
+                </p>
+                <p class="px-3 py-2 flex items-center gap-2">
+                  绑卡用例 <span class="text-[10px] text-slate-400">P2</span
+                  ><a class="ml-auto text-[#574BFF] text-xs">跳转</a
+                  ><a class="text-red-400 text-xs">移除</a>
+                </p>
+              </div>
+              <p class="px-3 py-2 text-[11px] text-slate-400 border-t">
+                前置全部通过后再执行本用例（执行联动见 PLAN-003）
+              </p>
             </div>
             <div class="flex-1 border rounded">
-              <div class="flex items-center justify-between px-3 h-10 border-b bg-slate-50"><span class="font-medium">后置用例（1）</span><button class="text-[#574BFF] text-xs">＋ 添加后置</button></div>
+              <div class="flex items-center justify-between px-3 h-10 border-b bg-slate-50">
+                <span class="font-medium">后置用例（1）</span
+                ><button class="text-[#574BFF] text-xs">＋ 添加后置</button>
+              </div>
               <div class="divide-y">
-                <p class="px-3 py-2 flex items-center gap-2">支付通知用例 <span class="text-[10px] text-slate-400">P2</span><a class="ml-auto text-[#574BFF] text-xs">跳转</a><a class="text-red-400 text-xs">移除</a></p>
+                <p class="px-3 py-2 flex items-center gap-2">
+                  支付通知用例 <span class="text-[10px] text-slate-400">P2</span
+                  ><a class="ml-auto text-[#574BFF] text-xs">跳转</a
+                  ><a class="text-red-400 text-xs">移除</a>
+                </p>
               </div>
               <p class="px-3 py-2 text-[11px] text-slate-400 border-t">其他用例以本用例为前置</p>
             </div>
@@ -39,76 +62,122 @@
               <div class="flex gap-2 pb-2">
                 <div class="w-[120px] border rounded p-1.5 text-xs">
                   <p class="rounded px-1.5 py-1 bg-[#574BFF]/10">支付</p>
-                  <p class="px-1.5 py-1 text-[#574BFF]">登录 <span class="text-slate-400">(3)</span></p>
+                  <p class="px-1.5 py-1 text-[#574BFF]">
+                    登录 <span class="text-slate-400">(3)</span>
+                  </p>
                 </div>
                 <div class="flex-1">
-                  <input class="border rounded px-2 py-1 w-full mb-1.5 text-xs" placeholder="搜索用例" />
+                  <input
+                    class="border rounded px-2 py-1 w-full mb-1.5 text-xs"
+                    placeholder="搜索用例"
+                  />
                   <div class="border rounded divide-y text-xs">
-                    <label class="flex items-center gap-2 px-2 py-1.5 opacity-40"><input type="checkbox" disabled /> 本用例（自身）</label>
-                    <label class="flex items-center gap-2 px-2 py-1.5 opacity-40"><input type="checkbox" disabled /> 绑卡用例（已是前置）</label>
-                    <label class="flex items-center gap-2 px-2 py-1.5 opacity-40"><input type="checkbox" disabled /> 支付通知用例（已是后置·防互环）</label>
-                    <label class="flex items-center gap-2 px-2 py-1.5"><input type="checkbox" /> 注销登录用例</label>
+                    <label class="flex items-center gap-2 px-2 py-1.5 opacity-40"
+                      ><input type="checkbox" disabled /> 本用例（自身）</label
+                    >
+                    <label class="flex items-center gap-2 px-2 py-1.5 opacity-40"
+                      ><input type="checkbox" disabled /> 绑卡用例（已是前置）</label
+                    >
+                    <label class="flex items-center gap-2 px-2 py-1.5 opacity-40"
+                      ><input type="checkbox" disabled /> 支付通知用例（已是后置·防互环）</label
+                    >
+                    <label class="flex items-center gap-2 px-2 py-1.5"
+                      ><input type="checkbox" /> 注销登录用例</label
+                    >
                   </div>
                 </div>
               </div>
-              <div class="flex justify-end gap-2"><button class="border rounded px-3 py-1">取消</button><button class="bg-[#574BFF] text-white rounded px-3 py-1">添加 (1)</button></div>
+              <div class="flex justify-end gap-2">
+                <button class="border rounded px-3 py-1">取消</button
+                ><button class="bg-[#574BFF] text-white rounded px-3 py-1">添加 (1)</button>
+              </div>
             </div>
-            <p class="text-[11px] text-slate-400 pt-3">候选排除：自身 / 已有前置 / 已有后置（即时防互环）；环检测服务端兜底（50016）</p>
+            <p class="text-[11px] text-slate-400 pt-3">
+              候选排除：自身 / 已有前置 / 已有后置（即时防互环）；环检测服务端兜底（50016）
+            </p>
           </div>
         </div>
       </section>
       <!-- 画板二：成环与自引用提示 -->
       <section class="bg-white border rounded-md">
-        <div class="px-3 py-2 border-b bg-slate-50 font-medium">画板二 · 环检测 422 提示（成环 / 自引用 / 间接环）</div>
+        <div class="px-3 py-2 border-b bg-slate-50 font-medium">
+          画板二 · 环检测 422 提示（成环 / 自引用 / 间接环）
+        </div>
         <div class="grid grid-cols-3 gap-3 p-4 text-[13px]">
           <div>
-            <div class="bg-red-50 border border-red-200 text-red-600 rounded px-3 py-2 text-xs">将形成循环依赖：余额支付 → 扫码支付 → 余额支付（50016）</div>
+            <div class="bg-red-50 border border-red-200 text-red-600 rounded px-3 py-2 text-xs">
+              将形成循环依赖：余额支付 → 扫码支付 → 余额支付（50016）
+            </div>
             <p class="text-[11px] text-slate-400 pt-1.5">A→B 已存在，再添加 B→A</p>
           </div>
           <div>
-            <div class="bg-red-50 border border-red-200 text-red-600 rounded px-3 py-2 text-xs">不能依赖自身（50017 SELF_DEPENDENCY）</div>
+            <div class="bg-red-50 border border-red-200 text-red-600 rounded px-3 py-2 text-xs">
+              不能依赖自身（50017 SELF_DEPENDENCY）
+            </div>
             <p class="text-[11px] text-slate-400 pt-1.5">选择器已禁用自身，服务端兜底</p>
           </div>
           <div>
-            <div class="bg-red-50 border border-red-200 text-red-600 rounded px-3 py-2 text-xs">间接成环：A→B→C→A（闭包 BFS 检出）</div>
+            <div class="bg-red-50 border border-red-200 text-red-600 rounded px-3 py-2 text-xs">
+              间接成环：A→B→C→A（闭包 BFS 检出）
+            </div>
             <p class="text-[11px] text-slate-400 pt-1.5">深度上限 100 防御</p>
           </div>
         </div>
       </section>
       <!-- 画板三：变更历史分区徽标 + 执行联动提示 -->
       <section class="bg-white border rounded-md">
-        <div class="px-3 py-2 border-b bg-slate-50 font-medium">画板三 · 变更历史（字段级分区徽标）/ 计划执行 BLOCKED 提示条（PLAN-003 联动）</div>
+        <div class="px-3 py-2 border-b bg-slate-50 font-medium">
+          画板三 · 变更历史（字段级分区徽标）/ 计划执行 BLOCKED 提示条（PLAN-003 联动）
+        </div>
         <div class="grid grid-cols-2 gap-4 p-4 text-[13px]">
           <div class="border rounded p-3 space-y-3">
             <div class="flex gap-2">
               <div class="w-1 rounded bg-slate-200"></div>
               <div class="flex-1">
-                <p class="text-xs"><b>张三</b> 编辑了用例 <span class="text-slate-400">09-27 14:02</span></p>
+                <p class="text-xs">
+                  <b>张三</b> 编辑了用例 <span class="text-slate-400">09-27 14:02</span>
+                </p>
                 <p class="pt-1 flex flex-wrap gap-1">
-                  <span class="text-[10px] border rounded px-1.5 py-0.5 bg-blue-50 text-blue-600 border-blue-200">字段</span>
+                  <span
+                    class="text-[10px] border rounded px-1.5 py-0.5 bg-blue-50 text-blue-600 border-blue-200"
+                    >字段</span
+                  >
                   <span class="text-[11px] text-slate-500">等级 P2 → P1；标签 +「核心链路」</span>
                 </p>
                 <p class="pt-1 flex flex-wrap gap-1">
-                  <span class="text-[10px] border rounded px-1.5 py-0.5 bg-purple-50 text-purple-600 border-purple-200">步骤</span>
-                  <span class="text-[11px] text-slate-500">新增 1（步骤3 到账校验）；修改 1（步骤2 预期）</span>
+                  <span
+                    class="text-[10px] border rounded px-1.5 py-0.5 bg-purple-50 text-purple-600 border-purple-200"
+                    >步骤</span
+                  >
+                  <span class="text-[11px] text-slate-500"
+                    >新增 1（步骤3 到账校验）；修改 1（步骤2 预期）</span
+                  >
                 </p>
               </div>
             </div>
             <div class="flex gap-2">
               <div class="w-1 rounded bg-slate-200"></div>
               <div class="flex-1">
-                <p class="text-xs"><b>李四</b> 创建了用例 <span class="text-slate-400">09-26 10:11</span></p>
+                <p class="text-xs">
+                  <b>李四</b> 创建了用例 <span class="text-slate-400">09-26 10:11</span>
+                </p>
                 <p class="text-[11px] text-slate-400">（旧记录无分区 diff，原样展示——兼容）</p>
               </div>
             </div>
           </div>
           <div class="border rounded p-3 space-y-2">
             <p class="text-slate-500 text-xs">计划内标记「退款到余额」时：</p>
-            <div class="bg-amber-50 border border-amber-200 text-amber-700 rounded px-3 py-2 text-xs flex items-center gap-2">
+            <div
+              class="bg-amber-50 border border-amber-200 text-amber-700 rounded px-3 py-2 text-xs flex items-center gap-2"
+            >
               ⚠ 前置用例未通过：「扫码限额校验」FAIL
-              <button class="ml-auto border border-amber-300 rounded px-2 py-0.5 bg-white">仍要标记</button>
+              <button class="ml-auto border border-amber-300 rounded px-2 py-0.5 bg-white">
+                仍要标记
+              </button>
             </div>
-            <p class="text-[11px] text-slate-400">默认提交 BLOCKED，result.blockedBy 留痕；「仍要标记」可强制提交其他状态（软提示口径）</p>
+            <p class="text-[11px] text-slate-400">
+              默认提交 BLOCKED，result.blockedBy 留痕；「仍要标记」可强制提交其他状态（软提示口径）
+            </p>
           </div>
         </div>
       </section>

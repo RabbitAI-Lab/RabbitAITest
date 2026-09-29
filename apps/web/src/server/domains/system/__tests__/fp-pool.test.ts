@@ -140,7 +140,10 @@ describe("EXEC-004-T2 试连（test=true 不落库；dispatcher 直连口径 →
   it("成功返回 k8sVersion 且不写库", async () => {
     vi.stubGlobal(
       "fetch",
-      vi.fn(async () => ({ ok: true, json: async () => ({ gitVersion: "v1.29.4" }) }) as unknown as Response),
+      vi.fn(
+        async () =>
+          ({ ok: true, json: async () => ({ gitVersion: "v1.29.4" }) }) as unknown as Response,
+      ),
     );
     const before = (prisma as unknown as { __get: (k: string) => unknown }).__get("pool");
     const r = await testPoolK8sConnection("pool-1", { type: "K8S", k8s: validK8s });
@@ -149,7 +152,10 @@ describe("EXEC-004-T2 试连（test=true 不落库；dispatcher 直连口径 →
     vi.unstubAllGlobals();
   });
   it("HTTP 错误 → 50423（502 语义）", async () => {
-    vi.stubGlobal("fetch", vi.fn(async () => ({ ok: false, status: 401 }) as unknown as Response));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => ({ ok: false, status: 401 }) as unknown as Response),
+    );
     await expect(testPoolK8sConnection("pool-1", { k8s: validK8s })).rejects.toMatchObject({
       code: ErrCode.POOL_K8S_UNREACHABLE,
     });

@@ -14,7 +14,8 @@ export function evaluateAsserts(specs: AssertSpec[], input: AssertInput): Assert
   return specs.map((spec) => {
     const actual = actualOf(spec, input);
     const passed =
-      actual !== undefined && (compare(spec.op, spec.expected, actual, numericKind(spec.kind)) ?? false);
+      actual !== undefined &&
+      (compare(spec.op, spec.expected, actual, numericKind(spec.kind)) ?? false);
     return {
       kind: spec.kind,
       path: spec.path,
@@ -79,7 +80,8 @@ function compare(
   if (numeric) {
     const e = Number(expected);
     const a = Number(actual);
-    if (!Number.isFinite(e) || !Number.isFinite(a)) return op === "eq" ? expected === actual : false;
+    if (!Number.isFinite(e) || !Number.isFinite(a))
+      return op === "eq" ? expected === actual : false;
     switch (op) {
       case "eq":
         return a === e;

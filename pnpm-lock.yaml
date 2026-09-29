@@ -195,6 +195,9 @@ importers:
       exceljs:
         specifier: ^4.4.0
         version: 4.4.0
+      fast-xml-parser:
+        specifier: ^4.5.7
+        version: 4.5.7
       fflate:
         specifier: ^0.8.3
         version: 0.8.3
@@ -204,6 +207,9 @@ importers:
       iron-session:
         specifier: ^8.0.3
         version: 8.0.4
+      ldapts:
+        specifier: ^9.2.0
+        version: 9.2.0
       lucide-react:
         specifier: ^1.48.0
         version: 1.48.0(react@19.3.0)
@@ -2547,6 +2553,10 @@ packages:
     resolution: {integrity: sha512-b94GiNHQNy6JNTrt5w6zNyffMrNkXZb3KTkCZJb2V1xaEGCk093vkZ2jk3tpaeP33/OiXC+WvK9AxUebnf5nbw==}
     engines: {node: '>= 0.6.3'}
 
+  ldapts@9.2.0:
+    resolution: {integrity: sha512-5mDg3OT5fDP9DUXga9dCLW8cMW24OTOKT4pv/Qj+f2zCV3qxb+gkZLCzMAqzVTOANoycidKkYpPvkclUQU2aXw==}
+    engines: {node: '>=22'}
+
   lie@3.3.0:
     resolution: {integrity: sha512-UaiMJzeWRlEujzAuw5LokY1L5ecNQYZKfmyZ9L7wDHb/p5etKaxXhohBcrw0EYby+G/NA52vRSN4N39dxHAIwQ==}
 
@@ -3325,6 +3335,9 @@ packages:
 
   std-env@3.10.0:
     resolution: {integrity: sha512-5GS12FdOZNliM5mAOxFRg7Ir0pWz8MdpYm6AY6VPkGpbA7ZzmbzNcBJQ0GPvvyWgcY7QAhCgf9Uy89I03faLkg==}
+
+  strict-event-emitter-types@2.0.0:
+    resolution: {integrity: sha512-Nk/brWYpD85WlOgzw5h173aci0Teyv8YdIAEtV+N88nDB0dLlazZyJMIsN6eo1/AR61l+p6CJTG1JIyFaoNEEA==}
 
   string-convert@0.2.1:
     resolution: {integrity: sha512-u/1tdPl4yQnPBjnVrmdLo9gtuLvELKsAoRapekWggdiQNvvvum+jYF329d84NAa660KQw7pB2n36KrIKVoXa3A==}
@@ -5424,6 +5437,10 @@ snapshots:
     dependencies:
       readable-stream: 2.3.8
 
+  ldapts@9.2.0:
+    dependencies:
+      strict-event-emitter-types: 2.0.0
+
   lie@3.3.0:
     dependencies:
       immediate: 3.0.6
@@ -6290,6 +6307,8 @@ snapshots:
   standard-as-callback@2.1.0: {}
 
   std-env@3.10.0: {}
+
+  strict-event-emitter-types@2.0.0: {}
 
   string-convert@0.2.1: {}
 

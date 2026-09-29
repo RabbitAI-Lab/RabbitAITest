@@ -162,6 +162,43 @@ export const ErrCode = {
   INTEGRATION_SECRET_MISSING: 70015,
   AUDIT_QUERY_INVALID: 70030, // S6 SYS-008
   PACK_NOT_ALLOWED: 70060, // S8 INFRA-004：任务非失败态不允许生成排障包
+  // 90xxx 企业版（S9；api-conventions §3 预留段兑现，rbac §6 License 门控）
+  LICENSE_REQUIRED: 90001, // 功能需企业版授权（通用门控）
+  LICENSE_FORMAT_INVALID: 90002, // License 结构不合法
+  LICENSE_SIGNATURE_INVALID: 90003, // License 验签失败
+  LICENSE_EXPIRED: 90004, // License 已过期（拒绝添加）
+  LICENSE_FEATURE_NOT_ENABLED: 90005, // 当前授权未包含该特性
+  // 9001x SSO（ENTP-002/003）
+  SSO_SOURCE_NOT_FOUND: 90010,
+  SSO_SOURCE_DISABLED: 90011,
+  SSO_STATE_INVALID: 90012,
+  SSO_PROVIDER_ERROR: 90013,
+  SSO_USER_MAPPING_FAILED: 90014,
+  SSO_CONFIG_INVALID: 90015,
+  SSO_ACCOUNT_CONFLICT: 90016,
+  // 9002x 多组织（ENTP-001）
+  ORG_DELETE_CONFIRM_REQUIRED: 90020,
+  ORG_OWNER_IMMUTABLE: 90021,
+  ORG_DEFAULT_PROTECTED: 90022,
+  ORG_NAME_EXISTS: 90023,
+  // 9003x 多资源池（ENTP-006）
+  POOL_DEFAULT_UNDELETABLE: 90030,
+  POOL_DEFAULT_UNDISABLEABLE: 90031,
+  POOL_DISABLED: 90032,
+  // POOL_NOT_FOUND 沿用 50404（EXEC-002 既有，错误码不复用/不改语义）
+  POOL_TYPE_INVALID: 90034,
+  POOL_NAME_EXISTS: 90035,
+  POOL_HAS_TASKS: 90036,
+  POOL_ORG_NOT_ALLOWED: 90037,
+  // 9004x 部门（ENTP-008）
+  DEPARTMENT_NOT_FOUND: 90040,
+  DEPARTMENT_NAME_EXISTS: 90041,
+  DEPARTMENT_CYCLE: 90042,
+  DEPARTMENT_HAS_CHILDREN: 90043,
+  DEPARTMENT_MEMBER_NOT_IN_ORG: 90044,
+  // 9005x-9006x 模板与主题（ENTP-005/004）
+  TEMPLATE_EVENT_INVALID: 90050,
+  THEME_IMAGE_TOO_LARGE: 90060,
 } as const;
 
 export const ErrMsg: Record<number, string> = {
@@ -284,6 +321,39 @@ export const ErrMsg: Record<number, string> = {
   [ErrCode.FILE_REPO_CONNECT_FAILED]: "存储库连接失败",
   [ErrCode.FILE_REPO_PULL_FAILED]: "存储库文件拉取失败",
   [ErrCode.FILE_REPO_URL_BLOCKED]: "仓库地址不允许（内网/元数据地址被守卫拦截）",
+  // 90xxx 企业版（S9）
+  [ErrCode.LICENSE_REQUIRED]: "该功能需企业版授权（License）",
+  [ErrCode.LICENSE_FORMAT_INVALID]: "License 内容不合法（格式/字段缺失）",
+  [ErrCode.LICENSE_SIGNATURE_INVALID]: "License 验签失败（内容被篡改或密钥不匹配）",
+  [ErrCode.LICENSE_EXPIRED]: "License 已过期，拒绝添加",
+  [ErrCode.LICENSE_FEATURE_NOT_ENABLED]: "当前授权未包含该企业特性",
+  [ErrCode.SSO_SOURCE_NOT_FOUND]: "认证源不存在",
+  [ErrCode.SSO_SOURCE_DISABLED]: "认证源已停用",
+  [ErrCode.SSO_STATE_INVALID]: "授权状态无效或已过期，请重新发起登录",
+  [ErrCode.SSO_PROVIDER_ERROR]: "身份提供方响应异常",
+  [ErrCode.SSO_USER_MAPPING_FAILED]: "身份属性映射失败（缺少必需属性）",
+  [ErrCode.SSO_CONFIG_INVALID]: "认证源配置不合法",
+  [ErrCode.SSO_ACCOUNT_CONFLICT]: "该账号已绑定其他登录方式",
+  [ErrCode.ORG_DELETE_CONFIRM_REQUIRED]: "删除组织需二次确认（needConfirm=true）",
+  [ErrCode.ORG_OWNER_IMMUTABLE]: "组织所有者不可移除",
+  [ErrCode.ORG_DEFAULT_PROTECTED]: "默认组织受保护，不可删除",
+  [ErrCode.ORG_NAME_EXISTS]: "组织名称已存在",
+  [ErrCode.POOL_DEFAULT_UNDELETABLE]: "默认资源池不可删除（社区版单池保护）",
+  [ErrCode.POOL_DEFAULT_UNDISABLEABLE]: "默认资源池不可禁用",
+  [ErrCode.POOL_DISABLED]: "资源池已禁用，不可执行",
+  // POOL_NOT_FOUND 沿用 50404 既有文案（上方 50xxx 段）
+  [ErrCode.POOL_TYPE_INVALID]: "资源池类型不合法",
+  [ErrCode.POOL_NAME_EXISTS]: "资源池名称已存在",
+  [ErrCode.POOL_HAS_TASKS]: "资源池存在历史任务，不可删除",
+  [ErrCode.POOL_ORG_NOT_ALLOWED]: "资源池未应用到当前组织",
+  [ErrCode.DEPARTMENT_NOT_FOUND]: "部门不存在",
+  [ErrCode.DEPARTMENT_NAME_EXISTS]: "同层级下已存在同名部门",
+  [ErrCode.DEPARTMENT_CYCLE]: "部门上级不合法（跨组织或形成环）",
+  [ErrCode.DEPARTMENT_HAS_CHILDREN]: "部门存在子部门，不可删除",
+  [ErrCode.DEPARTMENT_MEMBER_NOT_IN_ORG]: "所选用户不在本组织",
+  [ErrCode.TEMPLATE_EVENT_INVALID]: "消息事件类型不合法",
+  [ErrCode.THEME_IMAGE_TOO_LARGE]: "图片不能超过 200KB",
+  // P4 远期（f888165 并入）
   [ErrCode.OPEN_SYNC_VALIDATION_FAILED]: "同步载荷非法（含批内重复接口或字段越界）",
   [ErrCode.OPEN_SYNC_LIMIT_EXCEEDED]: "批量数量超出上限（100）",
   [ErrCode.OPEN_CAPTURE_INVALID]: "采集载荷非法（URL 非法或字段越界）",

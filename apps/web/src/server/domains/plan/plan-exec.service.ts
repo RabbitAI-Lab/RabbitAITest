@@ -2,14 +2,16 @@
  * 子命令复用 exec.service 构造器（buildApiCaseCommands/buildScenarioCommands——引用解析/CSV 预解析同源）。 */
 import { DomainError, ErrCode, resolvePointChain } from "@rabbit/shared";
 import type { PointConfig } from "@rabbit/shared";
-import type { ExecItemCommand, PlanItemCommand, ScenarioItemCommand } from "@rabbit/shared/execution";
+import type {
+  ExecItemCommand,
+  PlanItemCommand,
+  ScenarioItemCommand,
+} from "@rabbit/shared/execution";
 import { prisma } from "@rabbit/db";
-import { execQueue } from "@/server/redis";
+import { execQueueFor } from "@/server/redis";
+import { assertPoolExecutable } from "@/server/domains/system/pool.service";
 import { buildEnvSnapshot } from "@/server/domains/project/environment.service";
-import {
-  buildApiCaseCommands,
-  buildScenarioCommands,
-} from "@/server/domains/exec/exec.service";
+import { buildApiCaseCommands, buildScenarioCommands } from "@/server/domains/exec/exec.service";
 
 export interface PlanExecuteInput {
   pointId?: string;
@@ -72,7 +74,10 @@ export async function createPlanTask(
     select: { id: true, refType: true, refId: true, pointId: true },
   });
   if (refs.length === 0)
-    throw new DomainError(ErrCode.PLAN_NO_EXECUTABLE, "计划内没有可引擎执行的用例（接口用例/场景）");
+    throw new DomainError(
+      ErrCode.PLAN_NO_EXECUTABLE,
+      "计划内没有可引擎执行的用例（接口用例/场景）",
+    );
 
   const settings = (plan.settings ?? {}) as {
     threshold?: number;
@@ -96,7 +101,7 @@ export async function createPlanTask(
 
   const mode = input.mode ?? (planDefault.serial === false ? "parallel" : "serial");
   const stopOnFail = pickStopOnFail(input, undefined, planDefault);
-  const taskEnvId = (input.envId ?? planDefault.envId) ?? undefined;
+  const taskEnvId = input.envId ?? planDefault.envId ?? undefined;
   const taskEnv = await buildEnvSnapshot(projectId, taskEnvId);
   // 点级 env 快照缓存（同 envId 复用；未配置点回落任务级）
   const envCache = new Map<string, Awaited<ReturnType<typeof buildEnvSnapshot>>>();
@@ -111,14 +116,31 @@ export async function createPlanTask(
   const scenarioRefs = refs.filter((r) => r.refType === "scenario");
   const apiCommands = new Map(
     apiRefs.length > 0
-      ? (await buildApiCaseCommands(projectId, apiRefs.map((r) => r.refId))).map((c) => [c.caseId, c])
+      ? (
+          await buildApiCaseCommands(
+            projectId,
+            apiRefs.map((r) => r.refId),
+          )
+        ).map((c) => [c.caseId, c])
       : [],
   );
   const { commands: scenarioCommands, warnings } =
     scenarioRefs.length > 0
-      ? await buildScenarioCommands(projectId, scenarioRefs.map((r) => r.refId))
+      ? await buildScenarioCommands(
+          projectId,
+          scenarioRefs.map((r) => r.refId),
+        )
       : { commands: [], warnings: [] };
   const scenarioCommandMap = new Map(scenarioCommands.map((c) => [c.scenarioId, c]));
+  // ENTP-006：池校验 + 回落默认池（旧行为 null → 默认池；单池语义不变）
+  const planOrg = await prisma.project.findUnique({
+    where: { id: projectId },
+    select: { orgId: true },
+  });
+  const poolId = await assertPoolExecutable(
+    input.poolId ?? planDefault.poolId ?? null,
+    planOrg?.orgId ?? null,
+  );
 
   const created = await prisma.$transaction(async (tx) => {
     const task = await tx.execTask.create({
@@ -128,7 +150,8 @@ export async function createPlanTask(
         refType: "plan",
         refId: planId,
         status: "PENDING",
-        poolId: (input.poolId ?? planDefault.poolId) ?? null,
+        // ENTP-006：入口池校验（存在/ACTIVE/应用组织）→ 未配置回落默认池（旧行为：null）
+        poolId,
         envId: taskEnvId ?? null,
         payload: {
           planId,
@@ -153,20 +176,35 @@ export async function createPlanTask(
         select: { id: true },
       });
       if (ref.refType === "api_case") {
-        const c = apiCommands.get(ref.refId) as (Omit<ExecItemCommand, "itemId"> | undefined);
-        if (c) items.push({ refKind: "api_case", ...(itemEnv ? { envSnapshot: itemEnv } : {}), command: { itemId: item.id, ...c } });
+        const c = apiCommands.get(ref.refId) as Omit<ExecItemCommand, "itemId"> | undefined;
+        if (c)
+          items.push({
+            refKind: "api_case",
+            ...(itemEnv ? { envSnapshot: itemEnv } : {}),
+            command: { itemId: item.id, ...c },
+          });
       } else {
-        const c = scenarioCommandMap.get(ref.refId) as (Omit<ScenarioItemCommand, "itemId"> | undefined);
-        if (c) items.push({ refKind: "scenario", ...(itemEnv ? { envSnapshot: itemEnv } : {}), command: { itemId: item.id, ...c } });
+        const c = scenarioCommandMap.get(ref.refId) as
+          | Omit<ScenarioItemCommand, "itemId">
+          | undefined;
+        if (c)
+          items.push({
+            refKind: "scenario",
+            ...(itemEnv ? { envSnapshot: itemEnv } : {}),
+            command: { itemId: item.id, ...c },
+          });
       }
     }
     return { taskId: task.id, items };
   });
 
   if (created.items.length === 0)
-    throw new DomainError(ErrCode.PLAN_NO_EXECUTABLE, "计划内没有可引擎执行的用例（接口用例/场景）");
+    throw new DomainError(
+      ErrCode.PLAN_NO_EXECUTABLE,
+      "计划内没有可引擎执行的用例（接口用例/场景）",
+    );
 
-  await execQueue().add(
+  await execQueueFor(poolId).add(
     "exec",
     {
       taskId: created.taskId,
@@ -184,17 +222,31 @@ export async function createPlanTask(
 }
 
 /** 单条引擎执行（refType 限 api_case/scenario；构造单项 plan 任务——报告与计划链路一致）。 */
-export async function runPlanCaseRef(projectId: string, planId: string, refId: string, userId: string) {
+export async function runPlanCaseRef(
+  projectId: string,
+  planId: string,
+  refId: string,
+  userId: string,
+) {
   const ref = await prisma.planCaseRef.findFirst({
     where: { id: refId, planId, refType: { in: ["api_case", "scenario"] } },
     select: { id: true, pointId: true },
   });
   if (!ref) throw new DomainError(ErrCode.PLAN_NOT_FOUND, "关联记录不存在或不支持引擎执行");
-  return createPlanTask(projectId, planId, userId, { pointId: ref.pointId ?? undefined, mode: "serial", stopOnFail: false });
+  return createPlanTask(projectId, planId, userId, {
+    pointId: ref.pointId ?? undefined,
+    mode: "serial",
+    stopOnFail: false,
+  });
 }
 
 /** 计划执行历史（ExecTask type=plan 列表）。 */
-export async function listPlanExecutions(projectId: string, planId: string, page = 1, pageSize = 20) {
+export async function listPlanExecutions(
+  projectId: string,
+  planId: string,
+  page = 1,
+  pageSize = 20,
+) {
   const where = { projectId, type: "plan", refType: "plan", refId: planId };
   const [total, tasks] = await Promise.all([
     prisma.execTask.count({ where }),
@@ -267,8 +319,20 @@ export async function applyPlanTaskResult(
     });
     if (!ref) continue;
     if (ref.status === next) continue;
-    const history = (ref.execHistory ?? []) as { ts: string; userId: string; from: string; to: string; source?: string }[];
-    history.push({ ts: now, userId: task?.createdBy ?? "system", from: ref.status, to: next, source: "engine" });
+    const history = (ref.execHistory ?? []) as {
+      ts: string;
+      userId: string;
+      from: string;
+      to: string;
+      source?: string;
+    }[];
+    history.push({
+      ts: now,
+      userId: task?.createdBy ?? "system",
+      from: ref.status,
+      to: next,
+      source: "engine",
+    });
     await prisma.planCaseRef.update({
       where: { id: ref.id },
       data: {
@@ -297,8 +361,20 @@ export async function applyPlanTaskResult(
         select: { id: true, execHistory: true },
       });
       for (const fr of fnRefs) {
-        const history = (fr.execHistory ?? []) as { ts: string; userId: string; from: string; to: string; source?: string }[];
-        history.push({ ts: now, userId: task?.createdBy ?? "system", from: "NOT_RUN", to: "PASS", source: "auto" });
+        const history = (fr.execHistory ?? []) as {
+          ts: string;
+          userId: string;
+          from: string;
+          to: string;
+          source?: string;
+        }[];
+        history.push({
+          ts: now,
+          userId: task?.createdBy ?? "system",
+          from: "NOT_RUN",
+          to: "PASS",
+          source: "auto",
+        });
         await prisma.planCaseRef.update({
           where: { id: fr.id },
           data: {

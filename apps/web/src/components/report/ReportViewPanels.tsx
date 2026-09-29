@@ -169,7 +169,11 @@ export function ReportItemsTable({
               <span
                 style={{
                   color:
-                    r.assertPassed === r.assertTotal ? "#52C41A" : r.assertTotal > 0 ? "#FF4D4F" : "#87888D",
+                    r.assertPassed === r.assertTotal
+                      ? "#52C41A"
+                      : r.assertTotal > 0
+                        ? "#FF4D4F"
+                        : "#87888D",
                 }}
               >
                 {r.assertPassed}/{r.assertTotal}
@@ -228,7 +232,10 @@ export function ItemDrillPanel({
       <div className="p-4 space-y-4">
         {framesQ.isLoading && <p className="text-[13px] text-[#A8ABB0] m-0">帧加载中…</p>}
         {!framesQ.isLoading && !step && (
-          <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="暂无步骤帧（任务可能仍在执行）" />
+          <Empty
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+            description="暂无步骤帧（任务可能仍在执行）"
+          />
         )}
         {step && (
           <>
@@ -353,7 +360,9 @@ export function ItemDrillPanel({
                       <td className={`p-2 font-mono text-xs ${a.passed ? "" : "text-[#FF4D4F]"}`}>
                         {a.actual}
                       </td>
-                      <td className={`p-2 ${a.passed ? "text-[#52C41A]" : "text-[#FF4D4F] font-medium"}`}>
+                      <td
+                        className={`p-2 ${a.passed ? "text-[#52C41A]" : "text-[#FF4D4F] font-medium"}`}
+                      >
                         {a.passed ? "✓ 通过" : "✗ 失败"}
                       </td>
                     </tr>

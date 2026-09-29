@@ -1,14 +1,37 @@
 "use client";
 
-import { Alert, Button, Drawer, Form, Input, Modal, Popconfirm, Select, Space, Switch, Table, Tabs, Tag } from "antd";
+import {
+  Alert,
+  Button,
+  Drawer,
+  Form,
+  Input,
+  Modal,
+  Popconfirm,
+  Select,
+  Space,
+  Switch,
+  Table,
+  Tabs,
+  Tag,
+} from "antd";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { MESSAGE_EVENTS } from "@rabbit/shared";
-import { memberApi, messageConfigApi, robotApi, type MessageEventConfig, type MessageEventsConfig, type RobotRow } from "@rabbit/api-client";
+import {
+  memberApi,
+  messageConfigApi,
+  robotApi,
+  type MessageEventConfig,
+  type MessageEventsConfig,
+  type RobotRow,
+} from "@rabbit/api-client";
 import { PageHeader } from "@/components/PageHeader";
 import { useApp } from "@/hooks/useApp";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useProjectStore } from "@/stores/project";
+import { useEntp } from "@/hooks/useEntp";
+import { TemplateTab } from "./TemplateTab";
 
 const CHANNEL_LABEL: Record<string, string> = {
   inapp: "站内信",
@@ -26,13 +49,14 @@ const CHANNEL_COLOR: Record<string, string> = {
 };
 const WEBHOOK_CHANNELS = ["wecom", "dingtalk", "feishu"];
 
-/** MSG-001：消息管理（机器人 Tab + 事件配置 Tab）。 */
+/** MSG-001 消息管理（机器人 + 事件配置）+ ENTP-005 模板 Tab。 */
 export default function MessagesPage() {
   const qc = useQueryClient();
   const { message } = useApp();
   const { can } = usePermissions();
   const { currentProjectId: projectId } = useProjectStore();
   const canUpdate = can("PROJECT_MESSAGE:UPDATE");
+  const entp = useEntp();
   const [editing, setEditing] = useState<RobotRow | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [config, setConfig] = useState<MessageEventsConfig>({});
@@ -64,7 +88,12 @@ export default function MessagesPage() {
   const errText = (e: unknown) => (e instanceof Error ? e.message : "操作失败");
 
   const save = useMutation({
-    mutationFn: (body: { name: string; channel: RobotRow["channel"]; webhook?: string; enabled: boolean }) =>
+    mutationFn: (body: {
+      name: string;
+      channel: RobotRow["channel"];
+      webhook?: string;
+      enabled: boolean;
+    }) =>
       editing ? robotApi.update(projectId!, editing.id, body) : robotApi.create(projectId!, body),
     onSuccess: () => {
       message.success(editing ? "已保存" : "已创建");
@@ -104,44 +133,81 @@ export default function MessagesPage() {
 
   const robotColumns = [
     { title: "名称", dataIndex: "name" },
-    { title: "渠道", dataIndex: "channel", render: (v: string) => (
-      <Tag color={CHANNEL_COLOR[v] ?? "default"}>{CHANNEL_LABEL[v] ?? v}</Tag>
-    ) },
-    { title: "Webhook / 说明", dataIndex: "webhook", render: (v: string | null, r: RobotRow) =>
-      v ? <code className="text-xs text-gray-500 max-w-[280px] truncate inline-block align-middle">{v}</code>
-        : <span className="text-xs text-gray-400">{r.channel === "inapp" ? "—（投递给事件接收人）" : "经系统 SMTP 投递"}</span> },
-    { title: "启用", dataIndex: "enabled", render: (v: boolean, r: RobotRow) => (
-      <Switch
-        size="small"
-        checked={v}
-        disabled={!canUpdate}
-        onChange={(checked) => save.mutate({ name: r.name, channel: r.channel, webhook: r.webhook ?? undefined, enabled: checked })}
-      />
-    ) },
+    {
+      title: "渠道",
+      dataIndex: "channel",
+      render: (v: string) => (
+        <Tag color={CHANNEL_COLOR[v] ?? "default"}>{CHANNEL_LABEL[v] ?? v}</Tag>
+      ),
+    },
+    {
+      title: "Webhook / 说明",
+      dataIndex: "webhook",
+      render: (v: string | null, r: RobotRow) =>
+        v ? (
+          <code className="text-xs text-gray-500 max-w-[280px] truncate inline-block align-middle">
+            {v}
+          </code>
+        ) : (
+          <span className="text-xs text-gray-400">
+            {r.channel === "inapp" ? "—（投递给事件接收人）" : "经系统 SMTP 投递"}
+          </span>
+        ),
+    },
+    {
+      title: "启用",
+      dataIndex: "enabled",
+      render: (v: boolean, r: RobotRow) => (
+        <Switch
+          size="small"
+          checked={v}
+          disabled={!canUpdate}
+          onChange={(checked) =>
+            save.mutate({
+              name: r.name,
+              channel: r.channel,
+              webhook: r.webhook ?? undefined,
+              enabled: checked,
+            })
+          }
+        />
+      ),
+    },
     ...(canUpdate
-      ? [{
-          title: "操作",
-          render: (_: unknown, r: RobotRow) => (
-            <Space size={4}>
-              <Button size="small" type="link" loading={test.isPending && test.variables === r.id} onClick={() => test.mutate(r.id)} data-testid={`robot-test-${r.name}`}>
-                测试
-              </Button>
-              <Button size="small" type="link" onClick={() => setEditing(r)}>
-                编辑
-              </Button>
-              <Popconfirm title="删除该机器人？" onConfirm={() => remove.mutate(r.id)}>
-                <Button size="small" type="link" danger>
-                  删除
+      ? [
+          {
+            title: "操作",
+            render: (_: unknown, r: RobotRow) => (
+              <Space size={4}>
+                <Button
+                  size="small"
+                  type="link"
+                  loading={test.isPending && test.variables === r.id}
+                  onClick={() => test.mutate(r.id)}
+                  data-testid={`robot-test-${r.name}`}
+                >
+                  测试
                 </Button>
-              </Popconfirm>
-            </Space>
-          ),
-        }]
+                <Button size="small" type="link" onClick={() => setEditing(r)}>
+                  编辑
+                </Button>
+                <Popconfirm title="删除该机器人？" onConfirm={() => remove.mutate(r.id)}>
+                  <Button size="small" type="link" danger>
+                    删除
+                  </Button>
+                </Popconfirm>
+              </Space>
+            ),
+          },
+        ]
       : []),
   ];
 
   const enabledRobots = (cfgView.data?.robots ?? []).filter((r) => r.enabled);
-  const memberOptions = (members.data?.items ?? []).map((m) => ({ value: m.id, label: m.name || m.email }));
+  const memberOptions = (members.data?.items ?? []).map((m) => ({
+    value: m.id,
+    label: m.name || m.email,
+  }));
 
   const updateEvent = (key: string, patch: Partial<MessageEventConfig>) => {
     const prev = config[key] ?? { enabled: false, robotIds: [], receiverUserIds: [] };
@@ -159,11 +225,17 @@ export default function MessagesPage() {
       />
       {groups.map((g) => (
         <div key={g} className="border rounded-md">
-          <div className="px-3 py-1.5 bg-slate-50 border-b text-xs text-gray-500 font-medium">{g}</div>
+          <div className="px-3 py-1.5 bg-slate-50 border-b text-xs text-gray-500 font-medium">
+            {g}
+          </div>
           {MESSAGE_EVENTS.filter((e) => e.group === g).map((e) => {
             const cfg = config[e.key] ?? { enabled: false, robotIds: [], receiverUserIds: [] };
             return (
-              <div key={e.key} className="flex items-center gap-3 px-3 py-2 border-b last:border-b-0" data-testid={`event-row-${e.key}`}>
+              <div
+                key={e.key}
+                className="flex items-center gap-3 px-3 py-2 border-b last:border-b-0"
+                data-testid={`event-row-${e.key}`}
+              >
                 <span className="w-44 text-[13px] shrink-0">{e.label}</span>
                 <Switch
                   size="small"
@@ -189,7 +261,10 @@ export default function MessagesPage() {
                   placeholder="机器人"
                   value={cfg.robotIds}
                   disabled={!canUpdate || !cfg.enabled}
-                  options={enabledRobots.map((r) => ({ value: r.id, label: `${r.name}（${CHANNEL_LABEL[r.channel] ?? r.channel}）` }))}
+                  options={enabledRobots.map((r) => ({
+                    value: r.id,
+                    label: `${r.name}（${CHANNEL_LABEL[r.channel] ?? r.channel}）`,
+                  }))}
                   onChange={(v) => updateEvent(e.key, { robotIds: v })}
                 />
               </div>
@@ -197,7 +272,12 @@ export default function MessagesPage() {
           })}
         </div>
       ))}
-      <Button type="primary" disabled={!canUpdate || !configDirty} loading={saveConfig.isPending} onClick={() => saveConfig.mutate()}>
+      <Button
+        type="primary"
+        disabled={!canUpdate || !configDirty}
+        loading={saveConfig.isPending}
+        onClick={() => saveConfig.mutate()}
+      >
         保存事件配置
       </Button>
     </div>
@@ -205,7 +285,10 @@ export default function MessagesPage() {
 
   return (
     <div data-testid="page-settings-messages" className="p-4 bg-white border rounded-md">
-      <PageHeader title="消息管理" sub="通知机器人（5 渠道）与事件配置；操作人本人不发（同人去重）" />
+      <PageHeader
+        title="消息管理"
+        sub="通知机器人（5 渠道）与事件配置；操作人本人不发（同人去重）"
+      />
       <Tabs
         defaultActiveKey="robots"
         items={[
@@ -215,18 +298,41 @@ export default function MessagesPage() {
             children: (
               <>
                 <div className="mb-2 flex items-center">
-                  <span className="text-xs text-gray-400">渠道：站内信 / 邮件 / 企业微信 / 钉钉 / 飞书 —— 上限 10 个/项目</span>
+                  <span className="text-xs text-gray-400">
+                    渠道：站内信 / 邮件 / 企业微信 / 钉钉 / 飞书 —— 上限 10 个/项目
+                  </span>
                   {canUpdate && (
-                    <Button className="ml-auto" type="primary" size="small" onClick={() => setCreateOpen(true)} data-testid="btn-new-robot">
+                    <Button
+                      className="ml-auto"
+                      type="primary"
+                      size="small"
+                      onClick={() => setCreateOpen(true)}
+                      data-testid="btn-new-robot"
+                    >
                       ＋ 新建机器人
                     </Button>
                   )}
                 </div>
-                <Table rowKey="id" size="small" loading={robots.isLoading} columns={robotColumns} dataSource={robots.data?.items ?? []} pagination={false} />
+                <Table
+                  rowKey="id"
+                  size="small"
+                  loading={robots.isLoading}
+                  columns={robotColumns}
+                  dataSource={robots.data?.items ?? []}
+                  pagination={false}
+                />
               </>
             ),
           },
           { key: "events", label: "事件配置", children: eventsTab },
+          {
+            key: "templates",
+            label: "模板",
+            forceRender: true,
+            children: projectId ? (
+              <TemplateTab projectId={projectId} enabled={entp.can("MSG_TEMPLATE")} />
+            ) : null,
+          },
         ]}
       />
       {(createOpen || editing) && (
@@ -251,7 +357,12 @@ function RobotFormModal({
 }: {
   initial: RobotRow | null;
   onClose: () => void;
-  onSubmit: (v: { name: string; channel: RobotRow["channel"]; webhook?: string; enabled: boolean }) => void;
+  onSubmit: (v: {
+    name: string;
+    channel: RobotRow["channel"];
+    webhook?: string;
+    enabled: boolean;
+  }) => void;
 }) {
   const [form] = Form.useForm();
   const channel = Form.useWatch("channel", form);
@@ -306,7 +417,10 @@ function RobotFormModal({
                   },
                 ]}
               >
-                <Input placeholder="https://oapi.dingtalk.com/robot_send?access_token=..." data-testid="robot-webhook-input" />
+                <Input
+                  placeholder="https://oapi.dingtalk.com/robot_send?access_token=..."
+                  data-testid="robot-webhook-input"
+                />
               </Form.Item>
             ) : (
               <Form.Item label="Webhook" tooltip="站内信/邮件渠道无需 Webhook">

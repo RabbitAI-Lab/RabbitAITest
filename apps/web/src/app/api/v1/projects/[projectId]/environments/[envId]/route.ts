@@ -32,9 +32,7 @@ export const PUT = withProjectScope(async (ctx, req, seg) => {
     const { envId } = await (seg as { params: Promise<{ envId: string }> }).params;
     const parsed = environmentUpsertSchema.partial().safeParse(await req.json());
     if (!parsed.success) return unprocessable(parsed.error.issues[0]?.message);
-    return NextResponse.json(
-      ok(await updateEnvironment(ctx.projectId, envId, parsed.data)),
-    );
+    return NextResponse.json(ok(await updateEnvironment(ctx.projectId, envId, parsed.data)));
   } catch (err) {
     return toResponse(err);
   }

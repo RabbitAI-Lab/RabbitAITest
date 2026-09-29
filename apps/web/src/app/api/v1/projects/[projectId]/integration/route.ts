@@ -9,7 +9,9 @@ export const runtime = "nodejs";
 export const GET = withProjectScope(async (ctx) => {
   try {
     ctx.requirePerm("PROJECT_BUG:READ");
-    return okResponse((await svc.getSyncConfig(ctx.projectId)) ?? { enabled: false, platform: null });
+    return okResponse(
+      (await svc.getSyncConfig(ctx.projectId)) ?? { enabled: false, platform: null },
+    );
   } catch (err) {
     return toResponse(err);
   }

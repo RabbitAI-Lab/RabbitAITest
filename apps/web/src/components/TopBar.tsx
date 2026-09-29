@@ -5,14 +5,24 @@ import { HelpCircle, LogOut, Bell, Sparkles, UserCircle2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { notificationApi } from "@rabbit/api-client";
+import { notificationApi, themeApi, type ThemeParam } from "@rabbit/api-client";
 import { ProjectSwitcher } from "./ProjectSwitcher";
+import { OrgSwitcher } from "./OrgSwitcher";
 import { AiAssistantDrawer } from "./ai/AiAssistantDrawer";
 
-/** 顶栏（SYS-003 §3 视觉基线：白底描边、品牌位 + 项目切换 + 通知/帮助/用户；S7 增 AI 助手入口）。 */
+/** 顶栏（SYS-003 视觉基线；S7 AI 助手入口；S9 ENTP-001 组织切换器 + ENTP-004 品牌定制）。 */
 export function TopBar({ email }: { email?: string }) {
   const router = useRouter();
   const [aiOpen, setAiOpen] = useState(false);
+  // ENTP-004：品牌定制（公开 theme；失败/未配置=默认品牌）
+  const themeQ = useQuery({
+    queryKey: ["public-theme"],
+    queryFn: () => themeApi.publicTheme(),
+    staleTime: 60_000,
+    retry: false,
+  });
+  const theme = themeQ.data;
+  const primary = theme?.primaryColor || "#574BFF";
 
   // S5 MSG-001：未读数徽标（30s 轮询）
   const unread = useQuery({
@@ -42,15 +52,28 @@ export function TopBar({ email }: { email?: string }) {
       data-testid="topbar"
       className="h-12 bg-white border-b border-[#E5E6EB] flex items-center px-4 gap-3 sticky top-0 z-20"
     >
-      <div className="flex items-center gap-2 select-none">
-        <span className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#6F63FF] to-[#574BFF] text-white grid place-items-center text-[13px] font-bold shadow-sm">
-          R
-        </span>
+      <div className="flex items-center gap-2 select-none" data-testid="topbar-brand">
+        {theme?.platformLogo ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={theme.platformLogo} alt="logo" className="w-7 h-7 rounded-lg object-cover" />
+        ) : (
+          <span
+            className="w-7 h-7 rounded-lg text-white grid place-items-center text-[13px] font-bold shadow-sm"
+            style={{ background: `linear-gradient(135deg, ${primary}, ${primary}CC)` }}
+          >
+            R
+          </span>
+        )}
         <span className="font-semibold text-[15px] tracking-tight text-[#1F2329]">
-          Rabbit<span className="text-[#574BFF]">AI</span>Test
+          {theme?.platformName || (
+            <>
+              Rabbit<span style={{ color: primary }}>AI</span>Test
+            </>
+          )}
         </span>
       </div>
       <div className="w-px h-4 bg-[#E5E6EB]" />
+      <OrgSwitcher />
       <ProjectSwitcher />
       <div className="ml-auto flex items-center gap-1 text-[#646A73]">
         <button
@@ -67,7 +90,10 @@ export function TopBar({ email }: { email?: string }) {
           open={bellOpen}
           onOpenChange={(open) => setBellOpen(open)}
           dropdownRender={() => (
-            <div className="bg-white border rounded-md shadow-md w-80 p-2" data-testid="bell-dropdown">
+            <div
+              className="bg-white border rounded-md shadow-md w-80 p-2"
+              data-testid="bell-dropdown"
+            >
               {(recent.data?.items ?? []).length === 0 ? (
                 <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="暂无通知" />
               ) : (
@@ -79,7 +105,9 @@ export function TopBar({ email }: { email?: string }) {
                       />
                       <div>
                         <p className="text-[13px] leading-snug">{n.title}</p>
-                        <p className="text-xs text-gray-400">{n.createdAt.replace("T", " ").slice(0, 16)}</p>
+                        <p className="text-xs text-gray-400">
+                          {n.createdAt.replace("T", " ").slice(0, 16)}
+                        </p>
                       </div>
                     </div>
                   ))}
@@ -111,7 +139,9 @@ export function TopBar({ email }: { email?: string }) {
         <button
           aria-label="帮助"
           className="w-8 h-8 rounded-md grid place-items-center hover:bg-[#F2F3F5] cursor-pointer"
-          onClick={() => window.open("https://metersphere.io/docs/v3.x/", "_blank")}
+          onClick={() =>
+            window.open(theme?.helpUrl || "https://metersphere.io/docs/v3.x/", "_blank")
+          }
         >
           <HelpCircle size={16} strokeWidth={1.8} />
         </button>
@@ -133,7 +163,7 @@ export function TopBar({ email }: { email?: string }) {
           <Avatar
             data-testid="user-avatar"
             size={28}
-            style={{ background: "#574BFF", cursor: "pointer", fontSize: 12 }}
+            style={{ background: primary, cursor: "pointer", fontSize: 12 }}
           >
             {(email ?? "U").slice(0, 1).toUpperCase()}
           </Avatar>

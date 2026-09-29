@@ -16,8 +16,15 @@ const processCounter = new Map<string, number>();
  * 渲染统一入口（S3 EXEC-003）：${var}（含 row.col 点路径与 |pipe 管道）+ ${__func()} + @func()
  * 三形态；未定义变量/未知函数原样保留（S2 语义不变）；\${ 与 @@ 转义。
  */
-export function renderString(input: string, vars: Record<string, string>, counter?: Map<string, number>): string {
-  return renderFunctions(input, { vars: new Map(Object.entries(vars)), counter: counter ?? processCounter });
+export function renderString(
+  input: string,
+  vars: Record<string, string>,
+  counter?: Map<string, number>,
+): string {
+  return renderFunctions(input, {
+    vars: new Map(Object.entries(vars)),
+    counter: counter ?? processCounter,
+  });
 }
 
 export function renderRequest(spec: RequestSpec, ctx: RenderContext): RequestSpec {
@@ -66,9 +73,13 @@ export function resolveUrl(spec: RequestSpec, ctx: RenderContext): string {
   let url = spec.url;
   const isAbsolute = /^https?:\/\//i.test(url);
   if (!isAbsolute) {
-    const d = ctx.env ? pickDomain(url.split("?")[0] ?? url, ctx.moduleId, ctx.env.http) : undefined;
+    const d = ctx.env
+      ? pickDomain(url.split("?")[0] ?? url, ctx.moduleId, ctx.env.http)
+      : undefined;
     if (!d) {
-      const err = new Error("相对路径请求未选择环境（无可用域名配置）") as Error & { kind: "CONFIG" };
+      const err = new Error("相对路径请求未选择环境（无可用域名配置）") as Error & {
+        kind: "CONFIG";
+      };
       err.kind = "CONFIG";
       throw err;
     }

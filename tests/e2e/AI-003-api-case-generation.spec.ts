@@ -32,7 +32,9 @@ test("AI-003-01 单条生成与导入（按接口定义）", async ({
   const genRes = await gen;
   expect(genRes.status()).toBe(200);
   const genData = (await genRes.json()) as {
-    data: { drafts: { name: string; assertions: { source: string }[]; request: { bodyJson?: string } }[] };
+    data: {
+      drafts: { name: string; assertions: { source: string }[]; request: { bodyJson?: string } }[];
+    };
   };
   expect(genData.data.drafts.length).toBe(1);
   expect(genData.data.drafts[0]!.assertions.some((a) => a.source === "status")).toBe(true);
@@ -96,7 +98,9 @@ test("AI-003-02 批量生成（OpenAPI 文档）", async ({
   await expect(page.getByTestId("ai-apicase-batch-draft-0")).toBeVisible();
 
   // 非法文档 422 70503（接口断言）
-  const bad = await request.post(`/api/v1/projects/${pid}/ai/generate/api-cases/batch`, { data: { openapiDoc: "not-json" } });
+  const bad = await request.post(`/api/v1/projects/${pid}/ai/generate/api-cases/batch`, {
+    data: { openapiDoc: "not-json" },
+  });
   expect(bad.status()).toBe(422);
   expect(((await bad.json()) as { code: number }).code).toBe(70503);
 

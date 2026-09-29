@@ -1,20 +1,20 @@
 # Jira 对接（组织服务集成 · 缺陷双向同步）
 
-| 元信息项     | 内容                                                                                                                                   |
-| ------------ | -------------------------------------------------------------------------------------------------------------------------------------- |
-| 文档编号     | INTG-001                                                                                                                               |
-| 所属迭代     | Sprint 6 — 集成与插件                                                                                                                  |
-| 优先级       | P2（迭代内）                                                                                                                           |
-| 所属模块     | 组织设置（org 域）+ 缺陷管理（bug 域）+ 插件运行时                                                                                     |
-| 文档状态     | Implemented（2026-09-27 交付：代码+单测+JMeter+Playwright 全绿、CI 六作业全绿；高保真走查随验收） |
-| 最后更新日期 | 2026-09-27                                                                                                                             |
-| 上游依赖     | PLUG-001（平台插件加载）、BUG-001（本地缺陷模型/模板）、PROJ-002（模板字段）、S3 定时基建（BullMQ repeatable）                          |
-| 下游消费     | INTG-002（禅道/TAPD 复用编排）、S7（同步数据供 AI 分析）、MS §六兼容承诺                                                               |
-| 上游依据     | 需求文档 §二「三方同步：Jira/禅道/TAPD 双向同步（手动+定时）、增量/全量策略、平台字段映射模板」                                         |
-| 对标基线     | 功能清单 §8.4/§9.2 服务集成（JIRA Basic Auth/Bearer Token·测试连接）、§七「第三方平台对接：手动+自动、双向同步」、§11 JIRA 口径          |
-| 关联架构文档 | plugin-architecture.md（PlatformPlugin SPI/凭据 Secret 存储）；test-domain-model.md §2（Bug.platform/sync_state、PlatformSyncConfig）   |
-| 高保真确认   | 待确认（原型 docs/design/INTG-001-jira-integration/）                                                                                  |
-| 工作量估算   | 后端 5 人日 / 前端 3 人日 / 插件 3 人日                                                                                                |
+| 元信息项     | 内容                                                                                                                                  |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
+| 文档编号     | INTG-001                                                                                                                              |
+| 所属迭代     | Sprint 6 — 集成与插件                                                                                                                 |
+| 优先级       | P2（迭代内）                                                                                                                          |
+| 所属模块     | 组织设置（org 域）+ 缺陷管理（bug 域）+ 插件运行时                                                                                    |
+| 文档状态     | Implemented（2026-09-27 交付：代码+单测+JMeter+Playwright 全绿、CI 六作业全绿；高保真走查随验收）                                     |
+| 最后更新日期 | 2026-09-27                                                                                                                            |
+| 上游依赖     | PLUG-001（平台插件加载）、BUG-001（本地缺陷模型/模板）、PROJ-002（模板字段）、S3 定时基建（BullMQ repeatable）                        |
+| 下游消费     | INTG-002（禅道/TAPD 复用编排）、S7（同步数据供 AI 分析）、MS §六兼容承诺                                                              |
+| 上游依据     | 需求文档 §二「三方同步：Jira/禅道/TAPD 双向同步（手动+定时）、增量/全量策略、平台字段映射模板」                                       |
+| 对标基线     | 功能清单 §8.4/§9.2 服务集成（JIRA Basic Auth/Bearer Token·测试连接）、§七「第三方平台对接：手动+自动、双向同步」、§11 JIRA 口径       |
+| 关联架构文档 | plugin-architecture.md（PlatformPlugin SPI/凭据 Secret 存储）；test-domain-model.md §2（Bug.platform/sync_state、PlatformSyncConfig） |
+| 高保真确认   | 待确认（原型 docs/design/INTG-001-jira-integration/）                                                                                 |
+| 工作量估算   | 后端 5 人日 / 前端 3 人日 / 插件 3 人日                                                                                               |
 
 ## 1. 概述
 
@@ -24,18 +24,18 @@
 
 ### 1.2 范围边界（能力行 → §5 用例映射）
 
-| 能力                                                                                                | P1 ✅ | 后续                                                 |
-| ---------------------------------------------------------------------------------------------------- | ----- | ---------------------------------------------------- |
-| 组织服务集成配置：platform=jira、address、认证方式（Basic Auth 用户名/密码 or Bearer Token）、凭据加密存储 | ✅     | —                                                    |
-| 测试连接：经 runner jira 插件 `testConnection`（GET /rest/api/2/myself），返回账号展示名               | ✅     | —                                                    |
-| 凭据安全：AES-256-GCM 加密落库（密钥 env 派生）；GET 永不回显明文（`hasCredential` 布尔+掩码）         | ✅     | 密钥服务（KMS 类）                                   |
-| 项目关联：PlatformSyncConfig（platform/projectKey/bugTypes 映射/mode INCREMENT|FULL/cron/enabled）    | ✅     | —                                                    |
-| 字段映射：模板自动生成（`fieldMapping()` 本地模板字段→Jira 字段：title→summary、description→description、自定义字段按标识直传） | ✅     | 映射可编辑 UI（当前固定映射+映射表展示，登记）        |
-| 推送（出站）：本地 Bug（platform=LOCAL）「同步到 Jira」→ 创建 issue → platform=jira/platformKey/syncState=SYNCED；已同步 Bug 再推送=更新 | ✅     | 删除同步（本地删→Jira 关闭，登记）                   |
-| 拉取（入站）：Jira issue 状态变更 → 本地 Bug.status 映射回写（平台状态→本地 WorkflowState 映射表）+ tags 记平台标签 | ✅     | Jira 评论双向（登记）                                |
-| 同步模式：手动（缺陷列表/详情「同步」按钮）；定时（cron repeatable，INCREMENT=syncState=SYNCED 且平台侧 updatedAt 变更者） | ✅     | 全量对账（FULL=重拉全量比对，S7 前评审）             |
-| 同步留痕：AuditLog action=integration.sync；失败重试 1 次后任务中心报错                                 | ✅     | —                                                    |
-| 断链保护：runner 不可达/平台 401/超时 → 明确错误码，不阻塞本地缺陷操作                                  | ✅     | —                                                    |
+| 能力                                                                                                                                     | P1 ✅               | 后续                                           |
+| ---------------------------------------------------------------------------------------------------------------------------------------- | ------------------- | ---------------------------------------------- |
+| 组织服务集成配置：platform=jira、address、认证方式（Basic Auth 用户名/密码 or Bearer Token）、凭据加密存储                               | ✅                  | —                                              |
+| 测试连接：经 runner jira 插件 `testConnection`（GET /rest/api/2/myself），返回账号展示名                                                 | ✅                  | —                                              |
+| 凭据安全：AES-256-GCM 加密落库（密钥 env 派生）；GET 永不回显明文（`hasCredential` 布尔+掩码）                                           | ✅                  | 密钥服务（KMS 类）                             |
+| 项目关联：PlatformSyncConfig（platform/projectKey/bugTypes 映射/mode INCREMENT                                                           | FULL/cron/enabled） | ✅                                             | —   |
+| 字段映射：模板自动生成（`fieldMapping()` 本地模板字段→Jira 字段：title→summary、description→description、自定义字段按标识直传）          | ✅                  | 映射可编辑 UI（当前固定映射+映射表展示，登记） |
+| 推送（出站）：本地 Bug（platform=LOCAL）「同步到 Jira」→ 创建 issue → platform=jira/platformKey/syncState=SYNCED；已同步 Bug 再推送=更新 | ✅                  | 删除同步（本地删→Jira 关闭，登记）             |
+| 拉取（入站）：Jira issue 状态变更 → 本地 Bug.status 映射回写（平台状态→本地 WorkflowState 映射表）+ tags 记平台标签                      | ✅                  | Jira 评论双向（登记）                          |
+| 同步模式：手动（缺陷列表/详情「同步」按钮）；定时（cron repeatable，INCREMENT=syncState=SYNCED 且平台侧 updatedAt 变更者）               | ✅                  | 全量对账（FULL=重拉全量比对，S7 前评审）       |
+| 同步留痕：AuditLog action=integration.sync；失败重试 1 次后任务中心报错                                                                  | ✅                  | —                                              |
+| 断链保护：runner 不可达/平台 401/超时 → 明确错误码，不阻塞本地缺陷操作                                                                   | ✅                  | —                                              |
 
 ### 1.3 前置依赖
 

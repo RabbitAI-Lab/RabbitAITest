@@ -199,7 +199,10 @@ test("BUG-001-03 附件上传、下载、删除与可执行文件拒收", async 
   const attRow = page.getByTestId(`attachment-name-${att.id}`).locator("xpath=..");
   await attRow.getByRole("button").click();
   const delApi = expectApi("**/api/v1/projects/*/attachments/*");
-  await page.locator(".ant-popover").getByRole("button", { name: /确\s*定/ }).click();
+  await page
+    .locator(".ant-popover")
+    .getByRole("button", { name: /确\s*定/ })
+    .click();
   const removed = await delApi;
   expect(removed.status).toBe(200);
   expect(removed.code).toBe(0);
@@ -217,7 +220,11 @@ test("BUG-001-03 附件上传、下载、删除与可执行文件拒收", async 
 
   // 白名单：黑名单 422 为预期业务拒绝（UI 上传路径的 fetch 失败留痕，§3.5.1 显式登记）
   await expectNoConsoleErrors([
-    { pageUrlPattern: "/bugs/", textPattern: "(\\[http 422\\]|status of 422)", reason: "BUG-001-03 可执行文件拒收的预期 422（security.md 黑名单）" },
+    {
+      pageUrlPattern: "/bugs/",
+      textPattern: "(\\[http 422\\]|status of 422)",
+      reason: "BUG-001-03 可执行文件拒收的预期 422（security.md 黑名单）",
+    },
   ]);
 });
 
@@ -245,7 +252,10 @@ test("BUG-001-04 回收站彻底删除（不可恢复）", async ({
   await expect(page.getByTestId("bug-table")).toBeVisible();
   const row = page.getByRole("row", { name: new RegExp(bugTitle) });
   await row.getByRole("button", { name: "删除" }).click();
-  await page.locator(".ant-popover").getByRole("button", { name: /确\s*定/ }).click();
+  await page
+    .locator(".ant-popover")
+    .getByRole("button", { name: /确\s*定/ })
+    .click();
   await expect(page.getByText("已删除（进入回收站，可恢复）")).toBeVisible({ timeout: 8000 });
 
   // 回收站 → 彻底删除（Popconfirm okText=彻底删除，明示不可恢复与级联）
@@ -253,7 +263,7 @@ test("BUG-001-04 回收站彻底删除（不可恢复）", async ({
   await expect(row).toBeVisible();
   const purgeApi = expectApi("**/api/v1/projects/*/bugs/*?purge=true*");
   await row.getByRole("button", { name: "彻底删除" }).click();
-  await expect(page.locator(".ant-popover:has-text(\"不可恢复\")")).toBeVisible();
+  await expect(page.locator('.ant-popover:has-text("不可恢复")')).toBeVisible();
   await page.locator(".ant-popover").getByRole("button", { name: "彻底删除" }).click();
   const purged = await purgeApi;
   // 接口断言：DELETE ?purge=true 200 + code=0
@@ -272,11 +282,7 @@ test("BUG-001-04 回收站彻底删除（不可恢复）", async ({
 });
 
 /** P-4 回归（coverage-audit §10）：批量删除 + 标签筛选 + 导出（BUG-001 §1.2 行 4）。 */
-test("BUG-001-05 批量删除、标签筛选与导出（P-4）", async ({
-  authedPage,
-  page,
-  request,
-}) => {
+test("BUG-001-05 批量删除、标签筛选与导出（P-4）", async ({ authedPage, page, request }) => {
   const { projectId } = authedPage;
   const uniq = `P4-${Date.now() % 100000}`;
   const ids: string[] = [];
@@ -300,11 +306,24 @@ test("BUG-001-05 批量删除、标签筛选与导出（P-4）", async ({
   expect(exp.status()).toBe(200);
 
   // 勾选 2 条 → 批量删除 → 回收站 2 条
-  await page.getByRole("row", { name: new RegExp(`${uniq}-甲`) }).locator('input[type="checkbox"]').first().check();
-  await page.getByRole("row", { name: new RegExp(`${uniq}-乙`) }).locator('input[type="checkbox"]').first().check();
+  await page
+    .getByRole("row", { name: new RegExp(`${uniq}-甲`) })
+    .locator('input[type="checkbox"]')
+    .first()
+    .check();
+  await page
+    .getByRole("row", { name: new RegExp(`${uniq}-乙`) })
+    .locator('input[type="checkbox"]')
+    .first()
+    .check();
   await page.getByTestId("btn-batch-delete-bugs").click();
-  const delApi = page.waitForResponse((r) => r.url().includes("/bugs/batch-delete") && r.request().method() === "POST");
-  await page.locator(".ant-popover .ant-btn-dangerous, .ant-popconfirm .ant-btn-dangerous").first().click();
+  const delApi = page.waitForResponse(
+    (r) => r.url().includes("/bugs/batch-delete") && r.request().method() === "POST",
+  );
+  await page
+    .locator(".ant-popover .ant-btn-dangerous, .ant-popconfirm .ant-btn-dangerous")
+    .first()
+    .click();
   const del = await delApi;
   expect(del.status()).toBe(200);
   await expect(page.getByText(/已删除 2 条缺陷/)).toBeVisible({ timeout: 8000 });

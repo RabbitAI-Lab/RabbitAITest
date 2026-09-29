@@ -87,11 +87,18 @@ function withGiteeToken(url: string, platform: FileRepoPlatform, token: string |
   return `${url}${url.includes("?") ? "&" : "?"}access_token=${encodeURIComponent(token)}`;
 }
 
-async function fetchJson<T>(fetchFn: FetchLike, url: string, headers: Record<string, string>): Promise<T> {
+async function fetchJson<T>(
+  fetchFn: FetchLike,
+  url: string,
+  headers: Record<string, string>,
+): Promise<T> {
   // cache no-store：Route Handler 内 GET fetch 会被 Next 数据缓存层拦截（对重启过的目标端口产生粘滞失败——S5 FILE-001 e2e 定位）
   const res = await fetchFn(url, { headers, cache: "no-store" }).catch((err: unknown) => {
     const cause = (err as { cause?: { code?: string; message?: string } })?.cause;
-    throw new GitAdapterError(`fetch failed:${cause?.code ?? ""}:${cause?.message ?? (err as Error)?.message ?? ""}`, 0);
+    throw new GitAdapterError(
+      `fetch failed:${cause?.code ?? ""}:${cause?.message ?? (err as Error)?.message ?? ""}`,
+      0,
+    );
   });
   if (!res.ok) {
     throw new GitAdapterError(`平台响应 ${res.status}`, res.status);
@@ -99,7 +106,11 @@ async function fetchJson<T>(fetchFn: FetchLike, url: string, headers: Record<str
   return (await res.json()) as T;
 }
 
-async function fetchText(fetchFn: FetchLike, url: string, headers: Record<string, string>): Promise<string> {
+async function fetchText(
+  fetchFn: FetchLike,
+  url: string,
+  headers: Record<string, string>,
+): Promise<string> {
   const res = await fetchFn(url, { headers, cache: "no-store" });
   if (!res.ok) throw new GitAdapterError(`平台响应 ${res.status}`, res.status);
   return res.text();
@@ -172,7 +183,11 @@ async function fetchContentsDir(
   if (depth > MAX_DEPTH) return [];
   const headers = { accept: "application/json", ...authHeaders(ref.platform, token) };
   const url = `${ref.apiBase}/repos/${ref.owner}/${ref.repo}/contents/${dirPath}?ref=${encodeURIComponent(branch)}`;
-  const entries = await fetchJson<ContentsEntry[]>(fetchFn, withGiteeToken(url, ref.platform, token), headers);
+  const entries = await fetchJson<ContentsEntry[]>(
+    fetchFn,
+    withGiteeToken(url, ref.platform, token),
+    headers,
+  );
   const out: GitRemoteFile[] = [];
   for (const e of entries) {
     if (budget.count >= MAX_FILES) break;
@@ -182,7 +197,11 @@ async function fetchContentsDir(
         budget.count += 1;
       } else {
         const fileUrl = `${ref.apiBase}/repos/${ref.owner}/${ref.repo}/contents/${e.path}?ref=${encodeURIComponent(branch)}`;
-        const { content, size } = await fetchContentsFile(fetchFn, withGiteeToken(fileUrl, ref.platform, token), headers);
+        const { content, size } = await fetchContentsFile(
+          fetchFn,
+          withGiteeToken(fileUrl, ref.platform, token),
+          headers,
+        );
         out.push({ path: e.path, content, size });
         budget.count += 1;
       }
@@ -252,7 +271,10 @@ export async function fetchPath(
     }
     const headers = { accept: "application/json", ...authHeaders(ref.platform, token) };
     const fileUrl = `${ref.apiBase}/repos/${ref.owner}/${ref.repo}/contents/${clean}?ref=${encodeURIComponent(branch)}`;
-    const res = await fetchFn(withGiteeToken(fileUrl, ref.platform, token), { headers, cache: "no-store" });
+    const res = await fetchFn(withGiteeToken(fileUrl, ref.platform, token), {
+      headers,
+      cache: "no-store",
+    });
     if (res.status === 404) {
       throw new GitAdapterError("路径或分支不存在（404）", 404);
     }
@@ -265,11 +287,19 @@ export async function fetchPath(
         if (budget.count >= MAX_FILES) break;
         if (e.type === "file" && e.path) {
           if (typeof e.content === "string" && e.encoding === "base64") {
-            out.push({ path: e.path, content: Buffer.from(e.content, "base64"), size: e.size ?? 0 });
+            out.push({
+              path: e.path,
+              content: Buffer.from(e.content, "base64"),
+              size: e.size ?? 0,
+            });
             budget.count += 1;
           } else {
             const u = `${ref.apiBase}/repos/${ref.owner}/${ref.repo}/contents/${e.path}?ref=${encodeURIComponent(branch)}`;
-            const { content, size } = await fetchContentsFile(fetchFn, withGiteeToken(u, ref.platform, token), headers);
+            const { content, size } = await fetchContentsFile(
+              fetchFn,
+              withGiteeToken(u, ref.platform, token),
+              headers,
+            );
             out.push({ path: e.path, content, size });
             budget.count += 1;
           }
@@ -285,7 +315,10 @@ export async function fetchPath(
     }
     // 单文件
     if (body.type && body.type !== "file") {
-      throw new DomainError(ErrCode.VALIDATION_FAILED, "路径不是文件（目录请以 / 结尾或直接传目录路径）");
+      throw new DomainError(
+        ErrCode.VALIDATION_FAILED,
+        "路径不是文件（目录请以 / 结尾或直接传目录路径）",
+      );
     }
     if (typeof body.content === "string" && body.encoding === "base64") {
       return [{ path: clean, content: Buffer.from(body.content, "base64"), size: body.size ?? 0 }];

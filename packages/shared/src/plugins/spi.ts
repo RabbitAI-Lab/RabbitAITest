@@ -69,8 +69,16 @@ export interface PlatformPlugin {
   platform: Platform;
   testConnection(cfg: PlatformConfig): Promise<void>;
   createIssue(cfg: PlatformConfig, payload: IssuePayload): Promise<PlatformRef>;
-  updateIssue(cfg: PlatformConfig, platformKey: string, payload: IssuePayload): Promise<PlatformRef>;
-  syncBugs(cfg: PlatformConfig, projectKey: string, since?: string /* ISO——HTTP JSON 序列化契约 */): Promise<PlatformBug[]>;
+  updateIssue(
+    cfg: PlatformConfig,
+    platformKey: string,
+    payload: IssuePayload,
+  ): Promise<PlatformRef>;
+  syncBugs(
+    cfg: PlatformConfig,
+    projectKey: string,
+    since?: string /* ISO——HTTP JSON 序列化契约 */,
+  ): Promise<PlatformBug[]>;
   fieldMapping(): PlatformField[];
 }
 
@@ -140,7 +148,19 @@ export const PLATFORM_META: Record<
 
 /** 平台状态 → 本地工作流状态的内置默认映射（项目关联配置可覆盖） */
 export const PLATFORM_STATUS_DEFAULT_MAPPING: Record<Platform, Record<string, string>> = {
-  jira: { "in progress": "进行中", indeterminate: "进行中", done: "已解决", resolved: "已解决", closed: "已关闭" },
+  jira: {
+    "in progress": "进行中",
+    indeterminate: "进行中",
+    done: "已解决",
+    resolved: "已解决",
+    closed: "已关闭",
+  },
   zentao: { active: "进行中", resolved: "已解决", closed: "已关闭" },
-  tapd: { new: "进行中", in_progress: "进行中", resolved: "已解决", rejected: "已关闭", closed: "已关闭" },
+  tapd: {
+    new: "进行中",
+    in_progress: "进行中",
+    resolved: "已解决",
+    rejected: "已关闭",
+    closed: "已关闭",
+  },
 };

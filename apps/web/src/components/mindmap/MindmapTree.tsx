@@ -150,7 +150,12 @@ export function MindmapTree(props: MindmapTreeProps) {
     );
   };
 
-  const boxClass = (n: MindmapNode, isFocus: boolean, isSelected: boolean, isHl: boolean): string => {
+  const boxClass = (
+    n: MindmapNode,
+    isFocus: boolean,
+    isSelected: boolean,
+    isHl: boolean,
+  ): string => {
     const ring = isSelected
       ? "ring-2 ring-[#574BFF]"
       : isFocus
@@ -250,7 +255,9 @@ export function MindmapTree(props: MindmapTreeProps) {
                     <>
                       <ChevronRight size={11} />
                       {(hiddenCount.get(n.id) ?? 0) > 0 && (
-                        <span className="text-[9px] leading-none px-0.5">{hiddenCount.get(n.id)}</span>
+                        <span className="text-[9px] leading-none px-0.5">
+                          {hiddenCount.get(n.id)}
+                        </span>
                       )}
                     </>
                   ) : (

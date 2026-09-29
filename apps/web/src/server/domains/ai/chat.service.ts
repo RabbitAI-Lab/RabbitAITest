@@ -34,7 +34,10 @@ export async function listConversations(userId: string) {
   };
 }
 
-export async function createConversation(userId: string, input: { title?: string; modelId?: string | null }) {
+export async function createConversation(
+  userId: string,
+  input: { title?: string; modelId?: string | null },
+) {
   const c = await prisma.aiConversation.create({
     data: {
       userId,
@@ -72,16 +75,21 @@ export async function listMessages(userId: string, conversationId: string) {
   });
   return {
     total: rows.length,
-    list: rows
-      .reverse()
-      .map((m) => ({ id: m.id, role: m.role, text: String((m.content as { text?: string })?.text ?? ""), createdAt: m.createdAt.toISOString() })),
+    list: rows.reverse().map((m) => ({
+      id: m.id,
+      role: m.role,
+      text: String((m.content as { text?: string })?.text ?? ""),
+      createdAt: m.createdAt.toISOString(),
+    })),
   };
 }
 
 /** SSE 对话：落用户消息 → 最近 20 条上下文 → 流式转发 → 完成落助手消息。错误/中断半截不落库。 */
 export async function chat(userId: string, input: ChatInput): Promise<Response> {
   const runtime = await resolveRuntimeForUser(userId, input.modelId ?? null);
-  let conversation = input.conversationId ? await ownedConversation(userId, input.conversationId) : null;
+  let conversation = input.conversationId
+    ? await ownedConversation(userId, input.conversationId)
+    : null;
   if (!conversation) {
     conversation = await prisma.aiConversation.create({
       data: {
@@ -91,7 +99,10 @@ export async function chat(userId: string, input: ChatInput): Promise<Response> 
       },
     });
   } else {
-    await prisma.aiConversation.update({ where: { id: conversation.id }, data: { modelId: runtime.id } });
+    await prisma.aiConversation.update({
+      where: { id: conversation.id },
+      data: { modelId: runtime.id },
+    });
   }
   const conversationId = conversation.id;
   const title = conversation.title;
@@ -105,9 +116,10 @@ export async function chat(userId: string, input: ChatInput): Promise<Response> 
   });
   const messages: ChatMessage[] = [
     { role: "system", content: ASSISTANT_SYSTEM_PROMPT },
-    ...history
-      .reverse()
-      .map((m) => ({ role: m.role as ChatMessage["role"], content: String((m.content as { text?: string })?.text ?? "") })),
+    ...history.reverse().map((m) => ({
+      role: m.role as ChatMessage["role"],
+      content: String((m.content as { text?: string })?.text ?? ""),
+    })),
   ];
 
   const encoder = new TextEncoder();
@@ -125,7 +137,10 @@ export async function chat(userId: string, input: ChatInput): Promise<Response> 
         const saved = await prisma.aiMessage.create({
           data: { conversationId, role: "assistant", content: { text: full } },
         });
-        await prisma.aiConversation.update({ where: { id: conversationId }, data: { updatedAt: new Date() } });
+        await prisma.aiConversation.update({
+          where: { id: conversationId },
+          data: { updatedAt: new Date() },
+        });
         send({ type: AI_SSE.done, messageId: saved.id, conversationId, title });
       } catch (err) {
         const code = err instanceof DomainError ? err.code : 50000;
@@ -140,6 +155,10 @@ export async function chat(userId: string, input: ChatInput): Promise<Response> 
     },
   });
   return new Response(stream, {
-    headers: { "content-type": "text/event-stream; charset=utf-8", "cache-control": "no-store", "x-accel-buffering": "no" },
+    headers: {
+      "content-type": "text/event-stream; charset=utf-8",
+      "cache-control": "no-store",
+      "x-accel-buffering": "no",
+    },
   });
 }

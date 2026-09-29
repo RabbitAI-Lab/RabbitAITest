@@ -22,6 +22,8 @@ import {
   FileCode2,
   Bell,
   UserCircle2,
+  Building2,
+  ShieldCheck,
   Gauge,
   MonitorPlay,
 } from "lucide-react";
@@ -185,6 +187,13 @@ export function LeftNav() {
           testid: "nav-org-members",
         },
         {
+          href: "/org/departments",
+          label: "部门管理",
+          icon: <Network size={15} strokeWidth={1.8} />,
+          perm: "ORG_DEPARTMENT:READ",
+          testid: "nav-org-departments",
+        },
+        {
           href: "/org/groups",
           label: "用户组",
           icon: <UserSquare2 size={15} strokeWidth={1.8} />,
@@ -305,6 +314,27 @@ export function LeftNav() {
           testid: "nav-system-params",
         },
         {
+          href: "/system/sso",
+          label: "认证配置",
+          icon: <KeyRound size={15} strokeWidth={1.8} />,
+          perm: "ENTP_SSO:READ",
+          testid: "nav-system-sso",
+        },
+        {
+          href: "/system/orgs",
+          label: "组织管理",
+          icon: <Building2 size={15} strokeWidth={1.8} />,
+          perm: "ENTP_ORG:READ",
+          testid: "nav-system-orgs",
+        },
+        {
+          href: "/system/license",
+          label: "授权管理",
+          icon: <ShieldCheck size={15} strokeWidth={1.8} />,
+          perm: "SYSTEM_LICENSE:READ",
+          testid: "nav-system-license",
+        },
+        {
           href: "/system/pools",
           label: "资源池",
           icon: <LayoutDashboard size={15} strokeWidth={1.8} />,
@@ -356,13 +386,13 @@ export function LeftNav() {
                   : pathname === item.href || pathname.startsWith(item.href + "/");
               const cls = `relative flex items-center gap-2.5 mx-2 px-3 py-[7px] rounded-md text-[13px] transition-colors ${
                 active
-                  ? "bg-[#574BFF]/8 text-[#574BFF] font-medium"
+                  ? "bg-[#574BFF]/8 text-[var(--rabbit-primary,#574BFF)] font-medium"
                   : "text-[#3D4350] hover:bg-[#F2F3F5]"
               }`;
               return (
                 <Link key={item.href} href={item.href} className={cls} data-testid={item.testid}>
                   {active && (
-                    <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 rounded-r bg-[#574BFF]" />
+                    <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 rounded-r bg-[var(--rabbit-primary,#574BFF)]" />
                   )}
                   {item.icon}
                   {item.label}

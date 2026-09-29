@@ -13,7 +13,14 @@ export const GET = withProjectScope(async (ctx) => {
       where: { projectId: ctx.projectId },
       orderBy: { createdAt: "desc" },
       take: 20,
-      select: { id: true, modelId: true, scene: true, generatedCount: true, importedCount: true, createdAt: true },
+      select: {
+        id: true,
+        modelId: true,
+        scene: true,
+        generatedCount: true,
+        importedCount: true,
+        createdAt: true,
+      },
     });
     return NextResponse.json(
       ok({

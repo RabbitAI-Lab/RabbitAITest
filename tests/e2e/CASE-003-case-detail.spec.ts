@@ -243,7 +243,9 @@ test("CASE-003-03 头部操作：关注星标、分享链接、复制用例", as
   expect(copyData.name).toBe(`${caseName}_copy`);
   expect(copyData.num).toBeGreaterThan(kase.num);
   await expect(
-    page.getByText(`已复制为「${caseName}_copy」（C-${String(copyData.num).padStart(4, "0")}，草稿）`),
+    page.getByText(
+      `已复制为「${caseName}_copy」（C-${String(copyData.num).padStart(4, "0")}，草稿）`,
+    ),
   ).toBeVisible();
 
   await expectNoConsoleErrors();

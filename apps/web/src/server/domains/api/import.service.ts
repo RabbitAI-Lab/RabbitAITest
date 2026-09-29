@@ -1,10 +1,7 @@
 /** API-002 导入导出：OpenAPI3 / Postman v2.1 / Rabbit 自有格式 三解析器（纯函数，单测覆盖）+ cURL 解析。 */
 import { DomainError, ErrCode } from "@rabbit/shared";
 import type { z } from "zod";
-import {
-  apiRequestBundleSchema,
-  rabbitApiExportFile,
-} from "@rabbit/shared";
+import { apiRequestBundleSchema, rabbitApiExportFile } from "@rabbit/shared";
 import type { ApiRequestBundle } from "@rabbit/shared";
 import type { RequestSpec } from "@rabbit/shared/execution";
 
@@ -17,7 +14,22 @@ export interface ParsedApi {
   request: ApiRequestBundle;
   response?: { status: number; headers: { key: string; value: string }[]; body: string };
   cases?: ParsedApiCase[];
-  mocks?: { name: string; enabled: boolean; followApi: boolean; matchers: { headers: { key: string; value: string }[]; query: { key: string; value: string }[]; bodyContains?: string }; response: { status: number; headers: { key: string; value: string }[]; body: string; delayMs: number } }[];
+  mocks?: {
+    name: string;
+    enabled: boolean;
+    followApi: boolean;
+    matchers: {
+      headers: { key: string; value: string }[];
+      query: { key: string; value: string }[];
+      bodyContains?: string;
+    };
+    response: {
+      status: number;
+      headers: { key: string; value: string }[];
+      body: string;
+      delayMs: number;
+    };
+  }[];
   error?: string; // 行级错误（校验报告）
 }
 export interface ParsedApiCase {
@@ -51,19 +63,28 @@ function bundle(spec: Partial<RequestSpec>, extra?: Partial<ApiRequestBundle>): 
 }
 
 /** OpenAPI 3.x（json 或 yaml；yaml 用 js-yaml 由调用方先转 json 对象亦可——此处统一收 string 自解析）。 */
-export function parseOpenApi3(raw: string): { apis: ParsedApi[]; errors: { line: number; message: string }[] } {
+export function parseOpenApi3(raw: string): {
+  apis: ParsedApi[];
+  errors: { line: number; message: string }[];
+} {
   let doc: Record<string, unknown>;
   try {
     doc = JSON.parse(raw);
   } catch {
     // yaml：极简解析器不引入——OpenAPI URL/文件场景以 json 为主；yaml 交给 js-yaml（web 已有依赖树则用）
-    throw new DomainError(ErrCode.API_IMPORT_INVALID, "OpenAPI 内容必须是合法 JSON（YAML 请先转换为 JSON）");
+    throw new DomainError(
+      ErrCode.API_IMPORT_INVALID,
+      "OpenAPI 内容必须是合法 JSON（YAML 请先转换为 JSON）",
+    );
   }
   const errors: { line: number; message: string }[] = [];
   const apis: ParsedApi[] = [];
   const openapi = String(doc.openapi ?? "");
   if (!openapi.startsWith("3.")) {
-    throw new DomainError(ErrCode.API_IMPORT_INVALID, "仅支持 OpenAPI 3.x（当前 " + (openapi || "未识别") + "）");
+    throw new DomainError(
+      ErrCode.API_IMPORT_INVALID,
+      "仅支持 OpenAPI 3.x（当前 " + (openapi || "未识别") + "）",
+    );
   }
   const paths = (doc.paths ?? {}) as Record<string, Record<string, unknown>>;
   let line = 0;
@@ -96,13 +117,20 @@ export function parseOpenApi3(raw: string): { apis: ParsedApi[]; errors: { line:
             enabled: true,
           }));
         const requestBody = o.requestBody as
-          | { content?: Record<string, { example?: unknown; examples?: Record<string, { value: unknown }> }> }
+          | {
+              content?: Record<
+                string,
+                { example?: unknown; examples?: Record<string, { value: unknown }> }
+              >;
+            }
           | undefined;
         let body: RequestSpec["body"] = { kind: "none" };
         const content = requestBody?.content ?? {};
         const jsonType = Object.keys(content).find((k) => k.includes("json"));
         if (jsonType) {
-          const ex = content[jsonType]?.example ?? Object.values(content[jsonType]?.examples ?? {})[0]?.value;
+          const ex =
+            content[jsonType]?.example ??
+            Object.values(content[jsonType]?.examples ?? {})[0]?.value;
           body = {
             kind: "raw_json",
             content: ex === undefined ? "" : JSON.stringify(ex, null, 2),
@@ -137,7 +165,10 @@ export function parseOpenApi3(raw: string): { apis: ParsedApi[]; errors: { line:
 }
 
 /** Postman Collection v2.1。 */
-export function parsePostman(raw: string): { apis: ParsedApi[]; errors: { line: number; message: string }[] } {
+export function parsePostman(raw: string): {
+  apis: ParsedApi[];
+  errors: { line: number; message: string }[];
+} {
   let doc: Record<string, unknown>;
   try {
     doc = JSON.parse(raw);
@@ -220,7 +251,10 @@ export function parsePostman(raw: string): { apis: ParsedApi[]; errors: { line: 
           }),
         });
       } catch (e) {
-        errors.push({ line, message: `${item.name ?? "(未命名)"}: ${e instanceof Error ? e.message : String(e)}` });
+        errors.push({
+          line,
+          message: `${item.name ?? "(未命名)"}: ${e instanceof Error ? e.message : String(e)}`,
+        });
       }
     }
   };
@@ -244,7 +278,10 @@ function safeUrl(raw: string): { pathname: string; queryString: string } {
     u = undefined;
   }
   if (u && u.protocol !== "http:" && u.protocol !== "https:")
-    throw new DomainError(ErrCode.API_IMPORT_INVALID, `不支持的协议 ${u.protocol}（仅 http/https）`);
+    throw new DomainError(
+      ErrCode.API_IMPORT_INVALID,
+      `不支持的协议 ${u.protocol}（仅 http/https）`,
+    );
   if (!u) {
     const i = raw.indexOf("?");
     return i >= 0
@@ -255,7 +292,10 @@ function safeUrl(raw: string): { pathname: string; queryString: string } {
 }
 
 /** Rabbit 自有格式（导出 roundtrip）。 */
-export function parseRabbit(raw: string): { apis: ParsedApi[]; errors: { line: number; message: string }[] } {
+export function parseRabbit(raw: string): {
+  apis: ParsedApi[];
+  errors: { line: number; message: string }[];
+} {
   let doc: unknown;
   try {
     doc = JSON.parse(raw);
@@ -264,32 +304,37 @@ export function parseRabbit(raw: string): { apis: ParsedApi[]; errors: { line: n
   }
   const parsed = rabbitApiExportFile.safeParse(doc);
   if (!parsed.success)
-    throw new DomainError(ErrCode.API_IMPORT_INVALID, "Rabbit 格式校验失败：" + parsed.error.issues[0]?.message);
+    throw new DomainError(
+      ErrCode.API_IMPORT_INVALID,
+      "Rabbit 格式校验失败：" + parsed.error.issues[0]?.message,
+    );
   const errors: { line: number; message: string }[] = [];
-  const apis: ParsedApi[] = parsed.data.apis.map((a, i) => ({
-    name: a.name,
-    method: a.request.spec.method,
-    path: a.request.spec.url.slice(0, 2048),
-    status: a.status,
-    tags: a.tags,
-    request: a.request,
-    response: a.response,
-    cases: a.cases.map((c) => ({
-      name: c.name,
-      level: c.level,
-      status: c.status,
-      tags: c.tags,
-      request: c.request,
-    })),
-    mocks: a.mocks,
-    error: undefined as string | undefined,
-  })).map((a, idx) => {
-    if (!a.request.spec.url.startsWith("/")) {
-      errors.push({ line: idx + 1, message: `${a.name}: url 应为相对路径` });
-      return { ...a, error: "url 应为相对路径" };
-    }
-    return a;
-  });
+  const apis: ParsedApi[] = parsed.data.apis
+    .map((a, i) => ({
+      name: a.name,
+      method: a.request.spec.method,
+      path: a.request.spec.url.slice(0, 2048),
+      status: a.status,
+      tags: a.tags,
+      request: a.request,
+      response: a.response,
+      cases: a.cases.map((c) => ({
+        name: c.name,
+        level: c.level,
+        status: c.status,
+        tags: c.tags,
+        request: c.request,
+      })),
+      mocks: a.mocks,
+      error: undefined as string | undefined,
+    }))
+    .map((a, idx) => {
+      if (!a.request.spec.url.startsWith("/")) {
+        errors.push({ line: idx + 1, message: `${a.name}: url 应为相对路径` });
+        return { ...a, error: "url 应为相对路径" };
+      }
+      return a;
+    });
   return { apis, errors };
 }
 
@@ -299,7 +344,8 @@ export function parseCurl(curl: string): ParsedApi {
     .trim()
     .replace(/^curl\s+/i, "")
     .match(/"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|[^\s]+/g);
-  if (!tokens || tokens.length === 0) throw new DomainError(ErrCode.API_IMPORT_INVALID, "无法解析 cURL 命令");
+  if (!tokens || tokens.length === 0)
+    throw new DomainError(ErrCode.API_IMPORT_INVALID, "无法解析 cURL 命令");
   const unquote = (t: string) =>
     (t.startsWith('"') || t.startsWith("'")) && t.length > 1 ? t.slice(1, -1) : t;
   let method = "GET";
@@ -335,14 +381,15 @@ export function parseCurl(curl: string): ParsedApi {
   if (data !== undefined) {
     const isJson =
       contentType?.includes("json") ||
-      (/^[\[{]/.test(data.trim()) && (() => {
-        try {
-          JSON.parse(data);
-          return true;
-        } catch {
-          return false;
-        }
-      })());
+      (/^[\[{]/.test(data.trim()) &&
+        (() => {
+          try {
+            JSON.parse(data);
+            return true;
+          } catch {
+            return false;
+          }
+        })());
     body = isJson ? { kind: "raw_json", content: data } : { kind: "raw_text", content: data };
   }
   const u = safeUrl(url);
@@ -373,7 +420,8 @@ export async function importApis(
   let raw = input.source.content;
   if (!raw && input.source.url) {
     const res = await fetch(input.source.url, { signal: AbortSignal.timeout(15000) });
-    if (!res.ok) throw new DomainError(ErrCode.API_IMPORT_INVALID, `URL 拉取失败 HTTP ${res.status}`);
+    if (!res.ok)
+      throw new DomainError(ErrCode.API_IMPORT_INVALID, `URL 拉取失败 HTTP ${res.status}`);
     raw = await res.text();
   }
   if (!raw) throw new DomainError(ErrCode.API_IMPORT_INVALID, "缺少导入来源（url 或 content）");
@@ -383,7 +431,12 @@ export async function importApis(
       : input.format === "postman"
         ? parsePostman(raw)
         : parseRabbit(raw);
-  const report = { created: [] as string[], overwritten: [] as string[], skipped: [] as string[], failed: parsed.errors };
+  const report = {
+    created: [] as string[],
+    overwritten: [] as string[],
+    skipped: [] as string[],
+    failed: parsed.errors,
+  };
   const { prisma, nextNum } = await import("@rabbit/db");
   await prisma.$transaction(async (tx) => {
     for (const api of parsed.apis) {
@@ -489,7 +542,11 @@ export async function exportRabbit(
       name: a.name,
       status: a.status as "DEBUG" | "RELEASED",
       request: a.request as ApiRequestBundle,
-      response: a.response as { status: number; headers: { key: string; value: string }[]; body: string },
+      response: a.response as {
+        status: number;
+        headers: { key: string; value: string }[];
+        body: string;
+      },
       cases: a.cases.map((c) => ({
         name: c.name,
         level: c.level as "P0" | "P1" | "P2" | "P3",

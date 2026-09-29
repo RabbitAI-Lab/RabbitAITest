@@ -67,7 +67,9 @@ export const test = base.extend<{
     // 页面上下文 4xx/5xx 一并留痕（含资源 URL——console.error 不带 URL，排障盲区）
     page.on("response", (res) => {
       if (res.status() >= 400 && ["xhr", "fetch"].includes(res.request().resourceType())) {
-        errors.push(`[http ${res.status()}] ${res.request().method()} ${res.url()} @ ${page.url()}`);
+        errors.push(
+          `[http ${res.status()}] ${res.request().method()} ${res.url()} @ ${page.url()}`,
+        );
       }
     });
     await use(async (whitelist: ConsoleNoise[] = []) => {

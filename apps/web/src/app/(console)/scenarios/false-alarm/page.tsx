@@ -31,7 +31,17 @@ export default function FalseAlarmPage() {
   const canUpdate = can("PROJECT_SCENARIO:UPDATE");
 
   const [editing, setEditing] = useState<FalseAlarmRuleRow | "new" | null>(null);
-  const [form, setForm] = useState<{ name: string; status: number; statusOn: boolean; bodyContains: string; headerContains: string; timeOn: boolean; responseTimeGt: number; enabled: boolean; description: string }>({
+  const [form, setForm] = useState<{
+    name: string;
+    status: number;
+    statusOn: boolean;
+    bodyContains: string;
+    headerContains: string;
+    timeOn: boolean;
+    responseTimeGt: number;
+    enabled: boolean;
+    description: string;
+  }>({
     name: "",
     status: 502,
     statusOn: false,
@@ -52,7 +62,17 @@ export default function FalseAlarmPage() {
   const openEdit = (r: FalseAlarmRuleRow | "new") => {
     setEditing(r);
     if (r === "new") {
-      setForm({ name: "", status: 502, statusOn: false, bodyContains: "", headerContains: "", timeOn: false, responseTimeGt: 5000, enabled: true, description: "" });
+      setForm({
+        name: "",
+        status: 502,
+        statusOn: false,
+        bodyContains: "",
+        headerContains: "",
+        timeOn: false,
+        responseTimeGt: 5000,
+        enabled: true,
+        description: "",
+      });
     } else {
       setForm({
         name: r.name,
@@ -80,8 +100,15 @@ export default function FalseAlarmPage() {
   const saveM = useMutation({
     mutationFn: async () => {
       const matcher = buildMatcher()!;
-      const body = { name: form.name.trim(), matcher, enabled: form.enabled, description: form.description };
-      return editing === "new" ? falseAlarmApi.create(projectId!, body) : falseAlarmApi.update(projectId!, (editing as FalseAlarmRuleRow).id, body);
+      const body = {
+        name: form.name.trim(),
+        matcher,
+        enabled: form.enabled,
+        description: form.description,
+      };
+      return editing === "new"
+        ? falseAlarmApi.create(projectId!, body)
+        : falseAlarmApi.update(projectId!, (editing as FalseAlarmRuleRow).id, body);
     },
     onSuccess: () => {
       setEditing(null);
@@ -92,7 +119,12 @@ export default function FalseAlarmPage() {
   });
 
   const toggleM = useMutation({
-    mutationFn: (v: { id: string; enabled: boolean }) => falseAlarmApi.update(projectId!, v.id, { name: (listQ.data?.list ?? []).find((r) => r.id === v.id)!.name, matcher: (listQ.data?.list ?? []).find((r) => r.id === v.id)!.matcher, enabled: v.enabled }),
+    mutationFn: (v: { id: string; enabled: boolean }) =>
+      falseAlarmApi.update(projectId!, v.id, {
+        name: (listQ.data?.list ?? []).find((r) => r.id === v.id)!.name,
+        matcher: (listQ.data?.list ?? []).find((r) => r.id === v.id)!.matcher,
+        enabled: v.enabled,
+      }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["false-alarm"] });
       message.success("已更新启用状态");
@@ -121,7 +153,13 @@ export default function FalseAlarmPage() {
         sub="项目级匹配（AND）：失败执行项命中即改判 FAKE_ERROR，不算任务失败、单列统计"
         extra={
           canUpdate && (
-            <Button type="primary" icon={<Plus size={14} strokeWidth={1.8} />} disabled={rows.length >= 50} data-testid="btn-new-fa-rule" onClick={() => openEdit("new")}>
+            <Button
+              type="primary"
+              icon={<Plus size={14} strokeWidth={1.8} />}
+              disabled={rows.length >= 50}
+              data-testid="btn-new-fa-rule"
+              onClick={() => openEdit("new")}
+            >
               新建规则
             </Button>
           )
@@ -134,17 +172,60 @@ export default function FalseAlarmPage() {
           loading={listQ.isLoading}
           dataSource={rows}
           pagination={false}
-          locale={{ emptyText: <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="暂无规则——新建后对新执行生效" /> }}
+          locale={{
+            emptyText: (
+              <Empty
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                description="暂无规则——新建后对新执行生效"
+              />
+            ),
+          }}
           columns={[
-            { title: "名称", dataIndex: "name", render: (v: string, r) => <span className="font-medium text-[#1F2329]" data-testid={`fa-rule-name-${r.id.slice(0, 8)}`}>{v}</span> },
-            { title: "匹配器（AND）", dataIndex: "matcher", render: (m: Matcher) => <span className="text-xs text-[#3D4350]">{matcherText(m)}</span> },
+            {
+              title: "名称",
+              dataIndex: "name",
+              render: (v: string, r) => (
+                <span
+                  className="font-medium text-[#1F2329]"
+                  data-testid={`fa-rule-name-${r.id.slice(0, 8)}`}
+                >
+                  {v}
+                </span>
+              ),
+            },
+            {
+              title: "匹配器（AND）",
+              dataIndex: "matcher",
+              render: (m: Matcher) => (
+                <span className="text-xs text-[#3D4350]">{matcherText(m)}</span>
+              ),
+            },
             {
               title: "启用",
               dataIndex: "enabled",
               width: 80,
-              render: (v: boolean, r) => (canUpdate ? <Switch size="small" checked={v} data-testid={`fa-rule-toggle-${r.id.slice(0, 8)}`} onChange={(en) => toggleM.mutate({ id: r.id, enabled: en })} /> : <span>{v ? "是" : "否"}</span>),
+              render: (v: boolean, r) =>
+                canUpdate ? (
+                  <Switch
+                    size="small"
+                    checked={v}
+                    data-testid={`fa-rule-toggle-${r.id.slice(0, 8)}`}
+                    onChange={(en) => toggleM.mutate({ id: r.id, enabled: en })}
+                  />
+                ) : (
+                  <span>{v ? "是" : "否"}</span>
+                ),
             },
-            { title: "更新时间", dataIndex: "updatedAt", width: 150, render: (v: string) => <span className="text-xs text-[#646A73]">{new Date(v).toLocaleString("zh-CN")}</span> },
+            {
+              title: "更新时间",
+              dataIndex: "updatedAt",
+              width: 150,
+              render: (v: string) => (
+                <span className="text-xs text-[#646A73]">
+                  {new Date(v).toLocaleString("zh-CN")}
+                </span>
+              ),
+            },
             {
               title: "操作",
               key: "op",
@@ -156,7 +237,12 @@ export default function FalseAlarmPage() {
                       编辑
                     </Button>
                     <span className="text-[#E5E6EB]">|</span>
-                    <Popconfirm title="删除规则后新执行不再标记，确认？" okText="删除" okButtonProps={{ danger: true }} onConfirm={() => removeM.mutate(r.id)}>
+                    <Popconfirm
+                      title="删除规则后新执行不再标记，确认？"
+                      okText="删除"
+                      okButtonProps={{ danger: true }}
+                      onConfirm={() => removeM.mutate(r.id)}
+                    >
                       <Button type="link" size="small" className="!px-0 !text-[#FF4D4F]">
                         删除
                       </Button>
@@ -168,7 +254,8 @@ export default function FalseAlarmPage() {
         />
       </div>
       <p className="mt-2 text-[11px] text-[#A8ABB0]">
-        上限 50 条 · 仅对新执行报告生效（不回溯）· 命中需同时满足全部已填条件；停用/删除规则后新执行不再标记
+        上限 50 条 · 仅对新执行报告生效（不回溯）·
+        命中需同时满足全部已填条件；停用/删除规则后新执行不再标记
       </p>
 
       <Drawer
@@ -179,7 +266,13 @@ export default function FalseAlarmPage() {
         footer={
           <div className="flex justify-end gap-2">
             <Button onClick={() => setEditing(null)}>取消</Button>
-            <Button type="primary" loading={saveM.isPending} disabled={!form.name.trim() || !matcherValid} data-testid="btn-save-fa-rule" onClick={() => saveM.mutate()}>
+            <Button
+              type="primary"
+              loading={saveM.isPending}
+              disabled={!form.name.trim() || !matcherValid}
+              data-testid="btn-save-fa-rule"
+              onClick={() => saveM.mutate()}
+            >
               保存
             </Button>
           </div>
@@ -188,29 +281,67 @@ export default function FalseAlarmPage() {
         <div className="space-y-4">
           <div>
             <p className="mb-1 text-xs text-[#646A73]">规则名称</p>
-            <Input placeholder="如：三方网关已知抖动" value={form.name} data-testid="input-fa-name" onChange={(e) => setForm({ ...form, name: e.target.value })} />
+            <Input
+              placeholder="如：三方网关已知抖动"
+              value={form.name}
+              data-testid="input-fa-name"
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+            />
           </div>
           <div className="space-y-2 rounded border border-[#F0F1F3] p-3">
             <p className="text-xs font-medium text-[#3D4350]">匹配条件（多选 AND · 至少一项）</p>
             <div className="flex items-center gap-2">
-              <Switch size="small" checked={form.statusOn} onChange={(v) => setForm({ ...form, statusOn: v })} data-testid="switch-fa-status" />
+              <Switch
+                size="small"
+                checked={form.statusOn}
+                onChange={(v) => setForm({ ...form, statusOn: v })}
+                data-testid="switch-fa-status"
+              />
               <span className="w-20 text-xs text-[#646A73]">状态码</span>
-              <InputNumber min={100} max={599} disabled={!form.statusOn} value={form.status} onChange={(v) => setForm({ ...form, status: Number(v ?? 502) })} />
+              <InputNumber
+                min={100}
+                max={599}
+                disabled={!form.statusOn}
+                value={form.status}
+                onChange={(v) => setForm({ ...form, status: Number(v ?? 502) })}
+              />
             </div>
             <div className="flex items-center gap-2">
               <span className="w-[26px]" />
               <span className="w-20 text-xs text-[#646A73]">体包含</span>
-              <Input placeholder="known-issue" value={form.bodyContains} data-testid="input-fa-body" onChange={(e) => setForm({ ...form, bodyContains: e.target.value })} />
+              <Input
+                placeholder="known-issue"
+                value={form.bodyContains}
+                data-testid="input-fa-body"
+                onChange={(e) => setForm({ ...form, bodyContains: e.target.value })}
+              />
             </div>
             <div className="flex items-center gap-2">
               <span className="w-[26px]" />
               <span className="w-20 text-xs text-[#646A73]">头包含</span>
-              <Input placeholder="X-Upstream: flaky" value={form.headerContains} data-testid="input-fa-header" onChange={(e) => setForm({ ...form, headerContains: e.target.value })} />
+              <Input
+                placeholder="X-Upstream: flaky"
+                value={form.headerContains}
+                data-testid="input-fa-header"
+                onChange={(e) => setForm({ ...form, headerContains: e.target.value })}
+              />
             </div>
             <div className="flex items-center gap-2">
-              <Switch size="small" checked={form.timeOn} onChange={(v) => setForm({ ...form, timeOn: v })} data-testid="switch-fa-time" />
+              <Switch
+                size="small"
+                checked={form.timeOn}
+                onChange={(v) => setForm({ ...form, timeOn: v })}
+                data-testid="switch-fa-time"
+              />
               <span className="w-20 text-xs text-[#646A73]">耗时大于</span>
-              <InputNumber min={1} max={600000} disabled={!form.timeOn} addonAfter="ms" value={form.responseTimeGt} onChange={(v) => setForm({ ...form, responseTimeGt: Number(v ?? 5000) })} />
+              <InputNumber
+                min={1}
+                max={600000}
+                disabled={!form.timeOn}
+                addonAfter="ms"
+                value={form.responseTimeGt}
+                onChange={(v) => setForm({ ...form, responseTimeGt: Number(v ?? 5000) })}
+              />
             </div>
           </div>
           <div className="flex items-center gap-2">

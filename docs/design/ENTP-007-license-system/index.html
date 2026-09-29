@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="utf-8" />
+    <title>ENTP-007 License 体系（授权管理 · 功能矩阵 · 到期提醒）</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-slate-50 text-slate-800 text-sm">
+    <header class="h-12 bg-white border-b flex items-center px-4 gap-3">
+      <span class="font-semibold">RabbitAITest</span
+      ><span class="border rounded px-2 py-0.5">系统设置 · 授权管理 /system/license</span>
+      <span class="ml-auto text-slate-400 text-xs">帮助</span
+      ><span class="text-slate-500">admin</span>
+    </header>
+    <main class="p-4 space-y-4 max-w-[1200px]">
+      <!-- 画板一：授权管理页（社区版 ⇄ 企业版 两态并列） -->
+      <section class="bg-white border rounded-md">
+        <div class="px-3 py-2 border-b bg-slate-50 font-medium">
+          画板一 · 系统设置 → 授权管理 /system/license（社区版态 ⇄ 企业版态 + 添加弹窗）
+        </div>
+        <div class="grid grid-cols-2 divide-x">
+          <!-- 社区版态 -->
+          <div class="p-4 space-y-3">
+            <p class="text-xs text-slate-400">态① 社区版（无 License）</p>
+            <div class="border rounded-md p-4">
+              <div class="flex items-center gap-3">
+                <span
+                  class="w-12 h-12 rounded-lg bg-slate-100 flex items-center justify-center text-2xl"
+                  >🐇</span
+                >
+                <div>
+                  <p class="font-medium flex items-center gap-2">
+                    RabbitAITest
+                    <span
+                      class="text-[10px] border rounded px-1.5 py-0.5 bg-slate-100 text-slate-500 border-slate-200"
+                      >社区版</span
+                    >
+                  </p>
+                  <p class="text-xs text-slate-400">开源许可 · 当前部署为社区版</p>
+                </div>
+                <button class="ml-auto bg-[#574BFF] text-white rounded-md px-3 py-1.5 text-xs">
+                  添加 License
+                </button>
+              </div>
+              <div class="mt-3 border-t pt-3">
+                <p class="text-xs text-slate-500 mb-1.5">社区版容量与能力</p>
+                <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-slate-600">
+                  <span>· 1 个组织</span><span>· 30 名用户</span> <span>· 1 个默认资源池</span
+                  ><span>· 默认主题</span> <span>· 固定消息模板</span><span>· 账号密码登录</span>
+                </div>
+                <p class="mt-2 text-xs text-[#574BFF]">
+                  获取企业版授权 → 联系商务 / 自助签发（开发模式）
+                </p>
+              </div>
+            </div>
+            <!-- 功能矩阵（社区版：全置灰） -->
+            <table class="w-full text-[13px] border rounded-md overflow-hidden">
+              <thead class="text-slate-500 text-xs bg-slate-50">
+                <tr class="text-left">
+                  <th class="px-3 py-2">企业能力</th>
+                  <th>状态</th>
+                  <th>功能入口</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y">
+                <tr class="opacity-50">
+                  <td class="px-3 py-2">多组织管理</td>
+                  <td class="px-3 py-2 text-slate-400">🔒 未授权</td>
+                  <td class="px-3 py-2 text-xs">/system/orgs</td>
+                </tr>
+                <tr class="opacity-50">
+                  <td class="px-3 py-2">单点认证（SSO）+ 扫码登录</td>
+                  <td class="px-3 py-2 text-slate-400">🔒 未授权</td>
+                  <td class="px-3 py-2 text-xs">/system/sso</td>
+                </tr>
+                <tr class="opacity-50">
+                  <td class="px-3 py-2">多资源池</td>
+                  <td class="px-3 py-2 text-slate-400">🔒 未授权</td>
+                  <td class="px-3 py-2 text-xs">/system/pools</td>
+                </tr>
+                <tr class="opacity-50">
+                  <td class="px-3 py-2">自定义主题品牌</td>
+                  <td class="px-3 py-2 text-slate-400">🔒 未授权</td>
+                  <td class="px-3 py-2 text-xs">/system/params → 界面设置</td>
+                </tr>
+                <tr class="opacity-50">
+                  <td class="px-3 py-2">自定义消息模板</td>
+                  <td class="px-3 py-2 text-slate-400">🔒 未授权</td>
+                  <td class="px-3 py-2 text-xs">/settings/messages → 模板</td>
+                </tr>
+                <tr class="opacity-50">
+                  <td class="px-3 py-2">用户扩容与部门</td>
+                  <td class="px-3 py-2 text-slate-400">🔒 未授权</td>
+                  <td class="px-3 py-2 text-xs">/system/users · /org/departments</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <!-- 企业版态 + 添加弹窗 -->
+          <div class="p-4 space-y-3">
+            <p class="text-xs text-slate-400">态② 企业版（License 有效）</p>
+            <div class="border rounded-md p-4 border-[#574BFF]/40 bg-[#574BFF]/[0.03]">
+              <div class="flex items-center gap-3">
+                <span
+                  class="w-12 h-12 rounded-lg bg-[#574BFF] text-white flex items-center justify-center text-2xl"
+                  >🐇</span
+                >
+                <div>
+                  <p class="font-medium flex items-center gap-2">
+                    RabbitAITest
+                    <span
+                      class="text-[10px] border rounded px-1.5 py-0.5 bg-[#574BFF]/10 text-[#574BFF] border-[#574BFF]/30"
+                      >企业版</span
+                    >
+                  </p>
+                  <p class="text-xs text-slate-500">
+                    序列号 <span class="font-mono">RAB-2026-ENT-0001</span> · 剩余
+                    <span class="text-[#574BFF] font-medium">365</span> 天
+                  </p>
+                </div>
+                <div class="ml-auto flex gap-2">
+                  <button class="border rounded-md px-3 py-1.5 text-xs">更换</button>
+                  <button class="border border-red-300 text-red-500 rounded-md px-3 py-1.5 text-xs">
+                    移除
+                  </button>
+                </div>
+              </div>
+              <div class="mt-3 border-t pt-3 grid grid-cols-3 gap-2 text-xs text-slate-600">
+                <span>签发 2026-09-28</span><span>到期 2027-09-28</span
+                ><span>用户上限 不限（maxUsers 未声明）</span>
+              </div>
+            </div>
+            <table class="w-full text-[13px] border rounded-md overflow-hidden">
+              <thead class="text-slate-500 text-xs bg-slate-50">
+                <tr class="text-left">
+                  <th class="px-3 py-2">企业能力</th>
+                  <th>状态</th>
+                  <th>功能入口</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y">
+                <tr>
+                  <td class="px-3 py-2">多组织管理</td>
+                  <td class="px-3 py-2 text-emerald-600">● 已授权</td>
+                  <td class="px-3 py-2 text-xs text-[#574BFF]">/system/orgs</td>
+                </tr>
+                <tr>
+                  <td class="px-3 py-2">单点认证（SSO）+ 扫码登录</td>
+                  <td class="px-3 py-2 text-emerald-600">● 已授权</td>
+                  <td class="px-3 py-2 text-xs text-[#574BFF]">/system/sso</td>
+                </tr>
+                <tr>
+                  <td class="px-3 py-2">多资源池</td>
+                  <td class="px-3 py-2 text-emerald-600">● 已授权</td>
+                  <td class="px-3 py-2 text-xs text-[#574BFF]">/system/pools</td>
+                </tr>
+                <tr>
+                  <td class="px-3 py-2">自定义主题品牌</td>
+                  <td class="px-3 py-2 text-emerald-600">● 已授权</td>
+                  <td class="px-3 py-2 text-xs text-[#574BFF]">/system/params → 界面设置</td>
+                </tr>
+                <tr>
+                  <td class="px-3 py-2">自定义消息模板</td>
+                  <td class="px-3 py-2 text-emerald-600">● 已授权</td>
+                  <td class="px-3 py-2 text-xs text-[#574BFF]">/settings/messages → 模板</td>
+                </tr>
+                <tr>
+                  <td class="px-3 py-2">用户扩容与部门</td>
+                  <td class="px-3 py-2 text-slate-400">
+                    ○ 未包含在当前授权中 <span class="text-[10px]">（features 子集示例态）</span>
+                  </td>
+                  <td class="px-3 py-2 text-xs text-slate-400">—</td>
+                </tr>
+              </tbody>
+            </table>
+            <p class="text-[11px] text-slate-400">
+              features 子集授权时矩阵部分亮；对应端点仍 403 90005
+            </p>
+            <!-- 添加弹窗 -->
+            <div class="border rounded-md p-4 space-y-2">
+              <p class="font-medium text-[13px]">添加 License（弹窗形态）</p>
+              <textarea
+                class="border rounded px-2 py-1.5 w-full font-mono text-[11px] h-16"
+                placeholder="粘贴 License 内容：RABBIT-ENT1.eyJsaWMiOiJSQUItMjAyNi1FTlQtMDAwMSIsImVkaXRpb24iOiJFTlRFUlBSSVNFIn0.x7Kk…"
+              >
+RABBIT-ENT1.eyJsaWMiOiJSQUItMjAyNi1FTlQtMDAwMSIsImVkaXRpb24iOiJFTlRFUlBSSVNFIiwiaXNzdWVkQXQiOiIyMDI2LTA5LTI4IiwiZXhwaXJlc0F0IjoiMjAyNy0wOS0yOCJ9.jF3nK9…</textarea>
+              <div class="flex items-center gap-2">
+                <button class="bg-[#574BFF] text-white rounded px-4 py-1.5 text-xs">
+                  校验并添加
+                </button>
+                <span class="text-[11px] text-slate-400"
+                  >三重校验：结构 90002 → 验签 90003 → 期限 90004</span
+                >
+              </div>
+              <p class="text-[11px] text-red-500">
+                失败示例：License 签名校验失败（90003）——内容被篡改或密钥不匹配
+              </p>
+              <p class="text-[11px] text-red-500">
+                失败示例：License 已过期（90004）——到期时间早于当前时间，拒绝添加
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+      <!-- 画板二：到期提醒形态 -->
+      <section class="bg-white border rounded-md">
+        <div class="px-3 py-2 border-b bg-slate-50 font-medium">
+          画板二 · 到期提醒（≤30 天黄条 / 已过期红条 —— 控制台顶栏全局横幅 + 本页顶部同形态）
+        </div>
+        <div class="p-4 space-y-3">
+          <div
+            class="border border-amber-300 bg-amber-50 text-amber-700 rounded-md px-3 py-2 text-[13px] flex items-center gap-2"
+          >
+            ⚠️ 企业版授权将于 <b>15</b> 天后到期（2026-10-13），到期后企业功能将锁定
+            <a class="ml-auto text-[#574BFF] text-xs underline">续期 / 查看授权</a>
+          </div>
+          <div
+            class="border border-red-300 bg-red-50 text-red-600 rounded-md px-3 py-2 text-[13px] flex items-center gap-2"
+          >
+            ⛔ 企业版授权已过期（2026-08-01），多组织 / SSO / 多资源池 / 主题 / 消息模板 /
+            用户扩容已锁定；现有数据保留不受影响
+            <a class="ml-auto text-[#574BFF] text-xs underline">更新授权</a>
+          </div>
+          <p class="text-xs text-slate-400">
+            社区版无横幅；横幅在有效期 &gt; 30 天时不显示。过期后：门控端点 403
+            90001、前端按钮回禁用态、既有企业数据（第二组织/池/模板）只读保留。
+          </p>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

@@ -75,11 +75,7 @@ test("API-002-01 定义主链路：新建→参数体系→环境执行→保存
   await page.getByTestId("req-tab-body").click();
   await expect(page.getByTestId("req-panel-body")).toBeVisible();
   await page.getByTestId("req-panel-body").getByText("json", { exact: true }).click();
-  await page
-    .getByTestId("req-panel-body")
-    .locator("textarea")
-    .last()
-    .fill('{"name": "rex"}');
+  await page.getByTestId("req-panel-body").locator("textarea").last().fill('{"name": "rex"}');
 
   await page.getByTestId("req-tab-asserts").click();
   await page.getByTestId("req-panel-asserts").getByRole("button", { name: "＋ 添加断言" }).click();
@@ -97,16 +93,24 @@ test("API-002-01 定义主链路：新建→参数体系→环境执行→保存
   await pickOption(page, page.getByTestId("env-select"), envName);
 
   const saveApi = expectApi("**/api/v1/projects/*/apis/*");
-  const saveRaw = page.waitForResponse((r) => r.url().includes("/apis/") && r.request().method() === "PUT");
+  const saveRaw = page.waitForResponse(
+    (r) => r.url().includes("/apis/") && r.request().method() === "PUT",
+  );
   await page.getByTestId("btn-save-api").click();
   const saved = await saveApi;
   expect(saved.status).toBe(200);
   expect(saved.code).toBe(0);
   const saveRawRes = await saveRaw;
-  const savePayload = saveRawRes.request().postDataJSON() as { version: number; request: BundleLike };
+  const savePayload = saveRawRes.request().postDataJSON() as {
+    version: number;
+    request: BundleLike;
+  };
   expect(savePayload.version).toBe(1);
   expect(savePayload.request.spec.query.map((q) => q.key)).toContain("verbose");
-  expect(savePayload.request.spec.body).toMatchObject({ kind: "raw_json", content: '{"name": "rex"}' });
+  expect(savePayload.request.spec.body).toMatchObject({
+    kind: "raw_json",
+    content: '{"name": "rex"}',
+  });
   await expect(page.getByText(/已保存（v2）/)).toBeVisible();
 
   const debugApi = expectApi("**/api/v1/projects/*/apis/*/debug");
@@ -118,12 +122,17 @@ test("API-002-01 定义主链路：新建→参数体系→环境执行→保存
   const debugRawRes = await debugRaw;
   const debugPayload = debugRawRes.request().postDataJSON() as {
     envId: string;
-    request: { spec: { url: string; query: { key: string }[]; body: { kind: string; content: string } } };
+    request: {
+      spec: { url: string; query: { key: string }[]; body: { kind: string; content: string } };
+    };
   };
   expect(debugPayload.envId).toBe(envId);
   expect(debugPayload.request.spec.url).toBe("${base}/pets");
   expect(debugPayload.request.spec.query.map((q) => q.key)).toContain("verbose");
-  expect(debugPayload.request.spec.body).toMatchObject({ kind: "raw_json", content: '{"name": "rex"}' });
+  expect(debugPayload.request.spec.body).toMatchObject({
+    kind: "raw_json",
+    content: '{"name": "rex"}',
+  });
 
   // ── 5. 报告页：SUCCESS（POST /pets 命中 mock 规则 200）──
   await expect(page).toHaveURL(/\/reports\//, { timeout: 15000 });
@@ -185,7 +194,11 @@ test("API-002-02 导入：OpenAPI3 粘贴导入新增 2 → 覆盖导入计数�
   expect(imported1.code).toBe(0);
   expect((imported1.data as { created: string[] }).created).toHaveLength(2);
   const raw1 = await importRaw1;
-  const payload1 = raw1.request().postDataJSON() as { format: string; overwrite: boolean; source: { content: string } };
+  const payload1 = raw1.request().postDataJSON() as {
+    format: string;
+    overwrite: boolean;
+    source: { content: string };
+  };
   expect(payload1.format).toBe("openapi3");
   expect(payload1.overwrite).toBe(false);
   expect(payload1.source.content).toContain(`/imp-a-${uniq}`);
@@ -251,7 +264,9 @@ test("API-002-03 状态二态：DEBUG/RELEASED 筛选与状态列两态呈现", 
   await expect(rows.filter({ hasText: releasedName }).getByText("已发布")).toBeVisible();
 
   // 筛选 DEBUG → 仅剩调试行；接口断言 list query 带 status=DEBUG
-  const listDebug = page.waitForResponse((r) => r.url().includes("/apis?") && r.url().includes("status=DEBUG"));
+  const listDebug = page.waitForResponse(
+    (r) => r.url().includes("/apis?") && r.url().includes("status=DEBUG"),
+  );
   await page.getByTestId("select-status").click();
   await page
     .locator(".ant-select-dropdown:not(.ant-select-dropdown-hidden)")
@@ -263,7 +278,9 @@ test("API-002-03 状态二态：DEBUG/RELEASED 筛选与状态列两态呈现", 
   await expect(rows.filter({ hasText: releasedName })).toHaveCount(0);
 
   // 切 RELEASED → 仅剩发布行
-  const listRel = page.waitForResponse((r) => r.url().includes("/apis?") && r.url().includes("status=RELEASED"));
+  const listRel = page.waitForResponse(
+    (r) => r.url().includes("/apis?") && r.url().includes("status=RELEASED"),
+  );
   await page.getByTestId("select-status").click();
   await page
     .locator(".ant-select-dropdown:not(.ant-select-dropdown-hidden)")

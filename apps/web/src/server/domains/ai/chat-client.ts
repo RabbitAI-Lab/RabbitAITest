@@ -6,7 +6,10 @@ import type { Agent } from "undici";
 import { outboundDispatcher } from "@/server/safe-fetch";
 
 /** QA-002 连接期守卫 dispatcher（模块级一次性构造：AI_ALLOW_PRIVATE_BASEURL 豁免环回 mock 供应商经 env 在模块初始化解析，运行期调用表达式零 env 读取——消「env→fetch」污点链）。 */
-const CHAT_DISPATCHER = process.env.AI_ALLOW_PRIVATE_BASEURL === "1" ? outboundDispatcher({ allowLoopback: true }) : outboundDispatcher();
+const CHAT_DISPATCHER =
+  process.env.AI_ALLOW_PRIVATE_BASEURL === "1"
+    ? outboundDispatcher({ allowLoopback: true })
+    : outboundDispatcher();
 
 export interface ChatMessage {
   role: "system" | "user" | "assistant";
@@ -42,21 +45,18 @@ export async function callChat(
 ): Promise<string> {
   let res: Response;
   try {
-    res = await fetch(
-      endpoint(m),
-      {
-        method: "POST",
-        headers: { "content-type": "application/json", authorization: `Bearer ${m.apiKey}` },
-        body: JSON.stringify({
-          model: m.model,
-          messages,
-          stream: false,
-          ...(opts.maxTokens ? { max_tokens: opts.maxTokens } : {}),
-        }),
-        signal: opts.signal ?? AbortSignal.timeout(TIMEOUT_MS),
-        dispatcher: CHAT_DISPATCHER,
-      } as RequestInit & { dispatcher: Agent },
-    );
+    res = await fetch(endpoint(m), {
+      method: "POST",
+      headers: { "content-type": "application/json", authorization: `Bearer ${m.apiKey}` },
+      body: JSON.stringify({
+        model: m.model,
+        messages,
+        stream: false,
+        ...(opts.maxTokens ? { max_tokens: opts.maxTokens } : {}),
+      }),
+      signal: opts.signal ?? AbortSignal.timeout(TIMEOUT_MS),
+      dispatcher: CHAT_DISPATCHER,
+    } as RequestInit & { dispatcher: Agent });
   } catch (e) {
     if (e instanceof DomainError) throw e;
     throw new DomainError(ErrCode.AI_PROVIDER_ERROR, `供应商连接失败：${(e as Error).message}`);
@@ -79,16 +79,13 @@ export async function* streamChat(
 ): AsyncGenerator<string> {
   let res: Response;
   try {
-    res = await fetch(
-      endpoint(m),
-      {
-        method: "POST",
-        headers: { "content-type": "application/json", authorization: `Bearer ${m.apiKey}` },
-        body: JSON.stringify({ model: m.model, messages, stream: true }),
-        signal: opts.signal,
-        dispatcher: CHAT_DISPATCHER,
-      } as RequestInit & { dispatcher: Agent },
-    );
+    res = await fetch(endpoint(m), {
+      method: "POST",
+      headers: { "content-type": "application/json", authorization: `Bearer ${m.apiKey}` },
+      body: JSON.stringify({ model: m.model, messages, stream: true }),
+      signal: opts.signal,
+      dispatcher: CHAT_DISPATCHER,
+    } as RequestInit & { dispatcher: Agent });
   } catch (e) {
     if (e instanceof DomainError) throw e;
     throw new DomainError(ErrCode.AI_PROVIDER_ERROR, `供应商连接失败：${(e as Error).message}`);

@@ -22,10 +22,9 @@ export const GET = async (req: Request): Promise<NextResponse> => {
     ensureBoot();
     const userId = await getActiveUserId();
     if (!userId) {
-      return NextResponse.json(
-        fail(ErrCode.UNAUTHENTICATED, ErrMsg[ErrCode.UNAUTHENTICATED]!),
-        { status: 401 },
-      );
+      return NextResponse.json(fail(ErrCode.UNAUTHENTICATED, ErrMsg[ErrCode.UNAUTHENTICATED]!), {
+        status: 401,
+      });
     }
     const memberships = await prisma.projectMember.findMany({
       where: { userId },
@@ -33,10 +32,9 @@ export const GET = async (req: Request): Promise<NextResponse> => {
     });
     const visible = memberships.map((m) => m.projectId);
     if (visible.length === 0) {
-      return NextResponse.json(
-        fail(ErrCode.FORBIDDEN, "缺少权限点 PROJECT_EXEC_TASK:READ"),
-        { status: 403 },
-      );
+      return NextResponse.json(fail(ErrCode.FORBIDDEN, "缺少权限点 PROJECT_EXEC_TASK:READ"), {
+        status: 403,
+      });
     }
     const projects = await prisma.project.findMany({
       where: { id: { in: visible }, deletedAt: null },
@@ -51,10 +49,9 @@ export const GET = async (req: Request): Promise<NextResponse> => {
       }
     }
     if (!allowed) {
-      return NextResponse.json(
-        fail(ErrCode.FORBIDDEN, "缺少权限点 PROJECT_EXEC_TASK:READ"),
-        { status: 403 },
-      );
+      return NextResponse.json(fail(ErrCode.FORBIDDEN, "缺少权限点 PROJECT_EXEC_TASK:READ"), {
+        status: 403,
+      });
     }
     const parsed = execTaskListQuerySchema.safeParse(
       Object.fromEntries(new URL(req.url).searchParams),

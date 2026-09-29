@@ -1,6 +1,11 @@
 /** MSG-001 机器人 CRUD + 事件配置 + 测试发送（渠道 5 种；上限 10/项目）。 */
 import { DomainError, ErrCode } from "@rabbit/shared";
-import { WEBHOOK_ROBOT_CHANNELS, type MessageEventsConfig, type RobotChannel, type RobotUpsert } from "@rabbit/shared";
+import {
+  WEBHOOK_ROBOT_CHANNELS,
+  type MessageEventsConfig,
+  type RobotChannel,
+  type RobotUpsert,
+} from "@rabbit/shared";
 import { prisma } from "@rabbit/db";
 import { assertRobotWebhookSafe, sendRobotWebhook } from "./robot-sender";
 import { readEventsConfig, writeEventsConfig } from "./notify.service";
@@ -10,7 +15,10 @@ export const ROBOT_LIMIT = 10;
 function validateWebhook(input: RobotUpsert): string | null {
   if (WEBHOOK_ROBOT_CHANNELS.includes(input.channel)) {
     if (!input.webhook) {
-      throw new DomainError(ErrCode.ROBOT_WEBHOOK_INVALID, "机器人渠道（企微/钉钉/飞书）必须填写 Webhook");
+      throw new DomainError(
+        ErrCode.ROBOT_WEBHOOK_INVALID,
+        "机器人渠道（企微/钉钉/飞书）必须填写 Webhook",
+      );
     }
     let url: URL;
     try {
@@ -55,7 +63,10 @@ export async function listRobots(projectId: string) {
 export async function createRobot(projectId: string, input: RobotUpsert) {
   const count = await prisma.robot.count({ where: { projectId } });
   if (count >= ROBOT_LIMIT) {
-    throw new DomainError(ErrCode.ROBOT_LIMIT_EXCEEDED, `机器人数量超出上限（${ROBOT_LIMIT}/项目）`);
+    throw new DomainError(
+      ErrCode.ROBOT_LIMIT_EXCEEDED,
+      `机器人数量超出上限（${ROBOT_LIMIT}/项目）`,
+    );
   }
   const webhook = validateWebhook(input);
   if (webhook) await assertRobotWebhookSafe(webhook); // 保存期即校验（发送期复检）

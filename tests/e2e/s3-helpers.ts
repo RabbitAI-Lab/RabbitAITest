@@ -5,7 +5,16 @@ import { ok } from "./s2-helpers";
 
 export interface StepNodeLike {
   uid: string;
-  stepType: "ref_api" | "ref_case" | "ref_scenario" | "custom" | "loop" | "condition" | "once" | "script" | "wait";
+  stepType:
+    | "ref_api"
+    | "ref_case"
+    | "ref_scenario"
+    | "custom"
+    | "loop"
+    | "condition"
+    | "once"
+    | "script"
+    | "wait";
   name: string;
   enabled: boolean;
   config: Record<string, unknown>;
@@ -16,7 +25,11 @@ let uidSeq = 0;
 export const stepUid = () => `e2e-step-${Date.now() % 1e7}-${uidSeq++}`;
 
 /** custom 请求步骤（GET url + 可选断言）。 */
-export function customStep(name: string, url: string, asserts: { kind: string; path: string; op: string; expected: string }[] = []): StepNodeLike {
+export function customStep(
+  name: string,
+  url: string,
+  asserts: { kind: string; path: string; op: string; expected: string }[] = [],
+): StepNodeLike {
   return {
     uid: stepUid(),
     stepType: "custom",
@@ -24,7 +37,14 @@ export function customStep(name: string, url: string, asserts: { kind: string; p
     enabled: true,
     config: {
       bundle: {
-        request: { method: "GET", url, headers: [], query: [], body: { kind: "none" }, auth: { kind: "none" } },
+        request: {
+          method: "GET",
+          url,
+          headers: [],
+          query: [],
+          body: { kind: "none" },
+          auth: { kind: "none" },
+        },
         asserts,
         pre: [],
         post: [],
@@ -47,29 +67,60 @@ export function loopForeachStep(name: string, listName: string, child: StepNodeL
 }
 
 export function scriptStep(name: string, script: string): StepNodeLike {
-  return { uid: stepUid(), stepType: "script", name, enabled: true, config: { script }, children: [] };
+  return {
+    uid: stepUid(),
+    stepType: "script",
+    name,
+    enabled: true,
+    config: { script },
+    children: [],
+  };
 }
 
 export function waitStep(name: string, ms = 5): StepNodeLike {
   return { uid: stepUid(), stepType: "wait", name, enabled: true, config: { ms }, children: [] };
 }
 
-export function conditionStep(name: string, expression: string, children: StepNodeLike[]): StepNodeLike {
-  return { uid: stepUid(), stepType: "condition", name, enabled: true, config: { expression }, children };
+export function conditionStep(
+  name: string,
+  expression: string,
+  children: StepNodeLike[],
+): StepNodeLike {
+  return {
+    uid: stepUid(),
+    stepType: "condition",
+    name,
+    enabled: true,
+    config: { expression },
+    children,
+  };
 }
 
 export interface ScenarioConfigLike {
   params?: {
     constants?: { name: string; value: string; description?: string }[];
     lists?: { name: string; values: string[] }[];
-    csv?: { source: "inline" | "file"; inlineText?: string; delimiter?: "," | ";" | "\t"; hasHeader?: boolean; fileId?: string };
+    csv?: {
+      source: "inline" | "file";
+      inlineText?: string;
+      delimiter?: "," | ";" | "\t";
+      hasHeader?: boolean;
+      fileId?: string;
+    };
   };
   prePost?: { pre: unknown[]; post: unknown[] };
   asserts?: unknown[];
-  settings?: { cookieMode?: "off" | "keep"; thinkTimeMs?: number; onFailure?: "continue" | "abort" };
+  settings?: {
+    cookieMode?: "off" | "keep";
+    thinkTimeMs?: number;
+    onFailure?: "continue" | "abort";
+  };
 }
 
-export async function defaultScenarioModuleId(request: APIRequestContext, projectId: string): Promise<string> {
+export async function defaultScenarioModuleId(
+  request: APIRequestContext,
+  projectId: string,
+): Promise<string> {
   const res = await request.get(`/api/v1/projects/${projectId}/modules?scene=scenario`);
   const data = await ok<{ items: { id: string }[] }>(res);
   return data.items[0]!.id;
@@ -82,12 +133,22 @@ export async function createScenario(
 ): Promise<{ id: string; num: number }> {
   const moduleId = body.moduleId ?? (await defaultScenarioModuleId(request, projectId));
   const res = await request.post(`/api/v1/projects/${projectId}/scenarios`, {
-    data: { name: body.name, moduleId, ...(body.level ? { level: body.level } : {}), ...(body.config ? { config: body.config } : {}) },
+    data: {
+      name: body.name,
+      moduleId,
+      ...(body.level ? { level: body.level } : {}),
+      ...(body.config ? { config: body.config } : {}),
+    },
   });
   return ok<{ id: string; num: number }>(res, 201);
 }
 
-export async function saveSteps(request: APIRequestContext, projectId: string, id: string, steps: StepNodeLike[]): Promise<number> {
+export async function saveSteps(
+  request: APIRequestContext,
+  projectId: string,
+  id: string,
+  steps: StepNodeLike[],
+): Promise<number> {
   const detail = await request.get(`/api/v1/projects/${projectId}/scenarios/${id}`);
   const d = await ok<{ version: number }>(detail);
   const res = await request.put(`/api/v1/projects/${projectId}/scenarios/${id}/steps`, {
@@ -103,7 +164,9 @@ export async function executeScenario(
   id: string,
   body: { envId?: string } = {},
 ): Promise<string> {
-  const res = await request.post(`/api/v1/projects/${projectId}/scenarios/${id}/execute`, { data: body });
+  const res = await request.post(`/api/v1/projects/${projectId}/scenarios/${id}/execute`, {
+    data: body,
+  });
   const data = await ok<{ taskId: string }>(res, 201);
   return data.taskId;
 }
@@ -123,12 +186,18 @@ export async function scenarioTree(
   const rep = await request.get(`/api/v1/projects/${projectId}/reports/${taskId}`);
   const detail = await ok<{ items: { itemId: string }[] }>(rep);
   const itemId = detail.items[0]!.itemId;
-  const res = await request.get(`/api/v1/projects/${projectId}/reports/${taskId}/items/${itemId}/scenario-tree`);
+  const res = await request.get(
+    `/api/v1/projects/${projectId}/reports/${taskId}/items/${itemId}/scenario-tree`,
+  );
   return ok<ScenarioTreeResult>(res);
 }
 
 /** antd 树/下拉外的通用点击重试（antd 重渲染重建浮层的 CI 慢机问题，S1 教训）。 */
-export async function clickRetry(page: Page, locator: { click(options?: { timeout?: number }): Promise<unknown> }, times = 3): Promise<void> {
+export async function clickRetry(
+  page: Page,
+  locator: { click(options?: { timeout?: number }): Promise<unknown> },
+  times = 3,
+): Promise<void> {
   let lastErr: unknown = null;
   for (let i = 0; i < times; i++) {
     try {

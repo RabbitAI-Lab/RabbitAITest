@@ -7,6 +7,8 @@ import { paramApi, type SystemParams } from "@rabbit/api-client";
 import { PageHeader } from "@/components/PageHeader";
 import { useApp } from "@/hooks/useApp";
 import { usePermissions } from "@/hooks/usePermissions";
+import { useEntp } from "@/hooks/useEntp";
+import { ThemeTab } from "./ThemeTab";
 
 const fmt = (v: string | null) => (v ? v.replace("T", " ").slice(0, 16) : "—");
 const GROUP_LABEL: Record<string, string> = {
@@ -14,6 +16,7 @@ const GROUP_LABEL: Record<string, string> = {
   smtp: "邮箱",
   file: "文件",
   cleanup: "数据清理",
+  theme: "界面设置",
 };
 
 /** SYS-005：系统参数（基础/邮箱/文件/数据清理 四分区，每区独立保存；SMTP 支持测试连接）。 */
@@ -22,6 +25,7 @@ export default function SystemParamsPage() {
   const { message } = useApp();
   const { canGlobal } = usePermissions();
   const canUpdate = canGlobal("SYSTEM_PARAM:UPDATE");
+  const entp = useEntp();
 
   const { data, isLoading } = useQuery({ queryKey: ["system-params"], queryFn: paramApi.get });
 
@@ -57,7 +61,7 @@ export default function SystemParamsPage() {
       group,
       value,
     }: {
-      group: "basic" | "smtp" | "file" | "cleanup";
+      group: "basic" | "smtp" | "file" | "cleanup" | "theme";
       value: Record<string, unknown>;
     }) => paramApi.update(group, value),
     onSuccess: (_r, v) => {
@@ -339,6 +343,14 @@ export default function SystemParamsPage() {
             </Button>
           )}
         </div>
+      ),
+    },
+    {
+      key: "theme",
+      label: "界面设置",
+      forceRender: true,
+      children: (
+        <ThemeTab initial={data?.theme} canUpdate={canUpdate} themeEnabled={entp.can("THEME")} />
       ),
     },
   ];

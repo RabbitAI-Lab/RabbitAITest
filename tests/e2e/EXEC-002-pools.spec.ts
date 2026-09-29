@@ -22,7 +22,10 @@ import {
  */
 
 /** 种子管理员登录（admin@rabbit.test；cookie 注入浏览器上下文，与 SYS-004/005 同款） */
-async function loginSeedAdmin(request: import("@playwright/test").APIRequestContext, context: import("@playwright/test").BrowserContext) {
+async function loginSeedAdmin(
+  request: import("@playwright/test").APIRequestContext,
+  context: import("@playwright/test").BrowserContext,
+) {
   const res = await request.post("/api/v1/auth/login", {
     data: { email: "admin@rabbit.test", password: "rabbit-admin-123" },
   });
@@ -49,7 +52,15 @@ test("EXEC-002-01 默认池：节点 ONLINE + 并发编辑 4 + 新建池 License
   // 默认池卡片存在（接口取池 id）
   const poolsRes = await request.get("/api/v1/system/pools");
   const pools = (
-    await ok<{ items: { id: string; name: string; isDefault: boolean; maxConcurrency: number; nodes: unknown[] }[] }>(poolsRes)
+    await ok<{
+      items: {
+        id: string;
+        name: string;
+        isDefault: boolean;
+        maxConcurrency: number;
+        nodes: unknown[];
+      }[];
+    }>(poolsRes)
   ).items;
   expect(pools.length).toBeGreaterThanOrEqual(1);
   const defPool = pools.find((p) => p.isDefault) ?? pools[0];
@@ -57,7 +68,9 @@ test("EXEC-002-01 默认池：节点 ONLINE + 并发编辑 4 + 新建池 License
   await expect(page.getByTestId(`pool-card-${defPool.id}`)).toContainText("默认 · 不可删");
 
   // 节点表：engine 心跳在线（ONLINE 行存在）
-  await expect(page.getByTestId("pool-nodes").getByText("在线").first()).toBeVisible({ timeout: 15000 });
+  await expect(page.getByTestId("pool-nodes").getByText("在线").first()).toBeVisible({
+    timeout: 15000,
+  });
 
   // 编辑并发 4 → 保存（种子池并发=4：值未变时载荷按「仅携带改动」语义不含 maxConcurrency——S-future pools 页修正，
   // 载荷断言移到下方 4→2 真变更处；本步仅断言保存成功与回显值）
@@ -88,12 +101,18 @@ test("EXEC-002-01 默认池：节点 ONLINE + 并发编辑 4 + 新建池 License
   expect((put2.data as { maxConcurrency: number }).maxConcurrency).toBe(2);
   // 载荷断言（真变更 4→2：PUT 请求体必含 maxConcurrency=2）
   const put2RawRes = await put2Raw;
-  expect((put2RawRes.request().postDataJSON() as { maxConcurrency: number }).maxConcurrency).toBe(2);
+  expect((put2RawRes.request().postDataJSON() as { maxConcurrency: number }).maxConcurrency).toBe(
+    2,
+  );
   await expect
     .poll(
       // 断言口径=槽位总数生效（x÷2）而非 busy=0：并行 worker 下其他用例持续提交任务，
       // busy=0 的空闲窗口可能 35s 内不出现（S-future 复跑两连挂硬化——意图是验证下发生效，不要求引擎空闲）
-      async () => page.getByTestId("pool-nodes").getByText(/^\d+÷2$/).count(),
+      async () =>
+        page
+          .getByTestId("pool-nodes")
+          .getByText(/^\d+÷2$/)
+          .count(),
       { timeout: 35_000, message: "并发下调至 2 后节点槽位应变为 x÷2" },
     )
     .toBeGreaterThan(0);
@@ -109,8 +128,24 @@ test("EXEC-002-01 默认池：节点 ONLINE + 并发编辑 4 + 新建池 License
   expect(put4.status).toBe(200);
   expect((put4.data as { maxConcurrency: number }).maxConcurrency).toBe(4);
 
-  // 二态：新建资源池 = 企业版功能，License 未启用 → disabled
-  await expect(page.getByTestId("btn-new-pool")).toBeDisabled();
+  // 二态：新建资源池 = 企业版功能——社区版 disabled / 企业版 enabled（S9 勘误：ENTP spec 并行持证
+  // 时按钮解锁，门控 403/放行已在 ENTP-007 e2e+jmx 全覆盖）。读态与断言间存在并行持证竞态
+  // （读到社区→按钮随即被解锁）——重试环桥接：任一轮「读态↔按钮态」一致即过（≤30s）
+  for (let attempt = 0; attempt < 10; attempt++) {
+    const lic = await request.get("/api/v1/public/license-status");
+    const edition = ((await lic.json()) as { data: { edition: string } }).data.edition;
+    const disabledCount = await page
+      .getByTestId("btn-new-pool")
+      .evaluate((el) => ((el as HTMLButtonElement).disabled ? 1 : 0));
+    const expectDisabled = edition === "COMMUNITY" ? 1 : 0;
+    if (disabledCount === expectDisabled) break;
+    if (attempt === 9) {
+      throw new Error(`门控二态竞态未收敛：edition=${edition} disabled=${disabledCount === 1}`);
+    }
+    await page.waitForTimeout(3_000);
+    await page.reload();
+    await expect(page.getByTestId("pool-nodes")).toBeVisible();
+  }
 
   await expectNoConsoleErrors();
 });
@@ -178,7 +213,10 @@ test("EXEC-002-02 停止二态：慢任务 STOPPED + SUCCESS 任务不可重跑�
 
   const stopApi = expectApi("**/api/v1/projects/*/exec-tasks/*/stop");
   await slowRow.getByTestId(/btn-stop-\d/).click();
-  await page.locator(".ant-popover").getByRole("button", { name: /停\s*止/ }).click();
+  await page
+    .locator(".ant-popover")
+    .getByRole("button", { name: /停\s*止/ })
+    .click();
   const stopped = await stopApi;
   expect(stopped.status).toBe(200);
   expect(stopped.code).toBe(0);

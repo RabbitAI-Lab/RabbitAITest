@@ -89,13 +89,23 @@ export default function createZentaoPlugin() {
     async updateIssue(cfg: PlatformConfig, platformKey: string, payload: IssuePayload) {
       await request(cfg, `/bugs/${platformKey.replace(/^#/, "")}`, {
         method: "PUT",
-        body: { title: payload.title, steps: payload.description, ...translateFields(payload.fields) },
+        body: {
+          title: payload.title,
+          steps: payload.description,
+          ...translateFields(payload.fields),
+        },
       });
       return { platformKey };
     },
-    async syncBugs(cfg: PlatformConfig, projectKey: string, since?: string): Promise<PlatformBug[]> {
+    async syncBugs(
+      cfg: PlatformConfig,
+      projectKey: string,
+      since?: string,
+    ): Promise<PlatformBug[]> {
       const sinceDate = since ? new Date(since) : undefined;
-      const sinceParam = sinceDate ? `&lastEditedDate=${encodeURIComponent(`>=${sinceDate!.toISOString().slice(0, 19)}`)}` : "";
+      const sinceParam = sinceDate
+        ? `&lastEditedDate=${encodeURIComponent(`>=${sinceDate!.toISOString().slice(0, 19)}`)}`
+        : "";
       const res = await request<{ bugs: ZentaoBug[] }>(
         cfg,
         `/bugs?product=${encodeURIComponent(projectKey)}&limit=100${sinceParam}`,
@@ -120,7 +130,8 @@ export default function createZentaoPlugin() {
 function translateFields(fields: Record<string, unknown>): Record<string, unknown> {
   const out: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(fields)) {
-    if (v !== null && v !== undefined) out[k] = typeof v === "object" ? JSON.stringify(v) : String(v);
+    if (v !== null && v !== undefined)
+      out[k] = typeof v === "object" ? JSON.stringify(v) : String(v);
   }
   return out;
 }

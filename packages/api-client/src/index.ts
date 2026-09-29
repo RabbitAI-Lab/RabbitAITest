@@ -5,6 +5,7 @@ export * from "./s4";
 export * from "./s7";
 export * from "./s6";
 export * from "./s5";
+export * from "./s9";
 import type { AssertSpec, RequestSpec, TaskStatus } from "@rabbit/shared";
 import type { CaseCreateInput, CaseDetail, CaseListQuery } from "@rabbit/shared";
 import { get, post, put, del } from "./client";
@@ -21,8 +22,13 @@ export const authApi = {
 };
 
 export const projectApi = {
-  list: () =>
-    get<{ id: string; name: string; num: number; role: string }[]>("/api/v1/personal/projects"),
+  /** ENTP-001：orgId 按组织过滤（响应含 orgId 回显） */
+  list: (orgId?: string) =>
+    get<{ id: string; name: string; num: number; role: string; orgId?: string }[]>(
+      orgId
+        ? `/api/v1/personal/projects?orgId=${encodeURIComponent(orgId)}`
+        : "/api/v1/personal/projects",
+    ),
 };
 
 export function qs(query: Partial<CaseListQuery>): string {
@@ -76,9 +82,7 @@ export const execApi = {
     // 不带 query：命中服务端「旧调试历史口径兼容」分支（exec-tasks/route.ts GET：searchParams 为空
     // → debugHistory，返回 {id,status,method,url}）。带 query 会落到 listExecTasks（无 url/method 字段），
     // 调试页历史面板 h.url.replace 将抛 TypeError（2026-09-27 e2e API-001/API-004 回归定位）。
-    get<{ total: number; items: DebugHistoryItem[] }>(
-      `/api/v1/projects/${projectId}/exec-tasks`,
-    ),
+    get<{ total: number; items: DebugHistoryItem[] }>(`/api/v1/projects/${projectId}/exec-tasks`),
 };
 
 export interface ReportDetail {

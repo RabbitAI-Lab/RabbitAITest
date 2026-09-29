@@ -56,7 +56,10 @@ export default function createJiraPlugin() {
   return {
     platform: "jira" as const,
     async testConnection(cfg: PlatformConfig) {
-      const me = await request<{ displayName: string; emailAddress?: string }>(cfg, "/rest/api/2/myself");
+      const me = await request<{ displayName: string; emailAddress?: string }>(
+        cfg,
+        "/rest/api/2/myself",
+      );
       return { account: me.displayName, email: me.emailAddress };
     },
     async createIssue(cfg: PlatformConfig, payload: IssuePayload) {
@@ -87,7 +90,11 @@ export default function createJiraPlugin() {
       });
       return { platformKey };
     },
-    async syncBugs(cfg: PlatformConfig, projectKey: string, since?: string): Promise<PlatformBug[]> {
+    async syncBugs(
+      cfg: PlatformConfig,
+      projectKey: string,
+      since?: string,
+    ): Promise<PlatformBug[]> {
       const sinceDate = since ? new Date(since) : undefined;
       const jql = since
         ? `project = "${projectKey}" AND updated >= "${sinceDate!.toISOString().slice(0, 19).replace("T", " ")}" ORDER BY updated DESC`

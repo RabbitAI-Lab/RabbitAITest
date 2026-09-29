@@ -7,11 +7,17 @@
   </head>
   <body class="bg-slate-50 text-slate-800 text-sm">
     <header class="h-12 bg-white border-b flex items-center px-4 gap-3">
-      <span class="font-semibold">RabbitAITest</span><span class="border rounded px-2 py-0.5">演示项目 #1</span>
+      <span class="font-semibold">RabbitAITest</span
+      ><span class="border rounded px-2 py-0.5">演示项目 #1</span>
       <div class="ml-auto flex items-center gap-3 text-xs">
         <span class="text-slate-400">帮助</span><span class="text-slate-400">🔔</span>
         <span class="border-l h-4"></span>
-        <span class="flex items-center gap-1.5"><span class="w-6 h-6 rounded-full bg-[#574BFF]/10 text-[#574BFF] text-[11px] flex items-center justify-center font-medium">A</span>admin ▾</span>
+        <span class="flex items-center gap-1.5"
+          ><span
+            class="w-6 h-6 rounded-full bg-[#574BFF]/10 text-[#574BFF] text-[11px] flex items-center justify-center font-medium"
+            >A</span
+          >admin ▾</span
+        >
       </div>
     </header>
     <!-- 个人下拉 -->
@@ -19,7 +25,7 @@
       <p class="px-3 py-1.5 bg-slate-50 font-medium">个人中心</p>
       <p class="px-3 py-1.5 text-slate-400">退出登录</p>
     </div>
-    <main class="p-4 max-w-[1000px] flex gap-4" style="margin-top:24px">
+    <main class="p-4 max-w-[1000px] flex gap-4" style="margin-top: 24px">
       <!-- 左侧子菜单 -->
       <aside class="w-44 shrink-0">
         <div class="bg-white border rounded text-[13px] py-1">
@@ -29,19 +35,44 @@
           <p class="px-3 py-2 text-slate-600">本地执行</p>
           <p class="px-3 py-2 text-slate-600">模型设置</p>
         </div>
-        <p class="text-[11px] text-slate-400 mt-2 px-1">个人资源无权限点（登录即本人）；APIKEY 子页复用 INTG-003（/personal/api-keys 旧路由重定向兼容）</p>
+        <p class="text-[11px] text-slate-400 mt-2 px-1">
+          个人资源无权限点（登录即本人）；APIKEY 子页复用 INTG-003（/personal/api-keys
+          旧路由重定向兼容）
+        </p>
       </aside>
 
       <div class="flex-1 space-y-4">
         <!-- 画板一：个人信息 -->
         <section class="bg-white border rounded-md">
-          <div class="px-3 py-2 border-b bg-slate-50 font-medium">画板一 · 个人信息（头像=姓名首字母色块 · 邮箱=登录名不可改）</div>
+          <div class="px-3 py-2 border-b bg-slate-50 font-medium">
+            画板一 · 个人信息（头像=姓名首字母色块 · 邮箱=登录名不可改）
+          </div>
           <div class="p-4 flex gap-4 items-start">
-            <span class="w-16 h-16 rounded-full bg-[#574BFF]/10 text-[#574BFF] text-2xl flex items-center justify-center font-medium">A</span>
+            <span
+              class="w-16 h-16 rounded-full bg-[#574BFF]/10 text-[#574BFF] text-2xl flex items-center justify-center font-medium"
+              >A</span
+            >
             <div class="space-y-3 text-[13px] flex-1 max-w-md">
-              <div class="flex items-center gap-2"><p class="text-slate-500 text-xs w-16">邮箱</p><input class="border rounded px-2 py-1.5 flex-1 bg-slate-50" value="admin@rabbit.test" disabled /><span class="text-[10px] text-slate-400">登录名</span></div>
-              <div class="flex items-center gap-2"><p class="text-slate-500 text-xs w-16">姓名</p><input class="border rounded px-2 py-1.5 flex-1" value="管理员" /></div>
-              <div class="flex items-center gap-2"><p class="text-slate-500 text-xs w-16">手机</p><input class="border rounded px-2 py-1.5 flex-1" value="13800000000" placeholder="选填" /></div>
+              <div class="flex items-center gap-2">
+                <p class="text-slate-500 text-xs w-16">邮箱</p>
+                <input
+                  class="border rounded px-2 py-1.5 flex-1 bg-slate-50"
+                  value="admin@rabbit.test"
+                  disabled
+                /><span class="text-[10px] text-slate-400">登录名</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <p class="text-slate-500 text-xs w-16">姓名</p>
+                <input class="border rounded px-2 py-1.5 flex-1" value="管理员" />
+              </div>
+              <div class="flex items-center gap-2">
+                <p class="text-slate-500 text-xs w-16">手机</p>
+                <input
+                  class="border rounded px-2 py-1.5 flex-1"
+                  value="13800000000"
+                  placeholder="选填"
+                />
+              </div>
               <button class="bg-[#574BFF] text-white rounded px-4 py-1.5 text-xs">保存</button>
             </div>
           </div>
@@ -49,11 +80,25 @@
 
         <!-- 画板二：修改密码 -->
         <section class="bg-white border rounded-md">
-          <div class="px-3 py-2 border-b bg-slate-50 font-medium">画板二 · 修改密码（旧密码校验错→红条；成功后其余会话失效，当前会话保留）</div>
+          <div class="px-3 py-2 border-b bg-slate-50 font-medium">
+            画板二 · 修改密码（旧密码校验错→红条；成功后其余会话失效，当前会话保留）
+          </div>
           <div class="p-4 space-y-3 text-[13px] max-w-md">
-            <div><p class="text-slate-500 text-xs mb-1">当前密码</p><input type="password" class="border rounded px-2 py-1.5 w-full" value="••••••••" /></div>
-            <div><p class="text-slate-500 text-xs mb-1">新密码 <span class="text-slate-300">（≥8 位）</span></p><input type="password" class="border rounded px-2 py-1.5 w-full" value="••••••" /><p class="text-[11px] text-amber-500">强度提示：至少 8 位</p></div>
-            <div><p class="text-slate-500 text-xs mb-1">确认新密码</p><input type="password" class="border rounded px-2 py-1.5 w-full" /></div>
+            <div>
+              <p class="text-slate-500 text-xs mb-1">当前密码</p>
+              <input type="password" class="border rounded px-2 py-1.5 w-full" value="••••••••" />
+            </div>
+            <div>
+              <p class="text-slate-500 text-xs mb-1">
+                新密码 <span class="text-slate-300">（≥8 位）</span>
+              </p>
+              <input type="password" class="border rounded px-2 py-1.5 w-full" value="••••••" />
+              <p class="text-[11px] text-amber-500">强度提示：至少 8 位</p>
+            </div>
+            <div>
+              <p class="text-slate-500 text-xs mb-1">确认新密码</p>
+              <input type="password" class="border rounded px-2 py-1.5 w-full" />
+            </div>
             <p class="text-[11px] text-red-500">当前密码错误（422 PERSONAL_PASSWORD_MISMATCH）</p>
             <button class="bg-[#574BFF] text-white rounded px-4 py-1.5 text-xs">修改密码</button>
           </div>
@@ -61,37 +106,83 @@
 
         <!-- 画板三：本地执行 -->
         <section class="bg-white border rounded-md">
-          <div class="px-3 py-2 border-b bg-slate-50 font-medium">画板三 · 本地执行（环回地址 + 连通检测 + 优先开关）</div>
+          <div class="px-3 py-2 border-b bg-slate-50 font-medium">
+            画板三 · 本地执行（环回地址 + 连通检测 + 优先开关）
+          </div>
           <div class="p-4 space-y-3 text-[13px] max-w-lg">
             <div class="flex items-center gap-2">
-              <div class="flex-1"><p class="text-slate-500 text-xs mb-1">本地 runner 地址 <span class="text-slate-300">（仅限环回）</span></p><input class="border rounded px-2 py-1.5 w-full font-mono text-xs" value="http://127.0.0.1:7001" /></div>
+              <div class="flex-1">
+                <p class="text-slate-500 text-xs mb-1">
+                  本地 runner 地址 <span class="text-slate-300">（仅限环回）</span>
+                </p>
+                <input
+                  class="border rounded px-2 py-1.5 w-full font-mono text-xs"
+                  value="http://127.0.0.1:7001"
+                />
+              </div>
               <button class="border rounded px-3 py-1.5 text-xs self-end">检测连通</button>
             </div>
             <p class="text-xs text-green-600">✓ 连通（12ms）</p>
-            <p class="text-[11px] text-red-400">示例错误：http://192.168.1.1:7001 —— 仅允许 127.0.0.1/localhost/::1（422）</p>
-            <div class="flex items-center gap-2"><span class="w-9 h-5 rounded-full bg-[#574BFF] inline-block relative"><span class="absolute right-0.5 top-0.5 w-4 h-4 bg-white rounded-full"></span></span><span class="text-xs">优先本地执行</span></div>
-            <p class="text-[11px] text-slate-400">开关为偏好记录与展示；实际本地执行由 engine --local 拉取模式自决（web 不做调度改向）</p>
+            <p class="text-[11px] text-red-400">
+              示例错误：http://192.168.1.1:7001 —— 仅允许 127.0.0.1/localhost/::1（422）
+            </p>
+            <div class="flex items-center gap-2">
+              <span class="w-9 h-5 rounded-full bg-[#574BFF] inline-block relative"
+                ><span
+                  class="absolute right-0.5 top-0.5 w-4 h-4 bg-white rounded-full"
+                ></span></span
+              ><span class="text-xs">优先本地执行</span>
+            </div>
+            <p class="text-[11px] text-slate-400">
+              开关为偏好记录与展示；实际本地执行由 engine --local 拉取模式自决（web 不做调度改向）
+            </p>
           </div>
         </section>
 
         <!-- 画板四：模型设置 -->
         <section class="bg-white border rounded-md">
-          <div class="px-3 py-2 border-b bg-slate-50 font-medium">画板四 · 模型设置（个人默认模型：系统启用模型中选一；AI 助手/生成优先使用——S7 挂点兑现）</div>
+          <div class="px-3 py-2 border-b bg-slate-50 font-medium">
+            画板四 · 模型设置（个人默认模型：系统启用模型中选一；AI 助手/生成优先使用——S7 挂点兑现）
+          </div>
           <div class="p-4 text-[13px] space-y-2 max-w-lg">
             <div class="border rounded divide-y text-xs">
-              <label class="flex items-center gap-2 px-3 py-2"><input type="radio" name="m" checked /><span class="font-medium">GLM-4.6-Flash</span><span class="text-[10px] border rounded px-1.5 py-0.5 bg-blue-50 text-blue-600">zhipu</span><span class="text-slate-400 font-mono">glm-4.6-flash</span><span class="ml-auto text-[10px] text-green-600">个人默认</span></label>
-              <label class="flex items-center gap-2 px-3 py-2"><input type="radio" name="m" /><span class="font-medium">DeepSeek-V3</span><span class="text-[10px] border rounded px-1.5 py-0.5 bg-green-50 text-green-600">deepseek</span><span class="text-slate-400 font-mono">deepseek-chat</span><span class="ml-auto text-[10px] text-amber-500">★ 系统默认</span></label>
-              <label class="flex items-center gap-2 px-3 py-2 opacity-50"><input type="radio" disabled /><span>Old-Model（已停用）</span><span class="text-slate-400 text-[10px]">不可选</span></label>
+              <label class="flex items-center gap-2 px-3 py-2"
+                ><input type="radio" name="m" checked /><span class="font-medium"
+                  >GLM-4.6-Flash</span
+                ><span class="text-[10px] border rounded px-1.5 py-0.5 bg-blue-50 text-blue-600"
+                  >zhipu</span
+                ><span class="text-slate-400 font-mono">glm-4.6-flash</span
+                ><span class="ml-auto text-[10px] text-green-600">个人默认</span></label
+              >
+              <label class="flex items-center gap-2 px-3 py-2"
+                ><input type="radio" name="m" /><span class="font-medium">DeepSeek-V3</span
+                ><span class="text-[10px] border rounded px-1.5 py-0.5 bg-green-50 text-green-600"
+                  >deepseek</span
+                ><span class="text-slate-400 font-mono">deepseek-chat</span
+                ><span class="ml-auto text-[10px] text-amber-500">★ 系统默认</span></label
+              >
+              <label class="flex items-center gap-2 px-3 py-2 opacity-50"
+                ><input type="radio" disabled /><span>Old-Model（已停用）</span
+                ><span class="text-slate-400 text-[10px]">不可选</span></label
+              >
             </div>
-            <div class="flex items-center gap-3"><button class="bg-[#574BFF] text-white rounded px-4 py-1.5 text-xs">保存</button><a class="text-xs text-[#574BFF]">清除（用系统默认）</a></div>
-            <p class="text-[11px] text-slate-400">解析顺序：个人默认（启用中） > 系统默认；无启用模型时引导至 系统管理-模型设置</p>
+            <div class="flex items-center gap-3">
+              <button class="bg-[#574BFF] text-white rounded px-4 py-1.5 text-xs">保存</button
+              ><a class="text-xs text-[#574BFF]">清除（用系统默认）</a>
+            </div>
+            <p class="text-[11px] text-slate-400">
+              解析顺序：个人默认（启用中） > 系统默认；无启用模型时引导至 系统管理-模型设置
+            </p>
           </div>
         </section>
 
         <!-- APIKEY 子页说明 -->
         <section class="bg-white border rounded-md">
           <div class="px-3 py-2 border-b bg-slate-50 font-medium">APIKEY 子页</div>
-          <p class="p-3 text-xs text-slate-400">复用 INTG-003 交付（列表/创建/一次性 Secret 展示/吊销，上限 5 条，Basic ak:sk 或 Bearer ak.sk 第三认证通道）——本迭代仅收编入口，不重建端点</p>
+          <p class="p-3 text-xs text-slate-400">
+            复用 INTG-003 交付（列表/创建/一次性 Secret 展示/吊销，上限 5 条，Basic ak:sk 或 Bearer
+            ak.sk 第三认证通道）——本迭代仅收编入口，不重建端点
+          </p>
         </section>
       </div>
     </main>

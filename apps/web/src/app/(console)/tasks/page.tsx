@@ -1,6 +1,17 @@
 "use client";
 
-import { Badge, Button, Empty, Input, Popconfirm, Progress, Select, Table, Tag, Tooltip } from "antd";
+import {
+  Badge,
+  Button,
+  Empty,
+  Input,
+  Popconfirm,
+  Progress,
+  Select,
+  Table,
+  Tag,
+  Tooltip,
+} from "antd";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
@@ -44,7 +55,8 @@ function StatusCell({ row }: { row: ExecTaskRow }) {
         )}
       </span>
     );
-  if (row.status === "PENDING") return <Badge color="#1677FF" text={<span className="text-[#1677FF]">PENDING</span>} />;
+  if (row.status === "PENDING")
+    return <Badge color="#1677FF" text={<span className="text-[#1677FF]">PENDING</span>} />;
   if (row.status === "SUCCESS") return <Badge status="success" text="SUCCESS" />;
   if (row.status === "FAILED") return <Badge status="error" text="FAILED" />;
   return <Badge status="default" text="STOPPED" />;
@@ -59,7 +71,9 @@ export default function TaskCenterPage() {
   const { currentProjectId: projectId } = useProjectStore();
 
   const [scope, setScope] = useState<"project" | "all">("project");
-  const [subTab, setSubTab] = useState<"realtime" | "cron">(search.get("subTab") === "cron" ? "cron" : "realtime");
+  const [subTab, setSubTab] = useState<"realtime" | "cron">(
+    search.get("subTab") === "cron" ? "cron" : "realtime",
+  );
   const focusTask = search.get("focus");
   const [typeFilter, setTypeFilter] = useState<string>();
   const [statusFilter, setStatusFilter] = useState<string>();
@@ -76,7 +90,8 @@ export default function TaskCenterPage() {
       ? statusFilter
       : undefined;
   const clientFilter = (row: ExecTaskRow) => {
-    if (statusFilter === "RUNNING_GROUP") return row.status === "PENDING" || row.status === "RUNNING";
+    if (statusFilter === "RUNNING_GROUP")
+      return row.status === "PENDING" || row.status === "RUNNING";
     if (statusFilter === "STUCK") return row.stuck;
     return true;
   };
@@ -97,9 +112,7 @@ export default function TaskCenterPage() {
             }
           : {}),
       };
-      return scope === "project"
-        ? taskApi.listProject(projectId!, q)
-        : taskApi.listAll(q);
+      return scope === "project" ? taskApi.listProject(projectId!, q) : taskApi.listAll(q);
     },
     enabled: Boolean(scope === "all" || projectId),
     refetchInterval: (query) => {
@@ -109,7 +122,8 @@ export default function TaskCenterPage() {
     },
   });
 
-  const invalidate = () => void qc.invalidateQueries({ queryKey: ["exec-tasks", scope, projectId] });
+  const invalidate = () =>
+    void qc.invalidateQueries({ queryKey: ["exec-tasks", scope, projectId] });
   const stop = useMutation({
     mutationFn: (taskId: string) => taskApi.stop(projectId!, taskId),
     onSuccess: () => {
@@ -178,7 +192,10 @@ export default function TaskCenterPage() {
         </div>
 
         {/* 次级 Tabs：实时任务 / 定时任务 */}
-        <div className="px-3 flex gap-5 text-[13px] border-b border-[#F0F1F3]" data-testid="task-tabs">
+        <div
+          className="px-3 flex gap-5 text-[13px] border-b border-[#F0F1F3]"
+          data-testid="task-tabs"
+        >
           {(
             [
               ["realtime", "实时任务"],
@@ -201,11 +218,15 @@ export default function TaskCenterPage() {
           scope === "project" && projectId ? (
             <SchedulePanel />
           ) : (
-            <div className="flex flex-col items-center justify-center py-14 text-center gap-2" data-testid="cron-empty">
+            <div
+              className="flex flex-col items-center justify-center py-14 text-center gap-2"
+              data-testid="cron-empty"
+            >
               <span className="text-4xl">⏰</span>
               <p className="text-[#3D4350]">定时任务为项目级配置</p>
               <p className="text-[13px] text-[#A8ABB0] max-w-md leading-6">
-                切换到「本项目」范围管理场景定时任务；计划定时（Sprint 4）/ Swagger 同步（Sprint 6）将逐步接入
+                切换到「本项目」范围管理场景定时任务；计划定时（Sprint 4）/ Swagger 同步（Sprint
+                6）将逐步接入
               </p>
             </div>
           )
@@ -319,7 +340,9 @@ export default function TaskCenterPage() {
                   "data-testid": `task-row-${i}`,
                 }) as React.HTMLAttributes<HTMLTableRowElement>
               }
-              rowClassName={(row) => (focusTask && row.id === focusTask ? "bg-[#574BFF]/[.06]" : "")}
+              rowClassName={(row) =>
+                focusTask && row.id === focusTask ? "bg-[#574BFF]/[.06]" : ""
+              }
               pagination={{
                 current: page,
                 pageSize: 20,
@@ -384,7 +407,9 @@ export default function TaskCenterPage() {
                   dataIndex: "createdAt",
                   width: 100,
                   render: (v: string) => (
-                    <span className="text-xs text-[#87888D]">{v.replace("T", " ").slice(11, 19)}</span>
+                    <span className="text-xs text-[#87888D]">
+                      {v.replace("T", " ").slice(11, 19)}
+                    </span>
                   ),
                 },
                 {
@@ -448,7 +473,9 @@ export default function TaskCenterPage() {
                           </Popconfirm>
                         )}
                         {rerunnable && (
-                          <Tooltip title={canUpdate ? undefined : "缺少 PROJECT_EXEC_TASK:UPDATE 权限"}>
+                          <Tooltip
+                            title={canUpdate ? undefined : "缺少 PROJECT_EXEC_TASK:UPDATE 权限"}
+                          >
                             <Button
                               type="link"
                               size="small"

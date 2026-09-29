@@ -39,8 +39,30 @@ function randFloat(ctx: FunctionCtx): number {
 const SURNAMES = "赵钱孙李周吴郑王冯陈褚卫蒋沈韩杨朱秦许何吕施张孔曹严华金魏陶姜";
 const GIVEN1 = "伟芳娜秀英敏静丽强磊军洋勇艳杰娟涛明超霞平刚桂香玉兰凤洁梅琳素云莲真环雪荣爱";
 const GIVEN2 = "晓志文婷玉欣怡家豪晨曦子萱浩宇梦琪思远静茹天佑";
-const PROVINCES = ["北京市", "上海市", "广东省广州市", "浙江省杭州市", "四川省成都市", "江苏省南京市", "湖北省武汉市", "陕西省西安市"];
-const DAY_MONTHS: Record<string, number> = { "01": 31, "02": 28, "03": 31, "04": 30, "05": 31, "06": 30, "07": 31, "08": 31, "09": 30, "10": 31, "11": 30, "12": 31 };
+const PROVINCES = [
+  "北京市",
+  "上海市",
+  "广东省广州市",
+  "浙江省杭州市",
+  "四川省成都市",
+  "江苏省南京市",
+  "湖北省武汉市",
+  "陕西省西安市",
+];
+const DAY_MONTHS: Record<string, number> = {
+  "01": 31,
+  "02": 28,
+  "03": 31,
+  "04": 30,
+  "05": 31,
+  "06": 30,
+  "07": 31,
+  "08": 31,
+  "09": 30,
+  "10": 31,
+  "11": 30,
+  "12": 31,
+};
 const CHARS = "abcdefghijklmnopqrstuvwxyz";
 
 function hashHex(algo: "md5" | "sha1" | "sha256", v: string): string {
@@ -68,14 +90,16 @@ const ENGINE_FUNCS: Record<string, EngineFunc> = {
     ctx.counter.set(key, n);
     return String(n);
   },
-  __random: (args, ctx) => String(randInt(ctx, Math.trunc(Number(args[0] ?? 1)), Math.trunc(Number(args[1] ?? 100)))),
+  __random: (args, ctx) =>
+    String(randInt(ctx, Math.trunc(Number(args[0] ?? 1)), Math.trunc(Number(args[1] ?? 100)))),
   __UUID: (_args, ctx) => {
     const b = bytes(ctx, 16);
     const h = [...b].map((x) => x.toString(16).padStart(2, "0")).join("");
     return `${h.slice(0, 8)}-${h.slice(8, 12)}-4${h.slice(13, 16)}-a${h.slice(17, 20)}-${h.slice(20, 32)}`;
   },
   __time: (args) => formatTime(Date.now(), args[0] ?? "yyyy-MM-dd HH:mm:ss"),
-  __timeShift: (args) => formatTime(Date.now() + Number(args[0] ?? 0) * 1000, args[1] ?? "yyyy-MM-dd HH:mm:ss"),
+  __timeShift: (args) =>
+    formatTime(Date.now() + Number(args[0] ?? 0) * 1000, args[1] ?? "yyyy-MM-dd HH:mm:ss"),
   __digest: (args, _ctx, w) => {
     const algo = args[0] ?? "md5";
     const input = args.slice(1).join(",");
@@ -88,7 +112,8 @@ const ENGINE_FUNCS: Record<string, EngineFunc> = {
   },
   __base64: (args) => Buffer.from(args.join(","), "utf8").toString("base64"),
   __urlEncode: (args) => encodeURIComponent(args.join(",")),
-  __isVarDefined: (args, ctx) => String(ctx.hasVar ? ctx.hasVar(args[0] ?? "") : ctx.vars.has(args[0] ?? "")),
+  __isVarDefined: (args, ctx) =>
+    String(ctx.hasVar ? ctx.hasVar(args[0] ?? "") : ctx.vars.has(args[0] ?? "")),
   __threadName: (args, ctx) => args[0] ?? ctx.vars.get("__scenario_name") ?? "",
 };
 
@@ -96,8 +121,12 @@ const ENGINE_FUNCS: Record<string, EngineFunc> = {
 type DataFunc = (args: string[], ctx: FunctionCtx, w: FunctionWarnings) => string;
 const DATA_FUNCS: Record<string, DataFunc> = {
   "@string": (args, ctx) =>
-    Array.from({ length: Math.min(256, Math.max(1, Math.trunc(Number(args[0] ?? 8)))) }, () => CHARS[randInt(ctx, 0, 25)]).join(""),
-  "@integer": (args, ctx) => String(randInt(ctx, Math.trunc(Number(args[0] ?? 1)), Math.trunc(Number(args[1] ?? 100)))),
+    Array.from(
+      { length: Math.min(256, Math.max(1, Math.trunc(Number(args[0] ?? 8)))) },
+      () => CHARS[randInt(ctx, 0, 25)],
+    ).join(""),
+  "@integer": (args, ctx) =>
+    String(randInt(ctx, Math.trunc(Number(args[0] ?? 1)), Math.trunc(Number(args[1] ?? 100)))),
   "@float": (args, ctx) => {
     const min = Number(args[0] ?? 0);
     const max = Number(args[1] ?? 1);
@@ -106,13 +135,18 @@ const DATA_FUNCS: Record<string, DataFunc> = {
   "@name": (_args, ctx) => {
     const surname = SURNAMES[randInt(ctx, 0, SURNAMES.length - 1)] ?? "";
     const pool = randFloat(ctx) < 0.5 ? GIVEN1 : GIVEN2;
-    const given = (pool[randInt(ctx, 0, pool.length - 1)] ?? "") + (randFloat(ctx) < 0.4 ? (GIVEN2[randInt(ctx, 0, GIVEN2.length - 1)] ?? "") : "");
+    const given =
+      (pool[randInt(ctx, 0, pool.length - 1)] ?? "") +
+      (randFloat(ctx) < 0.4 ? (GIVEN2[randInt(ctx, 0, GIVEN2.length - 1)] ?? "") : "");
     return surname + given;
   },
-  "@email": (_args, ctx) => `${DATA_FUNCS["@string"]?.(["8"], ctx, { warnings: [] }) ?? ""}@${randPick(ctx, ["demo.io", "test.dev", "example.com"])}`,
+  "@email": (_args, ctx) =>
+    `${DATA_FUNCS["@string"]?.(["8"], ctx, { warnings: [] }) ?? ""}@${randPick(ctx, ["demo.io", "test.dev", "example.com"])}`,
   "@phone": (_args, ctx) => `13${randInt(ctx, 0, 9)}${randInt(ctx, 10000000, 99999999)}`,
-  "@date": (args, ctx) => formatTime(randInt(ctx, Date.UTC(2020, 0, 1), Date.now()), args[0] ?? "yyyy-MM-dd"),
-  "@datetime": (_args, ctx) => formatTime(randInt(ctx, Date.UTC(2020, 0, 1), Date.now()), "yyyy-MM-dd HH:mm:ss"),
+  "@date": (args, ctx) =>
+    formatTime(randInt(ctx, Date.UTC(2020, 0, 1), Date.now()), args[0] ?? "yyyy-MM-dd"),
+  "@datetime": (_args, ctx) =>
+    formatTime(randInt(ctx, Date.UTC(2020, 0, 1), Date.now()), "yyyy-MM-dd HH:mm:ss"),
   "@address": (_args, ctx) => randPick(ctx, PROVINCES),
   "@idcard": (_args, ctx) => {
     const region = randPick(ctx, ["110101", "310104", "440305", "510107"]); // 合规 6 位区划码前缀
@@ -149,7 +183,8 @@ const PIPES: Record<string, Pipe> = {
   md5: (v) => hashHex("md5", v),
   sha256: (v) => hashHex("sha256", v),
   base64: (v) => Buffer.from(v, "utf8").toString("base64"),
-  substr: (v, a) => v.slice(Number(a[0] ?? 0), a[1] !== undefined ? Number(a[0]) + Number(a[1]) : undefined),
+  substr: (v, a) =>
+    v.slice(Number(a[0] ?? 0), a[1] !== undefined ? Number(a[0]) + Number(a[1]) : undefined),
   toUpperCase: (v) => v.toUpperCase(),
   toLowerCase: (v) => v.toLowerCase(),
   trim: (v) => v.trim(),
@@ -213,8 +248,14 @@ function evalInner(inner: string, ctx: FunctionCtx, w: FunctionWarnings): string
 }
 
 /** 主渲染：三形态统一（${name|pipes} / ${__func(args)} / @func(args)），支持 \${ 与 @@ 转义。 */
-export function renderFunctions(text: string, ctx: FunctionCtx, w: FunctionWarnings = { warnings: [] }): string {
-  let out = text.replaceAll("\\${", "\u0000ESC_DOLLAR\u0000").replaceAll("@@", "\u0000ESC_AT\u0000");
+export function renderFunctions(
+  text: string,
+  ctx: FunctionCtx,
+  w: FunctionWarnings = { warnings: [] },
+): string {
+  let out = text
+    .replaceAll("\\${", "\u0000ESC_DOLLAR\u0000")
+    .replaceAll("@@", "\u0000ESC_AT\u0000");
   out = out.replace(/\$\{([^}]+)\}/g, (_m, inner: string) => evalInner(inner, ctx, w));
   out = out.replace(/@([A-Za-z][A-Za-z0-9]*)\(([^)]*)\)/g, (m, name: string, raw: string) => {
     const fn = DATA_FUNCS[`@${name}`];

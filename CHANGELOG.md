@@ -2,6 +2,31 @@
 
 本项目的所有显著变更记录于此。格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本遵循语义化版本。
 
+## [v0.9.0] - 2026-09-28 — Sprint 9 企业版核心（M10 里程碑）
+
+### 新增（全量交付：三层测试 + CI 全绿）
+
+- **License 体系（ENTP-007）**：三段式签名 License（`RABBIT-ENT1.<payload>.<hmac>`，HMAC-SHA256 验签 + 三重校验 90002-90004）；`assertEntpEnabled(feature)` 六特性统一门控（MULTI_ORG/SSO/MULTI_POOL/THEME/MSG_TEMPLATE/USER_SCALE → 403 90001/90005）；授权管理页 `/system/license`（社区版⇄企业版状态卡、功能矩阵、到期 ≤30 天黄条/过期红条）；公开 `GET /public/license-status`（无鉴权，前端按钮解锁驱动，no-store）；`scripts/gen-license.mjs` 签发工具（--expires/--features/--max-users）；License 表 S0 已建零 DDL
+- **多组织管理（ENTP-001）**：组织 CRUD（建=名称+管理员既有用户+描述 → 组织+成员+预设事务；编辑/结束 ACTIVE↔ENDED 不入切换列表；删除 needConfirm 二次确认级联项目域数据，默认组织保护 90022）；顶栏组织切换器（>1 ACTIVE 组织显示，zustand 持久化）；`GET /personal/orgs` + `GET /personal/projects?orgId=` 按组织过滤；ProjectSwitcher 组织感知取数
+- **SSO 单点认证（ENTP-002）**：AuthSource 认证源（8 类型枚举，LDAP/CAS/OIDC/OAuth2 四协议实现，SAML 占位 90015）；OIDC/OAuth2/CAS 授权码全链（state Redis 5 分钟防 CSRF 90012、属性映射 username/name/email、find-or-create LOCAL 绑定/异源 409 90016）；LDAP 账密直登（注入式 adapter，bind+search+二次 bind，失败同码防枚举）；登录页「更多登录方式」+ LDAP Tab；mock IdP（`/sso/{provider}/{authId}/*` + `_test` 控面）
+- **扫码登录（ENTP-003）**：企微/钉钉/飞书三平台（apiBase/authorizeBase 可注入 mock——测试栈免真实企业账号）；回调换身份（各平台 API 形态）→ 合成 `@sso.scan` 幂等账号；SSO 特性门控
+- **自定义主题品牌（ENTP-004）**：SystemParam `theme` 组（主题色/背景跟随/登录页五项/平台三项；图片 dataUrl ≤200KB 90060）；界面设置 Tab 左表单右实时预览；`GET /public/theme` 驱动 antd token（Providers 动态 colorPrimary）+ `--rabbit-primary` CSS 变量（登录背景/导航选中态）+ 登录页/顶栏品牌 + 根 layout metadata 站点名
+- **自定义消息模板（ENTP-005）**：`message_templates` 表（项目×事件唯一，11 事件全覆盖）；变量目录 `TEMPLATE_VARS`（公共三变量+对象变量，`${var}` 渲染未知保留原样）；dispatch 渲染挂钩（模板存在且 License 有效→渲染；否则回退挂点 defaults——S5 固定文案零回归）；实时预览（服务端示例数据渲染，静态路由 preview/ 规避动态段 405）；模板 Tab（变量 chip 插入/预览/恢复默认）
+- **多资源池（ENTP-006）**：池 CRUD（NODE/K8S 类型位、应用组织 orgScope ALL|指定、启停、默认池删/禁保护 90030/90031、有任务池拒删 90036）；按池队列路由 `exec-pool-{poolId}`（BullMQ 禁冒号——设计稿 `exec:{poolId}` 勘误改连字符；默认池恒 `exec` 单引擎零回归）；engine `POOL_ID` 环境变量绑定（队列订阅+心跳携带 poolId 按池下发并发）；执行入口池校验（禁用 90032/orgScope 越界 90037）；场景/计划执行弹窗选池下拉（API-008 预留通道接通）
+- **用户扩容与部门（ENTP-008）**：`effectiveUserLimit()`（License USER_SCALE 放开 30 上限，maxUsers 可封顶；注册与管理员创建两入口共用）；组织级部门树（parentId 自引用+环检测 90042+同层重名 90041+有子拒删 90043）+ 成员多对多挂载（越组织 90044）；`/org/departments` 左树右表页；用户管理页容量进度条（社区版逼近上限提示扩容/企业版不限额口径）
+- **权限与错误码**：新增 18 权限点（SYSTEM_LICENSE:R/U、ENTP_ORG×4、ENTP_SSO×4、ENTP_POOL:C/U/D、ORG_DEPARTMENT×4；rbac §6 预登记兑现）；90xxx 企业版段 34 枚（api-conventions §3 预留兑现；POOL_NOT_FOUND 沿用 50404 不复用）；guard toResponse 90xxx HTTP 映射
+- **数据模型**：ENTP 域 4 新表（auth_sources/departments/department_members/message_templates）+ resource_pools.org_scope 列（门禁 3 例外登记 test-domain-model §6——基座表 id 为 TEXT 口径对齐）；licenses 表 S0 已建零 DDL
+- **测试**：Vitest 新增 48（shared 15：特性/队列名/License payload/theme/模板变量渲染/扫码 URL；web 33：License 校验管线+状态机+门控矩阵+上限四态、dispatch 模板渲染矩阵+回退零回归、SSO state/OIDC/CAS/fid-or-create 三分支/LDAP fake 矩阵）；gen-jmx-s9 生成 8 份计划（License 三态码生成期预计算；四类×四断言）；Playwright ENTP 10 用例（单文件串行防全局态互踩：授权二态/组织切换器/OIDC+钉钉 mock 全链/engine2 绑池执行/部门树/主题应用/模板渲染事件链）+ EXEC-002 门控断言并行安全化（读态↔按钮态重试环）；mock IdP s9-sso-mocks（多段平台路径路由）
+
+### 修复与加固
+
+- 修复 ENTP-005 preview POST 被兄弟动态段 `[event]` 405 吞并（迁静态路由 preview/）；修复 ENTP-008 createDepartment 环检测误传 parentId 作 departmentId 致所有子部门创建 90042 自环假报；修复 CAS XML 属性 `cas:` 前缀未剥离致映射落空；修复 SSO redirect_uri 用 base.siteUrl 默认 :3000 与实际端口不符（改取发起请求 origin，部署免配置）；修复 EXEC-002 与 ENTP 并行持证竞态（license-status 读态与按钮态一致重试环）
+
+### 测试与收口
+
+- Vitest 324（新增 48）；JMeter 63 计划（新增 8：ENTP-001~008）；Playwright 178（新增 10：ENTP-s9-enterprise 单文件串行 8 用例 + EXEC-002 改造）；OpenAPI 279→292 paths（`gen-openapi --check` 过）；权限点 91→109；错误码 118→152（90xxx 34 枚）
+- 8 规格 Draft→Approved→Implemented；8 组高保真原型（docs/design/ENTP-*/，人工确认随验收走查）；sprint-overview 交付自查回填
+
 ## [v0.8.0] - 2026-09-28 — Sprint future 远期 P4（协议插件 · 外部工具契约 · 报告分析 · K8S 池 · 企业版占位）
 
 ### 新增（全量交付：三层测试 + CI 全绿）
@@ -26,6 +51,7 @@
 - JMeter 新增 7 计划全绿（LOAD-002 豁免登记；四类×四断言，含 multipart 上传/409 版本递增/props 桥 Basic/收尾状态恢复防栈内泄漏）
 - Playwright 新增 5 spec 8 用例全绿（三类断言；含 ws 真执行对 mock echo 回显、引擎 30s 轮询重试容错、K8S 休眠往返、占位三态；TOOL 两规格无 UI 面豁免登记）
 - OpenAPI 快照 277→284 paths（--check 过）；typecheck 13/13；format 全绿
+
 ## [v0.7.2] - 2026-09-28 — AI 智能助手 UI v2（Ant Design X 重构）
 
 ### 变更

@@ -11,12 +11,23 @@ export const runtime = "nodejs";
 export const POST = withProjectScope(async (ctx, req, seg) => {
   try {
     ctx.requirePerm("PROJECT_SCENARIO:CREATE");
-    const { id, stepId } = await (seg as { params: Promise<{ id: string; stepId: string }> }).params;
+    const { id, stepId } = await (seg as { params: Promise<{ id: string; stepId: string }> })
+      .params;
     const body = (await req.json().catch(() => ({}))) as { envId?: string };
-    const scenario = await prisma.scenario.findFirst({ where: { id, projectId: ctx.projectId, deletedAt: null } });
-    if (!scenario) return NextResponse.json({ code: 40474, message: "场景不存在或已删除", data: null }, { status: 404 });
+    const scenario = await prisma.scenario.findFirst({
+      where: { id, projectId: ctx.projectId, deletedAt: null },
+    });
+    if (!scenario)
+      return NextResponse.json(
+        { code: 40474, message: "场景不存在或已删除", data: null },
+        { status: 404 },
+      );
     const step = await prisma.scenarioStep.findFirst({ where: { id: stepId, scenarioId: id } });
-    if (!step) return NextResponse.json({ code: 40484, message: "场景步骤不存在", data: null }, { status: 404 });
+    if (!step)
+      return NextResponse.json(
+        { code: 40484, message: "场景步骤不存在", data: null },
+        { status: 404 },
+      );
     // 子树（含自身）构造临时根节点
     const children = await prisma.scenarioStep.findMany({ where: { scenarioId: id } });
     const byParent = new Map<string | null, typeof children>();
@@ -33,21 +44,37 @@ export const POST = withProjectScope(async (ctx, req, seg) => {
       children: (byParent.get(root.id) ?? []).map(build),
     });
     const cfg = (scenario.config ?? {}) as { params?: unknown; settings?: unknown };
-    const params = (cfg.params ?? { constants: [], lists: [], csv: { source: "inline", delimiter: ",", hasHeader: true } }) as {
+    const params = (cfg.params ?? {
+      constants: [],
+      lists: [],
+      csv: { source: "inline", delimiter: ",", hasHeader: true },
+    }) as {
       constants: { name: string; value: string }[];
       lists: { name: string; values: string[] }[];
       csv: { columns: string[]; rows: string[][] };
     };
-    const settings = (cfg.settings ?? {}) as { cookieMode?: "off" | "keep"; thinkTimeMs?: number; onFailure?: "continue" | "abort" };
+    const settings = (cfg.settings ?? {}) as {
+      cookieMode?: "off" | "keep";
+      thinkTimeMs?: number;
+      onFailure?: "continue" | "abort";
+    };
     const r = await createAdhocScenarioTask(ctx.projectId, ctx.userId, {
       name: `单步调试 · ${step.name}`,
       steps: [build(step)],
       params: {
-        constants: (params.constants ?? []).map((c) => ({ name: c.name, value: c.value, description: "" })),
+        constants: (params.constants ?? []).map((c) => ({
+          name: c.name,
+          value: c.value,
+          description: "",
+        })),
         lists: params.lists ?? [],
         csv: params.csv ?? { columns: [], rows: [] },
       },
-      settings: { cookieMode: settings.cookieMode ?? "off", thinkTimeMs: settings.thinkTimeMs ?? 0, onFailure: settings.onFailure ?? "abort" },
+      settings: {
+        cookieMode: settings.cookieMode ?? "off",
+        thinkTimeMs: settings.thinkTimeMs ?? 0,
+        onFailure: settings.onFailure ?? "abort",
+      },
       envId: body.envId,
     });
     return NextResponse.json(ok(r), { status: 201 });

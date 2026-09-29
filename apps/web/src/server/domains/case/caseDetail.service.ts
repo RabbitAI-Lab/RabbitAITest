@@ -70,7 +70,10 @@ export async function assertNoDependencyCycle(preCaseId: string, postCaseId: str
     for (const cur of queue) {
       for (const succ of adj.get(cur) ?? []) {
         if (succ === preCaseId)
-          throw new DomainError(ErrCode.DEPENDENCY_CYCLE, "将形成循环依赖（直接或经既有依赖间接成环）");
+          throw new DomainError(
+            ErrCode.DEPENDENCY_CYCLE,
+            "将形成循环依赖（直接或经既有依赖间接成环）",
+          );
         if (!seen.has(succ)) {
           seen.add(succ);
           next.push(succ);
@@ -259,26 +262,53 @@ async function commentEventNotify(
 ): Promise<void> {
   try {
     const { dispatch } = await import("../message/notify.service");
-    const event = entityType === "bug" ? "BUG_COMMENT" : entityType === "review" ? "REVIEW_COMMENT" : "CASE_COMMENT";
+    const event =
+      entityType === "bug"
+        ? "BUG_COMMENT"
+        : entityType === "review"
+          ? "REVIEW_COMMENT"
+          : "CASE_COMMENT";
     let target = "对象";
+    let objTitle = entityId.slice(0, 8);
     if (entityType === "bug") {
       const b = await prisma.bug.findFirst({ where: { id: entityId }, select: { title: true } });
-      target = `缺陷「${b?.title ?? entityId.slice(0, 8)}」`;
+      objTitle = b?.title ?? objTitle;
+      target = `缺陷「${objTitle}」`;
     } else if (entityType === "review") {
-      const r = await prisma.caseReview.findFirst({ where: { id: entityId }, select: { name: true } });
-      target = `评审「${r?.name ?? entityId.slice(0, 8)}」`;
+      const r = await prisma.caseReview.findFirst({
+        where: { id: entityId },
+        select: { name: true },
+      });
+      objTitle = r?.name ?? objTitle;
+      target = `评审「${objTitle}」`;
     } else if (entityType === "case") {
-      const c = await prisma.functionalCase.findFirst({ where: { id: entityId }, select: { name: true } });
-      target = `用例「${c?.name ?? entityId.slice(0, 8)}」`;
+      const c = await prisma.functionalCase.findFirst({
+        where: { id: entityId },
+        select: { name: true },
+      });
+      objTitle = c?.name ?? objTitle;
+      target = `用例「${objTitle}」`;
     }
-    const [user] = await Promise.all([
+    const [user, project] = await Promise.all([
       prisma.user.findUnique({ where: { id: actorId }, select: { name: true } }),
+      prisma.project.findUnique({ where: { id: projectId }, select: { name: true } }),
     ]);
+    const actorName = user?.name ?? actorId.slice(0, 8);
+    const time = new Date().toLocaleString("zh-CN");
     await dispatch({
       projectId,
       event,
-      title: `[提及] ${user?.name ?? actorId.slice(0, 8)} 在${target}评论中提到了你`,
-      content: `时间：${new Date().toLocaleString("zh-CN")}\n评论：${content.slice(0, 120)}`,
+      vars: {
+        project: project?.name ?? "",
+        actorName,
+        time,
+        title: objTitle,
+        comment: content.slice(0, 120),
+      },
+      defaults: {
+        title: `[提及] ${actorName} 在${target}评论中提到了你`,
+        content: `时间：${time}\n评论：${content.slice(0, 120)}`,
+      },
       actorId,
       receivers: { mentionIds },
     });

@@ -14,9 +14,7 @@ const unprocessable = (message?: string) =>
 export const GET = withProjectScope(async (ctx, req) => {
   try {
     ctx.requirePerm("PROJECT_API:READ");
-    const parsed = apiListQuerySchema.safeParse(
-      Object.fromEntries(new URL(req.url).searchParams),
-    );
+    const parsed = apiListQuerySchema.safeParse(Object.fromEntries(new URL(req.url).searchParams));
     if (!parsed.success) return unprocessable(parsed.error.issues[0]?.message);
     return NextResponse.json(ok(await listApis(ctx.projectId, parsed.data)));
   } catch (err) {
@@ -30,10 +28,9 @@ export const POST = withProjectScope(async (ctx, req) => {
     ctx.requireWritable();
     const parsed = apiUpsertSchema.safeParse(await req.json());
     if (!parsed.success) return unprocessable(parsed.error.issues[0]?.message);
-    return NextResponse.json(
-      ok(await createApi(ctx.projectId, ctx.userId, parsed.data)),
-      { status: 201 },
-    );
+    return NextResponse.json(ok(await createApi(ctx.projectId, ctx.userId, parsed.data)), {
+      status: 201,
+    });
   } catch (err) {
     return toResponse(err);
   }

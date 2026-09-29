@@ -16,7 +16,10 @@ export interface ApiRefSummary {
   deleted: boolean;
 }
 
-export async function listApiRefSummary(projectId: string, refIds: string[]): Promise<ApiRefSummary[]> {
+export async function listApiRefSummary(
+  projectId: string,
+  refIds: string[],
+): Promise<ApiRefSummary[]> {
   if (refIds.length === 0) return [];
   const cases = await prisma.apiCase.findMany({
     where: { id: { in: refIds }, projectId },
@@ -50,7 +53,10 @@ export async function batchValidateApiRefs(
 
 export function assertNoInvalidRef(invalid: string[]): void {
   if (invalid.length > 0)
-    throw new DomainError(ErrCode.REF_TARGET_INVALID, `关联目标无效：${invalid.length} 条（不存在/他项目/已删除）`);
+    throw new DomainError(
+      ErrCode.REF_TARGET_INVALID,
+      `关联目标无效：${invalid.length} 条（不存在/他项目/已删除）`,
+    );
 }
 
 /** 用例 ↔ 接口用例关联 CRUD（case 域服务消费；数据经本 Provider 归口）。 */
@@ -60,7 +66,10 @@ export async function listCaseApiRefs(userIdScopeCheck: string, projectId: strin
     where: { caseId, refType: "api_case" },
     orderBy: { id: "asc" },
   });
-  const summary = await listApiRefSummary(projectId, refs.map((r) => r.refId));
+  const summary = await listApiRefSummary(
+    projectId,
+    refs.map((r) => r.refId),
+  );
   const byId = new Map(summary.map((s) => [s.refId, s]));
   return {
     total: refs.length,
@@ -68,7 +77,19 @@ export async function listCaseApiRefs(userIdScopeCheck: string, projectId: strin
       const s = byId.get(r.refId);
       return s
         ? [{ ...s, id: r.id }]
-        : [{ id: r.id, refId: r.refId, name: "(已失效)", apiName: "", method: "", path: "", level: "", status: "", deleted: true }];
+        : [
+            {
+              id: r.id,
+              refId: r.refId,
+              name: "(已失效)",
+              apiName: "",
+              method: "",
+              path: "",
+              level: "",
+              status: "",
+              deleted: true,
+            },
+          ];
     }),
   };
 }
@@ -142,7 +163,12 @@ export async function listCreatedApiCases(
   });
   return rows
     .filter((c) => c.api.deletedAt === null)
-    .map((c) => ({ id: c.id, name: c.name, apiId: c.api.id, createdAt: c.createdAt.toISOString() }));
+    .map((c) => ({
+      id: c.id,
+      name: c.name,
+      apiId: c.api.id,
+      createdAt: c.createdAt.toISOString(),
+    }));
 }
 
 /** S4 DASH-002：我创建的场景（dash 域聚合消费）。 */

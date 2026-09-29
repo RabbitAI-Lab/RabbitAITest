@@ -170,12 +170,16 @@ test("SYS-004-03 预置组成员可管理（权限只读、成员增删可用）
   await expect(page.getByTestId("group-member-select")).toBeVisible();
   await expect(page.getByTestId("btn-group-add-member")).toBeVisible();
   // 搜索候选可用（修复前：enabled:!readonly 拦截→选项永远为空）
-  const apiWait = page.waitForResponse((r) => r.url().includes("/api/v1/system/users") && r.request().method() === "GET");
+  const apiWait = page.waitForResponse(
+    (r) => r.url().includes("/api/v1/system/users") && r.request().method() === "GET",
+  );
   await page.getByTestId("group-member-select").click();
   await page.keyboard.type(`preset-member-${stamp}`);
   await apiWait;
   await page.locator(`.ant-select-item-option[title*="${email}"]`).first().click();
-  const addWait = page.waitForResponse((r) => r.url().includes("/members") && r.request().method() === "POST");
+  const addWait = page.waitForResponse(
+    (r) => r.url().includes("/members") && r.request().method() === "POST",
+  );
   await page.getByTestId("btn-group-add-member").click();
   const addRes = await addWait;
   expect(addRes.status()).toBe(200);
@@ -183,17 +187,21 @@ test("SYS-004-03 预置组成员可管理（权限只读、成员增删可用）
   await expect(page.getByText(email).first()).toBeVisible();
   await page.getByTestId(`btn-group-remove-member-${email}`).click();
   // Popconfirm 确认（限弹层内危险按钮，避开页面其它「移除」）
-  const rmWait = page.waitForResponse((r) => r.url().includes("/members/") && r.request().method() === "DELETE");
-  await page.locator(".ant-popover .ant-btn-dangerous, .ant-popconfirm .ant-btn-dangerous").first().click();
+  const rmWait = page.waitForResponse(
+    (r) => r.url().includes("/members/") && r.request().method() === "DELETE",
+  );
+  await page
+    .locator(".ant-popover .ant-btn-dangerous, .ant-popconfirm .ant-btn-dangerous")
+    .first()
+    .click();
   const rmRes = await rmWait;
   expect(rmRes.status()).toBe(200);
-  await expect(page.locator(`.ant-table-row:has-text("${email}")`)).toHaveCount(0, { timeout: 10_000 });
+  await expect(page.locator(`.ant-table-row:has-text("${email}")`)).toHaveCount(0, {
+    timeout: 10_000,
+  });
 });
 
-test("SYS-004-04 组织组候选源=组织成员（普通组织管理员不 403）", async ({
-  authedPage,
-  page,
-}) => {
+test("SYS-004-04 组织组候选源=组织成员（普通组织管理员不 403）", async ({ authedPage, page }) => {
   // authedPage=自注册组织管理员（无 SYSTEM_USER:READ，修复前候选源 /system/users 会 403→选项为空）
   await page.goto("/");
   await page.getByTestId("leftnav").getByRole("link", { name: "用户组" }).nth(1).click();
@@ -328,7 +336,10 @@ test("SYS-004-06 重置密码、禁用（会话失效）与软删除用户", asy
 
   // ③ 软删除：行内删除 → Popconfirm → 列表消失（软删，邮箱保留占用）
   await victimRow.getByRole("button", { name: "删除" }).click();
-  await page.locator(".ant-popover").getByRole("button", { name: /确\s*定/ }).click();
+  await page
+    .locator(".ant-popover")
+    .getByRole("button", { name: /确\s*定/ })
+    .click();
   await expect(page.getByText("用户已删除（软删，邮箱保留占用）")).toBeVisible();
   await expect(page.getByTestId("user-email").filter({ hasText: victimEmail })).toHaveCount(0);
 
@@ -337,11 +348,7 @@ test("SYS-004-06 重置密码、禁用（会话失效）与软删除用户", asy
 });
 
 /** P-3 回归（coverage-audit §10）：用户编辑（姓名/手机）——SYS-004 §1.2 行 1「编辑（姓名/手机）」。 */
-test("SYS-004-07 编辑用户姓名与手机（P-3）", async ({
-  request,
-  context,
-  page,
-}) => {
+test("SYS-004-07 编辑用户姓名与手机（P-3）", async ({ request, context, page }) => {
   await loginSeedAdmin(request, context);
   const stamp = Date.now() % 100000;
   const email = `p3-edit-${stamp}@rabbit.test`;
@@ -360,7 +367,9 @@ test("SYS-004-07 编辑用户姓名与手机（P-3）", async ({
   const newName = `编辑后姓名${stamp}`;
   await page.getByTestId("input-edit-user-name").fill(newName);
   await page.getByTestId("input-edit-user-phone").fill("13900001111");
-  const putApi = page.waitForResponse((r) => r.url().includes("/api/v1/system/users/") && r.request().method() === "PUT");
+  const putApi = page.waitForResponse(
+    (r) => r.url().includes("/api/v1/system/users/") && r.request().method() === "PUT",
+  );
   await page.getByRole("button", { name: /保\s*存/ }).click();
   const put = await putApi;
   expect(put.status()).toBe(200);

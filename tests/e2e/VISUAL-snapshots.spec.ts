@@ -97,7 +97,7 @@ test("VISUAL-apis 接口定义列表（含示例数据）", async ({ authedPage,
   const { projectId } = authedPage;
   // 数据准备走 API（贴近原型示例：一条 GET /pets/{id} 定义）
   const mods = await request.get(`/api/v1/projects/${projectId}/modules?scene=api`);
-  const modId = (((await mods.json()) as { data: { items: { id: string }[] } }).data.items[0]).id;
+  const modId = ((await mods.json()) as { data: { items: { id: string }[] } }).data.items[0].id;
   await request.post(`/api/v1/projects/${projectId}/apis`, {
     data: {
       moduleId: modId,
@@ -133,7 +133,7 @@ test("VISUAL-apis-detail 接口定义详情（七区编辑器）", async ({ auth
   const { projectId } = authedPage;
   // 数据准备走 API（用例间项目隔离，不共享 VISUAL-apis 的数据）
   const mods = await request.get(`/api/v1/projects/${projectId}/modules?scene=api`);
-  const modId = (((await mods.json()) as { data: { items: { id: string }[] } }).data.items[0]).id;
+  const modId = ((await mods.json()) as { data: { items: { id: string }[] } }).data.items[0].id;
   const created = await request.post(`/api/v1/projects/${projectId}/apis`, {
     data: {
       moduleId: modId,
@@ -203,11 +203,14 @@ test("VISUAL-environments 环境管理列表（含示例数据）", async ({ aut
 test("VISUAL-files 文件管理（含示例数据）", async ({ authedPage, page }) => {
   await navFromHome(page, "文件管理");
   await expect(page.getByTestId("file-list-table")).toBeVisible();
-  await page.getByTestId("file-upload").locator("input[type=file]").setInputFiles({
-    name: "测试数据.csv",
-    mimeType: "text/csv",
-    buffer: Buffer.from("id,name\n1,登录\n", "utf8"),
-  });
+  await page
+    .getByTestId("file-upload")
+    .locator("input[type=file]")
+    .setInputFiles({
+      name: "测试数据.csv",
+      mimeType: "text/csv",
+      buffer: Buffer.from("id,name\n1,登录\n", "utf8"),
+    });
   await expect(page.getByRole("row", { name: /测试数据\.csv/ })).toBeVisible();
   await page.waitForTimeout(400);
   await page.screenshot({ path: `${SNAP_DIR}/files.png` });
@@ -249,7 +252,7 @@ test("VISUAL-reports 接口报告列表（含示例数据）", async ({ authedPa
   const { projectId } = authedPage;
   // 数据准备（API）：一个 SUCCESS 的 api_case 报告（用例间项目隔离）
   const mods = await request.get(`/api/v1/projects/${projectId}/modules?scene=api`);
-  const modId = (((await mods.json()) as { data: { items: { id: string }[] } }).data.items[0]).id;
+  const modId = ((await mods.json()) as { data: { items: { id: string }[] } }).data.items[0].id;
   const defRes = await request.post(`/api/v1/projects/${projectId}/apis`, {
     data: {
       moduleId: modId,
@@ -275,7 +278,7 @@ test("VISUAL-reports 接口报告列表（含示例数据）", async ({ authedPa
       response: { status: 200, headers: [], body: '{"code":0}' },
     },
   });
-  const defId = (((await defRes.json()) as { data: { id: string } }).data).id;
+  const defId = ((await defRes.json()) as { data: { id: string } }).data.id;
   const caseRes = await request.post(`/api/v1/projects/${projectId}/apis/${defId}/cases`, {
     data: {
       name: "正常查询用例",
@@ -302,7 +305,7 @@ test("VISUAL-reports 接口报告列表（含示例数据）", async ({ authedPa
       },
     },
   });
-  const caseId = (((await caseRes.json()) as { data: { id: string } }).data).id;
+  const caseId = ((await caseRes.json()) as { data: { id: string } }).data.id;
   const taskRes = await request.post(`/api/v1/projects/${projectId}/apis/${defId}/cases/execute`, {
     data: { caseIds: [caseId] },
   });
@@ -315,7 +318,9 @@ test("VISUAL-reports 接口报告列表（含示例数据）", async ({ authedPa
     await new Promise((res) => setTimeout(res, 500));
   }
   await navFromHome(page, "接口报告");
-  await expect(page.getByTestId("report-list-table").getByTestId("report-name-link").first()).toBeVisible({
+  await expect(
+    page.getByTestId("report-list-table").getByTestId("report-name-link").first(),
+  ).toBeVisible({
     timeout: 15000,
   });
   await page.waitForTimeout(400);

@@ -10,10 +10,9 @@ export const POST = withProjectScope(async (ctx, _req, seg) => {
     ctx.requirePerm("PROJECT_EXEC_TASK:UPDATE");
     ctx.requireWritable();
     const { taskId } = await (seg as { params: Promise<{ taskId: string }> }).params;
-    return NextResponse.json(
-      ok(await rerunTask(ctx.projectId, ctx.userId, taskId)),
-      { status: 201 },
-    );
+    return NextResponse.json(ok(await rerunTask(ctx.projectId, ctx.userId, taskId)), {
+      status: 201,
+    });
   } catch (err) {
     return toResponse(err);
   }

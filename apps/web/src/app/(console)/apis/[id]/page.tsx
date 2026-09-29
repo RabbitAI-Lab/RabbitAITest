@@ -136,8 +136,7 @@ function CaseTab({
     enabled: Boolean(projectId && apiId),
   });
   const rows = casesQ.data?.items ?? [];
-  const invalidate = () =>
-    void qc.invalidateQueries({ queryKey: ["api-cases", projectId, apiId] });
+  const invalidate = () => void qc.invalidateQueries({ queryKey: ["api-cases", projectId, apiId] });
 
   // ── 新建用例 ──
   const [newOpen, setNewOpen] = useState(false);
@@ -222,7 +221,12 @@ function CaseTab({
   // ── 编辑抽屉（RequestEditor compact + 可选 diff 视图）──
   const [editCase, setEditCase] = useState<ApiCaseRow | null>(null);
   const [editBundle, setEditBundle] = useState<RequestBundle | null>(null);
-  const [editForm, setEditForm] = useState<{ name: string; level: string; status: string; tags: string[] }>({
+  const [editForm, setEditForm] = useState<{
+    name: string;
+    level: string;
+    status: string;
+    tags: string[];
+  }>({
     name: "",
     level: "P2",
     status: "UNDERWAY",
@@ -265,9 +269,10 @@ function CaseTab({
             : "保存失败",
       ),
   });
-  const diffs = editBundle && editCase?.outOfSync
-    ? sectionDiff(normalizeBundle(definition.request), editBundle)
-    : [];
+  const diffs =
+    editBundle && editCase?.outOfSync
+      ? sectionDiff(normalizeBundle(definition.request), editBundle)
+      : [];
 
   const columns: ColumnsType<ApiCaseRow> = [
     {
@@ -325,7 +330,10 @@ function CaseTab({
       width: 120,
       render: (oos: boolean, r, i) =>
         oos ? (
-          <span data-testid={`case-out-of-sync-${i + 1}`} className="inline-flex items-center gap-1 text-[#FA8C16]">
+          <span
+            data-testid={`case-out-of-sync-${i + 1}`}
+            className="inline-flex items-center gap-1 text-[#FA8C16]"
+          >
             <span className="w-2 h-2 rounded-full bg-[#FA8C16]" />
             待同步
             <Button
@@ -568,7 +576,10 @@ function CaseTab({
               <Select
                 className="w-full"
                 value={newStatus}
-                options={Object.entries(CASE_STATUS).map(([v, o]) => ({ value: v, label: o.label }))}
+                options={Object.entries(CASE_STATUS).map(([v, o]) => ({
+                  value: v,
+                  label: o.label,
+                }))}
                 onChange={setNewStatus}
                 data-testid="select-new-case-status"
               />
@@ -585,7 +596,9 @@ function CaseTab({
               data-testid="select-new-case-tags"
             />
           </div>
-          <p className="text-xs text-[#A8ABB0]">基线 = 定义当前已保存请求，创建后可在编辑抽屉改任意区。</p>
+          <p className="text-xs text-[#A8ABB0]">
+            基线 = 定义当前已保存请求，创建后可在编辑抽屉改任意区。
+          </p>
         </div>
       </Modal>
 
@@ -698,7 +711,10 @@ function CaseTab({
               <Select
                 className="w-24"
                 value={editForm.status}
-                options={Object.entries(CASE_STATUS).map(([v, o]) => ({ value: v, label: o.label }))}
+                options={Object.entries(CASE_STATUS).map(([v, o]) => ({
+                  value: v,
+                  label: o.label,
+                }))}
                 onChange={(status) => setEditForm((f) => ({ ...f, status }))}
                 data-testid="select-edit-case-status"
               />
@@ -749,7 +765,10 @@ function CaseTab({
               </div>
             )}
             {editCase.outOfSync && diffOpen && (
-              <div className="border border-[#E5E6EB] rounded-md overflow-hidden" data-testid="case-diff-panel">
+              <div
+                className="border border-[#E5E6EB] rounded-md overflow-hidden"
+                data-testid="case-diff-panel"
+              >
                 <div className="grid grid-cols-2 divide-x divide-[#F0F1F3]">
                   <div className="px-3 py-2 bg-[#F7F8FA] border-b border-[#F0F1F3] font-medium text-[#646A73]">
                     定义最新 · v{definition.version}
@@ -764,7 +783,10 @@ function CaseTab({
                   </p>
                 ) : (
                   diffs.map((d) => (
-                    <div key={d.label} className="grid grid-cols-2 divide-x divide-[#F0F1F3] border-b border-[#F0F1F3] last:border-0">
+                    <div
+                      key={d.label}
+                      className="grid grid-cols-2 divide-x divide-[#F0F1F3] border-b border-[#F0F1F3] last:border-0"
+                    >
                       <div className="p-3 bg-[#FA8C16]/5">
                         <p className="text-[13px] font-medium mb-1.5">
                           {d.label}
@@ -954,9 +976,7 @@ function MockTab({
     mutationFn: () =>
       mockApi.debugMock(projectId, debugMock!.id, {
         query: Object.fromEntries(dbgQuery.filter((q) => q.key).map((q) => [q.key, q.value])),
-        headers: Object.fromEntries(
-          dbgHeaders.filter((h) => h.key).map((h) => [h.key, h.value]),
-        ),
+        headers: Object.fromEntries(dbgHeaders.filter((h) => h.key).map((h) => [h.key, h.value])),
       }),
     onSuccess: (r) => setDbgResult(r),
     onError: (e) => message.error(e instanceof Error ? e.message : "调试发送失败"),
@@ -976,12 +996,17 @@ function MockTab({
   };
 
   const columns: ColumnsType<MockRow> = [
-    { title: "名称", dataIndex: "name", width: 150, render: (n: string, r) => (
-      <span>
-        {n}
-        {!r.enabled && <span className="text-xs text-[#A8ABB0]">（禁用=透明下线）</span>}
-      </span>
-    ) },
+    {
+      title: "名称",
+      dataIndex: "name",
+      width: 150,
+      render: (n: string, r) => (
+        <span>
+          {n}
+          {!r.enabled && <span className="text-xs text-[#A8ABB0]">（禁用=透明下线）</span>}
+        </span>
+      ),
+    },
     {
       title: "匹配摘要",
       key: "match",
@@ -1092,13 +1117,17 @@ function MockTab({
             className="w-32"
             placeholder={keyPh}
             value={kv.key}
-            onChange={(e) => setRows(rows.map((x, idx) => (idx === i ? { ...x, key: e.target.value } : x)))}
+            onChange={(e) =>
+              setRows(rows.map((x, idx) => (idx === i ? { ...x, key: e.target.value } : x)))
+            }
           />
           <Input
             className="flex-1 font-mono text-xs"
             placeholder="value"
             value={kv.value}
-            onChange={(e) => setRows(rows.map((x, idx) => (idx === i ? { ...x, value: e.target.value } : x)))}
+            onChange={(e) =>
+              setRows(rows.map((x, idx) => (idx === i ? { ...x, value: e.target.value } : x)))
+            }
           />
           <Button
             type="text"
@@ -1110,7 +1139,12 @@ function MockTab({
           </Button>
         </div>
       ))}
-      <Button type="link" size="small" className="!px-0" onClick={() => setRows([...rows, { key: "", value: "" }])}>
+      <Button
+        type="link"
+        size="small"
+        className="!px-0"
+        onClick={() => setRows([...rows, { key: "", value: "" }])}
+      >
         ＋ 添加
       </Button>
     </div>
@@ -1130,17 +1164,30 @@ function MockTab({
         <span className="font-mono text-[13px] bg-[#F7F8FA] border border-[#F0F1F3] rounded px-2 py-1.5">
           {urlQ.data?.url ?? (urlQ.isLoading ? "加载中…" : "—")}
         </span>
-        <Button size="small" icon={<Copy size={12} />} onClick={() => void copyUrl()} data-testid="btn-copy-mock-url">
+        <Button
+          size="small"
+          icon={<Copy size={12} />}
+          onClick={() => void copyUrl()}
+          data-testid="btn-copy-mock-url"
+        >
           复制
         </Button>
-        <span className="text-xs text-[#A8ABB0]">地址 = {"{MOCK_PUBLIC_URL}"}/mock/{urlQ.data?.apiPath ?? definition.path} · 保存即热更新</span>
+        <span className="text-xs text-[#A8ABB0]">
+          地址 = {"{MOCK_PUBLIC_URL}"}/mock/{urlQ.data?.apiPath ?? definition.path} · 保存即热更新
+        </span>
       </div>
 
       {/* 规则表格 */}
       <div className="border border-[#E5E6EB] rounded-md overflow-hidden">
         <div className="flex items-center gap-2 px-3 py-2.5 border-b border-[#F0F1F3] flex-wrap">
           {canUpdate && (
-            <Button type="primary" size="small" icon={<Plus size={13} />} onClick={() => openEdit(null)} data-testid="btn-new-mock">
+            <Button
+              type="primary"
+              size="small"
+              icon={<Plus size={13} />}
+              onClick={() => openEdit(null)}
+              data-testid="btn-new-mock"
+            >
               新建规则
             </Button>
           )}
@@ -1202,7 +1249,11 @@ function MockTab({
                 />
               </div>
               <p className="text-[#646A73] font-medium text-[13px] pt-1">请求头 KV</p>
-              {kvEditor(editForm.headers, (headers) => setEditForm((f) => ({ ...f, headers })), "X-Api-Version")}
+              {kvEditor(
+                editForm.headers,
+                (headers) => setEditForm((f) => ({ ...f, headers })),
+                "X-Api-Version",
+              )}
               <p className="text-[#646A73] font-medium text-[13px] pt-1">Query KV</p>
               {kvEditor(editForm.query, (query) => setEditForm((f) => ({ ...f, query })), "kind")}
               <p className="text-[#646A73] font-medium text-[13px] pt-1">请求体包含</p>
@@ -1235,7 +1286,11 @@ function MockTab({
                 />
               </div>
               <p className="text-[#646A73] font-medium text-[13px] pt-1">响应头 KV</p>
-              {kvEditor(editForm.respHeaders, (respHeaders) => setEditForm((f) => ({ ...f, respHeaders })), "Content-Type")}
+              {kvEditor(
+                editForm.respHeaders,
+                (respHeaders) => setEditForm((f) => ({ ...f, respHeaders })),
+                "Content-Type",
+              )}
               <p className="text-[#646A73] font-medium text-[13px] pt-1">响应体</p>
               <Input.TextArea
                 rows={4}
@@ -1266,7 +1321,9 @@ function MockTab({
                 data-testid="switch-mock-follow-api"
               />
               <span className="text-xs text-[#A8ABB0]">
-                {editForm.followApi ? "已开启：将返回接口定义的默认响应" : "关闭 · 使用左侧自定义响应"}
+                {editForm.followApi
+                  ? "已开启：将返回接口定义的默认响应"
+                  : "关闭 · 使用左侧自定义响应"}
               </span>
             </div>
           </div>
@@ -1283,7 +1340,9 @@ function MockTab({
       >
         {debugMock && (
           <div className="space-y-3">
-            <p className="text-xs text-[#A8ABB0]">web 服务端代发（避免浏览器跨域）· 可改 Query / 头后发送</p>
+            <p className="text-xs text-[#A8ABB0]">
+              web 服务端代发（避免浏览器跨域）· 可改 Query / 头后发送
+            </p>
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <p className="text-[#646A73] font-medium text-[13px] mb-1.5">Query</p>
@@ -1320,7 +1379,9 @@ function MockTab({
                   {dbgResult.matched && (
                     <span className="ml-auto text-xs font-normal">
                       HTTP {dbgResult.response.status}
-                      {dbgResult.response.delayMs > 0 ? ` · 延迟 ${dbgResult.response.delayMs}ms` : ""}
+                      {dbgResult.response.delayMs > 0
+                        ? ` · 延迟 ${dbgResult.response.delayMs}ms`
+                        : ""}
                     </span>
                   )}
                 </div>
@@ -1348,7 +1409,9 @@ function MockTab({
                         </ul>
                       </div>
                     )}
-                    <p className="text-xs text-[#A8ABB0]">禁用规则不参与匹配；多候选按匹配条件数最多者优先</p>
+                    <p className="text-xs text-[#A8ABB0]">
+                      禁用规则不参与匹配；多候选按匹配条件数最多者优先
+                    </p>
                   </div>
                 )}
               </div>
@@ -1404,7 +1467,13 @@ export default function ApiDetailPage() {
 
   const save = useMutation({
     mutationFn: () =>
-      apiApi.update(projectId!, id, { name: name.trim(), status, request: bundle!, response: response!, version }),
+      apiApi.update(projectId!, id, {
+        name: name.trim(),
+        status,
+        request: bundle!,
+        response: response!,
+        version,
+      }),
     onSuccess: (r) => {
       setVersion(r.version);
       void qc.invalidateQueries({ queryKey: ["apis", "detail", projectId, id] });
@@ -1515,10 +1584,18 @@ export default function ApiDetailPage() {
         </span>
         <span className="ml-auto flex items-center gap-2 flex-wrap">
           <EnvSelect value={envId} onChange={setEnvId} />
-          <Button icon={<History size={14} />} onClick={() => setChangesOpen(true)} data-testid="btn-api-changes">
+          <Button
+            icon={<History size={14} />}
+            onClick={() => setChangesOpen(true)}
+            data-testid="btn-api-changes"
+          >
             变更历史
           </Button>
-          <Button icon={<Link2 size={14} />} onClick={() => setRefsOpen(true)} data-testid="btn-api-refs">
+          <Button
+            icon={<Link2 size={14} />}
+            onClick={() => setRefsOpen(true)}
+            data-testid="btn-api-refs"
+          >
             引用关系
           </Button>
           {canDelete && (
@@ -1562,16 +1639,15 @@ export default function ApiDetailPage() {
           items={[
             {
               key: "api",
-              label: (
-                <span data-testid="api-tab-api">API</span>
-              ),
+              label: <span data-testid="api-tab-api">API</span>,
               children: (
                 <div className="flex gap-3 p-3 items-start">
                   {/* 左：统一请求编辑器（七区） */}
                   <div className="flex-1 min-w-0">
                     <RequestEditor bundle={bundle} onChange={setBundle} />
                     <p className="text-xs text-[#A8ABB0] mt-1">
-                      URL 支持 ${"{var}"} 渲染；相对路径按环境域名拼接（路径条件 &gt; 模块 &gt; 默认）
+                      URL 支持 ${"{var}"} 渲染；相对路径按环境域名拼接（路径条件 &gt; 模块 &gt;
+                      默认）
                     </p>
                   </div>
                   {/* 右：默认响应 + 执行 */}
@@ -1579,7 +1655,9 @@ export default function ApiDetailPage() {
                     <div className="border border-[#E5E6EB] rounded-md p-3">
                       <p className="font-medium mb-2 text-[13px] flex items-center gap-2">
                         默认响应
-                        <span className="text-xs text-[#A8ABB0] font-normal">（Mock「跟随 API」的响应源）</span>
+                        <span className="text-xs text-[#A8ABB0] font-normal">
+                          （Mock「跟随 API」的响应源）
+                        </span>
                       </p>
                       <div className="flex gap-2 items-center mb-2">
                         <span className="text-xs text-[#646A73]">状态码</span>
@@ -1686,18 +1764,12 @@ export default function ApiDetailPage() {
             },
             {
               key: "case",
-              label: (
-                <span data-testid="api-tab-case">CASE（{api.caseCount ?? 0}）</span>
-              ),
-              children: (
-                <CaseTab projectId={projectId} apiId={id} definition={api} envId={envId} />
-              ),
+              label: <span data-testid="api-tab-case">CASE（{api.caseCount ?? 0}）</span>,
+              children: <CaseTab projectId={projectId} apiId={id} definition={api} envId={envId} />,
             },
             {
               key: "mock",
-              label: (
-                <span data-testid="api-tab-mock">MOCK</span>
-              ),
+              label: <span data-testid="api-tab-mock">MOCK</span>,
               children: <MockTab projectId={projectId} apiId={id} definition={api} />,
             },
           ]}
@@ -1722,14 +1794,15 @@ export default function ApiDetailPage() {
       <Drawer title="引用关系" open={refsOpen} onClose={() => setRefsOpen(false)} width={560}>
         <div className="space-y-5 text-[13px]">
           <div>
-            <p className="font-medium mb-2">
-              接口用例（{(refsQ.data?.cases ?? []).length}）
-            </p>
+            <p className="font-medium mb-2">接口用例（{(refsQ.data?.cases ?? []).length}）</p>
             {(refsQ.data?.cases ?? []).length === 0 ? (
               <p className="text-xs text-[#A8ABB0]">暂无引用</p>
             ) : (
               (refsQ.data?.cases ?? []).map((c) => (
-                <div key={c.id} className="flex items-center gap-2 py-1.5 border-b border-[#F7F8FA] last:border-0">
+                <div
+                  key={c.id}
+                  className="flex items-center gap-2 py-1.5 border-b border-[#F7F8FA] last:border-0"
+                >
                   <span className="text-xs text-[#87888D]">#{c.num}</span>
                   <span className="flex-1 truncate">{c.name}</span>
                   <Tag bordered={false} color={levelColor[c.level]}>
@@ -1746,7 +1819,10 @@ export default function ApiDetailPage() {
               <p className="text-xs text-[#A8ABB0]">暂无关联</p>
             ) : (
               (refsQ.data?.plans ?? []).map((p) => (
-                <div key={p.id} className="flex items-center gap-2 py-1.5 border-b border-[#F7F8FA] last:border-0">
+                <div
+                  key={p.id}
+                  className="flex items-center gap-2 py-1.5 border-b border-[#F7F8FA] last:border-0"
+                >
                   <a className="text-[#574BFF] flex-1 truncate" href={`/plans/${p.id}`}>
                     {p.name}
                   </a>
@@ -1763,7 +1839,10 @@ export default function ApiDetailPage() {
               <p className="text-xs text-[#A8ABB0]">暂无关联</p>
             ) : (
               (refsQ.data?.functionalCases ?? []).map((c) => (
-                <div key={c.id} className="flex items-center gap-2 py-1.5 border-b border-[#F7F8FA] last:border-0">
+                <div
+                  key={c.id}
+                  className="flex items-center gap-2 py-1.5 border-b border-[#F7F8FA] last:border-0"
+                >
                   <span className="text-xs text-[#87888D]">C-{String(c.num).padStart(4, "0")}</span>
                   <a className="text-[#574BFF] flex-1 truncate" href={`/cases/${c.id}`}>
                     {c.name}

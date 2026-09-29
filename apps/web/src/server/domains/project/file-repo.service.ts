@@ -4,7 +4,11 @@ import { FILE_REPO_LIMIT, type FileRepoUpsertInput } from "@rabbit/shared";
 import { prisma } from "@rabbit/db";
 import { ensureFileModule } from "@rabbit/db";
 import { putFileObject } from "@/server/storage";
-import { encryptCredential, decryptCredential, integrationSecretConfigured } from "@/server/domains/api/credential-crypto";
+import {
+  encryptCredential,
+  decryptCredential,
+  integrationSecretConfigured,
+} from "@/server/domains/api/credential-crypto";
 import { assertSafeOutboundUrl } from "@/server/domains/api/outbound-guard";
 import { fileMaxSizeMb } from "@/server/domains/system/param.service";
 import { parseRepoUrl, listRepoMeta, fetchPath, GitAdapterError } from "./git-adapters";
@@ -21,27 +25,48 @@ async function getRepo(projectId: string, id: string) {
   return r;
 }
 
-function serialize(r: { id: string; platform: string; url: string; token: string | null; createdAt: Date }) {
+function serialize(r: {
+  id: string;
+  platform: string;
+  url: string;
+  token: string | null;
+  createdAt: Date;
+}) {
   // token 永不回显（rules/security）：仅 hasToken 布尔
-  return { id: r.id, platform: r.platform, url: r.url, hasToken: Boolean(r.token), createdAt: r.createdAt.toISOString() };
+  return {
+    id: r.id,
+    platform: r.platform,
+    url: r.url,
+    hasToken: Boolean(r.token),
+    createdAt: r.createdAt.toISOString(),
+  };
 }
 
 export async function listFileRepos(projectId: string) {
-  const rows = await prisma.fileRepo.findMany({ where: { projectId }, orderBy: { createdAt: "asc" } });
+  const rows = await prisma.fileRepo.findMany({
+    where: { projectId },
+    orderBy: { createdAt: "asc" },
+  });
   return { total: rows.length, items: rows.map(serialize) };
 }
 
 export async function createFileRepo(projectId: string, input: FileRepoUpsertInput) {
   const count = await prisma.fileRepo.count({ where: { projectId } });
   if (count >= FILE_REPO_LIMIT) {
-    throw new DomainError(ErrCode.VALIDATION_FAILED, `存储库数量超出上限（${FILE_REPO_LIMIT}/项目）`);
+    throw new DomainError(
+      ErrCode.VALIDATION_FAILED,
+      `存储库数量超出上限（${FILE_REPO_LIMIT}/项目）`,
+    );
   }
   const ref = parseRepoUrl(input.platform, input.url);
   try {
     await assertSafeOutboundUrl(ref.apiBase);
   } catch (err) {
     if (outboundBlocked(err)) {
-      throw new DomainError(ErrCode.FILE_REPO_URL_BLOCKED, "仓库地址不允许（内网/元数据地址被守卫拦截）");
+      throw new DomainError(
+        ErrCode.FILE_REPO_URL_BLOCKED,
+        "仓库地址不允许（内网/元数据地址被守卫拦截）",
+      );
     }
     throw err;
   }
@@ -69,7 +94,10 @@ export async function updateFileRepo(projectId: string, id: string, input: FileR
     await assertSafeOutboundUrl(ref.apiBase);
   } catch (err) {
     if (outboundBlocked(err)) {
-      throw new DomainError(ErrCode.FILE_REPO_URL_BLOCKED, "仓库地址不允许（内网/元数据地址被守卫拦截）");
+      throw new DomainError(
+        ErrCode.FILE_REPO_URL_BLOCKED,
+        "仓库地址不允许（内网/元数据地址被守卫拦截）",
+      );
     }
     throw err;
   }
@@ -107,7 +135,10 @@ export async function testFileRepo(projectId: string, id: string) {
     await assertSafeOutboundUrl(ref.apiBase);
   } catch (err) {
     if (outboundBlocked(err)) {
-      throw new DomainError(ErrCode.FILE_REPO_URL_BLOCKED, "仓库地址不允许（内网/元数据地址被守卫拦截）");
+      throw new DomainError(
+        ErrCode.FILE_REPO_URL_BLOCKED,
+        "仓库地址不允许（内网/元数据地址被守卫拦截）",
+      );
     }
     throw err;
   }
@@ -133,7 +164,10 @@ export async function pullFileRepo(
     await assertSafeOutboundUrl(ref.apiBase);
   } catch (err) {
     if (outboundBlocked(err)) {
-      throw new DomainError(ErrCode.FILE_REPO_URL_BLOCKED, "仓库地址不允许（内网/元数据地址被守卫拦截）");
+      throw new DomainError(
+        ErrCode.FILE_REPO_URL_BLOCKED,
+        "仓库地址不允许（内网/元数据地址被守卫拦截）",
+      );
     }
     throw err;
   }
@@ -145,7 +179,10 @@ export async function pullFileRepo(
     if (err instanceof GitAdapterError && (err.status === 401 || err.status === 403)) {
       throw new DomainError(ErrCode.FILE_REPO_CONNECT_FAILED, "凭据失效或无权限（401/403）");
     }
-    throw new DomainError(ErrCode.FILE_REPO_PULL_FAILED, err instanceof Error ? err.message : String(err));
+    throw new DomainError(
+      ErrCode.FILE_REPO_PULL_FAILED,
+      err instanceof Error ? err.message : String(err),
+    );
   }
   if (files.length === 0) {
     throw new DomainError(ErrCode.FILE_REPO_PULL_FAILED, "路径下没有文件（或路径不存在）");
@@ -156,7 +193,10 @@ export async function pullFileRepo(
   let refreshed = 0;
   for (const f of files) {
     if (f.content.byteLength > limit) {
-      throw new DomainError(ErrCode.FILE_REPO_PULL_FAILED, `文件超上限：${f.path}（>${limit / 1024 / 1024}MB）`);
+      throw new DomainError(
+        ErrCode.FILE_REPO_PULL_FAILED,
+        `文件超上限：${f.path}（>${limit / 1024 / 1024}MB）`,
+      );
     }
     const name = f.path.split("/").pop() ?? f.path;
     const existing = await prisma.fileItem.findFirst({
@@ -208,7 +248,10 @@ export async function syncRepoFile(projectId: string, fileId: string) {
     await assertSafeOutboundUrl(ref.apiBase);
   } catch (err) {
     if (outboundBlocked(err)) {
-      throw new DomainError(ErrCode.FILE_REPO_URL_BLOCKED, "仓库地址不允许（内网/元数据地址被守卫拦截）");
+      throw new DomainError(
+        ErrCode.FILE_REPO_URL_BLOCKED,
+        "仓库地址不允许（内网/元数据地址被守卫拦截）",
+      );
     }
     throw err;
   }
@@ -217,7 +260,10 @@ export async function syncRepoFile(projectId: string, fileId: string) {
   try {
     files = await fetchPath(ref, token, f.branch, f.repoPath, defaultFetch);
   } catch (err) {
-    throw new DomainError(ErrCode.FILE_REPO_PULL_FAILED, err instanceof Error ? err.message : String(err));
+    throw new DomainError(
+      ErrCode.FILE_REPO_PULL_FAILED,
+      err instanceof Error ? err.message : String(err),
+    );
   }
   const hit = files.find((x) => x.path === f.repoPath) ?? files[0];
   if (!hit) throw new DomainError(ErrCode.FILE_REPO_PULL_FAILED, "远端文件已不存在");

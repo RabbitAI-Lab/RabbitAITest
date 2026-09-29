@@ -25,9 +25,17 @@ test("CASE-006-01 用例侧：关联 Tab 空态→选择器勾选 2 条→列表
 
   // 数据准备：定义 + 2 条接口用例 + 1 条功能用例
   const def = await createApiDef(request, projectId, { name: defName, path: `/assoc-${uniq}` });
-  const cA = await createApiCase(request, projectId, def.id, { name: apiCaseA, request: bundle("GET", `/assoc-${uniq}`) });
-  const cB = await createApiCase(request, projectId, def.id, { name: apiCaseB, request: bundle("GET", `/assoc-${uniq}`) });
-  const caseRes = await request.post(`/api/v1/projects/${projectId}/cases`, { data: { name: caseName } });
+  const cA = await createApiCase(request, projectId, def.id, {
+    name: apiCaseA,
+    request: bundle("GET", `/assoc-${uniq}`),
+  });
+  const cB = await createApiCase(request, projectId, def.id, {
+    name: apiCaseB,
+    request: bundle("GET", `/assoc-${uniq}`),
+  });
+  const caseRes = await request.post(`/api/v1/projects/${projectId}/cases`, {
+    data: { name: caseName },
+  });
   expect(caseRes.status()).toBe(201);
 
   // ── 用户路径：测试用例 → 详情「关联」Tab（空态）──
@@ -72,8 +80,14 @@ test("CASE-006-01 用例侧：关联 Tab 空态→选择器勾选 2 条→列表
   await expect(refRows).toHaveCount(2);
   await expect(refRows.filter({ hasText: apiCaseA })).toBeVisible();
   const removeApi = expectApi("**/api/v1/projects/*/cases/*/api-refs*");
-  await refRows.filter({ hasText: apiCaseA }).getByRole("button", { name: /移\s*除/ }).click();
-  await page.locator(".ant-popover").getByRole("button", { name: /确\s*定/ }).click();
+  await refRows
+    .filter({ hasText: apiCaseA })
+    .getByRole("button", { name: /移\s*除/ })
+    .click();
+  await page
+    .locator(".ant-popover")
+    .getByRole("button", { name: /确\s*定/ })
+    .click();
   const removed = await removeApi;
   expect(removed.status).toBe(200);
   expect(removed.code).toBe(0);
@@ -100,9 +114,13 @@ test("CASE-006-02 计划侧：关联弹窗「接口用例」Tab→勾选 2→清
   const apiCaseB = `混合接口用例B-${uniq}`;
 
   // 数据准备：功能用例 + 计划 +（API 已关联功能用例），定义 + 2 接口用例
-  const caseRes = await request.post(`/api/v1/projects/${projectId}/cases`, { data: { name: funcName } });
+  const caseRes = await request.post(`/api/v1/projects/${projectId}/cases`, {
+    data: { name: funcName },
+  });
   const caseId = ((await caseRes.json()) as { data: { id: string } }).data.id;
-  const planRes = await request.post(`/api/v1/projects/${projectId}/plans`, { data: { name: planName } });
+  const planRes = await request.post(`/api/v1/projects/${projectId}/plans`, {
+    data: { name: planName },
+  });
   expect(planRes.status()).toBe(201);
   const planId = ((await planRes.json()) as { data: { id: string } }).data.id;
   const linkFunc = await request.post(`/api/v1/projects/${projectId}/plans/${planId}/cases`, {
@@ -111,8 +129,14 @@ test("CASE-006-02 计划侧：关联弹窗「接口用例」Tab→勾选 2→清
   expect(linkFunc.status()).toBe(200);
 
   const def = await createApiDef(request, projectId, { name: defName, path: `/mix-${uniq}` });
-  const cA = await createApiCase(request, projectId, def.id, { name: apiCaseA, request: bundle("GET", `/mix-${uniq}`) });
-  const cB = await createApiCase(request, projectId, def.id, { name: apiCaseB, request: bundle("GET", `/mix-${uniq}`) });
+  const cA = await createApiCase(request, projectId, def.id, {
+    name: apiCaseA,
+    request: bundle("GET", `/mix-${uniq}`),
+  });
+  const cB = await createApiCase(request, projectId, def.id, {
+    name: apiCaseB,
+    request: bundle("GET", `/mix-${uniq}`),
+  });
 
   // ── 用户路径：测试计划 → 详情 → 关联用例弹窗切「接口用例」Tab ──
   await navFromHome(page, "测试计划");
@@ -147,7 +171,10 @@ test("CASE-006-02 计划侧：关联弹窗「接口用例」Tab→勾选 2→清
   expect(linked.status).toBe(200);
   expect(linked.code).toBe(0);
   const linkRawRes = await linkRaw;
-  const linkPayload = linkRawRes.request().postDataJSON() as { caseIds: string[]; apiCaseIds: string[] };
+  const linkPayload = linkRawRes.request().postDataJSON() as {
+    caseIds: string[];
+    apiCaseIds: string[];
+  };
   expect(linkPayload.caseIds).toEqual([]);
   expect(linkPayload.apiCaseIds.sort()).toEqual([cA.id, cB.id].sort());
   await expect(page.getByText(/已关联 2 条用例（功能 0 提交 · 接口 2 提交）/)).toBeVisible();
@@ -186,7 +213,9 @@ test("CASE-006-03 重复关联 422(10009) + 已删除接口用例灰显「已删
     name: apiCaseName,
     request: bundle("GET", `/dup-${uniq}`),
   });
-  const caseRes = await request.post(`/api/v1/projects/${projectId}/cases`, { data: { name: caseName } });
+  const caseRes = await request.post(`/api/v1/projects/${projectId}/cases`, {
+    data: { name: caseName },
+  });
   const caseId = ((await caseRes.json()) as { data: { id: string } }).data.id;
   const link = await request.post(`/api/v1/projects/${projectId}/cases/${caseId}/api-refs`, {
     data: { refIds: [c.id] },

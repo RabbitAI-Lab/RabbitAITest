@@ -1,9 +1,26 @@
 "use client";
 
-import { Alert, Button, Drawer, Form, Input, Modal, Popconfirm, Select, Space, Table, Tag } from "antd";
+import {
+  Alert,
+  Button,
+  Drawer,
+  Form,
+  Input,
+  Modal,
+  Popconfirm,
+  Select,
+  Space,
+  Table,
+  Tag,
+} from "antd";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { publicScriptApi, type PublicScriptParam, type PublicScriptRow, type PublicScriptUpsertInput } from "@rabbit/api-client";
+import {
+  publicScriptApi,
+  type PublicScriptParam,
+  type PublicScriptRow,
+  type PublicScriptUpsertInput,
+} from "@rabbit/api-client";
 import { PageHeader } from "@/components/PageHeader";
 import { useApp } from "@/hooks/useApp";
 import { usePermissions } from "@/hooks/usePermissions";
@@ -58,7 +75,10 @@ export default function PublicScriptsPage() {
       return publicScriptApi.remove(projectId!, r.id).catch(async (e) => {
         const refs = await publicScriptApi.references(projectId!, r.id);
         if (refs.references.length > 0) {
-          const labels = refs.references.map((x) => `${x.type === "api_case" ? "接口用例" : x.type === "scenario" ? "场景" : "环境"}：${x.name}`);
+          const labels = refs.references.map(
+            (x) =>
+              `${x.type === "api_case" ? "接口用例" : x.type === "scenario" ? "场景" : "环境"}：${x.name}`,
+          );
           Modal.confirm({
             title: `「${r.name}」正被以下对象引用：`,
             content: (
@@ -87,25 +107,72 @@ export default function PublicScriptsPage() {
   });
 
   const columns = [
-    { title: "名称", dataIndex: "name", render: (v: string, r: PublicScriptRow) => (
-      <span className={r.status === "DRAFT" ? "opacity-70" : ""} title={r.tags.join(",")}>{v}</span>
-    ) },
-    { title: "标签", dataIndex: "tags", render: (v: string[]) =>
-      v.length ? v.map((t) => <Tag key={t}>{t}</Tag>) : <span className="text-xs text-gray-400">—</span> },
-    { title: "参数", dataIndex: "params", render: (v: PublicScriptParam[]) =>
-      v.length ? <span className="text-xs">{v.map((p) => p.name).join(" · ")}</span> : <span className="text-xs text-gray-400">—</span> },
-    { title: "状态", dataIndex: "status", render: (v: string) =>
-      v === "ENABLED" ? <Tag color="success" data-testid="script-status-enabled">已发布</Tag> : <Tag data-testid="script-status-draft">草稿</Tag> },
+    {
+      title: "名称",
+      dataIndex: "name",
+      render: (v: string, r: PublicScriptRow) => (
+        <span className={r.status === "DRAFT" ? "opacity-70" : ""} title={r.tags.join(",")}>
+          {v}
+        </span>
+      ),
+    },
+    {
+      title: "标签",
+      dataIndex: "tags",
+      render: (v: string[]) =>
+        v.length ? (
+          v.map((t) => <Tag key={t}>{t}</Tag>)
+        ) : (
+          <span className="text-xs text-gray-400">—</span>
+        ),
+    },
+    {
+      title: "参数",
+      dataIndex: "params",
+      render: (v: PublicScriptParam[]) =>
+        v.length ? (
+          <span className="text-xs">{v.map((p) => p.name).join(" · ")}</span>
+        ) : (
+          <span className="text-xs text-gray-400">—</span>
+        ),
+    },
+    {
+      title: "状态",
+      dataIndex: "status",
+      render: (v: string) =>
+        v === "ENABLED" ? (
+          <Tag color="success" data-testid="script-status-enabled">
+            已发布
+          </Tag>
+        ) : (
+          <Tag data-testid="script-status-draft">草稿</Tag>
+        ),
+    },
     {
       title: "操作",
       render: (_: unknown, r: PublicScriptRow) => (
         <Space size={4}>
-          {canUpdate && <Button size="small" type="link" onClick={() => setEditing(r)}>编辑</Button>}
-          <Button size="small" type="link" onClick={() => setDebugging(r)} data-testid={`script-debug-${r.name}`}>
+          {canUpdate && (
+            <Button size="small" type="link" onClick={() => setEditing(r)}>
+              编辑
+            </Button>
+          )}
+          <Button
+            size="small"
+            type="link"
+            onClick={() => setDebugging(r)}
+            data-testid={`script-debug-${r.name}`}
+          >
             调试
           </Button>
           {canUpdate && (
-            <Button size="small" type="link" onClick={() => setStatus.mutate({ id: r.id, status: r.status === "ENABLED" ? "DRAFT" : "ENABLED" })}>
+            <Button
+              size="small"
+              type="link"
+              onClick={() =>
+                setStatus.mutate({ id: r.id, status: r.status === "ENABLED" ? "DRAFT" : "ENABLED" })
+              }
+            >
               {r.status === "ENABLED" ? "停用" : "发布"}
             </Button>
           )}
@@ -128,7 +195,12 @@ export default function PublicScriptsPage() {
         sub="项目级脚本库：参数定义 + 在线调试；仅「已发布」可被前后置引用（javascript / quickjs 沙箱）"
         extra={
           canCreate && (
-            <Button type="primary" size="small" onClick={() => setCreateOpen(true)} data-testid="btn-new-script">
+            <Button
+              type="primary"
+              size="small"
+              onClick={() => setCreateOpen(true)}
+              data-testid="btn-new-script"
+            >
               ＋ 新建脚本
             </Button>
           )
@@ -143,9 +215,18 @@ export default function PublicScriptsPage() {
           onChange={(e) => setKeyword(e.target.value)}
           allowClear
         />
-        <span className="text-xs text-gray-400">停用/草稿脚本不可被引用；删除被引用脚本会列出引用清单（可强制删除）</span>
+        <span className="text-xs text-gray-400">
+          停用/草稿脚本不可被引用；删除被引用脚本会列出引用清单（可强制删除）
+        </span>
       </div>
-      <Table rowKey="id" size="small" loading={scripts.isLoading} columns={columns} dataSource={scripts.data?.items ?? []} pagination={false} />
+      <Table
+        rowKey="id"
+        size="small"
+        loading={scripts.isLoading}
+        columns={columns}
+        dataSource={scripts.data?.items ?? []}
+        pagination={false}
+      />
       {(createOpen || editing) && (
         <ScriptEditDrawer
           key={editing?.id ?? "new"}
@@ -181,7 +262,13 @@ function ScriptEditDrawer({
   const [form] = Form.useForm();
   const params = Form.useWatch("params", form) ?? [];
   return (
-    <Drawer title={initial ? `编辑脚本 · ${initial.name}` : "新建脚本"} width={520} open onClose={onClose} destroyOnClose>
+    <Drawer
+      title={initial ? `编辑脚本 · ${initial.name}` : "新建脚本"}
+      width={520}
+      open
+      onClose={onClose}
+      destroyOnClose
+    >
       <Form
         form={form}
         layout="vertical"
@@ -199,11 +286,22 @@ function ScriptEditDrawer({
         <Form.Item name="tags" label="标签">
           <Select mode="tags" open={false} placeholder="回车添加" />
         </Form.Item>
-        <Form.Item label={<span>参数定义<span className="text-gray-400 ml-1 text-xs">（引用处可覆盖默认值）</span></span>} required={false}>
+        <Form.Item
+          label={
+            <span>
+              参数定义<span className="text-gray-400 ml-1 text-xs">（引用处可覆盖默认值）</span>
+            </span>
+          }
+          required={false}
+        >
           <div className="space-y-2" data-testid="script-params-editor">
             {(params as PublicScriptParam[]).map((p, i) => (
               <div key={i} className="flex gap-2 items-center">
-                <Form.Item name={["params", i, "name"]} noStyle rules={[{ required: true, message: "参数名" }]}>
+                <Form.Item
+                  name={["params", i, "name"]}
+                  noStyle
+                  rules={[{ required: true, message: "参数名" }]}
+                >
                   <Input placeholder="参数名" className="w-32" />
                 </Form.Item>
                 <Form.Item name={["params", i, "defaultValue"]} noStyle>
@@ -211,15 +309,41 @@ function ScriptEditDrawer({
                 </Form.Item>
                 <Form.Item name={["params", i, "required"]} noStyle valuePropName="checked">
                   <span className="text-xs flex items-center gap-1">
-                    必填 <input type="checkbox" checked={Boolean((params as PublicScriptParam[])[i]?.required)} onChange={(e) => form.setFieldValue(["params", i, "required"], e.target.checked)} />
+                    必填{" "}
+                    <input
+                      type="checkbox"
+                      checked={Boolean((params as PublicScriptParam[])[i]?.required)}
+                      onChange={(e) =>
+                        form.setFieldValue(["params", i, "required"], e.target.checked)
+                      }
+                    />
                   </span>
                 </Form.Item>
-                <Button size="small" type="link" danger onClick={() => form.setFieldValue("params", (params as PublicScriptParam[]).filter((_, j) => j !== i))}>
+                <Button
+                  size="small"
+                  type="link"
+                  danger
+                  onClick={() =>
+                    form.setFieldValue(
+                      "params",
+                      (params as PublicScriptParam[]).filter((_, j) => j !== i),
+                    )
+                  }
+                >
                   删
                 </Button>
               </div>
             ))}
-            <Button size="small" type="dashed" onClick={() => form.setFieldValue("params", [...(params as PublicScriptParam[]), { name: "", defaultValue: "", required: false }])}>
+            <Button
+              size="small"
+              type="dashed"
+              onClick={() =>
+                form.setFieldValue("params", [
+                  ...(params as PublicScriptParam[]),
+                  { name: "", defaultValue: "", required: false },
+                ])
+              }
+            >
               ＋ 添加参数
             </Button>
           </div>
@@ -229,11 +353,17 @@ function ScriptEditDrawer({
           label={
             <span>
               脚本内容
-              <span className="text-gray-400 ml-1 text-xs">（可用：log / getVar / setVar / envGet / randomInt / now）</span>
+              <span className="text-gray-400 ml-1 text-xs">
+                （可用：log / getVar / setVar / envGet / randomInt / now）
+              </span>
             </span>
           }
         >
-          <Input.TextArea rows={10} className="font-mono text-xs" data-testid="script-content-input" />
+          <Input.TextArea
+            rows={10}
+            className="font-mono text-xs"
+            data-testid="script-content-input"
+          />
         </Form.Item>
         <Space>
           <Button type="primary" htmlType="submit" data-testid="script-save-btn">
@@ -258,7 +388,11 @@ function ScriptDebugDrawer({
   const { message } = useApp();
   const [varsText, setVarsText] = useState("{}");
   const [paramsText, setParamsText] = useState("{}");
-  const [result, setResult] = useState<{ logs: string[]; vars: Record<string, string>; durationMs: number } | null>(null);
+  const [result, setResult] = useState<{
+    logs: string[];
+    vars: Record<string, string>;
+    durationMs: number;
+  } | null>(null);
   const run = useMutation({
     mutationFn: () => {
       const vars = JSON.parse(varsText || "{}");
@@ -271,16 +405,35 @@ function ScriptDebugDrawer({
   return (
     <Drawer title={`在线调试 · ${script.name}`} width={560} open onClose={onClose} destroyOnClose>
       <div className="space-y-3">
-        <Alert type="info" showIcon message="注入变量 vars 与参数值 params（JSON，覆盖默认）；5s 超时强杀" />
+        <Alert
+          type="info"
+          showIcon
+          message="注入变量 vars 与参数值 params（JSON，覆盖默认）；5s 超时强杀"
+        />
         <div>
           <p className="text-xs text-gray-500 mb-1">vars（JSON）</p>
-          <Input.TextArea rows={2} value={varsText} onChange={(e) => setVarsText(e.target.value)} className="font-mono text-xs" />
+          <Input.TextArea
+            rows={2}
+            value={varsText}
+            onChange={(e) => setVarsText(e.target.value)}
+            className="font-mono text-xs"
+          />
         </div>
         <div>
           <p className="text-xs text-gray-500 mb-1">params（JSON，覆盖默认）</p>
-          <Input.TextArea rows={2} value={paramsText} onChange={(e) => setParamsText(e.target.value)} className="font-mono text-xs" />
+          <Input.TextArea
+            rows={2}
+            value={paramsText}
+            onChange={(e) => setParamsText(e.target.value)}
+            className="font-mono text-xs"
+          />
         </div>
-        <Button type="primary" loading={run.isPending} onClick={() => run.mutate()} data-testid="script-debug-run">
+        <Button
+          type="primary"
+          loading={run.isPending}
+          onClick={() => run.mutate()}
+          data-testid="script-debug-run"
+        >
           ▶ 运行
         </Button>
         {result && (

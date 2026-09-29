@@ -58,7 +58,11 @@ export async function publishMockSnapshot(projectId: string) {
           body: string;
           delayMs: number;
         },
-        apiResponse: api.response as { status: number; headers: { key: string; value: string }[]; body: string },
+        apiResponse: api.response as {
+          status: number;
+          headers: { key: string; value: string }[];
+          body: string;
+        },
       })),
   );
   const key = `${MOCK_RULES_PREFIX}:${projectId}`;
@@ -77,7 +81,12 @@ export async function listMocks(projectId: string, apiId: string) {
   return { total: mocks.length, items: mocks };
 }
 
-export async function createMock(projectId: string, _userId: string, apiId: string, input: UpsertInput) {
+export async function createMock(
+  projectId: string,
+  _userId: string,
+  apiId: string,
+  input: UpsertInput,
+) {
   await getApi(projectId, apiId);
   const m = await prisma.apiMock.create({
     data: {
@@ -94,7 +103,10 @@ export async function createMock(projectId: string, _userId: string, apiId: stri
 }
 
 export async function updateMock(projectId: string, id: string, input: UpsertInput) {
-  const m = await prisma.apiMock.findUnique({ where: { id }, include: { api: { select: { projectId: true } } } });
+  const m = await prisma.apiMock.findUnique({
+    where: { id },
+    include: { api: { select: { projectId: true } } },
+  });
   if (!m || m.api.projectId !== projectId)
     throw new DomainError(ErrCode.MOCK_NOT_FOUND, "Mock 规则不存在");
   const updated = await prisma.apiMock.update({
@@ -112,7 +124,10 @@ export async function updateMock(projectId: string, id: string, input: UpsertInp
 }
 
 export async function deleteMock(projectId: string, id: string) {
-  const m = await prisma.apiMock.findUnique({ where: { id }, include: { api: { select: { projectId: true } } } });
+  const m = await prisma.apiMock.findUnique({
+    where: { id },
+    include: { api: { select: { projectId: true } } },
+  });
   if (!m || m.api.projectId !== projectId)
     throw new DomainError(ErrCode.MOCK_NOT_FOUND, "Mock 规则不存在");
   await prisma.apiMock.delete({ where: { id: m.id } });
@@ -123,20 +138,34 @@ export async function deleteMock(projectId: string, id: string) {
 /** Mock 地址（MOCK_PUBLIC_URL 可覆写展示口径；API-005 §3）。 */
 export async function mockUrl(projectId: string, apiId: string) {
   const api = await getApi(projectId, apiId);
-  const project = await prisma.project.findUnique({ where: { id: projectId }, select: { num: true } });
+  const project = await prisma.project.findUnique({
+    where: { id: projectId },
+    select: { num: true },
+  });
   const base = process.env.MOCK_PUBLIC_URL ?? `http://127.0.0.1:${process.env.MOCK_PORT ?? 4000}`;
-  return { url: `${base.replace(/\/$/, "")}/mock/${project?.num ?? projectId.slice(0, 8)}${api.path}`, apiPath: api.path };
+  return {
+    url: `${base.replace(/\/$/, "")}/mock/${project?.num ?? projectId.slice(0, 8)}${api.path}`,
+    apiPath: api.path,
+  };
 }
 
 /** 服务端代调试（浏览器跨域规避；命中判定与 mock 服务同构——匹配算法在 apps/mock 单测覆盖）。 */
-export async function debugMock(projectId: string, id: string, probe: { query?: Record<string, string>; headers?: Record<string, string>; body?: string }) {
+export async function debugMock(
+  projectId: string,
+  id: string,
+  probe: { query?: Record<string, string>; headers?: Record<string, string>; body?: string },
+) {
   const m = await prisma.apiMock.findUnique({
     where: { id },
     include: { api: { select: { projectId: true, method: true, path: true, response: true } } },
   });
   if (!m || m.api.projectId !== projectId)
     throw new DomainError(ErrCode.MOCK_NOT_FOUND, "Mock 规则不存在");
-  const matchers = m.matchers as { headers: { key: string; value: string }[]; query: { key: string; value: string }[]; bodyContains?: string };
+  const matchers = m.matchers as {
+    headers: { key: string; value: string }[];
+    query: { key: string; value: string }[];
+    bodyContains?: string;
+  };
   const unmatched: string[] = [];
   for (const q of matchers.query) {
     if ((probe.query ?? {})[q.key] !== q.value) unmatched.push(`query ${q.key}=${q.value}`);
@@ -153,7 +182,12 @@ export async function debugMock(projectId: string, id: string, probe: { query?: 
     ruleName: m.name,
     enabled: m.enabled,
     unmatched,
-    response: response as { status: number; headers: { key: string; value: string }[]; body: string; delayMs?: number },
+    response: response as {
+      status: number;
+      headers: { key: string; value: string }[];
+      body: string;
+      delayMs?: number;
+    },
   };
 }
 

@@ -537,28 +537,28 @@ export default function CaseListPage() {
             />
             {viewMode === "list" && (
               <div className="flex bg-white border border-[#E5E6EB] rounded-md p-0.5 text-[13px]">
-              <span
-                data-testid="tab-all"
-                className={`px-3 py-1 rounded cursor-pointer transition-colors ${!recycled ? "bg-[#574BFF]/8 text-[#574BFF] font-medium" : "text-[#646A73]"}`}
-                onClick={() => {
-                  setRecycled(false);
-                  setPage(1);
-                }}
-              >
-                全部
-              </span>
-              <span
-                data-testid="tab-recycle"
-                className={`px-3 py-1 rounded cursor-pointer transition-colors ${recycled ? "bg-[#574BFF]/8 text-[#574BFF] font-medium" : "text-[#646A73]"}`}
-                onClick={() => {
-                  setRecycled(true);
-                  setPage(1);
-                  setSelected([]);
-                }}
-              >
-                回收站
-              </span>
-            </div>
+                <span
+                  data-testid="tab-all"
+                  className={`px-3 py-1 rounded cursor-pointer transition-colors ${!recycled ? "bg-[#574BFF]/8 text-[#574BFF] font-medium" : "text-[#646A73]"}`}
+                  onClick={() => {
+                    setRecycled(false);
+                    setPage(1);
+                  }}
+                >
+                  全部
+                </span>
+                <span
+                  data-testid="tab-recycle"
+                  className={`px-3 py-1 rounded cursor-pointer transition-colors ${recycled ? "bg-[#574BFF]/8 text-[#574BFF] font-medium" : "text-[#646A73]"}`}
+                  onClick={() => {
+                    setRecycled(true);
+                    setPage(1);
+                    setSelected([]);
+                  }}
+                >
+                  回收站
+                </span>
+              </div>
             )}
             {viewMode === "list" && !recycled && (
               <div className="flex items-center gap-2">
@@ -594,926 +594,945 @@ export default function CaseListPage() {
         <CaseMindmapView />
       ) : (
         <>
-      <div className="flex gap-4 items-stretch">
-        {!recycled && (
-          <ModuleTreePanel
-            projectId={projectId}
-            scene="case"
-            selectedId={moduleId}
-            includeChildren={includeChildren}
-            onSelect={(id) => {
-              setModuleId(id);
-              setPage(1);
-            }}
-            onIncludeChildrenChange={setIncludeChildren}
-            canEdit={canUpdate}
-          />
-        )}
-        <div className="rabbit-card flex-1 min-w-0 flex flex-col">
-          {/* 首行：视图 Tabs + 搜索 + 高级筛选 + 列设置 + 导入导出 */}
-          {/* min-h-12（非固定 h-12）：视图 Tab 增多时允许换行增高，避免内容溢出遮挡表格（CASE-002-02 走查暴露） */}
-          <div className="flex items-center gap-3 px-3 min-h-12 border-b border-[#F0F1F3] text-[13px] flex-wrap">
-            {!recycled ? (
-              <div className="flex items-center gap-4 min-w-0 overflow-x-auto">
-                {viewTabs.map((t) => (
-                  <span key={t.key} className="flex items-center gap-1 shrink-0">
-                    <span
-                      data-testid={t.testid}
-                      className={`pb-2.5 pt-3 -mb-px border-b-2 cursor-pointer transition-colors ${viewKey === t.key ? "border-[#574BFF] text-[#574BFF] font-medium" : "border-transparent text-[#646A73] hover:text-[#3D4350]"}`}
-                      onClick={() => {
-                        if (t.key.startsWith("view:")) {
-                          const v = (viewsQ.data?.views ?? []).find(
-                            (x) => `view:${x.id}` === t.key,
-                          );
-                          if (v) applyView(v);
-                        } else {
-                          setViewKey(t.key);
-                          setPage(1);
-                        }
-                      }}
-                    >
-                      {t.label}
-                    </span>
-                    {t.key.startsWith("view:") && (
-                      <span title="删除该视图" className="flex items-center">
-                        <X
-                          size={12}
-                          className="text-[#A8ABB0] hover:text-[#FF4D4F] cursor-pointer"
+          <div className="flex gap-4 items-stretch">
+            {!recycled && (
+              <ModuleTreePanel
+                projectId={projectId}
+                scene="case"
+                selectedId={moduleId}
+                includeChildren={includeChildren}
+                onSelect={(id) => {
+                  setModuleId(id);
+                  setPage(1);
+                }}
+                onIncludeChildrenChange={setIncludeChildren}
+                canEdit={canUpdate}
+              />
+            )}
+            <div className="rabbit-card flex-1 min-w-0 flex flex-col">
+              {/* 首行：视图 Tabs + 搜索 + 高级筛选 + 列设置 + 导入导出 */}
+              {/* min-h-12（非固定 h-12）：视图 Tab 增多时允许换行增高，避免内容溢出遮挡表格（CASE-002-02 走查暴露） */}
+              <div className="flex items-center gap-3 px-3 min-h-12 border-b border-[#F0F1F3] text-[13px] flex-wrap">
+                {!recycled ? (
+                  <div className="flex items-center gap-4 min-w-0 overflow-x-auto">
+                    {viewTabs.map((t) => (
+                      <span key={t.key} className="flex items-center gap-1 shrink-0">
+                        <span
+                          data-testid={t.testid}
+                          className={`pb-2.5 pt-3 -mb-px border-b-2 cursor-pointer transition-colors ${viewKey === t.key ? "border-[#574BFF] text-[#574BFF] font-medium" : "border-transparent text-[#646A73] hover:text-[#3D4350]"}`}
                           onClick={() => {
-                            const v = viewsQ.data?.views.find((x) => `view:${x.id}` === t.key);
-                            if (v) {
-                              modal.confirm({
-                                title: `删除视图「${v.name}」？`,
-                                content: "删除后回退「全部」视图。",
-                                okButtonProps: { danger: true },
-                                onOk: () => removeView.mutateAsync(v.id),
-                              });
+                            if (t.key.startsWith("view:")) {
+                              const v = (viewsQ.data?.views ?? []).find(
+                                (x) => `view:${x.id}` === t.key,
+                              );
+                              if (v) applyView(v);
+                            } else {
+                              setViewKey(t.key);
+                              setPage(1);
                             }
                           }}
-                        />
+                        >
+                          {t.label}
+                        </span>
+                        {t.key.startsWith("view:") && (
+                          <span title="删除该视图" className="flex items-center">
+                            <X
+                              size={12}
+                              className="text-[#A8ABB0] hover:text-[#FF4D4F] cursor-pointer"
+                              onClick={() => {
+                                const v = viewsQ.data?.views.find((x) => `view:${x.id}` === t.key);
+                                if (v) {
+                                  modal.confirm({
+                                    title: `删除视图「${v.name}」？`,
+                                    content: "删除后回退「全部」视图。",
+                                    okButtonProps: { danger: true },
+                                    onOk: () => removeView.mutateAsync(v.id),
+                                  });
+                                }
+                              }}
+                            />
+                          </span>
+                        )}
                       </span>
-                    )}
-                  </span>
-                ))}
-                <Button
-                  type="link"
-                  size="small"
-                  className="!px-1"
-                  title="将当前筛选组合另存为视图"
-                  onClick={() => setSaveViewOpen(true)}
-                  data-testid="btn-save-view"
-                >
-                  ＋
-                </Button>
-              </div>
-            ) : (
-              <span className="text-[#646A73]">回收站中的用例可恢复或彻底删除</span>
-            )}
-            <div className="ml-auto flex items-center gap-2 shrink-0">
-              <Input.Search
-                placeholder="搜索名称，回车查询"
-                className="w-52"
-                allowClear
-                data-testid="input-keyword"
-                onSearch={(v) => {
-                  setKeyword(v);
-                  setPage(1);
-                }}
-              />
-              {!recycled && (
-                <>
-                  <Button
-                    size="small"
-                    icon={<Filter size={13} />}
-                    onClick={() => setAdvancedOpen((v) => !v)}
-                    data-testid="btn-advanced-filter"
-                  >
-                    高级筛选{advancedOpen ? "▴" : "▾"}
-                  </Button>
-                  <Popover
-                    open={colOpen}
-                    onOpenChange={setColOpen}
-                    trigger="click"
-                    placement="bottomRight"
-                    content={
-                      <div className="w-52" data-testid="column-setting-popover">
-                        <p className="text-xs text-[#A8ABB0] mb-1">显示列</p>
-                        {[
-                          { key: "module", label: "模块" },
-                          { key: "tags", label: "标签" },
-                          { key: "status", label: "状态" },
-                          { key: "creator", label: "创建人" },
-                          { key: "updatedAt", label: "更新时间" },
-                          ...visibleDynDefs.map((d) => ({ key: `dyn:${d.key}`, label: d.name })),
-                        ].map((c) => (
-                          <p key={c.key} className="my-1">
-                            <Checkbox
-                              checked={activeCols.includes(c.key)}
-                              onChange={(e) => toggleCol(c.key, e.target.checked)}
-                            >
-                              {c.label}
-                            </Checkbox>
-                          </p>
-                        ))}
-                      </div>
-                    }
-                  >
+                    ))}
                     <Button
+                      type="link"
                       size="small"
-                      icon={<Settings2 size={13} />}
-                      data-testid="btn-column-setting"
-                      title="列设置"
-                    />
-                  </Popover>
-                  {canCreate && (
-                    <Button
-                      size="small"
-                      icon={<UploadIcon size={13} />}
-                      onClick={() => {
-                        resetWizard();
-                        setImportOpen(true);
-                      }}
-                      data-testid="btn-import"
+                      className="!px-1"
+                      title="将当前筛选组合另存为视图"
+                      onClick={() => setSaveViewOpen(true)}
+                      data-testid="btn-save-view"
                     >
-                      导入
+                      ＋
                     </Button>
-                  )}
-                  <Button
-                    size="small"
-                    icon={<Download size={13} />}
-                    onClick={() => setExportOpen(true)}
-                    data-testid="btn-export"
-                  >
-                    导出
-                  </Button>
-                </>
-              )}
-            </div>
-          </div>
-
-          {/* 高级筛选区（展开态） */}
-          {advancedOpen && !recycled && (
-            <div
-              className="flex flex-wrap items-center gap-2 px-3 py-2.5 border-b border-[#F0F1F3] bg-[#F7F8FA]/60"
-              data-testid="advanced-filter-panel"
-            >
-              <Select
-                className="w-28"
-                allowClear
-                placeholder="等级：全部"
-                virtual={false}
-                value={filters.level}
-                options={["P0", "P1", "P2", "P3"].map((l) => ({ value: l, label: `等级 ${l}` }))}
-                onChange={(v) => {
-                  setFilters((f) => ({ ...f, level: v as CaseLevel | undefined }));
-                  setPage(1);
-                }}
-                data-testid="select-level"
-              />
-              <Select
-                className="w-44"
-                mode="tags"
-                allowClear
-                placeholder="标签（回车添加，命中任一）"
-                value={filters.tags}
-                onChange={(v) => {
-                  setFilters((f) => ({ ...f, tags: v }));
-                  setPage(1);
-                }}
-                data-testid="select-tags"
-              />
-              <Select
-                className="w-32"
-                allowClear
-                placeholder="状态：全部"
-                value={filters.status}
-                options={STATUS_OPTIONS}
-                onChange={(v) => {
-                  setFilters((f) => ({ ...f, status: v }));
-                  setPage(1);
-                }}
-                data-testid="select-status"
-              />
-              <MemberSelect
-                projectId={projectId}
-                value={filters.creator}
-                onChange={(v) => {
-                  setFilters((f) => ({ ...f, creator: Array.isArray(v) ? v[0] : v }));
-                  setPage(1);
-                }}
-                placeholder="创建人：全部"
-              />
-              <DatePicker.RangePicker
-                value={filters.range}
-                onChange={(vals) => {
-                  setFilters((f) => ({
-                    ...f,
-                    range: vals && vals[0] && vals[1] ? [vals[0], vals[1]] : undefined,
-                  }));
-                  setPage(1);
-                }}
-                data-testid="range-updated"
-              />
-              {visibleDynDefs.map((d) => (
-                <span key={d.key} className="w-40">
-                  <DynamicFieldInput
-                    def={d}
-                    value={filters.dyn[d.key]}
-                    onChange={(v) => {
-                      setFilters((f) => ({ ...f, dyn: { ...f.dyn, [d.key]: v } }));
+                  </div>
+                ) : (
+                  <span className="text-[#646A73]">回收站中的用例可恢复或彻底删除</span>
+                )}
+                <div className="ml-auto flex items-center gap-2 shrink-0">
+                  <Input.Search
+                    placeholder="搜索名称，回车查询"
+                    className="w-52"
+                    allowClear
+                    data-testid="input-keyword"
+                    onSearch={(v) => {
+                      setKeyword(v);
                       setPage(1);
                     }}
                   />
-                </span>
-              ))}
-              <Button
-                size="small"
-                onClick={() => {
-                  setFilters(EMPTY_FILTERS);
-                  setKeyword("");
-                  setModuleId(null);
-                  setPage(1);
-                }}
-              >
-                重置
-              </Button>
-            </div>
-          )}
-
-          {/* 批量操作条 */}
-          {!recycled && selected.length > 0 && (
-            <div
-              className="flex items-center gap-3 px-3 py-2 border-b border-[#F0F1F3] bg-[#574BFF]/[.05] text-[13px]"
-              data-testid="batch-bar"
-            >
-              <span className="text-[#574BFF] font-medium">已选 {selected.length} 项</span>
-              {canUpdate && (
-                <Button
-                  type="link"
-                  size="small"
-                  className="!px-0"
-                  disabled={!modulesQ.data}
-                  data-testid="btn-batch-move"
-                  onClick={() => {
-                    setMoveTarget(undefined);
-                    setMoveOpen(true);
-                  }}
-                >
-                  移动
-                </Button>
-              )}
-              {canUpdate && (
-                <Button
-                  type="link"
-                  size="small"
-                  className="!px-0"
-                  data-testid="btn-batch-edit"
-                  onClick={() => {
-                    setBatchLevel(undefined);
-                    setBatchTags([]);
-                    setBatchEditOpen(true);
-                  }}
-                >
-                  批量编辑
-                </Button>
-              )}
-              {canDelete && (
-                <Button
-                  type="link"
-                  size="small"
-                  danger
-                  className="!px-0"
-                  data-testid="btn-batch-delete"
-                  onClick={() => {
-                    modal.confirm({
-                      title: `将 ${selected.length} 条用例移入回收站？`,
-                      okButtonProps: { danger: true },
-                      okText: "移入回收站",
-                      onOk: () =>
-                        batch.mutateAsync({ action: "delete", body: { ids: selectedIds } }),
-                    });
-                  }}
-                >
-                  删除
-                </Button>
-              )}
-              <Button
-                type="link"
-                size="small"
-                className="!px-0"
-                onClick={() => {
-                  setExportScope("selected");
-                  setExportOpen(true);
-                }}
-              >
-                导出勾选行
-              </Button>
-              <Button
-                type="link"
-                size="small"
-                className="!px-0 ml-auto text-[#A8ABB0]"
-                onClick={() => setSelected([])}
-              >
-                取消选择
-              </Button>
-            </div>
-          )}
-
-          {/* 列表 */}
-          <div className="flex-1 min-w-0">
-            <Table<CaseRowV2>
-              rowKey="id"
-              data-testid="case-table"
-              loading={listQ.isLoading}
-              dataSource={rows}
-              rowSelection={
-                recycled
-                  ? undefined
-                  : {
-                      selectedRowKeys: selected,
-                      onChange: (keys) => setSelected(keys),
-                    }
-              }
-              pagination={{
-                current: page,
-                pageSize: 20,
-                total: listQ.data?.total ?? 0,
-                onChange: (p) => {
-                  setPage(p);
-                  setSelected([]);
-                },
-                showTotal: (t) => `共 ${t} 条`,
-              }}
-              locale={{
-                emptyText:
-                  moduleId && rows.length === 0 ? (
-                    <Empty
-                      image={Empty.PRESENTED_IMAGE_SIMPLE}
-                      description="该模块暂无用例，去新建或导入"
-                    />
-                  ) : (
-                    <Empty
-                      image={Empty.PRESENTED_IMAGE_SIMPLE}
-                      description={recycled ? "回收站为空" : "无匹配结果，调整筛选或清空条件"}
-                    />
-                  ),
-              }}
-              columns={[
-                {
-                  title: "编号",
-                  dataIndex: "num",
-                  width: 92,
-                  render: (n: number, r) => (
-                    <a className="text-[#87888D] hover:text-[#574BFF]" href={`/cases/${r.id}`}>
-                      C-{String(n).padStart(4, "0")}
-                    </a>
-                  ),
-                },
-                {
-                  title: "用例名称",
-                  dataIndex: "name",
-                  render: (name: string, r) => (
-                    <span className="inline-flex items-center gap-1">
-                      <a
-                        className="text-[#1F2329] hover:text-[#574BFF] font-medium"
-                        href={`/cases/${r.id}?edit=1`}
+                  {!recycled && (
+                    <>
+                      <Button
+                        size="small"
+                        icon={<Filter size={13} />}
+                        onClick={() => setAdvancedOpen((v) => !v)}
+                        data-testid="btn-advanced-filter"
                       >
-                        {name}
-                      </a>
-                      {followedIds.has(r.id) && (
-                        <Star size={12} className="fill-[#FA8C16] text-[#FA8C16]" />
-                      )}
-                    </span>
-                  ),
-                },
-                {
-                  title: "等级",
-                  dataIndex: "level",
-                  width: 68,
-                  render: (l: string) => (
-                    <Tag bordered={false} color={levelColor[l]}>
-                      {l}
-                    </Tag>
-                  ),
-                },
-                ...(activeCols.includes("module")
-                  ? [
-                      {
-                        title: "模块",
-                        key: "module",
-                        width: 130,
-                        render: (_: unknown, r: CaseRowV2) => (
-                          <span className="text-[#87888D]">{moduleName(r.moduleId)}</span>
-                        ),
-                      },
-                    ]
-                  : []),
-                ...(activeCols.includes("tags")
-                  ? [
-                      {
-                        title: "标签",
-                        dataIndex: "tags",
-                        width: 170,
-                        render: (tags: string[]) =>
-                          tags.length ? (
-                            tags.map((t) => (
-                              <Tag key={t} bordered={false} color="processing">
-                                {t}
-                              </Tag>
-                            ))
-                          ) : (
-                            <span className="text-[#C0C4CC]">—</span>
-                          ),
-                      },
-                    ]
-                  : []),
-                ...(activeCols.includes("status")
-                  ? [
-                      {
-                        title: "状态",
-                        dataIndex: "status",
-                        width: 90,
-                        render: (s: string) => <span className="text-xs">{statusText(s)}</span>,
-                      },
-                    ]
-                  : []),
-                ...(activeCols.includes("creator")
-                  ? [
-                      {
-                        title: "创建人",
-                        key: "creator",
-                        width: 90,
-                        render: (_: unknown, r: CaseRowV2) => (
-                          <span className="text-[#87888D]">{memberName(r.createdBy)}</span>
-                        ),
-                      },
-                    ]
-                  : []),
-                ...dynCols,
-                ...(activeCols.includes("updatedAt")
-                  ? [
-                      {
-                        title: "更新时间",
-                        dataIndex: "updatedAt",
-                        width: 110,
-                        render: (s: string) => (
-                          <span className="text-[#87888D] text-xs">{s.slice(0, 10)}</span>
-                        ),
-                      },
-                    ]
-                  : []),
-                {
-                  title: "操作",
-                  key: "ops",
-                  width: recycled ? 190 : 230,
-                  render: (_, r) =>
-                    recycled ? (
-                      <span className="flex items-center gap-1">
-                        <Button
-                          type="link"
-                          size="small"
-                          icon={<RotateCcw size={13} />}
-                          data-testid={`btn-restore-${r.num}`}
-                          onClick={() => restore.mutate(r.id)}
-                        >
-                          恢复
-                        </Button>
-                        <Popconfirm
-                          title="彻底删除"
-                          description="该操作不可恢复，确认删除？"
-                          okText="彻底删除"
-                          okButtonProps={{ danger: true }}
-                          onConfirm={() => purge.mutate(r.id)}
-                        >
-                          <Button type="link" size="small" danger icon={<Trash2 size={13} />}>
-                            彻底删除
-                          </Button>
-                        </Popconfirm>
-                      </span>
-                    ) : (
-                      <span className="flex items-center gap-1">
-                        <a
-                          className="text-[#574BFF] hover:opacity-80"
-                          href={`/cases/${r.id}?edit=1`}
-                        >
-                          编辑
-                        </a>
-                        <span className="text-[#E5E6EB]">|</span>
-                        <Button
-                          type="link"
-                          size="small"
-                          className="!px-0"
-                          icon={
-                            <Star
-                              size={13}
-                              className={
-                                followedIds.has(r.id) ? "fill-[#FA8C16] text-[#FA8C16]" : ""
-                              }
-                            />
-                          }
-                          onClick={() => follow.mutate({ id: r.id, on: !followedIds.has(r.id) })}
-                          data-testid={`btn-follow-${r.num}`}
-                        >
-                          {followedIds.has(r.id) ? "已关注" : "关注"}
-                        </Button>
-                        <Button
-                          type="link"
-                          size="small"
-                          className="!px-0"
-                          onClick={() => copy.mutate(r.id)}
-                          data-testid={`btn-copy-${r.num}`}
-                        >
-                          复制
-                        </Button>
-                        <Button
-                          type="link"
-                          size="small"
-                          className="!px-0"
-                          onClick={() => void shareRow(r)}
-                          data-testid={`btn-share-${r.num}`}
-                        >
-                          分享
-                        </Button>
-                        {canDelete && (
-                          <Button
-                            type="link"
-                            size="small"
-                            danger
-                            className="!px-0"
-                            onClick={() => remove.mutate(r.id)}
-                            data-testid={`btn-delete-${r.num}`}
-                          >
-                            删除
-                          </Button>
-                        )}
-                      </span>
-                    ),
-                },
-              ]}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* 另存为视图 */}
-      <Modal
-        title="另存为视图"
-        open={saveViewOpen}
-        onCancel={() => setSaveViewOpen(false)}
-        okText="保存"
-        cancelText="取消"
-        okButtonProps={{ disabled: !viewName.trim() }}
-        confirmLoading={saveView.isPending}
-        onOk={() => saveView.mutate()}
-      >
-        <p className="text-[13px] text-[#646A73] mb-2">
-          将当前筛选组合（模块 + 关键字 + 高级筛选）保存为自定义视图：
-        </p>
-        <Input
-          value={viewName}
-          maxLength={64}
-          placeholder="视图名称（如：冒烟集）"
-          onChange={(e) => setViewName(e.target.value)}
-          data-testid="input-view-name"
-          onPressEnter={() => viewName.trim() && saveView.mutate()}
-        />
-      </Modal>
-
-      {/* 批量移动 */}
-      <Modal
-        title={`移动 ${selected.length} 条用例到模块`}
-        open={moveOpen}
-        onCancel={() => setMoveOpen(false)}
-        okText="移动"
-        cancelText="取消"
-        okButtonProps={{ disabled: !moveTarget }}
-        confirmLoading={batch.isPending}
-        onOk={() =>
-          batch.mutate({ action: "move", body: { ids: selectedIds, moduleId: moveTarget } })
-        }
-      >
-        <TreeSelect
-          className="w-full"
-          value={moveTarget}
-          treeData={toTreeSelectData(modulesQ.data?.items ?? [])}
-          treeDefaultExpandAll
-          placeholder="选择目标模块"
-          onChange={(v) => setMoveTarget(v)}
-          data-testid="select-move-target"
-        />
-        <p className="text-xs text-[#A8ABB0] mt-2">移动后用例归属目标模块，模块计数将同步更新。</p>
-      </Modal>
-
-      {/* 批量编辑 */}
-      <Modal
-        title={`批量编辑 ${selected.length} 条用例`}
-        open={batchEditOpen}
-        onCancel={() => setBatchEditOpen(false)}
-        okText="应用"
-        cancelText="取消"
-        confirmLoading={batch.isPending}
-        onOk={() =>
-          batch.mutate({
-            action: "update",
-            body: {
-              ids: selectedIds,
-              ...(batchLevel ? { level: batchLevel } : {}),
-              ...(batchTags.length ? { addTags: batchTags } : {}),
-            },
-          })
-        }
-      >
-        <div className="space-y-4">
-          <div>
-            <label className="block text-[13px] mb-1">等级（留空=不变）</label>
-            <Select
-              className="w-full"
-              allowClear
-              virtual={false}
-              placeholder="保持不变"
-              value={batchLevel}
-              options={["P0", "P1", "P2", "P3"].map((l) => ({ value: l, label: l }))}
-              onChange={(v) => setBatchLevel(v as CaseLevel | undefined)}
-              data-testid="select-batch-level"
-            />
-          </div>
-          <div>
-            <label className="block text-[13px] mb-1">追加标签（留空=不变）</label>
-            <Select
-              className="w-full"
-              mode="tags"
-              allowClear
-              placeholder="输入回车添加"
-              value={batchTags}
-              onChange={setBatchTags}
-              data-testid="select-batch-tags"
-            />
-          </div>
-        </div>
-      </Modal>
-
-      {/* 导入向导（三步） */}
-      <Modal
-        title="导入用例"
-        open={importOpen}
-        onCancel={() => setImportOpen(false)}
-        footer={
-          importStep === 3
-            ? [
-                <Button key="re" onClick={resetWizard}>
-                  重新上传
-                </Button>,
-                <Button
-                  key="done"
-                  type="primary"
-                  onClick={() => {
-                    setImportOpen(false);
-                    invalidateCases();
-                  }}
-                >
-                  完成
-                </Button>,
-              ]
-            : undefined
-        }
-        okText={importStep === 1 ? "下一步" : "开始导入"}
-        cancelText="取消"
-        okButtonProps={importStep === 1 ? { disabled: !importFile } : undefined}
-        confirmLoading={doImport.isPending}
-        onOk={() => {
-          if (importStep === 1) {
-            setImportStep(2);
-            return;
-          }
-          doImport.mutate();
-        }}
-        width={640}
-      >
-        <Steps
-          size="small"
-          current={importStep - 1}
-          className="mb-4"
-          items={[{ title: "上传文件" }, { title: "确认映射" }, { title: "结果报告" }]}
-        />
-        {importStep === 1 && (
-          <div data-testid="import-step-upload">
-            <Dragger
-              accept=".xlsx,.xmind"
-              maxCount={1}
-              fileList={
-                importFile
-                  ? [{ uid: "-1", name: importFile.name, status: "done", size: importFile.size }]
-                  : []
-              }
-              beforeUpload={(file) => {
-                setImportFile(file);
-                return false;
-              }}
-              onRemove={() => setImportFile(null)}
-            >
-              <p className="ant-upload-drag-icon">
-                <UploadIcon size={24} className="text-[#574BFF]" />
-              </p>
-              <p className="ant-upload-text text-[13px]">点击或拖拽文件到此处上传</p>
-              <p className="ant-upload-hint text-xs">
-                支持 .xlsx / .xmind（兼容 MeterSphere 官方模板），单次 ≤ 5000 行
-              </p>
-            </Dragger>
-            <div className="flex items-center gap-3 mt-3 text-[13px]">
-              <a
-                className="text-[#574BFF] cursor-pointer"
-                onClick={() => void downloadTemplate()}
-                data-testid="btn-download-template"
-              >
-                {tplDownloading ? "模板下载中…" : "下载 Excel 模板"}
-              </a>
-              <span className="text-xs text-[#A8ABB0]">
-                {visibleDynDefs.length
-                  ? `列头含动态字段：${visibleDynDefs.map((d) => d.name).join(" / ")}`
-                  : "固定列：编号/模块/名称/前置/步骤/预期/等级/标签"}
-              </span>
-            </div>
-          </div>
-        )}
-        {importStep === 2 && importFile && (
-          <div className="space-y-4" data-testid="import-step-mapping">
-            <div className="flex items-center gap-3 flex-wrap">
-              <span className="text-[13px] text-[#646A73]">文件：{importFile.name}</span>
-              <div className="ml-auto flex items-center gap-4">
-                <Radio.Group
-                  value={importMode}
-                  onChange={(e) => setImportMode(e.target.value)}
-                  data-testid="radio-import-mode"
-                >
-                  <Radio value="skip">相同编号跳过</Radio>
-                  <Radio value="overwrite">相同编号覆盖</Radio>
-                </Radio.Group>
-              </div>
-            </div>
-            <div>
-              <label className="block text-[13px] mb-1">
-                目标模块（不选=按文件「所属模块」列自动匹配）
-              </label>
-              <TreeSelect
-                className="w-full"
-                value={importModule}
-                treeData={toTreeSelectData(modulesQ.data?.items ?? [])}
-                treeDefaultExpandAll
-                allowClear
-                placeholder="默认：文件模块列 / 默认模块"
-                onChange={(v) => setImportModule(v)}
-                data-testid="select-import-module"
-              />
-            </div>
-            <p className="text-xs text-[#A8ABB0]">
-              覆盖 = 按编号匹配存量（回收站不参与），白名单字段全量替换并记录变更历史；跳过 =
-              仅计数不改数据。 全部行先校验后原子落库，失败行不导入。
-            </p>
-          </div>
-        )}
-        {importStep === 3 && importReport && (
-          <div className="space-y-4" data-testid="import-step-report">
-            <div className="flex gap-8 text-center py-2">
-              <div>
-                <p className="text-2xl font-semibold text-[#52C41A]">
-                  {importReport.created + importReport.overwritten}
-                </p>
-                <p className="text-xs text-[#646A73] mt-1">导入成功</p>
-              </div>
-              <div>
-                <p className="text-2xl font-semibold text-[#FF4D4F]">{importReport.failed}</p>
-                <p className="text-xs text-[#646A73] mt-1">校验失败</p>
-              </div>
-              <div>
-                <p className="text-2xl font-semibold text-[#87888D]">{importReport.skipped}</p>
-                <p className="text-xs text-[#646A73] mt-1">跳过（编号已存在）</p>
-              </div>
-              <div className="ml-auto self-center text-xs text-[#A8ABB0] text-right">
-                模式：{importReport.mode === "overwrite" ? "相同编号覆盖" : "相同编号跳过"}
-                <br />
-                共解析 {importReport.total} 行
-              </div>
-            </div>
-            {importReport.failed > 0 && (
-              <div>
-                <p className="text-xs text-[#A8ABB0] mb-1.5">失败行明细（修正模板后可重新上传）</p>
-                <table className="w-full text-xs border border-[#F0F1F3] rounded">
-                  <thead className="bg-[#F7F8FA] text-[#87888D]">
-                    <tr>
-                      <th className="p-1.5 text-left">行号</th>
-                      <th className="p-1.5 text-left">失败原因</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {importReport.errors.map((e) => (
-                      <tr key={e.row} className="border-t bg-[#FF4D4F]/5">
-                        <td className="p-1.5">{e.row}</td>
-                        <td className="p-1.5 text-[#FF4D4F]">{e.reason}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-            {importReport.ignoredColumns.length > 0 && (
-              <p className="text-xs text-[#A8ABB0]">
-                提示：文件列「{importReport.ignoredColumns.join("、")}
-                」未能识别，已按忽略列处理，未导入。
-              </p>
-            )}
-          </div>
-        )}
-      </Modal>
-
-      {/* 导出弹窗 */}
-      <Modal
-        title="导出用例"
-        open={exportOpen}
-        onCancel={() => setExportOpen(false)}
-        okText="导出"
-        cancelText="取消"
-        confirmLoading={exporting}
-        onOk={() => void doExport()}
-      >
-        <div className="space-y-4">
-          <div>
-            <p className="text-[13px] text-[#3D4350] mb-2">导出格式</p>
-            <Radio.Group
-              value={exportFormat}
-              onChange={(e) => setExportFormat(e.target.value)}
-              data-testid="radio-export-format"
-              options={[
-                { value: "excel", label: "Excel 默认（每用例一行）" },
-                { value: "excel_split", label: "Excel 拆分（步骤单元格纵向拆分）" },
-                { value: "xmind", label: "Xmind（按模块树结构）" },
-              ]}
-            />
-            {exportFormat === "xmind" && (
-              <p className="text-xs text-[#A8ABB0] mt-1">
-                Xmind 结构固定（模块→用例→步骤；标记=等级、备注=前置/预期），字段勾选不适用。
-              </p>
-            )}
-          </div>
-          {exportFormat !== "xmind" && (
-            <div>
-              <p className="text-[13px] text-[#3D4350] mb-2">导出字段</p>
-              <div className="space-y-1.5">
-                <p className="flex items-center gap-3 flex-wrap text-[13px]">
-                  <span className="text-xs text-[#A8ABB0] w-16">基础字段</span>
-                  {BASE_EXPORT_FIELDS.map((f) => (
-                    <Checkbox
-                      key={f.key}
-                      checked={activeExportFields.includes(f.key)}
-                      onChange={(e) =>
-                        setExportFields(
-                          e.target.checked
-                            ? [...activeExportFields, f.key]
-                            : activeExportFields.filter((k) => k !== f.key),
-                        )
-                      }
-                    >
-                      {f.label}
-                    </Checkbox>
-                  ))}
-                </p>
-                {defs.length > 0 && (
-                  <p className="flex items-center gap-3 flex-wrap text-[13px]">
-                    <span className="text-xs text-[#A8ABB0] w-16">动态字段</span>
-                    {defs.map((d) => (
-                      <Checkbox
-                        key={d.key}
-                        checked={activeExportFields.includes(d.key)}
-                        onChange={(e) =>
-                          setExportFields(
-                            e.target.checked
-                              ? [...activeExportFields, d.key]
-                              : activeExportFields.filter((k) => k !== d.key),
-                          )
+                        高级筛选{advancedOpen ? "▴" : "▾"}
+                      </Button>
+                      <Popover
+                        open={colOpen}
+                        onOpenChange={setColOpen}
+                        trigger="click"
+                        placement="bottomRight"
+                        content={
+                          <div className="w-52" data-testid="column-setting-popover">
+                            <p className="text-xs text-[#A8ABB0] mb-1">显示列</p>
+                            {[
+                              { key: "module", label: "模块" },
+                              { key: "tags", label: "标签" },
+                              { key: "status", label: "状态" },
+                              { key: "creator", label: "创建人" },
+                              { key: "updatedAt", label: "更新时间" },
+                              ...visibleDynDefs.map((d) => ({
+                                key: `dyn:${d.key}`,
+                                label: d.name,
+                              })),
+                            ].map((c) => (
+                              <p key={c.key} className="my-1">
+                                <Checkbox
+                                  checked={activeCols.includes(c.key)}
+                                  onChange={(e) => toggleCol(c.key, e.target.checked)}
+                                >
+                                  {c.label}
+                                </Checkbox>
+                              </p>
+                            ))}
+                          </div>
                         }
                       >
-                        {d.name}
-                      </Checkbox>
-                    ))}
+                        <Button
+                          size="small"
+                          icon={<Settings2 size={13} />}
+                          data-testid="btn-column-setting"
+                          title="列设置"
+                        />
+                      </Popover>
+                      {canCreate && (
+                        <Button
+                          size="small"
+                          icon={<UploadIcon size={13} />}
+                          onClick={() => {
+                            resetWizard();
+                            setImportOpen(true);
+                          }}
+                          data-testid="btn-import"
+                        >
+                          导入
+                        </Button>
+                      )}
+                      <Button
+                        size="small"
+                        icon={<Download size={13} />}
+                        onClick={() => setExportOpen(true)}
+                        data-testid="btn-export"
+                      >
+                        导出
+                      </Button>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* 高级筛选区（展开态） */}
+              {advancedOpen && !recycled && (
+                <div
+                  className="flex flex-wrap items-center gap-2 px-3 py-2.5 border-b border-[#F0F1F3] bg-[#F7F8FA]/60"
+                  data-testid="advanced-filter-panel"
+                >
+                  <Select
+                    className="w-28"
+                    allowClear
+                    placeholder="等级：全部"
+                    virtual={false}
+                    value={filters.level}
+                    options={["P0", "P1", "P2", "P3"].map((l) => ({
+                      value: l,
+                      label: `等级 ${l}`,
+                    }))}
+                    onChange={(v) => {
+                      setFilters((f) => ({ ...f, level: v as CaseLevel | undefined }));
+                      setPage(1);
+                    }}
+                    data-testid="select-level"
+                  />
+                  <Select
+                    className="w-44"
+                    mode="tags"
+                    allowClear
+                    placeholder="标签（回车添加，命中任一）"
+                    value={filters.tags}
+                    onChange={(v) => {
+                      setFilters((f) => ({ ...f, tags: v }));
+                      setPage(1);
+                    }}
+                    data-testid="select-tags"
+                  />
+                  <Select
+                    className="w-32"
+                    allowClear
+                    placeholder="状态：全部"
+                    value={filters.status}
+                    options={STATUS_OPTIONS}
+                    onChange={(v) => {
+                      setFilters((f) => ({ ...f, status: v }));
+                      setPage(1);
+                    }}
+                    data-testid="select-status"
+                  />
+                  <MemberSelect
+                    projectId={projectId}
+                    value={filters.creator}
+                    onChange={(v) => {
+                      setFilters((f) => ({ ...f, creator: Array.isArray(v) ? v[0] : v }));
+                      setPage(1);
+                    }}
+                    placeholder="创建人：全部"
+                  />
+                  <DatePicker.RangePicker
+                    value={filters.range}
+                    onChange={(vals) => {
+                      setFilters((f) => ({
+                        ...f,
+                        range: vals && vals[0] && vals[1] ? [vals[0], vals[1]] : undefined,
+                      }));
+                      setPage(1);
+                    }}
+                    data-testid="range-updated"
+                  />
+                  {visibleDynDefs.map((d) => (
+                    <span key={d.key} className="w-40">
+                      <DynamicFieldInput
+                        def={d}
+                        value={filters.dyn[d.key]}
+                        onChange={(v) => {
+                          setFilters((f) => ({ ...f, dyn: { ...f.dyn, [d.key]: v } }));
+                          setPage(1);
+                        }}
+                      />
+                    </span>
+                  ))}
+                  <Button
+                    size="small"
+                    onClick={() => {
+                      setFilters(EMPTY_FILTERS);
+                      setKeyword("");
+                      setModuleId(null);
+                      setPage(1);
+                    }}
+                  >
+                    重置
+                  </Button>
+                </div>
+              )}
+
+              {/* 批量操作条 */}
+              {!recycled && selected.length > 0 && (
+                <div
+                  className="flex items-center gap-3 px-3 py-2 border-b border-[#F0F1F3] bg-[#574BFF]/[.05] text-[13px]"
+                  data-testid="batch-bar"
+                >
+                  <span className="text-[#574BFF] font-medium">已选 {selected.length} 项</span>
+                  {canUpdate && (
+                    <Button
+                      type="link"
+                      size="small"
+                      className="!px-0"
+                      disabled={!modulesQ.data}
+                      data-testid="btn-batch-move"
+                      onClick={() => {
+                        setMoveTarget(undefined);
+                        setMoveOpen(true);
+                      }}
+                    >
+                      移动
+                    </Button>
+                  )}
+                  {canUpdate && (
+                    <Button
+                      type="link"
+                      size="small"
+                      className="!px-0"
+                      data-testid="btn-batch-edit"
+                      onClick={() => {
+                        setBatchLevel(undefined);
+                        setBatchTags([]);
+                        setBatchEditOpen(true);
+                      }}
+                    >
+                      批量编辑
+                    </Button>
+                  )}
+                  {canDelete && (
+                    <Button
+                      type="link"
+                      size="small"
+                      danger
+                      className="!px-0"
+                      data-testid="btn-batch-delete"
+                      onClick={() => {
+                        modal.confirm({
+                          title: `将 ${selected.length} 条用例移入回收站？`,
+                          okButtonProps: { danger: true },
+                          okText: "移入回收站",
+                          onOk: () =>
+                            batch.mutateAsync({ action: "delete", body: { ids: selectedIds } }),
+                        });
+                      }}
+                    >
+                      删除
+                    </Button>
+                  )}
+                  <Button
+                    type="link"
+                    size="small"
+                    className="!px-0"
+                    onClick={() => {
+                      setExportScope("selected");
+                      setExportOpen(true);
+                    }}
+                  >
+                    导出勾选行
+                  </Button>
+                  <Button
+                    type="link"
+                    size="small"
+                    className="!px-0 ml-auto text-[#A8ABB0]"
+                    onClick={() => setSelected([])}
+                  >
+                    取消选择
+                  </Button>
+                </div>
+              )}
+
+              {/* 列表 */}
+              <div className="flex-1 min-w-0">
+                <Table<CaseRowV2>
+                  rowKey="id"
+                  data-testid="case-table"
+                  loading={listQ.isLoading}
+                  dataSource={rows}
+                  rowSelection={
+                    recycled
+                      ? undefined
+                      : {
+                          selectedRowKeys: selected,
+                          onChange: (keys) => setSelected(keys),
+                        }
+                  }
+                  pagination={{
+                    current: page,
+                    pageSize: 20,
+                    total: listQ.data?.total ?? 0,
+                    onChange: (p) => {
+                      setPage(p);
+                      setSelected([]);
+                    },
+                    showTotal: (t) => `共 ${t} 条`,
+                  }}
+                  locale={{
+                    emptyText:
+                      moduleId && rows.length === 0 ? (
+                        <Empty
+                          image={Empty.PRESENTED_IMAGE_SIMPLE}
+                          description="该模块暂无用例，去新建或导入"
+                        />
+                      ) : (
+                        <Empty
+                          image={Empty.PRESENTED_IMAGE_SIMPLE}
+                          description={recycled ? "回收站为空" : "无匹配结果，调整筛选或清空条件"}
+                        />
+                      ),
+                  }}
+                  columns={[
+                    {
+                      title: "编号",
+                      dataIndex: "num",
+                      width: 92,
+                      render: (n: number, r) => (
+                        <a className="text-[#87888D] hover:text-[#574BFF]" href={`/cases/${r.id}`}>
+                          C-{String(n).padStart(4, "0")}
+                        </a>
+                      ),
+                    },
+                    {
+                      title: "用例名称",
+                      dataIndex: "name",
+                      render: (name: string, r) => (
+                        <span className="inline-flex items-center gap-1">
+                          <a
+                            className="text-[#1F2329] hover:text-[#574BFF] font-medium"
+                            href={`/cases/${r.id}?edit=1`}
+                          >
+                            {name}
+                          </a>
+                          {followedIds.has(r.id) && (
+                            <Star size={12} className="fill-[#FA8C16] text-[#FA8C16]" />
+                          )}
+                        </span>
+                      ),
+                    },
+                    {
+                      title: "等级",
+                      dataIndex: "level",
+                      width: 68,
+                      render: (l: string) => (
+                        <Tag bordered={false} color={levelColor[l]}>
+                          {l}
+                        </Tag>
+                      ),
+                    },
+                    ...(activeCols.includes("module")
+                      ? [
+                          {
+                            title: "模块",
+                            key: "module",
+                            width: 130,
+                            render: (_: unknown, r: CaseRowV2) => (
+                              <span className="text-[#87888D]">{moduleName(r.moduleId)}</span>
+                            ),
+                          },
+                        ]
+                      : []),
+                    ...(activeCols.includes("tags")
+                      ? [
+                          {
+                            title: "标签",
+                            dataIndex: "tags",
+                            width: 170,
+                            render: (tags: string[]) =>
+                              tags.length ? (
+                                tags.map((t) => (
+                                  <Tag key={t} bordered={false} color="processing">
+                                    {t}
+                                  </Tag>
+                                ))
+                              ) : (
+                                <span className="text-[#C0C4CC]">—</span>
+                              ),
+                          },
+                        ]
+                      : []),
+                    ...(activeCols.includes("status")
+                      ? [
+                          {
+                            title: "状态",
+                            dataIndex: "status",
+                            width: 90,
+                            render: (s: string) => <span className="text-xs">{statusText(s)}</span>,
+                          },
+                        ]
+                      : []),
+                    ...(activeCols.includes("creator")
+                      ? [
+                          {
+                            title: "创建人",
+                            key: "creator",
+                            width: 90,
+                            render: (_: unknown, r: CaseRowV2) => (
+                              <span className="text-[#87888D]">{memberName(r.createdBy)}</span>
+                            ),
+                          },
+                        ]
+                      : []),
+                    ...dynCols,
+                    ...(activeCols.includes("updatedAt")
+                      ? [
+                          {
+                            title: "更新时间",
+                            dataIndex: "updatedAt",
+                            width: 110,
+                            render: (s: string) => (
+                              <span className="text-[#87888D] text-xs">{s.slice(0, 10)}</span>
+                            ),
+                          },
+                        ]
+                      : []),
+                    {
+                      title: "操作",
+                      key: "ops",
+                      width: recycled ? 190 : 230,
+                      render: (_, r) =>
+                        recycled ? (
+                          <span className="flex items-center gap-1">
+                            <Button
+                              type="link"
+                              size="small"
+                              icon={<RotateCcw size={13} />}
+                              data-testid={`btn-restore-${r.num}`}
+                              onClick={() => restore.mutate(r.id)}
+                            >
+                              恢复
+                            </Button>
+                            <Popconfirm
+                              title="彻底删除"
+                              description="该操作不可恢复，确认删除？"
+                              okText="彻底删除"
+                              okButtonProps={{ danger: true }}
+                              onConfirm={() => purge.mutate(r.id)}
+                            >
+                              <Button type="link" size="small" danger icon={<Trash2 size={13} />}>
+                                彻底删除
+                              </Button>
+                            </Popconfirm>
+                          </span>
+                        ) : (
+                          <span className="flex items-center gap-1">
+                            <a
+                              className="text-[#574BFF] hover:opacity-80"
+                              href={`/cases/${r.id}?edit=1`}
+                            >
+                              编辑
+                            </a>
+                            <span className="text-[#E5E6EB]">|</span>
+                            <Button
+                              type="link"
+                              size="small"
+                              className="!px-0"
+                              icon={
+                                <Star
+                                  size={13}
+                                  className={
+                                    followedIds.has(r.id) ? "fill-[#FA8C16] text-[#FA8C16]" : ""
+                                  }
+                                />
+                              }
+                              onClick={() =>
+                                follow.mutate({ id: r.id, on: !followedIds.has(r.id) })
+                              }
+                              data-testid={`btn-follow-${r.num}`}
+                            >
+                              {followedIds.has(r.id) ? "已关注" : "关注"}
+                            </Button>
+                            <Button
+                              type="link"
+                              size="small"
+                              className="!px-0"
+                              onClick={() => copy.mutate(r.id)}
+                              data-testid={`btn-copy-${r.num}`}
+                            >
+                              复制
+                            </Button>
+                            <Button
+                              type="link"
+                              size="small"
+                              className="!px-0"
+                              onClick={() => void shareRow(r)}
+                              data-testid={`btn-share-${r.num}`}
+                            >
+                              分享
+                            </Button>
+                            {canDelete && (
+                              <Button
+                                type="link"
+                                size="small"
+                                danger
+                                className="!px-0"
+                                onClick={() => remove.mutate(r.id)}
+                                data-testid={`btn-delete-${r.num}`}
+                              >
+                                删除
+                              </Button>
+                            )}
+                          </span>
+                        ),
+                    },
+                  ]}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* 另存为视图 */}
+          <Modal
+            title="另存为视图"
+            open={saveViewOpen}
+            onCancel={() => setSaveViewOpen(false)}
+            okText="保存"
+            cancelText="取消"
+            okButtonProps={{ disabled: !viewName.trim() }}
+            confirmLoading={saveView.isPending}
+            onOk={() => saveView.mutate()}
+          >
+            <p className="text-[13px] text-[#646A73] mb-2">
+              将当前筛选组合（模块 + 关键字 + 高级筛选）保存为自定义视图：
+            </p>
+            <Input
+              value={viewName}
+              maxLength={64}
+              placeholder="视图名称（如：冒烟集）"
+              onChange={(e) => setViewName(e.target.value)}
+              data-testid="input-view-name"
+              onPressEnter={() => viewName.trim() && saveView.mutate()}
+            />
+          </Modal>
+
+          {/* 批量移动 */}
+          <Modal
+            title={`移动 ${selected.length} 条用例到模块`}
+            open={moveOpen}
+            onCancel={() => setMoveOpen(false)}
+            okText="移动"
+            cancelText="取消"
+            okButtonProps={{ disabled: !moveTarget }}
+            confirmLoading={batch.isPending}
+            onOk={() =>
+              batch.mutate({ action: "move", body: { ids: selectedIds, moduleId: moveTarget } })
+            }
+          >
+            <TreeSelect
+              className="w-full"
+              value={moveTarget}
+              treeData={toTreeSelectData(modulesQ.data?.items ?? [])}
+              treeDefaultExpandAll
+              placeholder="选择目标模块"
+              onChange={(v) => setMoveTarget(v)}
+              data-testid="select-move-target"
+            />
+            <p className="text-xs text-[#A8ABB0] mt-2">
+              移动后用例归属目标模块，模块计数将同步更新。
+            </p>
+          </Modal>
+
+          {/* 批量编辑 */}
+          <Modal
+            title={`批量编辑 ${selected.length} 条用例`}
+            open={batchEditOpen}
+            onCancel={() => setBatchEditOpen(false)}
+            okText="应用"
+            cancelText="取消"
+            confirmLoading={batch.isPending}
+            onOk={() =>
+              batch.mutate({
+                action: "update",
+                body: {
+                  ids: selectedIds,
+                  ...(batchLevel ? { level: batchLevel } : {}),
+                  ...(batchTags.length ? { addTags: batchTags } : {}),
+                },
+              })
+            }
+          >
+            <div className="space-y-4">
+              <div>
+                <label className="block text-[13px] mb-1">等级（留空=不变）</label>
+                <Select
+                  className="w-full"
+                  allowClear
+                  virtual={false}
+                  placeholder="保持不变"
+                  value={batchLevel}
+                  options={["P0", "P1", "P2", "P3"].map((l) => ({ value: l, label: l }))}
+                  onChange={(v) => setBatchLevel(v as CaseLevel | undefined)}
+                  data-testid="select-batch-level"
+                />
+              </div>
+              <div>
+                <label className="block text-[13px] mb-1">追加标签（留空=不变）</label>
+                <Select
+                  className="w-full"
+                  mode="tags"
+                  allowClear
+                  placeholder="输入回车添加"
+                  value={batchTags}
+                  onChange={setBatchTags}
+                  data-testid="select-batch-tags"
+                />
+              </div>
+            </div>
+          </Modal>
+
+          {/* 导入向导（三步） */}
+          <Modal
+            title="导入用例"
+            open={importOpen}
+            onCancel={() => setImportOpen(false)}
+            footer={
+              importStep === 3
+                ? [
+                    <Button key="re" onClick={resetWizard}>
+                      重新上传
+                    </Button>,
+                    <Button
+                      key="done"
+                      type="primary"
+                      onClick={() => {
+                        setImportOpen(false);
+                        invalidateCases();
+                      }}
+                    >
+                      完成
+                    </Button>,
+                  ]
+                : undefined
+            }
+            okText={importStep === 1 ? "下一步" : "开始导入"}
+            cancelText="取消"
+            okButtonProps={importStep === 1 ? { disabled: !importFile } : undefined}
+            confirmLoading={doImport.isPending}
+            onOk={() => {
+              if (importStep === 1) {
+                setImportStep(2);
+                return;
+              }
+              doImport.mutate();
+            }}
+            width={640}
+          >
+            <Steps
+              size="small"
+              current={importStep - 1}
+              className="mb-4"
+              items={[{ title: "上传文件" }, { title: "确认映射" }, { title: "结果报告" }]}
+            />
+            {importStep === 1 && (
+              <div data-testid="import-step-upload">
+                <Dragger
+                  accept=".xlsx,.xmind"
+                  maxCount={1}
+                  fileList={
+                    importFile
+                      ? [
+                          {
+                            uid: "-1",
+                            name: importFile.name,
+                            status: "done",
+                            size: importFile.size,
+                          },
+                        ]
+                      : []
+                  }
+                  beforeUpload={(file) => {
+                    setImportFile(file);
+                    return false;
+                  }}
+                  onRemove={() => setImportFile(null)}
+                >
+                  <p className="ant-upload-drag-icon">
+                    <UploadIcon size={24} className="text-[#574BFF]" />
+                  </p>
+                  <p className="ant-upload-text text-[13px]">点击或拖拽文件到此处上传</p>
+                  <p className="ant-upload-hint text-xs">
+                    支持 .xlsx / .xmind（兼容 MeterSphere 官方模板），单次 ≤ 5000 行
+                  </p>
+                </Dragger>
+                <div className="flex items-center gap-3 mt-3 text-[13px]">
+                  <a
+                    className="text-[#574BFF] cursor-pointer"
+                    onClick={() => void downloadTemplate()}
+                    data-testid="btn-download-template"
+                  >
+                    {tplDownloading ? "模板下载中…" : "下载 Excel 模板"}
+                  </a>
+                  <span className="text-xs text-[#A8ABB0]">
+                    {visibleDynDefs.length
+                      ? `列头含动态字段：${visibleDynDefs.map((d) => d.name).join(" / ")}`
+                      : "固定列：编号/模块/名称/前置/步骤/预期/等级/标签"}
+                  </span>
+                </div>
+              </div>
+            )}
+            {importStep === 2 && importFile && (
+              <div className="space-y-4" data-testid="import-step-mapping">
+                <div className="flex items-center gap-3 flex-wrap">
+                  <span className="text-[13px] text-[#646A73]">文件：{importFile.name}</span>
+                  <div className="ml-auto flex items-center gap-4">
+                    <Radio.Group
+                      value={importMode}
+                      onChange={(e) => setImportMode(e.target.value)}
+                      data-testid="radio-import-mode"
+                    >
+                      <Radio value="skip">相同编号跳过</Radio>
+                      <Radio value="overwrite">相同编号覆盖</Radio>
+                    </Radio.Group>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-[13px] mb-1">
+                    目标模块（不选=按文件「所属模块」列自动匹配）
+                  </label>
+                  <TreeSelect
+                    className="w-full"
+                    value={importModule}
+                    treeData={toTreeSelectData(modulesQ.data?.items ?? [])}
+                    treeDefaultExpandAll
+                    allowClear
+                    placeholder="默认：文件模块列 / 默认模块"
+                    onChange={(v) => setImportModule(v)}
+                    data-testid="select-import-module"
+                  />
+                </div>
+                <p className="text-xs text-[#A8ABB0]">
+                  覆盖 = 按编号匹配存量（回收站不参与），白名单字段全量替换并记录变更历史；跳过 =
+                  仅计数不改数据。 全部行先校验后原子落库，失败行不导入。
+                </p>
+              </div>
+            )}
+            {importStep === 3 && importReport && (
+              <div className="space-y-4" data-testid="import-step-report">
+                <div className="flex gap-8 text-center py-2">
+                  <div>
+                    <p className="text-2xl font-semibold text-[#52C41A]">
+                      {importReport.created + importReport.overwritten}
+                    </p>
+                    <p className="text-xs text-[#646A73] mt-1">导入成功</p>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-semibold text-[#FF4D4F]">{importReport.failed}</p>
+                    <p className="text-xs text-[#646A73] mt-1">校验失败</p>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-semibold text-[#87888D]">{importReport.skipped}</p>
+                    <p className="text-xs text-[#646A73] mt-1">跳过（编号已存在）</p>
+                  </div>
+                  <div className="ml-auto self-center text-xs text-[#A8ABB0] text-right">
+                    模式：{importReport.mode === "overwrite" ? "相同编号覆盖" : "相同编号跳过"}
+                    <br />
+                    共解析 {importReport.total} 行
+                  </div>
+                </div>
+                {importReport.failed > 0 && (
+                  <div>
+                    <p className="text-xs text-[#A8ABB0] mb-1.5">
+                      失败行明细（修正模板后可重新上传）
+                    </p>
+                    <table className="w-full text-xs border border-[#F0F1F3] rounded">
+                      <thead className="bg-[#F7F8FA] text-[#87888D]">
+                        <tr>
+                          <th className="p-1.5 text-left">行号</th>
+                          <th className="p-1.5 text-left">失败原因</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {importReport.errors.map((e) => (
+                          <tr key={e.row} className="border-t bg-[#FF4D4F]/5">
+                            <td className="p-1.5">{e.row}</td>
+                            <td className="p-1.5 text-[#FF4D4F]">{e.reason}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+                {importReport.ignoredColumns.length > 0 && (
+                  <p className="text-xs text-[#A8ABB0]">
+                    提示：文件列「{importReport.ignoredColumns.join("、")}
+                    」未能识别，已按忽略列处理，未导入。
                   </p>
                 )}
               </div>
+            )}
+          </Modal>
+
+          {/* 导出弹窗 */}
+          <Modal
+            title="导出用例"
+            open={exportOpen}
+            onCancel={() => setExportOpen(false)}
+            okText="导出"
+            cancelText="取消"
+            confirmLoading={exporting}
+            onOk={() => void doExport()}
+          >
+            <div className="space-y-4">
+              <div>
+                <p className="text-[13px] text-[#3D4350] mb-2">导出格式</p>
+                <Radio.Group
+                  value={exportFormat}
+                  onChange={(e) => setExportFormat(e.target.value)}
+                  data-testid="radio-export-format"
+                  options={[
+                    { value: "excel", label: "Excel 默认（每用例一行）" },
+                    { value: "excel_split", label: "Excel 拆分（步骤单元格纵向拆分）" },
+                    { value: "xmind", label: "Xmind（按模块树结构）" },
+                  ]}
+                />
+                {exportFormat === "xmind" && (
+                  <p className="text-xs text-[#A8ABB0] mt-1">
+                    Xmind 结构固定（模块→用例→步骤；标记=等级、备注=前置/预期），字段勾选不适用。
+                  </p>
+                )}
+              </div>
+              {exportFormat !== "xmind" && (
+                <div>
+                  <p className="text-[13px] text-[#3D4350] mb-2">导出字段</p>
+                  <div className="space-y-1.5">
+                    <p className="flex items-center gap-3 flex-wrap text-[13px]">
+                      <span className="text-xs text-[#A8ABB0] w-16">基础字段</span>
+                      {BASE_EXPORT_FIELDS.map((f) => (
+                        <Checkbox
+                          key={f.key}
+                          checked={activeExportFields.includes(f.key)}
+                          onChange={(e) =>
+                            setExportFields(
+                              e.target.checked
+                                ? [...activeExportFields, f.key]
+                                : activeExportFields.filter((k) => k !== f.key),
+                            )
+                          }
+                        >
+                          {f.label}
+                        </Checkbox>
+                      ))}
+                    </p>
+                    {defs.length > 0 && (
+                      <p className="flex items-center gap-3 flex-wrap text-[13px]">
+                        <span className="text-xs text-[#A8ABB0] w-16">动态字段</span>
+                        {defs.map((d) => (
+                          <Checkbox
+                            key={d.key}
+                            checked={activeExportFields.includes(d.key)}
+                            onChange={(e) =>
+                              setExportFields(
+                                e.target.checked
+                                  ? [...activeExportFields, d.key]
+                                  : activeExportFields.filter((k) => k !== d.key),
+                              )
+                            }
+                          >
+                            {d.name}
+                          </Checkbox>
+                        ))}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+              <div>
+                <p className="text-[13px] text-[#3D4350] mb-2">导出范围</p>
+                <Radio.Group
+                  value={exportScope}
+                  onChange={(e) => setExportScope(e.target.value)}
+                  data-testid="radio-export-scope"
+                >
+                  <Radio value="filter">当前筛选结果（共 {listQ.data?.total ?? 0} 条）</Radio>
+                  <Radio value="selected" disabled={selected.length === 0}>
+                    已勾选行（{selected.length} 条）
+                  </Radio>
+                </Radio.Group>
+              </div>
             </div>
-          )}
-          <div>
-            <p className="text-[13px] text-[#3D4350] mb-2">导出范围</p>
-            <Radio.Group
-              value={exportScope}
-              onChange={(e) => setExportScope(e.target.value)}
-              data-testid="radio-export-scope"
-            >
-              <Radio value="filter">当前筛选结果（共 {listQ.data?.total ?? 0} 条）</Radio>
-              <Radio value="selected" disabled={selected.length === 0}>
-                已勾选行（{selected.length} 条）
-              </Radio>
-            </Radio.Group>
-          </div>
-        </div>
-      </Modal>
+          </Modal>
         </>
       )}
       <AiCaseGenerateDrawer

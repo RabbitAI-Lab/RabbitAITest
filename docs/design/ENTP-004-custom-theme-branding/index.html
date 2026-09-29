@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="utf-8" />
+    <title>ENTP-004 自定义主题与品牌定制（界面设置 · 实时预览 · 定制登录页）</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-slate-50 text-slate-800 text-sm">
+    <header class="h-12 bg-white border-b flex items-center px-4 gap-3">
+      <span class="font-semibold">RabbitAITest</span
+      ><span class="border rounded px-2 py-0.5">系统设置 · 系统参数 /system/params → 界面设置</span>
+      <span class="ml-auto text-slate-400 text-xs">帮助</span
+      ><span class="text-slate-500">admin</span>
+    </header>
+    <main class="p-4 space-y-4 max-w-[1200px]">
+      <!-- 画板一：界面设置 Tab -->
+      <section class="bg-white border rounded-md">
+        <div class="px-3 py-2 border-b bg-slate-50 font-medium">
+          画板一 · 系统参数 → 界面设置（左表单右实时预览；社区版 Tab 禁用态）
+        </div>
+        <div class="px-3 pt-3 flex border rounded overflow-hidden text-xs w-fit">
+          <button class="px-3 py-1.5 bg-white">基础</button>
+          <button class="px-3 py-1.5 bg-white">SMTP</button>
+          <button class="px-3 py-1.5 bg-white">文件</button>
+          <button class="px-3 py-1.5 bg-white">数据清理</button>
+          <button class="px-3 py-1.5 bg-[#574BFF] text-white">界面设置</button>
+        </div>
+        <div class="flex">
+          <div class="flex-1 p-4 space-y-4 text-[13px]">
+            <div
+              class="flex items-center gap-2 border border-amber-200 bg-amber-50 text-amber-700 rounded px-2 py-1 text-xs"
+            >
+              🔒 自定义主题与品牌为企业版能力（THEME 特性）——<a class="underline text-[#574BFF]"
+                >查看授权</a
+              >
+              <span class="ml-auto text-[10px]">（社区版：表单整体禁用，本 Tab 仅可预览默认）</span>
+            </div>
+            <div class="space-y-2">
+              <p class="font-medium">基本</p>
+              <div class="flex items-center gap-3">
+                <span class="text-slate-500 text-xs w-20">主题色</span>
+                <div class="flex gap-1.5">
+                  <button
+                    class="w-6 h-6 rounded border-2 border-[#574BFF]"
+                    style="background: #574bff"
+                  ></button>
+                  <button class="w-6 h-6 rounded border" style="background: #00b42a"></button>
+                  <button class="w-6 h-6 rounded border" style="background: #ff7d00"></button>
+                  <button class="w-6 h-6 rounded border" style="background: #3370ff"></button>
+                  <input class="border rounded px-2 py-1 font-mono text-xs w-24" value="#574BFF" />
+                </div>
+              </div>
+              <div class="flex items-center gap-3">
+                <span class="text-slate-500 text-xs w-20">平台背景</span>
+                <span class="w-9 h-5 rounded-full bg-[#574BFF] inline-block relative"
+                  ><span class="absolute right-0.5 top-0.5 w-4 h-4 bg-white rounded-full"></span
+                ></span>
+                <span class="text-xs text-slate-400">跟随主题色（浅化）</span>
+              </div>
+            </div>
+            <div class="space-y-2 border-t pt-3">
+              <p class="font-medium">登录页定制</p>
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <p class="text-slate-500 text-xs mb-1">网站名称</p>
+                  <input class="border rounded px-2 py-1.5 w-full" value="星舟测试平台" />
+                </div>
+                <div>
+                  <p class="text-slate-500 text-xs mb-1">Slogan</p>
+                  <input class="border rounded px-2 py-1.5 w-full" value="质量驱动交付" />
+                </div>
+                <div class="flex items-center gap-2">
+                  <button class="border rounded px-2 py-1.5 text-xs w-full">
+                    上传网站 Icon（≤200KB）</button
+                  ><span class="text-[10px] text-emerald-600">icon-16.png ✓</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <button class="border rounded px-2 py-1.5 text-xs w-full">上传登录 Logo</button
+                  ><span class="text-[10px] text-emerald-600">logo-dark.svg ✓</span>
+                </div>
+                <div class="col-span-2 flex items-center gap-2">
+                  <button class="border rounded px-2 py-1.5 text-xs">上传背景图</button
+                  ><span class="text-[10px] text-slate-400">bg-starfield.jpg ✓</span
+                  ><span class="text-[10px] text-red-400 hidden"
+                    >背景图不能超过 200KB（90060）</span
+                  >
+                </div>
+              </div>
+            </div>
+            <div class="space-y-2 border-t pt-3">
+              <p class="font-medium">平台设置</p>
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <p class="text-slate-500 text-xs mb-1">平台名称</p>
+                  <input class="border rounded px-2 py-1.5 w-full" value="星舟 QA" />
+                </div>
+                <div>
+                  <p class="text-slate-500 text-xs mb-1">帮助文档地址</p>
+                  <input
+                    class="border rounded px-2 py-1.5 w-full font-mono text-xs"
+                    value="https://docs.corp.example/qa"
+                  />
+                </div>
+                <div class="flex items-center gap-2">
+                  <button class="border rounded px-2 py-1.5 text-xs">上传平台 Logo</button
+                  ><span class="text-[10px] text-slate-400">未上传，使用默认 🐇</span>
+                </div>
+              </div>
+            </div>
+            <div class="flex gap-2 pt-2 border-t">
+              <button class="bg-[#574BFF] text-white rounded px-4 py-1.5">保存并应用</button>
+              <button class="border rounded px-4 py-1.5">恢复默认</button>
+              <span class="text-[11px] text-slate-400 self-center"
+                >保存后即时生效（public/theme no-store）；恢复默认=写回默认值</span
+              >
+            </div>
+          </div>
+          <!-- 实时预览 -->
+          <div class="w-[420px] border-l p-4 space-y-3">
+            <p class="font-medium text-[13px]">实时预览</p>
+            <div class="border rounded-lg overflow-hidden">
+              <div class="flex border-b text-xs">
+                <button class="px-3 py-1.5 bg-[#574BFF] text-white">登录页</button>
+                <button class="px-3 py-1.5 bg-white">控制台</button>
+              </div>
+              <!-- 登录页预览 -->
+              <div
+                class="p-4"
+                style="background: linear-gradient(135deg, #1c1c3a 0%, #2d2d5f 100%)"
+              >
+                <div class="w-[220px] mx-auto bg-white rounded-lg p-4 space-y-3">
+                  <div class="flex items-center gap-2">
+                    <span
+                      class="w-7 h-7 rounded bg-[#574BFF] text-white flex items-center justify-center"
+                      >🚀</span
+                    ><span class="font-medium text-[13px]">星舟测试平台</span>
+                  </div>
+                  <p class="text-[11px] text-slate-400">质量驱动交付</p>
+                  <input class="border rounded px-2 py-1.5 w-full text-xs" placeholder="邮箱" />
+                  <input
+                    class="border rounded px-2 py-1.5 w-full text-xs"
+                    placeholder="密码"
+                    type="password"
+                  />
+                  <button
+                    class="rounded w-full py-1.5 text-xs text-white"
+                    style="background: #574bff"
+                  >
+                    登 录
+                  </button>
+                </div>
+              </div>
+              <p class="px-3 py-1.5 text-[10px] text-slate-400 border-t">
+                浏览器标签标题同步为「星舟测试平台」
+              </p>
+            </div>
+            <!-- 控制台预览 -->
+            <div class="border rounded overflow-hidden">
+              <div class="h-8 bg-white border-b flex items-center px-3 gap-2 text-xs">
+                <span class="font-medium flex items-center gap-1"
+                  ><span
+                    class="w-4 h-4 rounded bg-[#574BFF] text-white flex items-center justify-center text-[9px]"
+                    >舟</span
+                  >星舟 QA</span
+                >
+                <span class="ml-auto text-slate-400">帮助</span
+                ><span class="text-slate-500">admin</span>
+              </div>
+              <div class="flex">
+                <div class="w-24 border-r py-2 text-[11px] space-y-1 px-2">
+                  <p class="bg-[#574BFF]/10 text-[#574BFF] rounded px-1.5 py-1">工作台</p>
+                  <p class="px-1.5 py-1 text-slate-500">测试管理</p>
+                  <p class="px-1.5 py-1 text-slate-500">接口测试</p>
+                </div>
+                <div class="flex-1 p-3 space-y-2">
+                  <button
+                    class="rounded px-3 py-1 text-[11px] text-white"
+                    style="background: #574bff"
+                  >
+                    ＋ 新建用例
+                  </button>
+                  <div class="border rounded p-2 text-[11px] text-slate-500">
+                    主按钮 / 链接 / 选中态 = 主题色（antd token）
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <!-- 画板二：定制后登录页效果 -->
+      <section class="bg-white border rounded-md">
+        <div class="px-3 py-2 border-b bg-slate-50 font-medium">
+          画板二 · 定制后登录页整页效果（自定义背景图 + Logo + Slogan + 主题色按钮）
+        </div>
+        <div class="p-4 flex justify-center">
+          <div
+            class="w-[520px] h-[300px] rounded-lg relative overflow-hidden"
+            style="background: linear-gradient(120deg, #0b1026 0%, #283a6d 55%, #574bff 130%)"
+          >
+            <div
+              class="absolute inset-0 opacity-30"
+              style="
+                background-image: radial-gradient(#fff 1px, transparent 1px);
+                background-size: 24px 24px;
+              "
+            ></div>
+            <div class="absolute left-6 top-5 text-white">
+              <p class="text-lg font-semibold flex items-center gap-2">
+                <span
+                  class="w-8 h-8 rounded bg-white/15 border border-white/30 flex items-center justify-center"
+                  >🚀</span
+                >星舟测试平台
+              </p>
+              <p class="text-xs text-white/60 mt-1">质量驱动交付</p>
+            </div>
+            <div
+              class="absolute right-6 top-1/2 -translate-y-1/2 w-[240px] bg-white rounded-lg p-4 space-y-2.5"
+            >
+              <input class="border rounded px-2 py-1.5 w-full text-xs" placeholder="邮箱" />
+              <input
+                class="border rounded px-2 py-1.5 w-full text-xs"
+                placeholder="密码"
+                type="password"
+              />
+              <button class="rounded w-full py-1.5 text-xs text-white" style="background: #574bff">
+                登 录
+              </button>
+              <p class="text-[10px] text-slate-400 text-center">
+                未定制时=默认「RabbitAITest」品牌与默认紫
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

@@ -26,7 +26,8 @@ export interface AiModelSave {
   enabled: boolean;
 }
 
-export const listAiModels = () => get<{ total: number; list: AiModelRow[] }>("/api/v1/system/ai-models");
+export const listAiModels = () =>
+  get<{ total: number; list: AiModelRow[] }>("/api/v1/system/ai-models");
 export const createAiModel = (data: AiModelSave & { apiKey: string }) =>
   post<{ id: string }>("/api/v1/system/ai-models", data);
 export const updateAiModel = (id: string, data: AiModelSave) =>
@@ -45,7 +46,8 @@ export interface AiModelOption {
   model: string;
   isDefault: boolean;
 }
-export const listEnabledAiModels = () => get<{ total: number; list: AiModelOption[] }>("/api/v1/ai/models");
+export const listEnabledAiModels = () =>
+  get<{ total: number; list: AiModelOption[] }>("/api/v1/ai/models");
 
 // ── AI-002/003 生成（项目级；导入走既有 CASE-001/API-003 客户端） ──
 
@@ -59,8 +61,17 @@ export interface AiCaseDraft {
 
 export interface AiApiCaseDraft {
   name: string;
-  request: { headers?: { key: string; value: string }[]; query?: { key: string; value: string }[]; bodyJson?: string };
-  assertions: { source: "status" | "body" | "headers"; expression: string; operator: string; expected: string }[];
+  request: {
+    headers?: { key: string; value: string }[];
+    query?: { key: string; value: string }[];
+    bodyJson?: string;
+  };
+  assertions: {
+    source: "status" | "body" | "headers";
+    expression: string;
+    operator: string;
+    expected: string;
+  }[];
 }
 
 export interface AiGenResult<T> {
@@ -70,7 +81,13 @@ export interface AiGenResult<T> {
 
 export const aiGenerateCases = (
   projectId: string,
-  data: { requirement: string; moduleId?: string; templateId?: string; modelId?: string; designMethod?: string },
+  data: {
+    requirement: string;
+    moduleId?: string;
+    templateId?: string;
+    modelId?: string;
+    designMethod?: string;
+  },
 ) => post<AiGenResult<AiCaseDraft>>(`/api/v1/projects/${projectId}/ai/generate/cases`, data);
 
 export const aiGenerateApiCase = (
@@ -109,12 +126,14 @@ export interface AiConversationRow {
   createdAt: string;
   updatedAt: string;
 }
-export const listAiConversations = () => get<{ total: number; list: AiConversationRow[] }>("/api/v1/ai/conversations");
+export const listAiConversations = () =>
+  get<{ total: number; list: AiConversationRow[] }>("/api/v1/ai/conversations");
 export const createAiConversation = (data?: { title?: string }) =>
   post<{ id: string; title: string }>("/api/v1/ai/conversations", data ?? {});
 export const renameAiConversation = (id: string, title: string) =>
   put<{ id: string }>(`/api/v1/ai/conversations/${id}`, { title });
-export const deleteAiConversation = (id: string) => del<{ id: string }>(`/api/v1/ai/conversations/${id}`);
+export const deleteAiConversation = (id: string) =>
+  del<{ id: string }>(`/api/v1/ai/conversations/${id}`);
 
 export interface AiMessageRow {
   id: string;

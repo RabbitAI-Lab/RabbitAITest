@@ -18,7 +18,8 @@ function extractOne(
   ex: Extractor,
   input: { bodyText: string; headers: { key: string; value: string }[] },
 ): string | undefined {
-  const matches = ex.source === "body" ? bodyMatches(ex, input.bodyText) : headerMatches(ex, input.headers);
+  const matches =
+    ex.source === "body" ? bodyMatches(ex, input.bodyText) : headerMatches(ex, input.headers);
   if (matches.length === 0) return undefined;
   if (ex.match === "first") return matches[0];
   if (ex.match === "random") return matches[Math.floor(Math.random() * matches.length)];
@@ -35,7 +36,9 @@ function bodyMatches(ex: Extractor, bodyText: string): string[] {
   try {
     const json = JSON.parse(bodyText);
     const results = JSONPath({ path: ex.expression, json, wrap: true }) as unknown[];
-    return results.map((v) => (typeof v === "object" && v !== null ? JSON.stringify(v) : String(v)));
+    return results.map((v) =>
+      typeof v === "object" && v !== null ? JSON.stringify(v) : String(v),
+    );
   } catch {
     return [];
   }

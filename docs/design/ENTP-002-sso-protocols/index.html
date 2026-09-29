@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="utf-8" />
+    <title>ENTP-002 SSO 单点认证（认证源配置 · 更多登录方式）</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-slate-50 text-slate-800 text-sm">
+    <header class="h-12 bg-white border-b flex items-center px-4 gap-3">
+      <span class="font-semibold">RabbitAITest</span
+      ><span class="border rounded px-2 py-0.5">系统设置 · 认证配置 /system/sso</span>
+      <span class="ml-auto text-slate-400 text-xs">帮助</span
+      ><span class="text-slate-500">admin</span>
+    </header>
+    <main class="p-4 space-y-4 max-w-[1200px]">
+      <!-- 画板一：认证配置页 -->
+      <section class="bg-white border rounded-md">
+        <div class="px-3 py-2 border-b bg-slate-50 font-medium">
+          画板一 · 系统设置 → 认证配置 /system/sso（认证源列表 + 新建类型选择 + OIDC/LDAP
+          分形态表单）
+        </div>
+        <div class="flex">
+          <div class="flex-1">
+            <div class="px-3 pt-3 flex items-center gap-2">
+              <p class="font-medium">认证源</p>
+              <span class="text-xs text-slate-400"
+                >企业版能力（License · SSO 特性）——启用后登录页呈现「更多登录方式」</span
+              >
+              <button class="ml-auto bg-[#574BFF] text-white rounded-md px-3 py-1.5 text-xs">
+                ＋ 新建认证源
+              </button>
+            </div>
+            <table class="w-full text-[13px] mt-2">
+              <thead class="text-slate-500 text-xs bg-slate-50">
+                <tr class="text-left">
+                  <th class="px-3 py-2">名称</th>
+                  <th>类型</th>
+                  <th>配置摘要</th>
+                  <th>启用</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y">
+                <tr>
+                  <td class="px-3 py-2">公司 Keycloak</td>
+                  <td class="px-3 py-2">
+                    <span
+                      class="text-[10px] border rounded px-1.5 py-0.5 bg-indigo-50 text-indigo-600 border-indigo-200"
+                      >OIDC</span
+                    >
+                  </td>
+                  <td class="px-3 py-2 font-mono text-xs text-slate-500">
+                    https://idp.corp.example/realms/rabbit
+                  </td>
+                  <td class="px-3 py-2">
+                    <span class="w-9 h-5 rounded-full bg-[#574BFF] inline-block relative"
+                      ><span class="absolute right-0.5 top-0.5 w-4 h-4 bg-white rounded-full"></span
+                    ></span>
+                  </td>
+                  <td class="px-3 py-2 space-x-2 text-[#574BFF] text-xs">
+                    <a>编辑</a><a>测试连接</a><a class="text-red-500">删除</a>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="px-3 py-2">集团 AD 目录</td>
+                  <td class="px-3 py-2">
+                    <span
+                      class="text-[10px] border rounded px-1.5 py-0.5 bg-amber-50 text-amber-600 border-amber-200"
+                      >LDAP</span
+                    >
+                  </td>
+                  <td class="px-3 py-2 font-mono text-xs text-slate-500">
+                    ldap.corp.example:389 · ou=staff,dc=corp
+                  </td>
+                  <td class="px-3 py-2">
+                    <span class="w-9 h-5 rounded-full bg-[#574BFF] inline-block relative"
+                      ><span class="absolute right-0.5 top-0.5 w-4 h-4 bg-white rounded-full"></span
+                    ></span>
+                  </td>
+                  <td class="px-3 py-2 space-x-2 text-[#574BFF] text-xs">
+                    <a>编辑</a><a>测试连接</a><a>测试登录</a><a class="text-red-500">删除</a>
+                  </td>
+                </tr>
+                <tr class="opacity-60">
+                  <td class="px-3 py-2">CAS 老网关</td>
+                  <td class="px-3 py-2">
+                    <span
+                      class="text-[10px] border rounded px-1.5 py-0.5 bg-cyan-50 text-cyan-600 border-cyan-200"
+                      >CAS</span
+                    >
+                  </td>
+                  <td class="px-3 py-2 font-mono text-xs text-slate-500">
+                    https://cas.corp.example/cas
+                  </td>
+                  <td class="px-3 py-2">
+                    <span class="w-9 h-5 rounded-full bg-slate-200 inline-block relative"
+                      ><span class="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full"></span
+                    ></span>
+                  </td>
+                  <td class="px-3 py-2 space-x-2 text-[#574BFF] text-xs">
+                    <a>编辑</a><a>测试连接</a><a class="text-red-500">删除</a>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            <p class="px-3 py-2 text-xs text-slate-400 border-t">
+              同类型可多源（多 IdP）；禁用源即时从登录页消失；「测试连接」= LDAP bind+search / HTTP
+              端点探活
+            </p>
+          </div>
+          <!-- 新建：类型八宫格 + 分形态表单 -->
+          <div class="w-[380px] border-l p-4 text-[13px] space-y-3">
+            <p class="font-medium">新建认证源 · 第一步 选择类型</p>
+            <div class="grid grid-cols-4 gap-2 text-center text-xs">
+              <button class="border rounded py-2">
+                LDAP<br /><span class="text-slate-400">目录</span>
+              </button>
+              <button class="border rounded py-2">CAS</button>
+              <button class="border rounded py-2 bg-[#574BFF] text-white">OIDC</button>
+              <button class="border rounded py-2">OAuth2</button>
+              <button class="border rounded py-2 opacity-40 cursor-not-allowed">
+                SAML<br /><span class="text-[10px]">未实现</span>
+              </button>
+              <button class="border rounded py-2">
+                企微<br /><span class="text-slate-400">扫码</span>
+              </button>
+              <button class="border rounded py-2">
+                钉钉<br /><span class="text-slate-400">扫码</span>
+              </button>
+              <button class="border rounded py-2">
+                飞书<br /><span class="text-slate-400">扫码</span>
+              </button>
+            </div>
+            <div class="border-t pt-3 space-y-2">
+              <p class="font-medium">第二步 OIDC 表单（形态示例）</p>
+              <div>
+                <p class="text-slate-500 text-xs mb-1">名称</p>
+                <input class="border rounded px-2 py-1.5 w-full" value="公司 Keycloak" />
+              </div>
+              <div>
+                <p class="text-slate-500 text-xs mb-1">授权端点</p>
+                <input
+                  class="border rounded px-2 py-1.5 w-full font-mono text-xs"
+                  value="https://idp.corp.example/realms/rabbit/protocol/openid-connect/auth"
+                />
+              </div>
+              <div>
+                <p class="text-slate-500 text-xs mb-1">Token 端点</p>
+                <input
+                  class="border rounded px-2 py-1.5 w-full font-mono text-xs"
+                  value="https://idp.corp.example/realms/rabbit/protocol/openid-connect/token"
+                />
+              </div>
+              <div>
+                <p class="text-slate-500 text-xs mb-1">用户信息端点</p>
+                <input
+                  class="border rounded px-2 py-1.5 w-full font-mono text-xs"
+                  value="…/protocol/openid-connect/userinfo"
+                />
+              </div>
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <p class="text-slate-500 text-xs mb-1">Client ID</p>
+                  <input
+                    class="border rounded px-2 py-1.5 w-full font-mono text-xs"
+                    value="rabbit-test"
+                  />
+                </div>
+                <div>
+                  <p class="text-slate-500 text-xs mb-1">Client Secret</p>
+                  <input
+                    class="border rounded px-2 py-1.5 w-full font-mono text-xs"
+                    value="******"
+                  />
+                </div>
+              </div>
+              <div class="border rounded p-2 bg-slate-50 text-xs space-y-1">
+                <p class="text-slate-500">属性映射（IdP 属性 → 本站字段）</p>
+                <div class="grid grid-cols-3 gap-2">
+                  <div>
+                    用户名<br /><input
+                      class="border rounded px-1.5 py-1 w-full font-mono text-xs"
+                      value="preferred_username"
+                    />
+                  </div>
+                  <div>
+                    姓名<br /><input
+                      class="border rounded px-1.5 py-1 w-full font-mono text-xs"
+                      value="name"
+                    />
+                  </div>
+                  <div>
+                    邮箱<br /><input
+                      class="border rounded px-1.5 py-1 w-full font-mono text-xs"
+                      value="email"
+                    />
+                  </div>
+                </div>
+                <p class="text-[10px] text-red-400 hidden">
+                  username / email 映射必填（缺失保存 422 90014）
+                </p>
+              </div>
+              <div class="border rounded p-2 text-[11px] text-slate-500">
+                回调地址（配置到 IdP）：<span class="font-mono"
+                  >https://rabbit.corp.example/api/v1/auth/sso/oidc/{authId}/callback</span
+                >
+                <a class="text-[#574BFF]">复制</a>
+              </div>
+              <div class="flex gap-2">
+                <button class="bg-[#574BFF] text-white rounded px-4 py-1.5">保存</button
+                ><button class="border rounded px-4 py-1.5">测试连接</button>
+              </div>
+              <p class="text-[11px] text-emerald-600 hidden">✓ 连接成功（授权端点可达，200）</p>
+              <p class="text-[11px] text-red-500 hidden">
+                ✗ 连接失败：Token 端点不可达（502 90013）
+              </p>
+            </div>
+            <div class="border-t pt-3 space-y-2">
+              <p class="font-medium">LDAP 表单（形态示例）</p>
+              <div class="grid grid-cols-3 gap-2">
+                <div class="col-span-2">
+                  地址<br /><input
+                    class="border rounded px-2 py-1.5 w-full font-mono text-xs"
+                    value="ldap.corp.example"
+                  />
+                </div>
+                <div>
+                  端口<br /><input
+                    class="border rounded px-2 py-1.5 w-full font-mono text-xs"
+                    value="389"
+                  />
+                </div>
+              </div>
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  绑定 DN<br /><input
+                    class="border rounded px-2 py-1.5 w-full font-mono text-xs"
+                    value="cn=admin,dc=corp,dc=example"
+                  />
+                </div>
+                <div>
+                  绑定密码<br /><input class="border rounded px-2 py-1.5 w-full" value="******" />
+                </div>
+              </div>
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  用户 OU<br /><input
+                    class="border rounded px-2 py-1.5 w-full font-mono text-xs"
+                    value="ou=staff,dc=corp,dc=example"
+                  />
+                </div>
+                <div>
+                  过滤器键<br /><select class="border rounded px-2 py-1.5 w-full text-xs">
+                    <option>uid</option>
+                    <option>sAMAccountName</option>
+                    <option>cn</option>
+                  </select>
+                </div>
+              </div>
+              <p class="text-[11px] text-slate-400">
+                「测试登录」以示例账号走 bind+search+二次 bind 全链
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+      <!-- 画板二：登录页更多登录方式 -->
+      <section class="bg-white border rounded-md">
+        <div class="px-3 py-2 border-b bg-slate-50 font-medium">
+          画板二 · 登录页「更多登录方式」（OAuth2/CAS 按钮 + LDAP Tab 切换；扫码按钮见 ENTP-003
+          原型）
+        </div>
+        <div class="grid grid-cols-2 divide-x">
+          <div class="p-6 flex justify-center">
+            <div class="w-[320px] border rounded-lg p-6 space-y-4">
+              <div class="flex border rounded overflow-hidden text-xs text-center">
+                <button class="flex-1 py-1.5 bg-[#574BFF] text-white">账号登录</button>
+                <button class="flex-1 py-1.5 bg-white">LDAP 目录登录</button>
+              </div>
+              <div class="space-y-2">
+                <input class="border rounded px-2 py-2 w-full" placeholder="邮箱" />
+                <input class="border rounded px-2 py-2 w-full" placeholder="密码" type="password" />
+                <button class="bg-[#574BFF] text-white rounded w-full py-2">登 录</button>
+              </div>
+              <div class="flex items-center gap-2 text-xs text-slate-300">
+                <span class="flex-1 border-t"></span>其他登录方式<span
+                  class="flex-1 border-t"
+                ></span>
+              </div>
+              <div class="space-y-2">
+                <button
+                  class="border rounded w-full py-2 flex items-center justify-center gap-2 text-xs"
+                >
+                  🔐 公司 Keycloak <span class="text-slate-400">(OIDC)</span>
+                </button>
+                <button
+                  class="border rounded w-full py-2 flex items-center justify-center gap-2 text-xs"
+                >
+                  🎫 CAS 老网关 <span class="text-slate-400">(CAS)</span>
+                </button>
+                <button
+                  class="border rounded w-full py-2 flex items-center justify-center gap-2 text-xs opacity-90"
+                >
+                  🐙 GitHub <span class="text-slate-400">(OAuth2)</span>
+                </button>
+              </div>
+              <p class="text-[11px] text-slate-400 text-center">点击跳转对应身份提供方完成授权</p>
+            </div>
+          </div>
+          <div class="p-6 flex justify-center">
+            <div class="w-[320px] border rounded-lg p-6 space-y-4">
+              <div class="flex border rounded overflow-hidden text-xs text-center">
+                <button class="flex-1 py-1.5 bg-white">账号登录</button>
+                <button class="flex-1 py-1.5 bg-[#574BFF] text-white">LDAP 目录登录</button>
+              </div>
+              <div class="space-y-2">
+                <div class="text-[11px] text-slate-400">认证源：集团 AD 目录（ou=staff）</div>
+                <input class="border rounded px-2 py-2 w-full" placeholder="AD 账号（uid）" />
+                <input
+                  class="border rounded px-2 py-2 w-full"
+                  placeholder="AD 密码"
+                  type="password"
+                />
+                <button class="bg-[#574BFF] text-white rounded w-full py-2">LDAP 登 录</button>
+                <p class="text-[11px] text-red-400 hidden">
+                  账号或密码错误（与本地登录同文案，防枚举）
+                </p>
+              </div>
+              <p class="text-[11px] text-slate-400">
+                无 LDAP 源时无此 Tab；无任何启用源时整块「其他登录方式」不渲染（社区版现状登录页）
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

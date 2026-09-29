@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="utf-8" />
+    <title>ENTP-005 自定义消息模板（事件模板 · 变量插入 · 实时预览）</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-slate-50 text-slate-800 text-sm">
+    <header class="h-12 bg-white border-b flex items-center px-4 gap-3">
+      <span class="font-semibold">RabbitAITest</span
+      ><span class="border rounded px-2 py-0.5"
+        >演示项目 #1 · 项目设置 → 消息管理 /settings/messages</span
+      >
+      <span class="ml-auto text-slate-400 text-xs">帮助</span
+      ><span class="text-slate-500">admin</span>
+    </header>
+    <main class="p-4 space-y-4 max-w-[1200px]">
+      <!-- 画板：模板 Tab -->
+      <section class="bg-white border rounded-md">
+        <div class="px-3 py-2 border-b bg-slate-50 font-medium">
+          画板 · 项目设置 → 消息管理 Tab③ 模板（左事件列表 · 右编辑器+变量插入+实时预览）
+        </div>
+        <div class="px-3 pt-3 flex border rounded overflow-hidden text-xs w-fit">
+          <button class="px-3 py-1.5 bg-white">机器人</button>
+          <button class="px-3 py-1.5 bg-white">事件配置</button>
+          <button class="px-3 py-1.5 bg-[#574BFF] text-white">模板</button>
+        </div>
+        <div class="flex">
+          <!-- 事件列表 -->
+          <div class="w-64 border-r p-3 text-[13px]">
+            <div class="flex items-center gap-2 mb-2">
+              <p class="font-medium">消息模板</p>
+              <span class="text-[10px] text-slate-400">11 事件 · 5 大类</span>
+            </div>
+            <p class="text-[11px] text-slate-400 mb-1">缺陷</p>
+            <div class="space-y-0.5 text-xs">
+              <div
+                class="rounded px-2 py-1.5 bg-[#574BFF]/10 text-[#574BFF] flex items-center justify-between"
+              >
+                缺陷创建
+                <span class="text-[9px] border rounded px-1 border-[#574BFF]/40">已定制</span>
+              </div>
+              <div class="rounded px-2 py-1.5 hover:bg-slate-50 flex items-center justify-between">
+                缺陷更新 <span class="text-[9px] text-slate-400">默认</span>
+              </div>
+              <div class="rounded px-2 py-1.5 hover:bg-slate-50 flex items-center justify-between">
+                缺陷删除 <span class="text-[9px] text-slate-400">默认</span>
+              </div>
+              <div class="rounded px-2 py-1.5 hover:bg-slate-50 flex items-center justify-between">
+                缺陷评论 <span class="text-[9px] text-slate-400">默认</span>
+              </div>
+              <div class="rounded px-2 py-1.5 hover:bg-slate-50 flex items-center justify-between">
+                缺陷流转 <span class="text-[9px] text-slate-400">默认</span>
+              </div>
+            </div>
+            <p class="text-[11px] text-slate-400 mt-2 mb-1">评审与用例</p>
+            <div class="space-y-0.5 text-xs text-slate-600">
+              <div class="rounded px-2 py-1.5 hover:bg-slate-50 flex items-center justify-between">
+                评审评论 <span class="text-[9px] text-slate-400">默认</span>
+              </div>
+              <div class="rounded px-2 py-1.5 hover:bg-slate-50 flex items-center justify-between">
+                用例评论 <span class="text-[9px] text-slate-400">默认</span>
+              </div>
+            </div>
+            <p class="text-[11px] text-slate-400 mt-2 mb-1">执行 / 定时任务</p>
+            <div class="space-y-0.5 text-xs text-slate-600">
+              <div class="rounded px-2 py-1.5 hover:bg-slate-50 flex items-center justify-between">
+                计划执行完成 <span class="text-[9px] text-slate-400">默认</span>
+              </div>
+              <div class="rounded px-2 py-1.5 hover:bg-slate-50 flex items-center justify-between">
+                场景执行完成 <span class="text-[9px] text-slate-400">默认</span>
+              </div>
+              <div class="rounded px-2 py-1.5 hover:bg-slate-50 flex items-center justify-between">
+                定时任务启用 / 停用 <span class="text-[9px] text-slate-400">默认</span>
+              </div>
+            </div>
+            <p
+              class="mt-3 text-[11px] text-amber-600 bg-amber-50 border border-amber-200 rounded px-2 py-1.5"
+            >
+              🔒 社区版：模板 Tab 整体禁用（MSG_TEMPLATE 特性），仅展示默认模板
+            </p>
+          </div>
+          <!-- 编辑器 -->
+          <div class="flex-1 p-4 space-y-3 text-[13px]">
+            <div class="flex items-center gap-2">
+              <p class="font-medium">缺陷创建（BUG_CREATED）</p>
+              <span class="text-[11px] text-slate-400"
+                >模板渲染结果进全部渠道：站内信 / 邮件 / 机器人</span
+              >
+            </div>
+            <div>
+              <div class="flex items-center justify-between mb-1">
+                <p class="text-slate-500 text-xs">标题（≤128）</p>
+                <span class="text-[10px] text-slate-400">42/128</span>
+              </div>
+              <input
+                class="border rounded px-2 py-1.5 w-full font-mono text-xs"
+                value="[${project}] ${actorName} 提交了缺陷 ${title}"
+              />
+            </div>
+            <div>
+              <div class="flex items-center justify-between mb-1">
+                <p class="text-slate-500 text-xs">内容（≤1024，支持换行）</p>
+                <span class="text-[10px] text-slate-400">96/1024</span>
+              </div>
+              <textarea class="border rounded px-2 py-1.5 w-full font-mono text-xs h-24">
+【${title}】
+处理人：${assignee} · 严重程度：${severity} · 状态：${status}
+操作时间：${time} —— 来自 ${project} 消息通知</textarea>
+            </div>
+            <div class="border rounded p-2 bg-slate-50">
+              <p class="text-slate-500 text-xs mb-1.5">插入变量（点击插入到光标处）</p>
+              <p class="text-[10px] text-slate-400 mb-1">公共</p>
+              <div class="flex flex-wrap gap-1 mb-2">
+                <button class="border rounded px-2 py-0.5 text-[11px] bg-white">${project}</button>
+                <button class="border rounded px-2 py-0.5 text-[11px] bg-white">
+                  ${actorName}
+                </button>
+                <button class="border rounded px-2 py-0.5 text-[11px] bg-white">${time}</button>
+              </div>
+              <p class="text-[10px] text-slate-400 mb-1">缺陷字段</p>
+              <div class="flex flex-wrap gap-1">
+                <button class="border rounded px-2 py-0.5 text-[11px] bg-white">${title}</button>
+                <button class="border rounded px-2 py-0.5 text-[11px] bg-white">${status}</button>
+                <button class="border rounded px-2 py-0.5 text-[11px] bg-white">${severity}</button>
+                <button class="border rounded px-2 py-0.5 text-[11px] bg-white">${assignee}</button>
+                <button class="border rounded px-2 py-0.5 text-[11px] bg-white">${handler}</button>
+                <button class="border rounded px-2 py-0.5 text-[11px] bg-white">${platform}</button>
+              </div>
+              <p class="text-[10px] text-slate-400 mt-1.5">
+                未知变量渲染时保留原样；用例自定义字段变量登记 Backlog
+              </p>
+            </div>
+            <div class="flex gap-2">
+              <button class="bg-[#574BFF] text-white rounded px-4 py-1.5 text-xs">保存</button>
+              <button class="border rounded px-4 py-1.5 text-xs">实时预览</button>
+              <button class="border border-red-300 text-red-500 rounded px-4 py-1.5 text-xs">
+                恢复默认
+              </button>
+            </div>
+            <!-- 预览 -->
+            <div class="border rounded p-3 bg-slate-50">
+              <p class="text-slate-500 text-xs mb-2">实时预览（示例数据填充，服务端渲染）</p>
+              <div class="bg-white border rounded p-2.5 text-xs space-y-1">
+                <p class="font-medium">[演示项目 #1] 张三 提交了缺陷 支付下单偶发 500</p>
+                <p class="text-slate-600 whitespace-pre-wrap font-mono">
+                  【支付下单偶发 500】 处理人：李四 · 严重程度：P1 · 状态：待处理
+                  操作时间：2026-09-28 14:32 —— 来自 演示项目 #1 消息通知
+                </p>
+              </div>
+              <p class="text-[10px] text-slate-400 mt-1.5">
+                保存后预览=再次点击「实时预览」读取已存模板渲染
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
