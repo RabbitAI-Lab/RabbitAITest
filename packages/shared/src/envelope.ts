@@ -50,6 +50,8 @@ export const ErrCode = {
   OPEN_SYNC_VALIDATION_FAILED: 10023, // S-future TOOL-001：open api-sync 载荷非法/批内重复
   OPEN_SYNC_LIMIT_EXCEEDED: 10024, // S-future TOOL-001/002：开放同步/采集批量超上限（100）
   OPEN_CAPTURE_INVALID: 10025, // S-future TOOL-002：open api-capture 载荷非法
+  OAUTH_USER_CODE_INVALID: 10030, // S11 SYS-009：设备码无效/过期/锁定（批准页 422）
+  OAUTH_GRANT_NOT_FOUND: 10031, // S11 SYS-009：授权会话不存在或已吊销（404 防枚举）
   // 20xxx 项目与配置
   PROJECT_NOT_FOUND: 20404,
   TEMPLATE_NOT_FOUND: 20414,
@@ -361,6 +363,8 @@ export const ErrMsg: Record<number, string> = {
   [ErrCode.OPEN_SYNC_VALIDATION_FAILED]: "同步载荷非法（含批内重复接口或字段越界）",
   [ErrCode.OPEN_SYNC_LIMIT_EXCEEDED]: "批量数量超出上限（100）",
   [ErrCode.OPEN_CAPTURE_INVALID]: "采集载荷非法（URL 非法或字段越界）",
+  [ErrCode.OAUTH_USER_CODE_INVALID]: "设备代码无效、已过期或已被锁定",
+  [ErrCode.OAUTH_GRANT_NOT_FOUND]: "授权会话不存在或已吊销",
   [ErrCode.POOL_CONFIG_INVALID]: "资源池配置非法（type/k8s 四项校验未通过）",
   [ErrCode.POOL_K8S_UNREACHABLE]: "K8S apiServer 连接失败（超时或不可达）",
   [ErrCode.REPORT_STATS_INVALID]: "统计窗口参数非法（days 仅支持 7/14/30）",

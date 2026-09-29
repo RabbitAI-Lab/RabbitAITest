@@ -6,6 +6,7 @@ export * from "./config";
 export * from "./case/schemas";
 export * from "./case/schemas2";
 export * from "./system/schemas";
+export * from "./system/oauth";
 export * from "./project/schemas";
 export * from "./plan/schemas";
 export * from "./plan/schemas2";

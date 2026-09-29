@@ -3,9 +3,9 @@
  * 数据范围=本人可见项目（越权 403 同口径）。
  */
 import { NextResponse } from "next/server";
-import { ErrCode, ErrMsg, fail } from "@rabbit/shared";
+import { ErrCode, ErrMsg, fail, requiredScopeFor } from "@rabbit/shared";
 import { logFor, runWithLogContext } from "@rabbit/shared/logger";
-import { getActiveUserId } from "@/server/current-user";
+import { getAuthIdentity } from "@/server/current-user";
 import { prisma } from "@rabbit/db";
 import { verifyApiKey, parseAuthHeader } from "@/server/domains/api/apikey.service";
 import { rateLimit } from "@/server/rate-limit";
@@ -37,9 +37,34 @@ export function withApiKey<Args extends unknown[]>(
       return res;
     };
     return runWithLogContext({ reqId }, async () => {
-      // session 通道优先协商（方便浏览器内联调试），否则 APIKEY
-      const sessionUser = await getActiveUserId().catch(() => null);
-      if (!sessionUser) {
+      // session/token 通道优先协商（方便浏览器内联调试与 CLI Bearer；SYS-009），否则 APIKEY
+      const identity = await getAuthIdentity().catch(() => null);
+      if (identity) {
+        // SYS-009 §2.3：open 面 scope 断言（POST /open/exec/*→exec、其余 POST→write、GET→read）
+        const need = requiredScopeFor(req.method, path);
+        if (identity.tokenScope && !identity.tokenScope.includes(need)) {
+          return finish(
+            NextResponse.json(
+              fail(ErrCode.FORBIDDEN, `token scope 缺少 ${need}`),
+              { status: 403 },
+            ),
+          );
+        }
+        if (identity.kind === "token") {
+          recordAudit({
+            userId: identity.userId,
+            scope: "system",
+            action: "open.exec",
+            objectType: "api_call",
+            detail: { akPrefix: "rat-token", path },
+          });
+          void flushAudit();
+        }
+        return finish(
+          await handler({ userId: identity.userId, akPrefix: identity.kind }, req, ...args),
+        );
+      }
+      {
         const parsed = parseAuthHeader(req.headers.get("authorization"));
         if (!parsed) {
           return finish(
@@ -87,7 +112,6 @@ export function withApiKey<Args extends unknown[]>(
           );
         }
       }
-      return finish(await handler({ userId: sessionUser, akPrefix: "session" }, req, ...args));
     });
   };
 }
