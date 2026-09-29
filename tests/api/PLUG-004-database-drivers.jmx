@@ -382,7 +382,7 @@
             <collectionProp name="Arguments.arguments">
               <elementProp name="" elementType="HTTPArgument">
                 <boolProp name="HTTPArgument.always_encode">false</boolProp>
-                <stringProp name="Argument.value">{&quot;driver&quot;:&quot;postgresql&quot;,&quot;url&quot;:&quot;${__P(PGURL,postgresql://postgres:postgres@127.0.0.1:5460/rabbit_jm)}&quot;}</stringProp>
+                <stringProp name="Argument.value">{&quot;driver&quot;:&quot;postgresql&quot;,&quot;url&quot;:&quot;${__P(PGURL,postgresql://postgres:postgres@127.0.0.1:5432/rabbit_jm)}&quot;}</stringProp>
                 <stringProp name="Argument.metadata">=</stringProp>
               </elementProp>
             </collectionProp>

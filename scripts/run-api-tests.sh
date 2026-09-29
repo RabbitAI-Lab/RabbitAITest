@@ -65,7 +65,7 @@ for plan in "${PLANS[@]}"; do
   jmeter -n -t "$plan" \
     -JHOST="$HOST" -JPORT="$PORT" -JMOCK_URL="$MOCK_URL" -JMOCK_BASE="$MOCK_BASE" -JMOCKHOST="$MOCKHOST" -JMOCKPORT="${MOCKPORT:-${MOCK_PORT:-$RABBIT_JM_MOCK_PORT}}" -JMOCK_PORT="${MOCK_PORT:-$RABBIT_JM_MOCK_PORT}" \
     -JINTERNAL_TOKEN="${INTERNAL_TOKEN:-jmeter-internal-token}" \
-    -JPGURL="${PGURL:-$RABBIT_JM_DATABASE_URL}" \
+    -JPGURL="${PGURL:-${DATABASE_URL:-$RABBIT_JM_DATABASE_URL}}" \
     -l "$jtl" -j "$OUT_DIR/$name.log" >/dev/null 2>&1
   if [ ! -f "$jtl" ]; then
     echo "  FAIL: no jtl produced"
