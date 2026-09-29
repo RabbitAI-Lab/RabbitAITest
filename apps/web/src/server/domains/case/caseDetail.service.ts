@@ -1,6 +1,6 @@
 /** CASE-003：依赖关系（双向）、评审/计划/缺陷关联聚合、评论横切、变更历史时间线。 */
 import { DomainError, ErrCode } from "@rabbit/shared";
-import { prisma } from "@rabbit/db";
+import { prisma, runAsAdmin } from "@rabbit/db";
 
 // ── 依赖关系 ──
 
@@ -246,7 +246,10 @@ export async function addComment(
     select: { id: true },
   });
   if (mention && mentions.length > 0) {
-    void commentEventNotify(mention.projectId, userId, entityType, entityId, content, mentions);
+    // INFRA-006：fire-and-forget 须显式脱离租户事务上下文（跨 commit 边界用 tx 委托会 Transaction closed）
+    void runAsAdmin(() =>
+      commentEventNotify(mention.projectId, userId, entityType, entityId, content, mentions),
+    );
   }
   return created;
 }
