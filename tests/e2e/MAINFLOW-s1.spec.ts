@@ -37,7 +37,7 @@ test("MAINFLOW-s1 Sprint1 主链路（模块树→用例→评审→计划→执
   await expect(page.getByTestId("case-table")).toBeVisible();
   await expect(page.getByTestId("module-panel-case")).toBeVisible();
   await page.getByTestId("module-add-root").click();
-  const modRootApi = expectApi("**/api/v1/projects/*/modules?scene=case");
+  const modRootApi = expectApi("**/api/v1/projects/*/modules?scene=case", "POST");
   await page.locator('.ant-modal input[placeholder="模块名称"]').fill(rootName);
   await page
     .locator(".ant-modal")
@@ -62,7 +62,7 @@ test("MAINFLOW-s1 Sprint1 主链路（模块树→用例→评审→计划→执
     }
   }
   expect(addSubOpened, "右键菜单「新建子模块」应在重试内可点开").toBe(true);
-  const modChildApi = expectApi("**/api/v1/projects/*/modules?scene=case");
+  const modChildApi = expectApi("**/api/v1/projects/*/modules?scene=case", "POST");
   // 菜单点击成功≠弹窗已渲染（antd 弹出动画/异步挂载，CI 慢机竞争）——等输入框可见再 fill
   const childInput = page.locator('.ant-modal input[placeholder="模块名称"]');
   await expect(childInput).toBeVisible({ timeout: 8000 });

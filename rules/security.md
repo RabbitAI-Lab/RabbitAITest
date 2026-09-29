@@ -36,6 +36,7 @@
 1. 依赖只从 lockfile 安装；CI 跑 `pnpm audit --prod`（high 以上阻塞）；新增三方依赖必须在 PR 说明用途与替代方案（Review 把关最小化）。
 2. 插件包分发走官方市场签名；自建插件上传有醒目告警（plugin-architecture §4）。
 3. 容器以非 root 运行；镜像最小化（multi-stage）。
+4. **CI 工作流供应链（2026-09-29 制度化）**：actions 一律固定完整 commit SHA（注释保留版本号，升级即换 SHA 重审）；workflow 显式声明 `permissions: contents: read`（GITHUB_TOKEN 最小权限）；依赖安装只走 `--frozen-lockfile`——禁止 `|| pnpm install` 回退，lockfile 漂移必须红灯而非静默装浮动版本；外部二进制（JMeter 等）下载后必须校验官方 checksum（SHA512），并用 `actions/cache` 缓存复用（`archive.apache.org` 限速直连单步曾耗时 90s+）。
 
 ## 6. AI 与外部调用
 

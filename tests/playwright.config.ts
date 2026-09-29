@@ -8,8 +8,10 @@ export default defineConfig({
   testDir: "./e2e",
   timeout: 60_000,
   fullyParallel: false,
-  // S4 并行改造：用例全隔离（自注册/自造数据/不共享态）支持文件级并行；本机与 CI 均 4 workers。
-  // workers: 1 为 S1 时期保守口径（环境竞争顾虑）——并行 flaky 已修复（btn-new-case 双按钮合并缺陷等）。
+  // S4 并行改造：用例全隔离（自注册/自造数据/不共享态）支持文件级并行。
+  // CI 并发拓扑（2026-09-29 定）：GitHub e2e job 2 分片 × 4 workers = 聚合并发 8——单 runner
+  // 直上 8 workers 实测两轮过载（4 核 runner：按钮 disabled 超 10s/列表渲染滞后/ECONNRESET，
+  // flaky 6→8 波动）；分片让每 runner 回到 4 并发稳定口径，总墙钟约减半。本机 4。
   workers: 4,
   retries: process.env.CI ? 2 : 0,
   reporter: [["html", { open: "never" }], ["list"]],

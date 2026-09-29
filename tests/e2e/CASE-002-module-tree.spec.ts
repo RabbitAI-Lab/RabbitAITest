@@ -50,7 +50,7 @@ test("CASE-002-01 模块树过滤与含子级", async ({
   // 工具栏「+」创建根模块（ModuleTreePanel.promptCreate：modal.confirm + 「模块名称」输入）
   await page.getByTestId("module-add-root").click();
   await page.getByPlaceholder("模块名称").fill(rootName);
-  const moduleApi = expectApi("**/api/v1/projects/*/modules?scene=case");
+  const moduleApi = expectApi("**/api/v1/projects/*/modules?scene=case", "POST");
   // antd zh_CN：2 个汉字的主按钮自动插入空格（「确 定」），正则兼容（与 BUG-001-02 同款写法）
   await page.getByRole("button", { name: /^(确\s*定|OK)$/ }).click();
   const mod = await moduleApi;
@@ -340,7 +340,7 @@ test("CASE-002-03 批量移动与模块计数、批量编辑、行分享、默�
   const renamed = `未规划改名${uniq}`;
   const dialog = page.getByRole("dialog");
   await dialog.getByPlaceholder("模块名称").fill(renamed);
-  const renameApi = expectApi("**/api/v1/projects/*/modules/*");
+  const renameApi = expectApi("**/api/v1/projects/*/modules/*", "PUT");
   await dialog.getByRole("button", { name: /^(确\s*定|OK)$/ }).click();
   const renameRes = await renameApi;
   expect(renameRes.status).toBe(200);

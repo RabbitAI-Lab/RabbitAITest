@@ -24,6 +24,10 @@ concurrency:
   group: perf-${{ github.ref }}
   cancel-in-progress: true
 
+# GITHUB_TOKEN 最小权限（rules/security.md §5.4）
+permissions:
+  contents: read
+
 jobs:
   perf-baseline:
     name: 性能基线（QA-001）
@@ -51,11 +55,11 @@ jobs:
       MOCK_PORT: "4021"
       PERF_MOCK_URL: http://127.0.0.1:4021
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with: { node-version: 20 }
       - run: corepack enable
-      - run: pnpm install --frozen-lockfile || pnpm install
+      - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @rabbit/db generate
       - run: pnpm --filter @rabbit/db migrate-deploy
       - run: pnpm --filter @rabbit/db seed
@@ -91,7 +95,7 @@ jobs:
           echo "perf scope = $SCOPE"
           node scripts/perf-seed.mjs --scope $SCOPE
           node scripts/perf-baseline.mjs --scope $SCOPE --web http://localhost:3110
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: always()
         with:
           name: perf-baseline-report
