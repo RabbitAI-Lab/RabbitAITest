@@ -45,12 +45,15 @@
 
 ## 6. 指标（QA-001 基线数据源）
 
-最小指标集（Prometheus 文本格式暴露 `/api/v1/system/metrics`，P2 起）：
+`GET /api/v1/system/metrics` 输出 Prometheus 文本格式（S8 INFRA-004 最小集 → S10 INFRA-007 v2 兑现并扩展；完整指标目录、鉴权矩阵、抓取配置与看板见 [docs/deployment/monitoring.md](../docs/deployment/monitoring.md)）：
 
-- 队列：待执行深度、执行中数量、dead 数（按 pool 分）
-- 引擎：并发槽占用率、任务 P50/P95 时长、采样错误分类码计数
-- Web：API P95（按路由组）、DB 慢查询计数（>200ms）
-- 业务：每日执行任务数、失败率、误报命中率
+- 队列（按池，label=BullMQ 队列名）：待执行深度、执行中、dead 数
+- 引擎（按池）：并发槽占用/容量（池心跳快照）、任务 P50/P95 时长（近 1h 终态）
+- Web：API 计数（路由组×状态类）与 P50/P95 时延（路由组，512 样本滑动窗口）、DB 慢查询计数（≥200ms，`RABBIT_SLOW_QUERY_MS` 可调/0 关闭）
+- 业务：24h 任务分布与失败率、失败分类计数（FailureKind 四类+UNCLASSIFIED）、误报命中数与命中率
+- 鉴权：会话或个人 APIKEY（`Authorization: Bearer ak.sk`），权限统一 `SYSTEM_METRICS:READ`；APIKEY 通道限流 30 次/分
+
+Backlog（INFRA-007 规格 §2.4 登记）：采样器级细粒度网络错误码（DNS/CONNECT/TLS/TIMEOUT——待 engine 侧结构化后接入）。
 
 ## 7. 排障包（失败任务自助定位）
 

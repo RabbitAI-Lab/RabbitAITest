@@ -1,0 +1,53 @@
+name: pages
+
+# 门户站 + 产品文档站发布到 GitHub Pages：
+#   portal/     → 站点根（中英双语静态页）
+#   docs-site/  → /docs/（Docsify 文档站，依赖已本地化于 vendor/）
+# 依赖 Pages 源为「GitHub Actions」：
+#   gh api -X PUT repos/RabbitAI-Lab/RabbitAITest/pages -f build_type=workflow
+# 触发：main 上 portal/ 或 docs-site/ 或本工作流变更；支持手动触发。
+on:
+  push:
+    branches: [main]
+    paths:
+      - "portal/**"
+      - "docs-site/**"
+      - ".github/workflows/pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+
+      # 组装站点：portal 发布 index/en/assets（scripts 与 README 属开发工具，不上站）；
+      # docs-site 原样整体拷贝（含 .nojekyll 与 vendor/ 本地依赖）
+      - name: Assemble site（portal → 根，docs-site → /docs/）
+        run: |
+          mkdir -p _site/docs
+          cp portal/index.html _site/
+          cp -r portal/en _site/
+          cp -r portal/assets _site/
+          cp -r docs-site/. _site/docs/
+
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: _site
+
+      - id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

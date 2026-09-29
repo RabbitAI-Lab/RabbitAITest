@@ -6,6 +6,7 @@
 
 ### 新增
 
+- **指标面 v2：Prometheus 企业级监控对接（INFRA-007，S10）**：`GET /api/v1/system/metrics` 在 v1 最小集（队列/槽位/任务时延/HTTP 计数）上新增 6 组指标——HTTP 时延分位（按路由组，512 样本滑动窗口）、DB 慢查询计数（Prisma query 事件 ≥200ms，`RABBIT_SLOW_QUERY_MS` 可调，0 关闭）、24h 任务分布/失败率、失败分类计数（FailureKind 四类+UNCLASSIFIED）、误报命中数/命中率；队列与引擎槽位指标按池展开（label=BullMQ 队列名，覆盖 S9 多池）；新增 APIKEY 直连抓取通道（`Authorization: Bearer ak.sk`/Basic，权限仍收敛 SYSTEM_METRICS:READ，30 次/分限流），Prometheus 无需会话 Cookie 即可抓取；随仓库交付监控部署资产 `docs/deployment/`（抓取配置示例 prometheus.yml、Grafana 总览看板 JSON、告警建议与安全注意）；指标段独立降级，任一数据源故障端点仍 200
 - **数据库驱动五家 + SQL 前后置处理器解禁（PLUG-004）**：五家驱动插件包（postgresql=pg / mysql=mysql2 / oracle=oracledb thin / sqlserver=mssql / dm=dmdb）——**驱动一律取自数据库厂商官方渠道（npm registry，pnpm-lock 锁定），零飞致云工件**（纯 TS 无 JVM，JDBC jar 不装载；官方 Node 驱动=等价实现）；`DriverPlugin` SPI 扩展参数绑定通道（`query(config, {sqlText, params, readOnly})`）；引擎驱动注册表（30s 轮询 internal/plugins/drivers，与协议注册表同模式）；**SQL 前后置处理器解禁**（S2/S3 两轮诚实延后清偿：单条 SELECT/WITH 词法白名单 `assertReadOnlySelect` + 各驱动 READ ONLY 事务 + 连接即关 + 变量值仅经绑定参数传入（仓库零 SQL 拼接）+ varMapping 首行提取；`SQL_NOT_SELECT 50031` 首次兑现、新增 `DRIVER_PLUGIN_MISSING 50032`）；环境数据源 driver 自仅 PostgreSQL 扩展为五家（URL 按驱动 scheme 校验 + 占位跟随）；连接测试泛化（PG 内置直连保留、其余四家走已启用驱动插件）；RequestEditor SQL 处理器表单启用（数据源选择/绑定参数 变量↔字面值/变量提取）
 
 ### 修复

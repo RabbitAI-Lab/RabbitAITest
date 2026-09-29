@@ -1,0 +1,8 @@
+* [官网](https://rabbitai-lab.github.io/RabbitAITest/)
+* [快速开始](quickstart/introduction.md)
+* [功能手册](manual/common/overview.md)
+* [接口测试](manual/api/overview.md)
+* [AI 能力](manual/ai.md)
+* [开发文档](developer/architecture.md)
+* [GitHub](https://github.com/RabbitAI-Lab/RabbitAITest)
+* v0.9.0
