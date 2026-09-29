@@ -111,7 +111,15 @@ export function ensureTenantRuntime(): Promise<TenantRuntime> {
       base.password = password;
       base.searchParams.set("connection_limit", "20");
       base.searchParams.set("pool_timeout", "20");
-      const tenant = new PrismaClient({ datasourceUrl: base.toString() });
+      const tenant = new PrismaClient({
+        datasourceUrl: base.toString(),
+        // INFRA-009：租户通道也启用 query 事件（慢查询计量覆盖组织/项目作用域流量主体）
+        log: [
+          { level: "query", emit: "event" },
+          { level: "warn", emit: "stdout" },
+          { level: "error", emit: "stdout" },
+        ],
+      });
       return { tenant, degraded: false };
     } catch (err) {
       const reason = err instanceof Error ? err.message : String(err);

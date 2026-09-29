@@ -659,7 +659,7 @@ export const execCallbackSchema = z.object({
 });
 export type ExecCallback = z.infer<typeof execCallbackSchema>;
 
-/** 心跳与注册（EXEC-002 v2：slots=总并发，busy=在执数；响应下发 maxConcurrency；poolId=S9 ENTP-006 引擎绑定池，缺省默认池兼容旧引擎）。 */
+/** 心跳与注册（EXEC-002 v2：slots=总并发，busy=在执数；响应下发 maxConcurrency；poolId=S9 ENTP-006 引擎绑定池，缺省默认池兼容旧引擎；proc=INFRA-009 进程指标快照，additive 可选——旧引擎无此字段照常注册，web 摊入 nodes JSON）。 */
 export const heartbeatSchema = z.object({
   nodeId: z.string(),
   version: z.string(),
@@ -667,6 +667,15 @@ export const heartbeatSchema = z.object({
   busy: z.number().int().default(0),
   ts: z.number(),
   poolId: z.string().uuid().optional(),
+  /** INFRA-009：engine 进程运行时快照（Node 内建采集；可选——旧引擎缺省兼容）。 */
+  proc: z
+    .object({
+      uptimeSeconds: z.number(),
+      cpuSeconds: z.number(),
+      rssBytes: z.number(),
+      heapUsedBytes: z.number(),
+    })
+    .optional(),
 });
 export type Heartbeat = z.infer<typeof heartbeatSchema>;
 

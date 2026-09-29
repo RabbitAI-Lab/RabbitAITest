@@ -49,12 +49,12 @@
 
 - 队列（按池，label=BullMQ 队列名）：待执行深度、执行中、dead 数
 - 引擎（按池）：并发槽占用/容量（池心跳快照）、任务 P50/P95 时长（近 1h 终态）
-- Web：API 计数（路由组×状态类）与 P50/P95 时延（路由组，512 样本滑动窗口）、DB 慢查询计数（≥200ms，`RABBIT_SLOW_QUERY_MS` 可调/0 关闭）
+- Web：API 计数（路由组×状态类）与 P50/P95 时延（路由组，512 样本滑动窗口）、DB 慢查询计数（admin+tenant 双 Prisma 通道 ≥200ms，`RABBIT_SLOW_QUERY_MS` 可调/0 关闭）
 - 业务：24h 任务分布与失败率、失败分类计数（FailureKind 四类+UNCLASSIFIED）、采样器/步骤错误分类码计数（dns/connect/tls/timeout 等结构化枚举，INFRA-008）、误报命中数与命中率
-- Web 进程运行时：uptime/CPU/常驻内存/V8 堆/事件循环延迟（Node 内建，INFRA-008）
+- 进程运行时：`rabbit_process_*{process}`——web 自采（uptime/cpu/rss/heap/eventloop_lag，INFRA-008）+ engine 节点心跳 proc 快照（engine-{nodeId}，INFRA-009）
 - 鉴权：会话或个人 APIKEY（`Authorization: Bearer ak.sk`），权限统一 `SYSTEM_METRICS:READ`；APIKEY 通道限流 30 次/分
 
-Backlog（INFRA-007/008 规格登记）：租户通道（RLS tenant 客户端）查询纳入慢查询计数；多 web 副本时延指标 histogram 化（summary 分位不可跨实例聚合）；engine/mock/plugin-runner 进程级指标端点。
+Backlog（INFRA-007/008/009 登记）：多 web 副本时延指标 histogram 化（部署形态升级触发，summary 分位不可跨实例聚合）；独立 mock 进程指标（无注册通道）。
 
 ## 7. 排障包（失败任务自助定位）
 

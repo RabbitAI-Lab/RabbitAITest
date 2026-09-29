@@ -25,7 +25,7 @@ import {
   samplerErrorRows,
   taskStatusRows,
 } from "@/server/metrics-format";
-import { runtimeBlock, runtimeSnapshot } from "@/server/metrics-runtime";
+import { engineProcRows, runtimeBlock, runtimeSnapshot } from "@/server/metrics-runtime";
 import { slowQueryCount } from "@/server/metrics-db";
 
 export const runtime = "nodejs";
@@ -230,7 +230,7 @@ async function dbSection(lines: string[]): Promise<void> {
 }
 
 /** 进程段：HTTP 计数（v1 不变）+ 时延分位（环形缓冲窗口）+ 慢查询计数。 */
-function processSection(lines: string[]): void {
+function processSection(lines: string[], pools: PoolRow[]): void {
   lines.push(
     "# HELP rabbit_http_requests_total HTTP requests by route group and status class (in-process counter, resets on restart).",
     "# TYPE rabbit_http_requests_total counter",
@@ -246,12 +246,17 @@ function processSection(lines: string[]): void {
     ...httpDurationRows(httpDurationSnapshot()),
   );
   lines.push(
-    "# HELP rabbit_db_slow_queries_total Prisma admin-channel queries slower than RABBIT_SLOW_QUERY_MS (default 200ms; in-process counter, resets on restart).",
+    "# HELP rabbit_db_slow_queries_total Prisma queries slower than RABBIT_SLOW_QUERY_MS across admin+tenant channels (default 200ms; in-process counter, resets on restart).",
     "# TYPE rabbit_db_slow_queries_total counter",
     `rabbit_db_slow_queries_total ${slowQueryCount()}`,
   );
-  // INFRA-008：web 进程运行时（Node 内建；命名对齐 client_golang 惯例）
+  // INFRA-008/009：进程运行时——web 自采 + engine 节点心跳 proc 快照（process label）
   lines.push(...runtimeBlock(runtimeSnapshot()));
+  for (const pool of pools) {
+    if (Array.isArray(pool.nodes)) {
+      lines.push(...engineProcRows(pool.nodes as Parameters<typeof engineProcRows>[0]));
+    }
+  }
 }
 
 export const GET = (req: Request): Promise<NextResponse> =>
@@ -264,7 +269,7 @@ export const GET = (req: Request): Promise<NextResponse> =>
       await queueSection(lines, pools);
       slotsSection(lines, pools);
       await dbSection(lines);
-      processSection(lines);
+      processSection(lines, pools);
       return new NextResponse(`${lines.join("\n")}\n`, {
         status: 200,
         headers: {
