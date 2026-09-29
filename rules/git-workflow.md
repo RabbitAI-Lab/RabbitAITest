@@ -94,8 +94,59 @@ lint(oxlint) → typecheck(tsc) → unit(vitest, 含覆盖率阈值)
 多 worktree 并行联调/自测时，全部环境资源标识（端口 / Redis 键空间 / Docker 容器 / /tmp 共享路径）**按槽位隔离**，单一事实源为 `scripts/rabbit-env.mjs`（规格：`docs/sprint-8-stabilize/INFRA-005-parallel-slot-isolation.md`）。
 
 1. **槽位推导**（优先级）：`RABBIT_SLOT` 环境变量（0-9） > worktree 目录名 `RabbitAITest-s{N}` → N > 主仓/CI checkout → 0。CI 恒为 slot 0。
-2. **端口表**（base + slot）：dev 栈 web `3000+s` / mock `4000+s` / PG `5440+s`；e2e 栈 `3100+s` / `4100+s` / `5450+s`；JMeter 栈 `3200+s` / `4200+s` / `5460+s`。Redis 实例共享（dev 6379 / e2e+jm 6381），**键空间按逻辑库号 = slot 隔离**（BullMQ 队列、SSE Stream 不串台）。
+2. **端口表**（base + slot；s = 槽位号 0-9）：
+
+   | 栈 | web | mock | plugin-runner | PostgreSQL | Redis（逻辑库号=s） | 临时路径 |
+   | -- | --- | ---- | ------------- | ---------- | ------------------ | -------- |
+   | dev（pnpm dev） | 3000+s | 4000+s | 4300+s | 5440+s | 6379/s | .pgdata（worktree 本地） |
+   | e2e（pnpm test:e2e） | 3100+s | 4100+s | 4310+s | 5450+s | 6381/s | /tmp/rabbit-e2e-root-s{s} |
+   | JMeter（api-test-stack） | 3200+s | 4200+s | 4320+s | 5460+s | 6381/s | /tmp/rabbit-s{s}-jm/ |
+
+   Redis 实例共享（dev 6379 / e2e+jm 6381），**键空间按逻辑库号 = slot 隔离**（BullMQ 队列、SSE Stream 不串台）。速查示例：worktree `RabbitAITest-s3` → dev 栈 web **3003** / mock **4003** / runner **4303** / PG **5443** / redis 6379·db3；e2e 栈 3103 / 4103 / 4313 / 5453 / 6381·db3；JMeter 栈 3203 / 4203 / 4323 / 5463 / 6381·db3。
 3. **硬性禁令**：新增服务/脚本/测试**禁止硬编码端口与共享 /tmp 路径**，一律从 `scripts/rabbit-env.mjs` 取值（Node 侧 `import { rabbitEnv }`；bash 侧 `eval "$(node scripts/rabbit-env.mjs --shell)"`，RABBIT_* 仅作默认值、显式 env 可覆盖）；e2e 用例侧统一走 `tests/e2e/env.ts`。CI 用 `pnpm test`（含 `node --test scripts/`）守住端口表唯一性。
 4. **清场纪律与归属检测**：栈脚本/teardown 只清**本槽位**端口与本 worktree 绝对路径下的进程（`pkill -f "<worktree>/apps/..."`）；占用者的 cwd 属于**其他 worktree** 时必须 fail fast 指名冲突（global-setup 已内置 `lsof -d cwd` 归属检测），禁止裸 `apps/mock` 模式、跨槽 lsof 互杀或静默抢占。
 5. **诊断口径**：联调自测异常先查串台——`node scripts/rabbit-env.mjs`（确认本目录槽位）+ `lsof -nP -iTCP -sTCP:LISTEN | grep -E '30[0-9]{2}|4[012][0-9]{2}|54[0-9]{2}'` + `redis-cli -p 6381 -n <slot> keys 'bull*'`。
 6. **过渡期登记**：本方案合入前创建的旧 worktree（基线不含 INFRA-005）仍用旧固定端口（3000/4000/4001/5433/5434/3101/4020/5438），彼此及与 slot 0 互抢——**尽早 rebase 到含 INFRA-005 的基线**；新表与旧端口的唯二交叠为 slot 1（dev mock 4001 / e2e web 3101），过渡期避开 s1 目录命名。`tests/smoke/*.sh` 历史冒烟脚本按 slot 0（主仓）口径保留，不随槽位参数化。
+
+### 9.7 多 worktree 并行开发·启动操作手册（谁照做谁不踩坑）
+
+**第 1 步：建 worktree（目录名决定槽位）**——s{N} 后缀是硬约束，N 取未占用的 2-9（避开 1：与旧固定端口交叠）：
+
+```bash
+git worktree add ../RabbitAITest-s7 -b <MODULE>-NNN-{slug} origin/main
+cd ../RabbitAITest-s7 && pnpm install          # worktree 各自独立 node_modules
+node scripts/rabbit-env.mjs                    # 确认槽位：应输出 slot=7 及全部端口
+```
+
+**第 2 步：起 dev 栈（联调）**——一条命令，端口自动落在本槽位，无需任何手工配置：
+
+```bash
+pnpm dev
+# [dev] worktree slot=7（web :3007 · mock :4007 · pg :5447）
+# 就绪后：web http://localhost:3007 · mock :4007 · PG 5447 · Redis 6379 db7
+```
+
+被占会 fail fast 并给出排查/换槽指引（`RABBIT_SLOT=0-9` 临时换槽或 `lsof -i :端口` 找占用者）。Ctrl-C 统一回收；持久 `.pgdata` 支持幂等重启。
+
+**第 3 步：跑 e2e（自测）**——全新口径直接跑，global-setup 自动起本槽位全套（PG 5450+s / mock 4100+s / web 3100+s / redis 6381·db{s}）：
+
+```bash
+pnpm test:e2e                                  # 全新口径（与 CI 一致）
+# 修复循环复用口径见 rules/testing.md §3.4.2（pg-e2e 常驻库 + E2E_* 注入）
+```
+
+⚠ **同 worktree 里 dev 与 e2e 并行跑**：`next dev` 会写坏生产构建 `.next`，先做槽位专属 web 副本（dev 停止时执行一次；代码变更后重跑）：
+
+```bash
+node scripts/e2e-web-copy.mjs                  # 构建并复制到 /tmp/rabbit-e2e-root-s{s}
+```
+
+**第 4 步：跑 JMeter 接口自动化**——栈脚本自动按槽位起独立栈（web 3200+s / mock 4200+s / PG 5460+s），结束统一回收：
+
+```bash
+bash scripts/api-test-stack.sh                 # 全量 34+ 计划；NO_ENGINE=1 可免 engine
+```
+
+**第 5 步（可选）：单服务独立常驻**——`node scripts/pg-dev.mjs`（dev 口径 PG）等同口径取值；任何自写脚本取端口一律 `eval "$(node scripts/rabbit-env.mjs --shell)"` 后用 `$RABBIT_*` 变量，禁止写数字。
+
+**冲突排查三件套**：`node scripts/rabbit-env.mjs`（本目录槽位）→ `lsof -nP -iTCP -sTCP:LISTEN | grep -E '30[0-9]{2}|4[012][0-9]{2}|54[0-9]{2}'`（谁占了什么）→ `redis-cli -p 6381 -n <slot> keys 'bull*'`（键空间是否串台）。收尾时只杀本 worktree 绝对路径的进程：`pkill -f "$(pwd)/apps/"`。

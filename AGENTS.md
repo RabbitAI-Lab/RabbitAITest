@@ -138,7 +138,7 @@ pnpm db:migrate && pnpm db:seed # Prisma 迁移与种子
 
 ### 4.2 并行 worktree 槽位隔离（INFRA-005，2026-09-28 新增）
 
-多 worktree 并行联调/自测时，端口/Redis 键空间/共享 /tmp 路径**按槽位隔离**，单一事实源 `scripts/rabbit-env.mjs`（槽位推导：`RABBIT_SLOT` > 目录名 `RabbitAITest-s{N}` > 主仓/CI=0）。**硬性禁令：任何脚本/测试/服务禁止硬编码端口**，一律从 rabbit-env 取值（e2e 用例侧走 `tests/e2e/env.ts`）。细则与端口表见 [rules/git-workflow.md](./rules/git-workflow.md) §9，规格见 `docs/sprint-8-stabilize/INFRA-005-parallel-slot-isolation.md`。
+多 worktree 并行联调/自测时，端口/Redis 键空间/共享 /tmp 路径**按槽位隔离**，单一事实源 `scripts/rabbit-env.mjs`（槽位推导：`RABBIT_SLOT` > 目录名 `RabbitAITest-s{N}` > 主仓/CI=0）。**硬性禁令：任何脚本/测试/服务禁止硬编码端口**，一律从 rabbit-env 取值（e2e 用例侧走 `tests/e2e/env.ts`）。端口表与**启动操作手册**（建 worktree → pnpm dev → test:e2e → api-test-stack，含 dev+e2e 并行的 web 副本前置）见 [rules/git-workflow.md](./rules/git-workflow.md) §9/§9.7，规格见 `docs/sprint-8-stabilize/INFRA-005-parallel-slot-isolation.md`。速查：dev 栈 3000/4000/4300/5440+s，e2e 栈 3100/4100/4310/5450+s，JMeter 栈 3200/4200/4320/5460+s，Redis dev 6379·db{s}、e2e/jm 6381·db{s}。
 
 ## 5. 协作与提交
 

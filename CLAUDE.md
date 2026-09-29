@@ -17,7 +17,7 @@
 
 11. **环境复用优先（修复循环效率铁律）**：「逐条修复×每轮重建环境」预计/实际超 **30 分钟**必须评估复用：e2e 用 `scripts/pg-e2e.mjs` 常驻库 + `E2E_DATABASE_URL/E2E_REDIS_URL` 跳过重建（单轮 2-4 分钟 → 30-60 秒）；最终验收跑一次全新口径保证与 CI 一致；能增量就增量、能复用就复用（细则 AGENTS.md §4.1 / rules/testing §3.4.2）。
 
-12. **并行 worktree 槽位隔离（INFRA-005）**：多 worktree 并行时端口/Redis 键空间/共享 /tmp 路径按槽位隔离（`RABBIT_SLOT` > 目录名 `RabbitAITest-s{N}` > 主仓/CI=0），**禁止硬编码端口**，一律出自 `scripts/rabbit-env.mjs`（e2e 用例侧 `tests/e2e/env.ts`）；细则 AGENTS.md §4.2 / rules/git-workflow.md §9。
+12. **并行 worktree 槽位隔离（INFRA-005）**：多 worktree 并行时端口/Redis 键空间/共享 /tmp 路径按槽位隔离（`RABBIT_SLOT` > 目录名 `RabbitAITest-s{N}` > 主仓/CI=0），**禁止硬编码端口**，一律出自 `scripts/rabbit-env.mjs`（e2e 用例侧 `tests/e2e/env.ts`）；端口表与**启动操作手册**见 AGENTS.md §4.2 / rules/git-workflow.md §9·§9.7。
 
 @rules/typescript.md
 
