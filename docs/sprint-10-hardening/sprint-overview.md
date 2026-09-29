@@ -46,10 +46,16 @@
 | JMeter | INFRA-006-tenant-isolation.jmx（四类×四断言）                                           |
 | e2e    | 豁免登记（纯数据层无 UI 能力行）；全量回归双分片即兼容性证据                            |
 
-## 4. 验收清单
+## 4. 验收演示与走查材料
+
+- **验收视频**：`docs/sprint-10-hardening/demo/infra6-acceptance-demo.webm`（35s · 1280×720 · 终端实演六段：pg_policy 策略计数 → rls-verify 实跑 → 真实 API 跨组织 404 防枚举 → SET LOCAL ROLE 断路/42501/admin 豁免实演 → Vitest/JMeter/CI 回归汇总 → 收尾；全程真实执行输出，无编造文本）。复录脚本：`tests/demo/infra6-demo-record.mjs`（幂等；前置 RABBIT_SLOT=6 RLS 激活栈，见脚本头）。
+- e2e 豁免登记：纯数据层加固无 UI 能力行，以全量 e2e 双分片回归为兼容性证据（CI）。
+
+## 5. 验收清单
 
 - [x] 规格 + 概览（接口契约评审口径，目标式授权）
 - [x] 迁移 + 实现 + 三层测试
 - [x] rules/database.md §6.6/§7.5 纪律登记
 - [x] 远端 CI 全绿（2026-09-30 run 36611028399 九作业：lint/build/依赖审计/性能基线/迁移重放含 rls-verify/e2e 双分片/JMeter 双分片；rebase main c806fdc 后）
-- [ ] 用户走查 → Verified
+- [x] 验收演示视频归档（复录脚本幂等可重跑）
+- [ ] 用户看视频走查 → Verified
