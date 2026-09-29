@@ -110,4 +110,4 @@ engine runStep catch ──┬─ ProcessorError → log("error", msg, "config"|
 
 ## 8. 勘误登记
 
-无。
+1. **jmx T1 线程组改造（2026-09-30，CI 首跑分片 1 红触发）**：原计划「注册新用户→以其默认项目构造任务→管理员会话读 metrics」——T1.2 构造 404 的根因不是跨组织（该问题也存在：管理员对非本组织项目同样 404 防枚举），而是**登录/注册响应不回写 `projectId`**（种子 admin 环境实测响应无此字段——INFRA-004 jmx 注册的提取断言本就恒 false、变量落 NOT_FOUND，因其不消费故潜伏）；任务须改为**管理员会话 → GET /personal/projects 拉取本人 projectId → 构造任务**。同步教训：验证 jmx 必须用 runner 同款判定（`awk $8=="false"`）而非只看进程 rc/grep——首轮本地「0 失败」报告即由 grep 多分隔符模式不符未复验 jtl 造成假绿，CI 门禁（runner awk 口径）如实暴露了。
