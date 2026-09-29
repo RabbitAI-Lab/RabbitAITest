@@ -112,6 +112,8 @@ Playwright 全局配置（`playwright.config.ts`，禁止用例级关闭）：
 
 逐条修复 × 每轮重建环境的循环**预计或实际超过 30 分钟**，必须切换为环境复用模式，禁止每轮重复 initdb/迁移/起栈：
 
+> 前置提醒（INFRA-005）：同 worktree 内 `pnpm dev` 运行中又要跑 e2e 时，先 `node scripts/e2e-web-copy.mjs` 做槽位专属 web 生产构建副本（next dev 会持续写坏仓库 `.next`，e2e webServer 检测到副本即从副本起 web）；代码变更后须重跑（过期副本掩盖改动的 S5 教训）。完整启动手册见 rules/git-workflow.md §9.7。
+
 1. **持久化 e2e 栈**（INFRA-005 槽位化：端口随 worktree 槽位，主仓 slot0=5450/6381）：`node scripts/pg-e2e.mjs &`（常驻 5450+slot /rabbit_e2e，幂等：已有 PGDATA 直接 start）+ 本机 Redis :6381（键空间按逻辑库号=slot 隔离）；跑用例带：
    ```bash
    eval "$(node scripts/rabbit-env.mjs --shell)"
