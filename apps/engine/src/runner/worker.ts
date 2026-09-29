@@ -333,6 +333,24 @@ export async function runTask(
   );
 }
 
+/** INFRA-009：进程运行时快照（心跳携带；Node 内建零依赖；导出供单测）。 */
+export function procSnapshot(): {
+  uptimeSeconds: number;
+  cpuSeconds: number;
+  rssBytes: number;
+  heapUsedBytes: number;
+} {
+  const cpu = process.cpuUsage();
+  const mem = process.memoryUsage();
+  const num = (n: number): number => (Number.isFinite(n) && n >= 0 ? n : 0);
+  return {
+    uptimeSeconds: num(process.uptime()),
+    cpuSeconds: num((cpu.user + cpu.system) / 1e6),
+    rssBytes: Math.round(num(mem.rss)),
+    heapUsedBytes: Math.round(num(mem.heapUsed)),
+  };
+}
+
 /** worker + 注册/心跳 v2（busy 槽位 + 在执任务清单 + 并发动态下发，EXEC-002 §2；ENTP-006 POOL_ID 池绑定）。 */
 export function startWorker(): void {
   const connection = new Redis(config.redisUrl, { maxRetriesPerRequest: null });
@@ -371,6 +389,7 @@ export function startWorker(): void {
           taskIds: [...inFlight],
           ts: Date.now(),
           poolId: config.enginePoolId,
+          proc: procSnapshot(), // INFRA-009：进程指标随心跳上报（web 摊入 nodes JSON）
         }),
       });
       if (res.ok) {
