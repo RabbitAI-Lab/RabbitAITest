@@ -61,13 +61,15 @@ Grafana：导入 `assets/rabbit-overview.grafana.json`（8 面板总览：队列
 | `rabbit_false_alarm_hit_rate_24h` | — | 误报命中率 = 命中数/失败执行项（可 >1：一项可命中多规则） |
 | `rabbit_sampler_errors_24h` | `code`（dns/connect/reset/tls/timeout/url/aborted/other_net/config/script） | 步骤/采样器执行错误按结构化分类码（INFRA-008；多条目任务的任务级 failureKind 恒 ASSERT_FAILED，步骤级网络失败原因由此可见） |
 
-### Web 进程运行时面（INFRA-008，Node 内建零依赖）
+### 进程运行时面（INFRA-008 web 自采 + INFRA-009 引擎心跳上报；Node 内建零依赖）
 
-| 指标 | 说明 |
-| --- | --- |
-| `rabbit_process_uptime_seconds` / `rabbit_process_cpu_seconds_total` | 进程存活时长 / 累计 CPU（user+system，重启归零） |
-| `rabbit_process_resident_memory_bytes` / `rabbit_process_heap_used_bytes` | 常驻内存 / V8 堆使用 |
-| `rabbit_process_eventloop_lag_ms` | 事件循环平均延迟（直方图读后 reset——窗口=抓取间隔） |
+| 指标 | `process` label | 说明 |
+| --- | --- | --- |
+| `rabbit_process_uptime_seconds` / `rabbit_process_cpu_seconds_total` | `web`（自采）/ `engine-{nodeId}`（池心跳 proc 快照，10s 粒度） | 进程存活时长 / 累计 CPU（user+system，重启归零） |
+| `rabbit_process_resident_memory_bytes` / `rabbit_process_heap_used_bytes` | 同上 | 常驻内存 / V8 堆使用 |
+| `rabbit_process_eventloop_lag_ms` | **仅 `web`** | 事件循环平均延迟（直方图读后 reset——窗口=抓取间隔；engine 心跳不上报直方图） |
+
+> 慢查询计数（`rabbit_db_slow_queries_total`）自 INFRA-009 起覆盖 **admin+tenant 双 Prisma 通道**（RLS 租户流量主体已纳入；HELP/语义不变）。
 
 ## 3. 告警建议（起步值）
 
@@ -100,10 +102,9 @@ Grafana：导入 `assets/rabbit-overview.grafana.json`（8 面板总览：队列
 | Redis | `oliver006/redis_exporter` | 内存碎片率、驱逐键、阻塞客户端、主从延迟 |
 | 宿主机 | `prometheus/node_exporter` | CPU/内存/磁盘/网络；与 `rabbit_process_*` 互补（进程 vs 机器） |
 
-engine / mock / plugin-runner 进程自身暂无独立指标端点（engine 状态经 web 侧池心跳与队列间接可见）——登记 Backlog。
+engine 进程指标经心跳 proc 上报为 `process="engine-{nodeId}"` 序列（INFRA-009）；独立 mock 进程（api-test-stack 形态）与 plugin-runner（worker_threads，已计入所属 engine 进程）暂无独立指标——登记 Backlog。
 
-## 6. 已知边界（Backlog，见 INFRA-007/008 规格）
+## 6. 已知边界（见 INFRA-007/008/009 规格；INFRA-009 后仅剩两项）
 
-- 租户通道（RLS tenant 客户端）查询不进慢查询计数（仅 admin 通道）；
-- 多 web 副本部署时进程内指标（`_total`/时延/慢查询/分位 summary）为单副本口径，且 summary 分位不可跨实例聚合——多副本前需 histogram 化；
-- engine / mock / plugin-runner 进程级指标端点未提供。
+- **多 web 副本时延指标 histogram 化**：summary 分位不可跨实例聚合、且 histogram 化=指标类型变更（生成 `_bucket/_sum/_count` 新序列簇）会让既有看板失效——登记为**部署形态升级触发**：web 多副本部署立项时随配额/provisioning 迭代一并设计（INFRA-009 §2.4 决策记录）；
+- **独立 mock 进程指标**：api-test-stack 形态下 mock 是独立 Node 进程但无注册通道——需要时再造（plugin-runner 为 engine 内 worker_threads，已计入 engine 进程指标；内嵌 mock 与 web 同进程已覆盖）。
