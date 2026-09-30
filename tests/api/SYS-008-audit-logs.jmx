@@ -149,7 +149,7 @@
         <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="T3.1 合法时间范围+对象类型组合查询（from&lt;to 高级筛选）">
           <stringProp name="HTTPSampler.domain">${__P(HOST,localhost)}</stringProp>
           <stringProp name="HTTPSampler.port">${__P(PORT,3100)}</stringProp>
-          <stringProp name="HTTPSampler.path">/api/v1/system/audit-logs?action=param&amp;objectType=system_param&amp;from=2026-09-01T00:00:00Z&amp;to=2026-09-30T00:00:00Z&amp;page=1&amp;pageSize=20</stringProp>
+          <stringProp name="HTTPSampler.path">/api/v1/system/audit-logs?action=param&amp;objectType=system_param&amp;from=2026-01-01T00:00:00Z&amp;to=2030-01-01T00:00:00Z&amp;page=1&amp;pageSize=20</stringProp>
           <stringProp name="HTTPSampler.method">GET</stringProp>
           <boolProp name="HTTPSampler.use_keepalive">false</boolProp>
         </HTTPSamplerProxy>
