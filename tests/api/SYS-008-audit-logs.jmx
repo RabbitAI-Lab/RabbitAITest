@@ -5,6 +5,16 @@
       <boolProp name="TestPlan.serialize_threadgroups">true</boolProp>
       <elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments">
         <collectionProp name="Arguments.arguments">
+          <elementProp name="FROM" elementType="Argument">
+            <stringProp name="Argument.name">FROM</stringProp>
+            <stringProp name="Argument.value">${__groovy(new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'").format(new Date(System.currentTimeMillis()-172800000L)))}</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="TO" elementType="Argument">
+            <stringProp name="Argument.name">TO</stringProp>
+            <stringProp name="Argument.value">${__groovy(new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'").format(new Date(System.currentTimeMillis()+172800000L)))}</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
           <elementProp name="EMAIL" elementType="Argument">
             <stringProp name="Argument.name">EMAIL</stringProp>
             <stringProp name="Argument.value">jm-s80008-${__time(yyyyMMddHHmmss)}-${__threadNum}@rabbit.test</stringProp>
@@ -149,7 +159,7 @@
         <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="T3.1 合法时间范围+对象类型组合查询（from&lt;to 高级筛选）">
           <stringProp name="HTTPSampler.domain">${__P(HOST,localhost)}</stringProp>
           <stringProp name="HTTPSampler.port">${__P(PORT,3100)}</stringProp>
-          <stringProp name="HTTPSampler.path">/api/v1/system/audit-logs?action=param&amp;objectType=system_param&amp;from=2026-01-01T00:00:00Z&amp;to=2030-01-01T00:00:00Z&amp;page=1&amp;pageSize=20</stringProp>
+          <stringProp name="HTTPSampler.path">/api/v1/system/audit-logs?action=param&amp;objectType=system_param&amp;from=${FROM}&amp;to=${TO}&amp;page=1&amp;pageSize=20</stringProp>
           <stringProp name="HTTPSampler.method">GET</stringProp>
           <boolProp name="HTTPSampler.use_keepalive">false</boolProp>
         </HTTPSamplerProxy>
