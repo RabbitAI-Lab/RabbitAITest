@@ -75,7 +75,8 @@ vi.mock("@rabbit/db", () => {
             if (where.deviceCodeHash && d.deviceCodeHash !== where.deviceCodeHash) return false;
             if (where.userCode && d.userCode !== where.userCode) return false;
             if (where.status && d.status !== where.status) return false;
-            if (where.expiresAt?.gt && !(d.expiresAt > (where.expiresAt.gt as Date))) return false;
+            const expGt = (where.expiresAt as { gt?: Date } | undefined)?.gt;
+            if (expGt && !(d.expiresAt > expGt)) return false;
             return true;
           }) ?? null
         );
