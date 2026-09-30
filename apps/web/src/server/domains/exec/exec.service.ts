@@ -878,6 +878,44 @@ export async function handleCallback(taskId: string, cb: ExecCallback) {
     const { applyPlanTaskResult } = await import("@/server/domains/plan/plan-exec.service");
     await applyPlanTaskResult(taskId, task.projectId, items);
   }
+  // S11 LOAD-003：load 任务回调——Report 由本分支创建（summary.metrics 全量时间线+阈值结论）；
+  // 引擎回调携带 loadSummary（loadCommandSchema 终态汇总），时间线帧从 load:stream 回放。
+  if (task.type === "load") {
+    const { loadSummarySchema, loadMetricFrameSchema } = await import("@rabbit/shared");
+    const rawSummary = (cb as ExecCallback & { loadSummary?: unknown }).loadSummary;
+    const frames: unknown[] = [];
+    const raw = await redis().xrange(config.loadStreamKey(taskId), "-", "+");
+    for (const [, fields] of raw) {
+      const json = fields[fields.indexOf("data") + 1];
+      if (!json) continue;
+      try {
+        frames.push(loadMetricFrameSchema.parse(JSON.parse(json as string)));
+      } catch {
+        // 跳过坏帧
+      }
+    }
+    const summary = rawSummary ? loadSummarySchema.parse(rawSummary) : null;
+    const existing = await prisma.report.findFirst({ where: { taskId }, select: { id: true } });
+    if (!existing) {
+      await prisma.report.create({
+        data: {
+          taskId,
+          projectId: task.projectId,
+          reportType: "load",
+          name: `压测报告 · ${new Date().toLocaleString("zh-CN")}`,
+          summary: JSON.stringify({ summary, metrics: { frames } }),
+          createdBy: task.createdBy,
+        },
+      });
+    } else {
+      await prisma.report.update({
+        where: { id: existing.id },
+        data: { summary: JSON.stringify({ summary, metrics: { frames } }) },
+      });
+    }
+  }
+  // S11 UIT-002：ui_case/ui_batch 报告已由上文 items>0 分支创建（逐步帧落 ExecStepResult）；
+  // ui-screenshot 帧含 fileId 引用，报告页经 files download 端点取图，本分支无需额外落库。
   // S5 MSG-001：执行完成通知（SCENARIO_EXEC_COMPLETED / PLAN_EXEC_COMPLETED；定时任务读 notify 标志）
   if (task.type === "scenario" || task.type === "plan") {
     try {

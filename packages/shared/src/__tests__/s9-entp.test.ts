@@ -17,8 +17,8 @@ import {
   buildScanAuthorizeUrl,
 } from "../index";
 
-describe("ENTP_FEATURES（六特性目录，ENTP-007）", () => {
-  it("六特性与 rbac §6 枚举一致", () => {
+describe("ENTP_FEATURES（八特性目录，S9 ENTP-007 六特性 + S11 两特性兑现）", () => {
+  it("八特性与 rbac §6 枚举一致", () => {
     expect(ENTP_FEATURE_KEYS).toEqual([
       "MULTI_ORG",
       "SSO",
@@ -26,8 +26,10 @@ describe("ENTP_FEATURES（六特性目录，ENTP-007）", () => {
       "THEME",
       "MSG_TEMPLATE",
       "USER_SCALE",
+      "LOAD_TEST",
+      "UI_TEST",
     ]);
-    expect(ENTP_FEATURES).toHaveLength(6);
+    expect(ENTP_FEATURES).toHaveLength(8);
   });
 });
 
@@ -59,8 +61,10 @@ describe("licensePayloadSchema（ENTP-007）", () => {
   it("edition 仅 ENTERPRISE", () => {
     expect(licensePayloadSchema.safeParse({ ...base, edition: "COMMUNITY" }).success).toBe(false);
   });
-  it("features 限六特性子集", () => {
+  it("features 限八特性子集（S11 +LOAD_TEST/UI_TEST）", () => {
     expect(licensePayloadSchema.safeParse({ ...base, features: ["MULTI_ORG"] }).success).toBe(true);
+    expect(licensePayloadSchema.safeParse({ ...base, features: ["LOAD_TEST"] }).success).toBe(true);
+    expect(licensePayloadSchema.safeParse({ ...base, features: ["UI_TEST"] }).success).toBe(true);
     expect(licensePayloadSchema.safeParse({ ...base, features: ["NOPE"] }).success).toBe(false);
   });
 });

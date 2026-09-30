@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>UIT-002 UI 测试模块 · 高保真原型</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-slate-50 text-slate-800">
+    <header class="h-12 bg-white border-b flex items-center px-4 gap-3 sticky top-0">
+      <span class="font-bold text-[#574BFF]">RabbitAITest</span>
+      <span class="text-slate-300">/</span>
+      <span>演示项目 #1</span>
+      <span class="text-slate-300">/</span>
+      <span class="font-medium">UI 测试</span>
+      <span class="ml-auto text-xs text-slate-400">S11 · UIT-002 · 企业版（License 已激活）</span>
+    </header>
+    <main class="p-4 space-y-4 max-w-[1100px]">
+
+      <!-- 画板一 · UI 用例列表 -->
+      <section class="bg-white border rounded-md" data-testid="uit-cases-board">
+        <div class="px-4 py-3 border-b flex items-center gap-2">
+          <span class="font-medium">画板一 · UI 用例列表（/ui-test）</span>
+          <span class="text-xs text-slate-400">默认页：用例表格 + 元素库入口</span>
+        </div>
+        <div class="p-4 space-y-3">
+          <div class="flex items-center gap-2">
+            <input class="border rounded px-2 py-1 text-sm w-56" placeholder="搜索用例名" data-testid="uit-search" />
+            <button class="bg-[#574BFF] text-white rounded px-3 py-1.5 text-sm" data-testid="uit-create-btn">新建 UI 用例</button>
+            <button class="border rounded px-3 py-1.5 text-sm" data-testid="uit-elements-entry">元素库</button>
+            <button class="border rounded px-3 py-1.5 text-sm">批量执行</button>
+          </div>
+          <table class="w-full text-sm" data-testid="uit-cases-table">
+            <thead>
+              <tr class="text-left text-slate-500 border-b">
+                <th class="py-2">名称</th><th>步骤数</th><th>步骤摘要</th><th>最近结果</th><th class="text-right">操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="border-b">
+                <td class="py-2.5 font-medium">演示页-提交表单</td>
+                <td>4</td>
+                <td class="text-slate-500">goto → fill → click → assert-text</td>
+                <td><span class="border rounded px-1.5 py-0.5 text-xs text-emerald-600 border-emerald-200 bg-emerald-50">SUCCESS</span></td>
+                <td class="text-right space-x-2">
+                  <button class="text-[#574BFF]">执行</button><button class="text-slate-500">编辑</button><button class="text-red-400">删除</button>
+                </td>
+              </tr>
+              <tr>
+                <td class="py-2.5 font-medium">演示页-错误文案校验</td>
+                <td>3</td>
+                <td class="text-slate-500">goto → click → assert-text（预期失败示例）</td>
+                <td><span class="border rounded px-1.5 py-0.5 text-xs text-red-500 border-red-200 bg-red-50">FAILED</span></td>
+                <td class="text-right space-x-2">
+                  <button class="text-[#574BFF]">报告</button><button class="text-slate-500">编辑</button><button class="text-red-400">删除</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="flex justify-between text-xs text-slate-400"><span>共 2 条</span><span>1 / 1 页</span></div>
+        </div>
+      </section>
+
+      <!-- 画板二 · 步骤编辑器 -->
+      <section class="bg-white border rounded-md" data-testid="uit-editor-board">
+        <div class="px-4 py-3 border-b flex items-center gap-2">
+          <span class="font-medium">画板二 · 步骤编辑器（/ui-test/cases/{id}）</span>
+          <span class="text-xs text-slate-400">指令行编辑（P1 简化，不做拖拽）</span>
+        </div>
+        <div class="p-4 space-y-3">
+          <div class="flex gap-3 items-center">
+            <label class="text-sm space-y-1 flex-1"><span class="text-xs text-slate-500">用例名称</span><input class="border rounded px-2 py-1.5 w-full" value="演示页-提交表单" /></label>
+            <label class="text-sm space-y-1 w-40"><span class="text-xs text-slate-500">步骤超时（ms）</span><input class="border rounded px-2 py-1.5 w-full" value="15000" /></label>
+          </div>
+          <div class="border rounded divide-y" data-testid="uit-step-editor">
+            <div class="text-xs text-slate-400 px-3 py-2">步骤序列（上限 50；元素列引用元素库，留空=内联定位器）</div>
+            <div class="flex items-center gap-2 px-3 py-2 text-sm">
+              <span class="text-slate-400 w-5">1</span>
+              <select class="border rounded px-2 py-1 w-28"><option>goto</option></select>
+              <select class="border rounded px-2 py-1 w-32 text-slate-400" disabled><option>—</option></select>
+              <input class="border rounded px-2 py-1 flex-1 font-mono text-xs" value="http://127.0.0.1:4000/uit/demo" />
+              <button class="text-red-400">删</button>
+            </div>
+            <div class="flex items-center gap-2 px-3 py-2 text-sm">
+              <span class="text-slate-400 w-5">2</span>
+              <select class="border rounded px-2 py-1 w-28"><option>fill</option></select>
+              <select class="border rounded px-2 py-1 w-32"><option>输入框-用户名</option></select>
+              <input class="border rounded px-2 py-1 flex-1 font-mono text-xs" value="rabbit-e2e" />
+              <button class="text-red-400">删</button>
+            </div>
+            <div class="flex items-center gap-2 px-3 py-2 text-sm">
+              <span class="text-slate-400 w-5">3</span>
+              <select class="border rounded px-2 py-1 w-28"><option>click</option></select>
+              <select class="border rounded px-2 py-1 w-32"><option>提交按钮</option></select>
+              <input class="border rounded px-2 py-1 flex-1 font-mono text-xs text-slate-400" placeholder="（无需参数）" disabled />
+              <button class="text-red-400">删</button>
+            </div>
+            <div class="flex items-center gap-2 px-3 py-2 text-sm">
+              <span class="text-slate-400 w-5">4</span>
+              <select class="border rounded px-2 py-1 w-28"><option>assert-text</option></select>
+              <select class="border rounded px-2 py-1 w-32"><option>结果文案</option></select>
+              <input class="border rounded px-2 py-1 flex-1 font-mono text-xs" value="提交成功，rabbit-e2e" />
+              <button class="text-red-400">删</button>
+            </div>
+            <div class="px-3 py-2"><button class="text-xs text-[#574BFF]" data-testid="uit-add-step">+ 添加步骤</button></div>
+          </div>
+          <div class="flex gap-2 justify-end">
+            <button class="border rounded px-3 py-1.5 text-sm">取消</button>
+            <button class="bg-[#574BFF] text-white rounded px-3 py-1.5 text-sm" data-testid="uit-save-btn">保存用例</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 画板三 · 元素库 -->
+      <section class="bg-white border rounded-md" data-testid="uit-elements-board">
+        <div class="px-4 py-3 border-b flex items-center gap-2">
+          <span class="font-medium">画板三 · 元素库（/ui-test/elements）</span>
+          <span class="text-xs text-slate-400">定位仓库：用例按名称引用</span>
+        </div>
+        <div class="p-4 space-y-3">
+          <div class="flex items-center gap-2">
+            <input class="border rounded px-2 py-1 text-sm w-56" placeholder="搜索元素" />
+            <button class="bg-[#574BFF] text-white rounded px-3 py-1.5 text-sm" data-testid="uit-element-create">新建元素</button>
+          </div>
+          <table class="w-full text-sm" data-testid="uit-elements-table">
+            <thead>
+              <tr class="text-left text-slate-500 border-b">
+                <th class="py-2">名称</th><th>定位方式</th><th>定位器</th><th>备注</th><th class="text-right">操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="border-b">
+                <td class="py-2.5 font-medium">输入框-用户名</td>
+                <td><span class="border rounded px-1.5 py-0.5 text-xs text-[#574BFF] border-[#574BFF]/30 bg-[#574BFF]/10">testid</span></td>
+                <td class="font-mono text-xs text-slate-500">demo-username</td>
+                <td class="text-slate-400">演示页输入框</td>
+                <td class="text-right space-x-2"><button class="text-slate-500">编辑</button><button class="text-red-400">删除</button></td>
+              </tr>
+              <tr class="border-b">
+                <td class="py-2.5 font-medium">提交按钮</td>
+                <td><span class="border rounded px-1.5 py-0.5 text-xs text-amber-600 border-amber-200 bg-amber-50">role</span></td>
+                <td class="font-mono text-xs text-slate-500">button[name=/提交/]</td>
+                <td class="text-slate-400">—</td>
+                <td class="text-right space-x-2"><button class="text-slate-500">编辑</button><button class="text-red-400">删除</button></td>
+              </tr>
+              <tr>
+                <td class="py-2.5 font-medium">结果文案</td>
+                <td><span class="border rounded px-1.5 py-0.5 text-xs text-slate-500 border-slate-200">css</span></td>
+                <td class="font-mono text-xs text-slate-500">.demo-result-text</td>
+                <td class="text-slate-400">提交后出现</td>
+                <td class="text-right space-x-2"><button class="text-slate-500">编辑</button><button class="text-red-400">删除</button></td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="text-xs text-slate-400" data-testid="uit-element-hint">定位方式：css · xpath · testid · text · role（与 Playwright 定位器一一对应）；元素删除后引用它的用例执行时报 CONFIG_ERROR（不级联删用例）。</div>
+        </div>
+      </section>
+
+      <!-- 画板四 · 执行报告 -->
+      <section class="bg-white border rounded-md" data-testid="uit-report-board">
+        <div class="px-4 py-3 border-b flex items-center gap-2">
+          <span class="font-medium">画板四 · 执行报告（/ui-test/tasks/{taskId}）</span>
+          <span class="border rounded px-1.5 py-0.5 text-xs text-red-500 border-red-200 bg-red-50">FAILED（第 3 步）</span>
+          <span class="text-xs text-slate-400 ml-auto">chromium · 耗时 6.2s</span>
+        </div>
+        <div class="p-4 space-y-3">
+          <div class="border rounded divide-y text-sm" data-testid="uit-report-steps">
+            <div class="flex items-center gap-3 px-3 py-2">
+              <span class="text-emerald-500 font-bold">✓</span><span class="w-24 text-slate-500">goto</span>
+              <span class="flex-1 font-mono text-xs">http://127.0.0.1:4000/uit/demo</span><span class="text-xs text-slate-400">0.8s</span>
+            </div>
+            <div class="flex items-center gap-3 px-3 py-2">
+              <span class="text-emerald-500 font-bold">✓</span><span class="w-24 text-slate-500">fill</span>
+              <span class="flex-1 font-mono text-xs">输入框-用户名 ← rabbit-e2e</span><span class="text-xs text-slate-400">0.1s</span>
+            </div>
+            <div class="flex items-center gap-3 px-3 py-2 bg-red-50/60">
+              <span class="text-red-500 font-bold">✗</span><span class="w-24 text-slate-500">assert-text</span>
+              <span class="flex-1 font-mono text-xs">结果文案 期望「提交成功，rabbit-e2e」实际「提交成功，guest」（断言失败，已自动截图）</span>
+              <span class="text-xs text-slate-400">15.0s（超时）</span>
+            </div>
+            <div class="flex items-center gap-3 px-3 py-2">
+              <span class="text-slate-300 font-bold">–</span><span class="w-24 text-slate-500">screenshot</span>
+              <span class="flex-1 font-mono text-xs text-slate-400">未执行（前序失败终止）</span><span class="text-xs text-slate-400">—</span>
+            </div>
+          </div>
+          <div>
+            <div class="text-xs text-slate-500 mb-1">截图（screenshot 指令 + 失败自动截图；点击放大）</div>
+            <div class="grid grid-cols-3 gap-3" data-testid="uit-report-shots">
+              <div class="border rounded p-2 space-y-1"><div class="h-24 bg-slate-100 rounded flex items-center justify-center text-xs text-slate-400">步骤 1 · goto 后</div><div class="text-xs text-slate-400">12.4 KB · jpeg</div></div>
+              <div class="border-2 border-red-300 rounded p-2 space-y-1"><div class="h-24 bg-slate-100 rounded flex items-center justify-center text-xs text-red-400">失败现场（步骤 3）</div><div class="text-xs text-slate-400">14.1 KB · jpeg</div></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <p class="text-xs text-slate-400">门控说明：modules.uit ∧ PROJECT_UIT:READ+ ∧ License 特性 UI_TEST 三重满足才渲染真实模块；任一不满足回退 UIT-001 占位页（社区版态，90001）。</p>
+    </main>
+  </body>
+</html>

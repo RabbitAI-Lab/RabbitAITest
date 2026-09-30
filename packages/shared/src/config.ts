@@ -22,6 +22,16 @@ export const config = {
   /** 任务停止控制键（web 写 / engine 轮询，EXEC-002 §2；同源 execution/schemas） */
   execStopKey,
   execQueueName: "exec",
+  /** S11 LOAD-003：施压任务独立队列（长任务不占功能执行槽位；契约=loadCommandSchema） */
+  loadQueueName: "load",
+  /** S11 LOAD-003：施压秒级度量 Stream（engine XADD / web SSE 读/报告 XRANGE 回放） */
+  loadStreamKey(taskId: string): string {
+    return `load:stream:${taskId}`;
+  },
+  /** S11 LOAD-003：施压停止控制键（web 写 / engine 轮询 ≤2s 生效） */
+  loadStopKey(taskId: string): string {
+    return `load:stop:${taskId}`;
+  },
   /** 默认资源池 ID（单节点 P0 固定） */
   defaultPoolId: "00000000-0000-0000-0000-000000000001",
   /**
@@ -38,4 +48,12 @@ export const config = {
  */
 export function execQueueNameFor(poolId?: string | null): string {
   return poolId && poolId !== config.defaultPoolId ? `exec-pool-${poolId}` : config.execQueueName;
+}
+
+/**
+ * S11 LOAD-003：按池施压队列名（与 execQueueNameFor 同构口径——BullMQ 队列名禁冒号用连字符）。
+ * shard 键位 `load-shard-{taskId}` 保留给多节点分片调度（LOAD-002 拓扑挂点），单节点期不启用。
+ */
+export function loadQueueNameFor(poolId?: string | null): string {
+  return poolId && poolId !== config.defaultPoolId ? `load-pool-${poolId}` : config.loadQueueName;
 }

@@ -10,6 +10,7 @@ export const runtime = "nodejs";
  */
 export async function GET(): Promise<NextResponse> {
   const state = await getLicenseState().catch(() => null);
+
   return NextResponse.json(
     ok(
       state ?? {

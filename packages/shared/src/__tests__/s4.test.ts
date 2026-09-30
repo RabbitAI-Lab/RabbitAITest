@@ -175,8 +175,8 @@ describe("S4 契约 schema 校验", () => {
     ).toBe(false);
   });
 
-  it("执行契约 v4：plan 命令解析（additive；旧分支不受影响）", () => {
-    expect(EXEC_CONTRACT_VERSION).toBe(4);
+  it("执行契约 v4→v5：plan 命令解析（additive；旧分支不受影响；v5=S11 ui_case/ui_batch+ui-screenshot 帧）", () => {
+    expect(EXEC_CONTRACT_VERSION).toBe(5);
     const UUID = "00000000-0000-4000-8000-000000000001";
     const cmd = execCommandSchema.safeParse({
       taskId: UUID,

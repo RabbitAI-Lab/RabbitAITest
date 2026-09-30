@@ -142,7 +142,7 @@ export function LeftNav() {
         },
       ],
     },
-    // S-future LOAD-001/UIT-001：企业版方向占位（模块开关默认关 + 保留权限点双门控；对齐基线 menu.UI_*/PERFORMANCE_TEST_* 口径）
+    // S11 LOAD-003/UIT-002：真实模块（三重门控=模块开关 ∧ 权限点 ∧ License 特性；License 不满足时页面层回退占位卡片）
     {
       label: "性能测试",
       items: [

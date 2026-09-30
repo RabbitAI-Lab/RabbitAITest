@@ -63,6 +63,9 @@ importers:
       p-limit:
         specifier: ^6.2.0
         version: 6.2.0
+      playwright-core:
+        specifier: ^1.49.0
+        version: 1.63.0
       quickjs-emscripten:
         specifier: ^0.32.0
         version: 0.32.0

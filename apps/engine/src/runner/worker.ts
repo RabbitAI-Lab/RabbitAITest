@@ -12,9 +12,10 @@ import { runScenarioItem, type ScenarioItemOutcome } from "../kernel/scenario.js
 import { runPlanItem } from "../kernel/plan.js";
 import { startProtocolSync } from "../kernel/samplers/registry.js";
 import { runStep } from "./step.js";
+import { runUiCase } from "../uit/runner.js";
 
 const NODE_ID = `node-${process.pid}`;
-const VERSION = "0.4.0"; // 契约 v4（plan 命令、step-start 帧 stepName）
+const VERSION = "0.5.0"; // 契约 v5（+ui_case/ui_batch 命令、ui-screenshot 帧）
 /** 池当前并发上限（心跳下发动态更新；parallel 模式 p-limit 取此值） */
 let poolConcurrency = 4;
 
@@ -248,6 +249,85 @@ export async function runTask(
       failed > 0 ? "ASSERT_FAILED" : undefined,
       failed > 0 ? `${failed}/${cmd.items.length} 条计划用例失败` : stopped ? "任务被停止" : "",
       { total: cmd.items.length, passed, failed },
+    );
+  }
+
+  // v5（S11 UIT-002）：ui_case 单用例（playwright-core 驱动；事件帧 step-op + ui-screenshot）
+  if (cmd.type === "ui_case") {
+    await writer.emit({ type: "item-start", itemId: cmd.itemId, name: cmd.name });
+    const r = await runUiCase(
+      redis,
+      writer,
+      {
+        taskId: cmd.taskId,
+        projectId: cmd.projectId,
+        itemId: cmd.itemId,
+        name: cmd.name,
+        steps: cmd.steps,
+        timeoutMs: cmd.timeoutMs,
+      },
+      () => isStopped(redis, cmd.taskId),
+    );
+    await writer.emit({
+      type: "item-final",
+      itemId: cmd.itemId,
+      status: r.status === "SUCCESS" ? "SUCCESS" : r.status === "STOPPED" ? "STOPPED" : "FAILED",
+      message: r.message,
+    });
+    return finish(
+      r.status === "SUCCESS" ? "success" : r.status === "STOPPED" ? "stopped" : "failed",
+      r.failureKind,
+      r.message,
+      { total: 1, passed: r.status === "SUCCESS" ? 1 : 0, failed: r.status === "FAILED" ? 1 : 0 },
+    );
+  }
+
+  // v5（S11 UIT-002）：ui_batch 批量（item 串行——chromium 实例开销大，并发留 ENTP 深化；停止检查在 item 边界）
+  if (cmd.type === "ui_batch") {
+    let uiPassed = 0;
+    let uiFailed = 0;
+    let uiStopped = false;
+    for (const item of cmd.items) {
+      if (uiStopped || (await isStopped(redis, cmd.taskId))) {
+        uiStopped = true;
+        await writer.emit({
+          type: "item-final",
+          itemId: item.itemId,
+          status: "STOPPED",
+          message: "任务被停止",
+        });
+        continue;
+      }
+      await writer.emit({ type: "item-start", itemId: item.itemId, name: item.name });
+      const r = await runUiCase(
+        redis,
+        writer,
+        {
+          taskId: cmd.taskId,
+          projectId: cmd.projectId,
+          itemId: item.itemId,
+          name: item.name,
+          steps: item.steps,
+          timeoutMs: item.timeoutMs,
+        },
+        () => isStopped(redis, cmd.taskId),
+      );
+      if (r.status === "SUCCESS") uiPassed += 1;
+      else if (r.status === "FAILED") uiFailed += 1;
+      else uiStopped = true;
+      await writer.emit({
+        type: "item-final",
+        itemId: item.itemId,
+        status: r.status === "SUCCESS" ? "SUCCESS" : r.status === "STOPPED" ? "STOPPED" : "FAILED",
+        message: r.message,
+      });
+      if (r.status !== "SUCCESS" && cmd.stopOnFail) uiStopped = true;
+    }
+    return finish(
+      uiStopped && uiFailed === 0 ? "stopped" : uiFailed > 0 ? "failed" : "success",
+      uiFailed > 0 ? "ASSERT_FAILED" : undefined,
+      uiFailed > 0 ? `${uiFailed}/${cmd.items.length} 条 UI 用例失败` : uiStopped ? "任务被停止" : "",
+      { total: cmd.items.length, passed: uiPassed, failed: uiFailed },
     );
   }
 

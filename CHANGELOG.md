@@ -2,7 +2,15 @@
 
 本项目的所有显著变更记录于此。格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本遵循语义化版本。
 
-## [Unreleased]
+## [Unreleased] — Sprint 11 性能测试 / UI 测试兑现（企业版 License 门控）
+
+### 新增（全量交付：三层测试 + CI 全绿）
+
+- **性能测试模块（LOAD-003，兑现「P4 再议」）**：施压计划 CRUD（目标 HTTP 请求+并发阶梯/目标 TPS 双压力模型+断言阈值，zod 上界 600s/200 并发/1000 TPS）→ 执行（引擎 load 内核：BullMQ `load` 队列 controller + undici 连接池+p-limit 并发槽施压，独立槽位不占功能执行）→ 即时停止（≤2s 生效）→ 秒级度量时间线（Redis Stream `load:stream:{taskId}` + SSE 实时推进 + 报告 XRANGE 回放）→ 报告（TPS/失败率/RT P50/P95/P99 SVG 曲线+阈值逐项结论）；License 特性 `LOAD_TEST` 门控（无授权=90001 占位页回退，LOAD-001 社区版口径保持）；同项目 RUNNING 互斥 90071
+- **UI 测试模块（UIT-002，选型 Playwright 差异化冻结）**：元素库（css/xpath/testid/text/role 五定位方式，删除悬空语义=执行 CONFIG_ERROR 不级联）+ UI 用例（8 指令步骤序列：goto/click/fill/select/assert-text/assert-visible/wait/screenshot，上限 50）→ 执行（引擎 playwright-core chromium，web 侧预解析元素引用内联下发）→ 报告（逐步状态时间线+失败自动截图+screenshot 指令截图，fileId 经 internal/files 落库，报告页 files download 取图）；批量执行 ≤20 条（ui_batch）；License 特性 `UI_TEST` 门控
+- **执行契约 v5**：execCommandSchema +ui_case/ui_batch 分支 + ui-screenshot 帧（additive）；引擎 VERSION 0.5.0；EntpFeature 目录 6→8（+LOAD_TEST/UI_TEST）；权限点 PROJECT_LOAD/PROJECT_UIT 扩全动作（READ/CREATE/UPDATE/DELETE/EXECUTE）
+- **红线修订**：需求文档「明确不做（P4 远期）」行与范围红线 2/3、AGENTS 门禁 6 两条、tech-stack 执行引擎行——「P4 再议」落定（Node 施压内核+Playwright 选型，License 门控，社区版口径不变）
+- **mock**：`/uit/demo` UI 测试演示页（输入框+提交+动态文案，无鉴权）；internal files POST（engine 截图落库通道）
 
 ### 修复
 

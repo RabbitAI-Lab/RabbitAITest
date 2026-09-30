@@ -10,6 +10,8 @@ export const ENTP_FEATURES = [
   { key: "THEME", label: "自定义主题品牌", spec: "ENTP-004" },
   { key: "MSG_TEMPLATE", label: "自定义消息模板", spec: "ENTP-005" },
   { key: "USER_SCALE", label: "用户扩容与部门", spec: "ENTP-008" },
+  { key: "LOAD_TEST", label: "性能测试", spec: "LOAD-003" },
+  { key: "UI_TEST", label: "UI 测试", spec: "UIT-002" },
 ] as const;
 
 export type EntpFeature = (typeof ENTP_FEATURES)[number]["key"];
