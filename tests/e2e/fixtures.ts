@@ -123,21 +123,27 @@ export async function expandNavGroups(page: import("@playwright/test").Page): Pr
   }
 }
 
-/** SYS-010：确保左导航链接可见（折叠组内则先展开）。 */
+/** SYS-010：确保左导航链接可见（折叠组内则先展开）。
+ *  必须先等 leftnav 挂载——CI 慢机上 goto 后立即 isVisible() 会拿到「元素不存在」，
+ *  误判为无需展开而直接点击隐藏链接（CASE 族 CI 大面积 10s 超时的根因）。 */
 export async function ensureNavVisible(
   page: import("@playwright/test").Page,
   linkName: string,
 ): Promise<void> {
   const link = page.getByTestId("leftnav").getByRole("link", { name: linkName });
+  await page.getByTestId("leftnav").waitFor({ state: "visible" });
   if (!(await link.isVisible())) await expandNavGroups(page);
+  await link.waitFor({ state: "visible" });
 }
 
-/** SYS-010：testid 版菜单点击（折叠组内自动展开；域内菜单需先 enterRealm）。 */
+/** SYS-010：testid 版菜单点击（折叠组内自动展开；域内菜单需先 enterRealm）。
+ *  同 ensureNavVisible：先等 leftnav 挂载再判可见性（CI 慢机时序）。 */
 export async function navClick(
   page: import("@playwright/test").Page,
   testid: string,
 ): Promise<void> {
   const link = page.getByTestId(testid);
+  await page.getByTestId("leftnav").waitFor({ state: "visible" });
   if (!(await link.isVisible())) await expandNavGroups(page);
   await link.click();
 }
