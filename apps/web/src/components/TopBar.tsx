@@ -89,7 +89,7 @@ export function TopBar({ email }: { email?: string }) {
           trigger={["click"]}
           open={bellOpen}
           onOpenChange={(open) => setBellOpen(open)}
-          dropdownRender={() => (
+          popupRender={() => (
             <div
               className="bg-white border rounded-md shadow-md w-80 p-2"
               data-testid="bell-dropdown"
