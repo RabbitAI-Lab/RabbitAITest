@@ -2,6 +2,7 @@
   * [产品介绍](quickstart/introduction.md)
   * [安装部署](quickstart/installation.md)
   * [快速体验](quickstart/quick-tour.md)
+  * [CLI 快速上手（rabbit）](quickstart/cli.md)
 
 * 功能手册
   * [通用功能](manual/common/overview.md)

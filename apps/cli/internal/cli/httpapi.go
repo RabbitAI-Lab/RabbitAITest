@@ -52,6 +52,9 @@ func Request(opts RequestOpts) (any, error) {
 	}
 	q := u.Query()
 	for k, v := range opts.Params {
+		if v == "" {
+			continue // 空旗标值不进 query（?page=&size= 会被服务端 coerce 校验拒绝）
+		}
 		q.Set(k, v)
 	}
 	u.RawQuery = q.Encode()

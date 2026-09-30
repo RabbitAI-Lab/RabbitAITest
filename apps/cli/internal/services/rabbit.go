@@ -29,7 +29,7 @@ Resource commands（--project 旗标或 config 键 project 提供项目上下文
   api-case run <apiId> <caseId> [--env ENV] 触发接口用例执行（→taskId）
   scenario ls / scenario run <id> [--env ENV]
   plan ls / plan get <id> / plan run <id>
-  env ls                                    环境（envId 发现）
+  environments ls                            环境（envId 发现）
   task get <taskId> / task wait <taskId> [--timeout 300] / task stop <taskId>
   report get <taskId>
 
@@ -65,29 +65,77 @@ func projectId(a *cli.Args) (string, *cli.CliError) {
 
 func path(tpl, id string) string { return strings.ReplaceAll(tpl, "{projectId}", id) }
 
+// 注册为多组资源命令（每组独立入口——`rabbit case ls` 而非双层前缀）；
+// runRabbit 按 Pos[0]（组名）分发，同一 handler 复用。
+var serviceGroups = []struct {
+	name string
+	desc string
+}{
+	{"project", "项目上下文（ls / use）"},
+	{"case", "功能用例（ls/get/create/update/rm）"},
+	{"api", "接口定义与接口用例（ls / cases / api-case run）"},
+	{"api-case", "触发接口用例执行（run → taskId）"},
+	{"scenario", "自动化场景（ls / run）"},
+	{"plan", "测试计划（ls / get / run）"},
+	{"environments", "环境（ls——envId 发现）"},
+	{"task", "执行任务（get / wait / stop）"},
+	{"report", "报告（get）"},
+	{"+run", "快捷方式：默认环境→执行→等待→终态摘要（api-case/scenario/plan）"},
+	{"+report", "快捷方式：报告摘要（跨项目，open/exec 端点）"},
+}
+
 func init() {
-	cli.RegisterService(&cli.Service{
-		Name:        "rabbit",
-		Description: "RabbitAITest 平台资源与执行（case/api/scenario/plan/env/task/report）",
-		Handler:     runRabbit,
-		Schema: cli.CommandSchema{
-			Name:        "rabbit",
-			Description: "RabbitAITest 平台资源与执行",
-			Usage:       "rabbit <group> <command>",
-			Subcommands: []string{
-				"+run api-case <id>", "+run scenario <id>", "+run plan <id>", "+report <taskId>",
-				"project ls", "project use <id>",
-				"case ls|get|create|update|rm", "api ls", "api cases <apiId>", "api-case run",
-				"scenario ls|run", "plan ls|get|run", "env ls",
-				"task get|wait|stop", "report get",
+	for _, g := range serviceGroups {
+		g := g
+		// router 派发的 Pos 不含组名——闭包把组名注回首位，runRabbit 统一按 <group> <sub> 解析
+		cli.RegisterService(&cli.Service{
+			Name:        g.name,
+			Description: g.desc,
+			Handler: func(a *cli.Args) error {
+				a.Pos = append([]string{g.name}, a.Pos...)
+				return runRabbit(a)
 			},
-			Examples: []string{
-				"rabbit +run api-case 6f1c… --env 8a2b…",
-				"rabbit case ls --page-all --format table",
-				"rabbit task wait <taskId> --timeout 300",
+			Schema: cli.CommandSchema{
+				Name:        g.name,
+				Description: g.desc,
+				Usage:       "rabbit " + g.name + " <command>",
+				Subcommands: serviceGroupSubcommands(g.name),
+				Examples: []string{
+					"rabbit +run api-case <apiId> <caseId> --env <envId>",
+					"rabbit case ls --page-all --format table",
+					"rabbit task wait <taskId> --timeout 300",
+				},
 			},
-		},
-	})
+		})
+	}
+}
+
+func serviceGroupSubcommands(group string) []string {
+	switch group {
+	case "project":
+		return []string{"project ls", "project use <id>"}
+	case "case":
+		return []string{"case ls", "case get <id>", "case create --file", "case update <id> --file", "case rm <id>"}
+	case "api":
+		return []string{"api ls", "api cases <apiId>"}
+	case "api-case":
+		return []string{"api-case run <apiId> <caseId> --env <envId>"}
+	case "scenario":
+		return []string{"scenario ls", "scenario run <id> --env <envId>"}
+	case "plan":
+		return []string{"plan ls", "plan get <id>", "plan run <id>"}
+	case "environments":
+		return []string{"environments ls"}
+	case "task":
+		return []string{"task get <taskId>", "task wait <taskId> --timeout 300", "task stop <taskId>"}
+	case "report":
+		return []string{"report get <taskId>"}
+	case "+run":
+		return []string{"+run api-case <apiId> <caseId>", "+run scenario <id>", "+run plan <id>"}
+	case "+report":
+		return []string{"+report <taskId>"}
+	}
+	return nil
 }
 
 func runRabbit(a *cli.Args) error {
@@ -294,8 +342,8 @@ func runRabbit(a *cli.Args) error {
 		}
 		return cli.NewUsageError("plan ls|get <id>|run <id>", rabbitHelp)
 
-	// ── env ──
-	case "env":
+	// ── environments（环境；组名避开脚手架内置 env 环境切换器）──
+	case "environments":
 		if len(a.Pos) >= 2 && a.Pos[1] == "ls" {
 			pid, cerr := projectId(a)
 			if cerr != nil {
@@ -308,7 +356,7 @@ func runRabbit(a *cli.Args) error {
 			cli.EmitSuccess(unwrap(body), format, nil)
 			return nil
 		}
-		return cli.NewUsageError("env ls", rabbitHelp)
+		return cli.NewUsageError("environments ls", rabbitHelp)
 
 	// ── task / report ──
 	case "task":
