@@ -42,6 +42,7 @@ Grafana：导入 `assets/rabbit-overview.grafana.json`（8 面板总览：队列
 | --- | --- | --- |
 | `rabbit_http_requests_total` | `route_group`, `status_class` | 计数器（重启归零，用 `rate()`）；route_group 为 `/api/v1/{第一段}` |
 | `rabbit_http_request_duration_ms` | `route_group`, `quantile=0.5\|0.95` | 每路由组最近 512 样本滑动窗口分位 + `_sum/_count`（重启归零；单进程口径） |
+| `rabbit_http_request_duration_seconds` | `route_group`, `le`（histogram 桶族） | **加法式 histogram（INFRA-010，秒制）**——与 ms summary 同点双写并存；跨副本聚合：`histogram_quantile(0.95, sum by (route_group, le) (rate(rabbit_http_request_duration_seconds_bucket[5m])))`；桶界 0.005~5s +Inf（契约冻结于规格 §2.1） |
 
 ### DB 面（进程内）
 
@@ -61,11 +62,11 @@ Grafana：导入 `assets/rabbit-overview.grafana.json`（8 面板总览：队列
 | `rabbit_false_alarm_hit_rate_24h` | — | 误报命中率 = 命中数/失败执行项（可 >1：一项可命中多规则） |
 | `rabbit_sampler_errors_24h` | `code`（dns/connect/reset/tls/timeout/url/aborted/other_net/config/script） | 步骤/采样器执行错误按结构化分类码（INFRA-008；多条目任务的任务级 failureKind 恒 ASSERT_FAILED，步骤级网络失败原因由此可见） |
 
-### 进程运行时面（INFRA-008 web 自采 + INFRA-009 引擎心跳上报；Node 内建零依赖）
+### 进程运行时面（INFRA-008 web 自采 + INFRA-009 引擎心跳上报 + INFRA-010 mock 自暴露；Node 内建零依赖）
 
 | 指标 | `process` label | 说明 |
 | --- | --- | --- |
-| `rabbit_process_uptime_seconds` / `rabbit_process_cpu_seconds_total` | `web`（自采）/ `engine-{nodeId}`（池心跳 proc 快照，10s 粒度） | 进程存活时长 / 累计 CPU（user+system，重启归零） |
+| `rabbit_process_uptime_seconds` / `rabbit_process_cpu_seconds_total` | `web`（自采）/ `engine-{nodeId}`（池心跳 proc 快照，10s 粒度）/ `mock`（`GET /metrics` 自暴露，Prometheus 内网直抓） | 进程存活时长 / 累计 CPU（user+system，重启归零） |
 | `rabbit_process_resident_memory_bytes` / `rabbit_process_heap_used_bytes` | 同上 | 常驻内存 / V8 堆使用 |
 | `rabbit_process_eventloop_lag_ms` | **仅 `web`** | 事件循环平均延迟（直方图读后 reset——窗口=抓取间隔；engine 心跳不上报直方图） |
 
@@ -102,9 +103,8 @@ Grafana：导入 `assets/rabbit-overview.grafana.json`（8 面板总览：队列
 | Redis | `oliver006/redis_exporter` | 内存碎片率、驱逐键、阻塞客户端、主从延迟 |
 | 宿主机 | `prometheus/node_exporter` | CPU/内存/磁盘/网络；与 `rabbit_process_*` 互补（进程 vs 机器） |
 
-engine 进程指标经心跳 proc 上报为 `process="engine-{nodeId}"` 序列（INFRA-009）；独立 mock 进程（api-test-stack 形态）与 plugin-runner（worker_threads，已计入所属 engine 进程）暂无独立指标——登记 Backlog。
+engine 进程指标经心跳 proc 上报为 `process="engine-{nodeId}"` 序列（INFRA-009）；mock 进程经自身 `GET /metrics` 暴露 `process="mock"` 序列（INFRA-010，Prometheus 内网直抓无凭据——与 mock 既有 /healthz 同口径，生产不公网暴露）；plugin-runner 为 engine 内 worker_threads 已计入所属 engine 进程。
 
-## 6. 已知边界（见 INFRA-007/008/009 规格；INFRA-009 后仅剩两项）
+## 6. 已知边界（INFRA-010 后指标 Backlog 清零）
 
-- **多 web 副本时延指标 histogram 化**：summary 分位不可跨实例聚合、且 histogram 化=指标类型变更（生成 `_bucket/_sum/_count` 新序列簇）会让既有看板失效——登记为**部署形态升级触发**：web 多副本部署立项时随配额/provisioning 迭代一并设计（INFRA-009 §2.4 决策记录）；
-- **独立 mock 进程指标**：api-test-stack 形态下 mock 是独立 Node 进程但无注册通道——需要时再造（plugin-runner 为 engine 内 worker_threads，已计入 engine 进程指标；内嵌 mock 与 web 同进程已覆盖）。
+- **无剩余登记项**。未来事项（非缺口）：web 多副本成为默认部署形态时可废止 ms summary（届时以 INFRA-010 histogram 为唯一口径，另行勘误）；engine eventloop_lag 若有需要可随心跳携带直方图均值（当前无消费场景）。
