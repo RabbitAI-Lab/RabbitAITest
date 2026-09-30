@@ -94,7 +94,7 @@ test("MAINFLOW-s4 计划完整链路", async ({
   const reportTab = page.getByTestId("plan-report-tab");
   await expect(reportTab).toBeVisible({ timeout: 20_000 });
   await reportTab.click({ timeout: 20_000 });
-  await expect(page.getByTestId("plan-report-v2")).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByTestId("plan-report-v2")).toBeVisible({ timeout: 40_000 }); // 高压下引擎回写 >15s（CI 8 聚合 workers 三次超时实证）
   await expect(page.getByTestId("plan-report-v2")).toContainText(`主链路点-${uniq}`, {
     timeout: 15_000,
   });
