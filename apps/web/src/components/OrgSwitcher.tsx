@@ -13,7 +13,7 @@ export function OrgSwitcher() {
   const { orgs, currentOrgId, currentOrg, setCurrent } = useOrgContext();
   const entp = useEntp();
 
-  // 多组织为企业版能力：未授权或单组织时隐藏（现状行为不变）
+  // 多组织：单组织用户隐藏切换器（E NTP-009 开源全功能下 can() 恒 true，仅按组织数判定；门控恢复态回退 License 判定）
   if (!entp.can("MULTI_ORG") || orgs.length <= 1) return null;
 
   return (

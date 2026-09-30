@@ -221,7 +221,7 @@ export default function MessagesPage() {
       <Alert
         type="info"
         showIcon
-        message="接收人 = 配置接收人 ∪ @提及人 ∪ 关注者 − 操作人（同人去重）；提及/关注为接收人扩展，事件总闸关闭则全不发。消息内容为固定默认模板（自定义模板为企业版能力）。"
+        message="接收人 = 配置接收人 ∪ @提及人 ∪ 关注者 − 操作人（同人去重）；提及/关注为接收人扩展，事件总闸关闭则全不发。消息内容默认模板可在「模板」页签按事件定制。"
       />
       {groups.map((g) => (
         <div key={g} className="border rounded-md">
