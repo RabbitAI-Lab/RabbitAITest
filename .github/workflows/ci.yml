@@ -221,7 +221,11 @@ jobs:
       - run: corepack enable
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @rabbit/db generate
+      # S11 SYS-009：web build 静态预渲染阶段 systemParam.findUnique 需 DATABASE_URL
+      # （main 上既有缺陷——schema 未变时 generate 不触发；本迭代 oauth 两表触发暴露）
       - run: pnpm --filter web build
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/rabbit_jm
       - name: build plugin tarballs（S6 PLUG/INTG jmx 上传依赖）
         run: pnpm build:plugins
       - name: cache jmeter（命中免下载——archive.apache.org 限速直连曾达 90s+）
