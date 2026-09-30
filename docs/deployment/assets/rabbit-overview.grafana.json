@@ -7,97 +7,237 @@
       "pluginId": "prometheus"
     }
   ],
-  "annotations": { "list": [] },
+  "annotations": {
+    "list": []
+  },
   "editable": true,
   "graphTooltip": 1,
   "refresh": "30s",
   "schemaVersion": 39,
-  "tags": ["rabbitaitest", "overview"],
-  "time": { "from": "now-3h", "to": "now" },
+  "tags": [
+    "rabbitaitest",
+    "overview"
+  ],
+  "time": {
+    "from": "now-3h",
+    "to": "now"
+  },
   "title": "RabbitAITest 总览（INFRA-007）",
   "uid": "rabbit-overview",
-  "version": 1,
+  "version": 2,
   "panels": [
     {
       "title": "队列深度与 dead（by pool）",
       "type": "timeseries",
-      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
       "targets": [
-        { "expr": "rabbit_queue_depth", "legendFormat": "depth {{pool}}" },
-        { "expr": "rabbit_queue_dead", "legendFormat": "dead {{pool}}" }
+        {
+          "expr": "rabbit_queue_depth",
+          "legendFormat": "depth {{pool}}"
+        },
+        {
+          "expr": "rabbit_queue_dead",
+          "legendFormat": "dead {{pool}}"
+        }
       ],
-      "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] }
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      }
     },
     {
       "title": "引擎并发槽（used vs cap，by pool）",
       "type": "timeseries",
-      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
       "targets": [
-        { "expr": "rabbit_engine_slots{state=\"used\"}", "legendFormat": "used {{pool}}" },
-        { "expr": "rabbit_engine_slots{state=\"cap\"}", "legendFormat": "cap {{pool}}" }
+        {
+          "expr": "rabbit_engine_slots{state=\"used\"}",
+          "legendFormat": "used {{pool}}"
+        },
+        {
+          "expr": "rabbit_engine_slots{state=\"cap\"}",
+          "legendFormat": "cap {{pool}}"
+        }
       ],
-      "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] }
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      }
     },
     {
       "title": "HTTP QPS（by route_group）",
       "type": "timeseries",
-      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 8
+      },
       "targets": [
-        { "expr": "sum by (route_group) (rate(rabbit_http_requests_total[5m]))", "legendFormat": "{{route_group}}" }
+        {
+          "expr": "sum by (route_group) (rate(rabbit_http_requests_total[5m]))",
+          "legendFormat": "{{route_group}}"
+        }
       ],
-      "fieldConfig": { "defaults": { "unit": "reqps" }, "overrides": [] }
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps"
+        },
+        "overrides": []
+      }
     },
     {
       "title": "HTTP P95 时延（by route_group，ms）",
       "type": "timeseries",
-      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 8
+      },
       "targets": [
-        { "expr": "rabbit_http_request_duration_ms{quantile=\"0.95\"}", "legendFormat": "{{route_group}}" }
+        {
+          "expr": "rabbit_http_request_duration_ms{quantile=\"0.95\"}",
+          "legendFormat": "{{route_group}}"
+        }
       ],
-      "fieldConfig": { "defaults": { "unit": "ms" }, "overrides": [] }
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms"
+        },
+        "overrides": []
+      }
     },
     {
       "title": "任务时长 P95（近 1h 窗口，ms）",
       "type": "timeseries",
-      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 16
+      },
       "targets": [
-        { "expr": "rabbit_task_duration_ms{quantile=\"0.95\"}", "legendFormat": "p95" },
-        { "expr": "rabbit_task_duration_ms{quantile=\"0.5\"}", "legendFormat": "p50" }
+        {
+          "expr": "rabbit_task_duration_ms{quantile=\"0.95\"}",
+          "legendFormat": "p95"
+        },
+        {
+          "expr": "rabbit_task_duration_ms{quantile=\"0.5\"}",
+          "legendFormat": "p50"
+        }
       ],
-      "fieldConfig": { "defaults": { "unit": "ms" }, "overrides": [] }
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms"
+        },
+        "overrides": []
+      }
     },
     {
       "title": "24h 任务分布（by status）",
       "type": "timeseries",
-      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 16
+      },
       "targets": [
-        { "expr": "rabbit_tasks_24h", "legendFormat": "{{status}}" }
+        {
+          "expr": "rabbit_tasks_24h",
+          "legendFormat": "{{status}}"
+        }
       ],
-      "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] }
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      }
     },
     {
       "title": "失败率（左轴）与失败分类（右轴，by kind）",
       "type": "timeseries",
-      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 24 },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 24
+      },
       "targets": [
-        { "expr": "rabbit_task_failure_rate_24h", "legendFormat": "failure_rate" },
-        { "expr": "rabbit_task_failures_24h", "legendFormat": "{{kind}}" }
+        {
+          "expr": "rabbit_task_failure_rate_24h",
+          "legendFormat": "failure_rate"
+        },
+        {
+          "expr": "rabbit_task_failures_24h",
+          "legendFormat": "{{kind}}"
+        }
       ],
       "fieldConfig": {
-        "defaults": { "unit": "percentunit", "min": 0, "max": 1 },
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1
+        },
         "overrides": [
           {
-            "matcher": { "id": "byFrameRefID", "options": "B" },
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "B"
+            },
             "properties": [
-              { "id": "unit", "value": "short" },
-              { "id": "custom.axisPlacement", "value": "right" }
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "custom.axisPlacement",
+                "value": "right"
+              }
             ]
           }
         ]
@@ -106,28 +246,141 @@
     {
       "title": "误报命中（右轴）/ 误报率（左轴）/ 慢查询增速（右轴）",
       "type": "timeseries",
-      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 24 },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 24
+      },
       "targets": [
-        { "expr": "rabbit_false_alarm_hit_rate_24h", "legendFormat": "false_alarm_rate" },
-        { "expr": "rabbit_false_alarm_hits_24h", "legendFormat": "hits" },
-        { "expr": "rate(rabbit_db_slow_queries_total[10m])", "legendFormat": "slow_queries/s" }
+        {
+          "expr": "rabbit_false_alarm_hit_rate_24h",
+          "legendFormat": "false_alarm_rate"
+        },
+        {
+          "expr": "rabbit_false_alarm_hits_24h",
+          "legendFormat": "hits"
+        },
+        {
+          "expr": "rate(rabbit_db_slow_queries_total[10m])",
+          "legendFormat": "slow_queries/s"
+        }
       ],
       "fieldConfig": {
-        "defaults": { "unit": "percentunit", "min": 0 },
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0
+        },
         "overrides": [
           {
-            "matcher": { "id": "byFrameRefID", "options": "B" },
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "B"
+            },
             "properties": [
-              { "id": "unit", "value": "short" },
-              { "id": "custom.axisPlacement", "value": "right" }
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "custom.axisPlacement",
+                "value": "right"
+              }
             ]
           },
           {
-            "matcher": { "id": "byFrameRefID", "options": "C" },
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "C"
+            },
             "properties": [
-              { "id": "unit", "value": "ops" },
-              { "id": "custom.axisPlacement", "value": "right" }
+              {
+                "id": "unit",
+                "value": "ops"
+              },
+              {
+                "id": "custom.axisPlacement",
+                "value": "right"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "title": "采样器错误分类（24h，by code——INFRA-008）",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 32
+      },
+      "targets": [
+        {
+          "expr": "rabbit_sampler_errors_24h",
+          "legendFormat": "{{code}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "min": 0
+        },
+        "overrides": []
+      }
+    },
+    {
+      "title": "进程资源（by process：web/engine/mock——RSS 左轴 + CPU 增速右轴，INFRA-008/009/010）",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 32
+      },
+      "targets": [
+        {
+          "expr": "rabbit_process_resident_memory_bytes",
+          "legendFormat": "rss {{process}}"
+        },
+        {
+          "expr": "rate(rabbit_process_cpu_seconds_total[5m])",
+          "legendFormat": "cpu {{process}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "min": 0
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "B"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percentunit"
+              },
+              {
+                "id": "custom.axisPlacement",
+                "value": "right"
+              }
             ]
           }
         ]
