@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 /**
  * ENTP-007 License 签发工具（开发/测试用；生产换 LICENSE_SIGNING_SECRET 后以同算法签发）。
+ * ENTP-009 开源全功能：License 不再门控功能，本工具仅供授权信息演示/门控恢复态（RABBIT_FEATURE_GATE=1）测试。
  * 用法：
- *   node scripts/gen-license.mjs                                   # 默认一年有效期·全部六特性
+ *   node scripts/gen-license.mjs                                   # 默认一年有效期·全部八特性（省略 features=服务端按全集解释）
  *   node scripts/gen-license.mjs --expires 2030-01-01 --features MULTI_ORG,SSO --max-users 500 --lic RAB-2026-ENT-0001
  */
 import { createHmac, randomUUID } from "node:crypto";
@@ -16,7 +17,7 @@ function arg(name, fallback) {
 }
 
 const secret = process.env.LICENSE_SIGNING_SECRET ?? "rabbit-dev-license-secret";
-const ALL = ["MULTI_ORG", "SSO", "MULTI_POOL", "THEME", "MSG_TEMPLATE", "USER_SCALE"];
+const ALL = ["MULTI_ORG", "SSO", "MULTI_POOL", "THEME", "MSG_TEMPLATE", "USER_SCALE", "LOAD_TEST", "UI_TEST"];
 
 const lic = String(
   arg("lic", `RAB-${new Date().getFullYear()}-ENT-${randomUUID().slice(0, 8).toUpperCase()}`),

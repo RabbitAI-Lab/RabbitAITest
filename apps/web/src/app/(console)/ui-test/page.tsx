@@ -31,9 +31,12 @@ export default function UiTestPage() {
     refetchInterval: (q) => (q.state.data?.features?.includes("UI_TEST") ? false : 2000),
     staleTime: 0,
   });
+  // ENTP-009 开源全功能：featureGateEnabled=false（默认）恒放行；状态未载亦放行（占位不闪现）
   const entp = {
     can: (f: string) =>
-      licQ.data?.edition === "ENTERPRISE" && (licQ.data?.features ?? []).includes(f),
+      !licQ.data || !licQ.data.featureGateEnabled
+        ? true
+        : licQ.data.edition === "ENTERPRISE" && (licQ.data.features ?? []).includes(f),
     loading: licQ.isLoading,
   };
   const [name, setName] = useState("");
@@ -82,14 +85,6 @@ export default function UiTestPage() {
       <div className="p-4 md:p-6 max-w-[1100px]">
         <PageHeader title="UI 测试" sub="企业版 · License 门控" />
         <Empty className="py-24" description="请先选择项目" />
-      </div>
-    );
-  }
-  if (entp.loading) {
-    return (
-      <div className="p-4 md:p-6 max-w-[1100px]">
-        <PageHeader title="UI 测试" sub="企业版 · License 门控" />
-        <div className="py-24 text-center text-slate-400 text-sm">授权状态加载中…</div>
       </div>
     );
   }

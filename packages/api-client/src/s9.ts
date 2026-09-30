@@ -12,6 +12,8 @@ export interface LicenseStatus {
   daysLeft: number | null;
   lic: string | null;
   maxUsers: number | null;
+  /** ENTP-009：true=特性门控生效（企业口径）；false=开源全功能（License 不门控，默认） */
+  featureGateEnabled: boolean;
 }
 
 export const licenseApi = {
@@ -20,14 +22,7 @@ export const licenseApi = {
   remove: () => del<LicenseStatus>("/api/v1/system/license"),
   /** 公开（无鉴权）：前端按钮解锁驱动 */
   publicStatus: () =>
-    get<{
-      edition: "COMMUNITY" | "ENTERPRISE";
-      expiresAt: string | null;
-      features: string[];
-      daysLeft: number | null;
-      lic: null;
-      maxUsers: number | null;
-    }>("/api/v1/public/license-status"),
+    get<LicenseStatus>("/api/v1/public/license-status"),
 };
 
 // ── ENTP-001 多组织 ──

@@ -7,6 +7,8 @@ import { licenseApi, type LicenseStatus } from "@rabbit/api-client";
 /**
  * 企业版状态（ENTP-007 公开 license-status 驱动）：
  * 按钮禁用/解锁、菜单可见性、到期横幅共用本 hook。
+ * ENTP-009（开源全功能）：featureGateEnabled=false（默认）时 can() 恒 true——
+ * License 仅作授权信息展示，不再门控任何功能；状态未载（loading）亦按放行处理，避免占位闪现。
  */
 export interface EntpState {
   edition: "COMMUNITY" | "ENTERPRISE";
@@ -34,7 +36,9 @@ export function useEntp(): EntpState {
     daysLeft: data?.daysLeft ?? null,
     expiresAt: data?.expiresAt ?? null,
     can: (feature: string) =>
-      data?.edition === "ENTERPRISE" && (data?.features ?? []).includes(feature),
+      !data || !data.featureGateEnabled
+        ? true
+        : data.edition === "ENTERPRISE" && (data.features ?? []).includes(feature),
     loading: q.isLoading,
   };
 }

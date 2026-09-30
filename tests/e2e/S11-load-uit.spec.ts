@@ -1,23 +1,40 @@
 import { test, expect } from "./fixtures";
-import {
-  issueDevLicense,
-  addLicense,
-  removeLicense,
-  loginSeedAdmin,
-  MOCK_URL,
-} from "./s9-helpers";
+import { removeLicense, loginSeedAdmin, MOCK_URL } from "./s9-helpers";
 import { pickOption } from "./s2-helpers";
 
 /**
- * S11 性能测试/UI 测试聚合 e2e（LOAD-003 §5 T8/T9 + UIT-002 §5 T7/T8/T9 + LOAD-001/UIT-001 占位回归）。
- * **License 互斥单文件**（S11 顽固假红终局对策）：License/模块开关为全局态——所有依赖
- * License 的用例收编进本文件串行执行，严禁与其他文件的 License 生命周期交错（并行文件
- * 的 afterEach 摘除与自愈循环互相打架的教训链）。执行序=功能段（企业版）→ 社区版段（占位回归+T9 门控）→
- * 恢复企业版 → afterAll 清。
- * 三类断言：UI（编辑器/监控曲线/报告/截图网格/占位卡片）+ Console（无错误）+ 接口（jmx 层覆盖 run/metrics 帧——e2e 聚焦 UI 链路）。
+ * S11 性能测试/UI 测试聚合 e2e（LOAD-003 §5 T8/T9 + UIT-002 §5 T7/T8/T9 + LOAD-001/UIT-001 模块开关回归）。
+ * **License 互斥单文件**（S11 顽固假红终局对策，保留）：License/模块开关为全局态——所有涉及
+ * License 生命周期的用例收编进本文件串行执行，严禁与其他文件交错。
+ * E NTP-009（2026-09-30 开源全功能）：License 不再门控任何功能——**全程无 License 跑通功能链路即回归点**；
+ * 原「社区版占位回归（T9 门控）」翻转为「无 License 全功能可用 + 状态接口 featureGateEnabled=false」；
+ * 模块开关（管理员可关）回归保留且缺省改开。占位组件（placeholder.tsx）死代码保留——门控恢复态
+ * （RABBIT_FEATURE_GATE=1）复活，语义由 license.test.ts 单测双侧覆盖。
+ * 三类断言：UI（编辑器/监控曲线/报告/截图网格/模块开关）+ Console（无错误）+ 接口（jmx 层覆盖 run/metrics 帧——e2e 聚焦 UI 链路）。
  */
 
 const TASK_URL_RE = /\/tasks\/[0-9a-f-]{36}/;
+const E2E_PASSWORD = process.env.E2E_USER_PASSWORD ?? "rabbit-pass-123";
+
+/** E NTP-009 缺省契约：全新项目 modules 六键全开（持久库上存量显式 false 不代表缺省——须用新项目验证）。 */
+async function assertFreshProjectModulesDefaultOn(page: import("@playwright/test").Page) {
+  const ctx = await page.context().browser()!.newContext();
+  try {
+    const email = `e2e-moddef-${Date.now()}@rabbit.test`;
+    const reg = await ctx.request.post("/api/v1/auth/register", {
+      data: { email, password: E2E_PASSWORD },
+    });
+    expect(reg.status()).toBe(201);
+    const pid = ((await reg.json()) as { data: { projectId: string } }).data.projectId;
+    const info = await ctx.request.get(`/api/v1/projects/${pid}/info`);
+    expect(info.status()).toBe(200);
+    const modules = ((await info.json()) as { data: { modules: Record<string, boolean> } }).data
+      .modules;
+    expect(modules).toMatchObject({ case: true, api: true, plan: true, bug: true, load: true, uit: true });
+  } finally {
+    await ctx.close();
+  }
+}
 
 /** 从当前 URL 提取任务 id（结构化分段）。 */
 function taskIdFromUrl(pageUrl: string, segment: "load" | "ui-test"): string {
@@ -38,32 +55,7 @@ async function enableModule(page: import("@playwright/test").Page, key: "load" |
   }
 }
 
-/** License 稳定 ENTERPRISE（并行文件摘除竞态自愈：非授权态时重写直到连续 2 次确认）。 */
-async function ensureEnterprise(request: import("@playwright/test").APIRequestContext) {
-  const { chromium } = await import("@playwright/test");
-  const b = await chromium.launch();
-  const adminCtx = await b.newContext();
-  let streak = 0;
-  try {
-    await loginSeedAdmin(adminCtx.request, adminCtx);
-    for (let round = 0; round < 40 && streak < 2; round++) {
-      const r = await request.get("/api/v1/public/license-status", { headers: { "cache-control": "no-store" } });
-      const j = (await r.json()) as { data: { edition: string } };
-      if (j.data.edition === "ENTERPRISE") {
-        streak += 1;
-      } else {
-        streak = 0;
-        await addLicense(adminCtx.request, issueDevLicense({ features: ["LOAD_TEST", "UI_TEST"] })).catch(() => undefined);
-      }
-      await new Promise((r2) => setTimeout(r2, 700));
-    }
-  } finally {
-    await b.close();
-  }
-  expect(streak, "License 应自愈循环后稳定 ENTERPRISE").toBeGreaterThanOrEqual(2);
-}
-
-/** License 摘除并稳定 COMMUNITY（连续 2 次确认）。 */
+/** License 摘除并稳定 COMMUNITY（连续 2 次确认；ENTP-009 开源态即产品默认态）。 */
 async function ensureCommunity(page: import("@playwright/test").Page) {
   const adminCtx = await page.context().browser()!.newContext();
   let streak = 0;
@@ -88,12 +80,12 @@ async function ensureCommunity(page: import("@playwright/test").Page) {
 
 test.describe.configure({ mode: "serial" });
 
-// License 生命周期=文件级（beforeAll 激活、afterAll 清；用例内不再 per-test 加删）
+// License 生命周期=文件级（beforeAll 摘除保开源态、afterAll 再清；用例内不再 per-test 加删）
 test.beforeAll(async ({ playwright }) => {
   const browser = await playwright.chromium.launch();
   const ctx = await browser.newContext();
-  await loginSeedAdmin(ctx.request, ctx);
-  await addLicense(ctx.request, issueDevLicense({ features: ["LOAD_TEST", "UI_TEST"] }));
+  await loginSeedAdmin(ctx.request, ctx).catch(() => undefined);
+  await removeLicense(ctx.request).catch(() => undefined);
   await browser.close();
 });
 
@@ -101,19 +93,19 @@ test.afterAll(async ({ playwright }) => {
   const browser = await playwright.chromium.launch();
   const ctx = await browser.newContext();
   await loginSeedAdmin(ctx.request, ctx).catch(() => undefined);
-  await removeLicense(ctx.request);
+  await removeLicense(ctx.request).catch(() => undefined);
   await browser.close();
 });
 
-// ═══════ 段一：企业版功能链路 ═══════
+// ═══════ 段一：功能链路（无 License·开源全功能 E NTP-009） ═══════
 
-test("LOAD-003-T8 建计划（mock /perf/echo 8s）→执行→监控曲线→报告结论", async ({
+test("LOAD-003-T8 建计划（mock /perf/echo 8s）→执行→监控曲线→报告结论【无 License·ENTP-009】", async ({
   authedPage,
   page,
   request,
   expectNoConsoleErrors,
 }) => {
-  await ensureEnterprise(request);
+  await ensureCommunity(page);
   await enableModule(page, "load");
   await page.goto("/load");
   // 页面内 refetchInterval(2s) 授权轮询自然转正（License 写后读一致性窗口吸收）
@@ -205,13 +197,13 @@ async function enterUit(page: import("@playwright/test").Page) {
   await expect(page.getByTestId("uit-page")).toBeVisible({ timeout: 60000 }); // 页面内授权轮询转正兜底
 }
 
-test("UIT-002-T7 建元素 3 个→建用例（mock /uit/demo 4 步）→执行→报告截图网格", async ({
+test("UIT-002-T7 建元素 3 个→建用例（mock /uit/demo 4 步）→执行→报告截图网格【无 License·ENTP-009】", async ({
   authedPage,
   page,
   request,
   expectNoConsoleErrors,
 }) => {
-  await ensureEnterprise(request);
+  await ensureCommunity(page);
   await enableModule(page, "uit");
   await enterUit(page);
 
@@ -279,7 +271,7 @@ test("UIT-002-T8 断言失败用例：报告 FAILED + 失败现场截图可见",
   expectNoConsoleErrors,
 }) => {
   const { projectId } = authedPage;
-  await ensureEnterprise(request);
+  await ensureCommunity(page);
   await enableModule(page, "uit");
   await enterUit(page);
 
@@ -315,9 +307,9 @@ test("UIT-002-T8 断言失败用例：报告 FAILED + 失败现场截图可见",
   await expectNoConsoleErrors();
 });
 
-// ═══════ 段二：社区版占位回归（摘除 License；T9 门控语义同段） ═══════
+// ═══════ 段二：无 License 全功能回归（ENTP-009 翻转：原 T9 门控占位→开放可用） ═══════
 
-test("LOAD-003-T9 无 License：/load 回退占位页（社区版口径）", async ({
+test("LOAD-003-T9 无 License：/load 全功能可用（开源口径）+ 状态接口 featureGateEnabled=false", async ({
   authedPage,
   page,
   request,
@@ -327,25 +319,28 @@ test("LOAD-003-T9 无 License：/load 回退占位页（社区版口径）", asy
   await ensureCommunity(page);
   await enableModule(page, "load");
   await page.goto("/load");
-  // 占位卡片（License 未激活态）+ 无新建按钮
-  await expect(page.getByTestId("load-placeholder")).toBeVisible();
-  await expect(page.getByText("需企业版 License")).toBeVisible();
-  await expect(page.getByTestId("load-create-btn")).toHaveCount(0);
-  // 接口断言：无 License 直接 POST → 90001（页面无关，request 直发）
+  // 开源全功能：真实列表页（非占位卡片）+ 新建按钮可用
+  await expect(page.getByTestId("load-page")).toBeVisible({ timeout: 20000 });
+  await expect(page.getByTestId("load-create-btn")).toBeVisible();
+  await expect(page.getByTestId("load-placeholder")).toHaveCount(0);
+  // 接口断言：无 License 直接 POST 建计划 → 201（原 90001 门控已停用）
   const res = await request.post(`/api/v1/projects/${projectId}/load-tests`, {
     data: {
-      name: "e2e-门控",
+      name: "e2e-开源门控回归",
       target: { method: "GET", url: `${MOCK_URL}/perf/echo` },
       pressure: { mode: "tps", durationSec: 10, targetTps: 5, rampSec: 0 },
     },
   });
-  expect(res.status()).toBe(403);
-  const body = (await res.json()) as { code: number };
-  expect(body.code).toBe(90001);
+  expect(res.status()).toBe(201);
+  // 公开状态接口：社区版 + 门控未启用（前端据此放行）
+  const st = await request.get("/api/v1/public/license-status");
+  const stBody = (await st.json()) as { data: { edition: string; featureGateEnabled: boolean } };
+  expect(stBody.data.edition).toBe("COMMUNITY");
+  expect(stBody.data.featureGateEnabled).toBe(false);
   await expectNoConsoleErrors();
 });
 
-test("UIT-002-T9 无 License：/ui-test 回退占位页 + API 90001", async ({
+test("UIT-002-T9 无 License：/ui-test 全功能可用（开源口径）+ 建用例 201", async ({
   authedPage,
   page,
   request,
@@ -355,95 +350,107 @@ test("UIT-002-T9 无 License：/ui-test 回退占位页 + API 90001", async ({
   await ensureCommunity(page);
   await enableModule(page, "uit");
   await page.goto("/ui-test");
-  await expect(page.getByTestId("uit-placeholder")).toBeVisible();
-  await expect(page.getByText("需企业版 License")).toBeVisible();
-  await expect(page.getByTestId("uit-create-btn")).toHaveCount(0);
+  await expect(page.getByTestId("uit-page")).toBeVisible({ timeout: 20000 });
+  await expect(page.getByTestId("uit-create-btn")).toBeVisible();
+  await expect(page.getByTestId("uit-placeholder")).toHaveCount(0);
   const res = await request.post(`/api/v1/projects/${projectId}/ui-cases`, {
-    data: { name: "e2e-门控", steps: [{ op: "wait", ms: 1 }] },
+    data: { name: "e2e-开源门控回归", steps: [{ op: "wait", ms: 1 }] },
   });
-  expect(res.status()).toBe(403);
-  expect(((await res.json()) as { code: number }).code).toBe(90001);
+  expect(res.status()).toBe(201);
   await expectNoConsoleErrors();
 });
 
-test("LOAD-001-T4（S11 占位回归）开关开启→导航出现占位入口→占位页呈现→关闭即隐", async ({
+test("LOAD-001-T4（ENTP-009 回归）模块缺省开→导航入口+真实页可用→关闭即隐→重开恢复", async ({
   authedPage,
   page,
   expectNoConsoleErrors,
 }) => {
   const { projectId } = authedPage;
   await ensureCommunity(page);
-  // 前置：导航默认无「性能测试」组（占位默认关）
-  await page.goto("/");
-  await expect(page.getByTestId("nav-load")).toHaveCount(0);
+  // 缺省契约（新项目验证——持久库演示项目可能残留显式 false，不代表缺省语义）
+  await assertFreshProjectModulesDefaultOn(page);
 
-  // 设置页开启开关（企业版方向行存在且默认关）
+  // 演示项目：开关自愈为开（存量显式 false 场景）→ 导航出现
+  await enableModule(page, "load");
+  await page.goto("/");
+  await expect(page.getByTestId("nav-load").first()).toBeVisible();
+
+  // 设置页开关开启态回显
   await page.goto("/settings/info");
   const loadSwitch = page.getByTestId("module-switch-load");
   await expect(loadSwitch).toBeVisible();
-  await expect(loadSwitch).not.toHaveClass(/ant-switch-checked/);
+  await expect(loadSwitch).toHaveClass(/ant-switch-checked/);
 
-  await loadSwitch.click();
+  // 入口直达真实页（开源全功能——非占位）
+  await page.goto("/load");
+  await expect(page.getByTestId("load-page")).toBeVisible({ timeout: 20000 });
+  await expect(page.getByTestId("load-placeholder")).toHaveCount(0);
+
+  // 关闭 → 保存 → 导航隐藏（管理员可关语义保留）
+  await page.goto("/settings/info");
+  await page.getByTestId("module-switch-load").click();
   await page.waitForTimeout(300);
   await page.getByTestId("btn-save-info").click();
   await expect(page.getByText("基本信息已保存").first()).toBeVisible({ timeout: 10000 });
   // 接口断言：开关已持久化（保存后回读——同一页面会话）
   const info = await page.request.get(`/api/v1/projects/${projectId}/info`);
   expect(info.status()).toBe(200);
-
-  // 导航组出现（模块开关 ∧ PROJECT_LOAD:READ 双门控——注册用户=本项目管理员）
   await page.goto("/");
-  await expect(page.getByTestId("nav-load")).toBeVisible();
+  await expect(page.getByTestId("nav-load")).toHaveCount(0);
 
-  // 占位页：标题+空态卡（License 未激活态文案）
-  await page.getByTestId("nav-load").click();
-  await expect(page).toHaveURL(/\/load$/);
-  await expect(page.getByText("性能测试 · 需企业版 License")).toBeVisible();
-  await expect(page.getByTestId("load-placeholder")).toBeVisible();
-  await expect(page.getByText("阶梯加压")).toBeVisible();
-
-  // 关闭 → 导航隐藏（数据零迁移语义）
+  // 重开 → 恢复缺省态（收尾自愈，后续用例不受影响）
   await page.goto("/settings/info");
   await page.getByTestId("module-switch-load").click();
   await page.waitForTimeout(300);
   await page.getByTestId("btn-save-info").click();
   await expect(page.getByText("基本信息已保存").first()).toBeVisible({ timeout: 8000 });
   await page.goto("/");
-  await expect(page.getByTestId("nav-load")).toHaveCount(0);
+  await expect(page.getByTestId("nav-load").first()).toBeVisible();
   await expectNoConsoleErrors();
 });
 
-test("UIT-001-T3（S11 占位回归）开启 uit 开关→导航/占位页→能力清单口径", async ({
+test("UIT-001-T3（ENTP-009 回归）uit 缺省开→真实页可用→关闭即隐→重开恢复", async ({
   authedPage,
   page,
   expectNoConsoleErrors,
 }) => {
   const { projectId } = authedPage;
   await ensureCommunity(page);
+  // 缺省契约已在 LOAD-001-T4 以新项目验证（六键同源断言）——此处聚焦 uit 开关行为
+  await enableModule(page, "uit");
   await page.goto("/");
-  await expect(page.getByTestId("nav-uit")).toHaveCount(0);
+  await expect(page.getByTestId("nav-uit").first()).toBeVisible();
 
   await page.goto("/settings/info");
   const uitSwitch = page.getByTestId("module-switch-uit");
   await expect(uitSwitch).toBeVisible();
-  await expect(uitSwitch).not.toHaveClass(/ant-switch-checked/);
+  await expect(uitSwitch).toHaveClass(/ant-switch-checked/);
 
-  await uitSwitch.click();
+  // 直达真实页（元素库入口可见——开源全功能口径）
+  await page.goto("/ui-test");
+  await expect(page.getByTestId("uit-page")).toBeVisible({ timeout: 20000 });
+  await expect(page.getByTestId("uit-elements-entry")).toBeVisible();
+  await expect(page.getByTestId("uit-placeholder")).toHaveCount(0);
+
+  // 关闭 → 导航隐藏
+  await page.goto("/settings/info");
+  await page.getByTestId("module-switch-uit").click();
   await page.waitForTimeout(300);
   await page.getByTestId("btn-save-info").click();
   await expect(page.getByText("基本信息已保存").first()).toBeVisible({ timeout: 10000 });
   const info = await page.request.get(`/api/v1/projects/${projectId}/info`);
   expect(info.status()).toBe(200);
-
   await page.goto("/");
-  await expect(page.getByTestId("nav-uit")).toBeVisible();
-  await page.getByTestId("nav-uit").click();
-  await expect(page).toHaveURL(/\/ui-test$/);
-  await expect(page.getByText("UI 测试 · 需企业版 License")).toBeVisible();
-  await expect(page.getByTestId("uit-placeholder")).toBeVisible();
-  // 能力清单口径（UIT-001 §1.2）
-  await expect(page.getByText("UI 自动化用例编排")).toBeVisible();
-  await expect(page.getByText("逐步截图报告")).toBeVisible();
+  await expect(page.getByTestId("nav-uit")).toHaveCount(0);
+
+  // 重开 → 恢复缺省态
+  await page.goto("/settings/info");
+  await page.getByTestId("module-switch-uit").click();
+  await page.waitForTimeout(300);
+  await page.getByTestId("btn-save-info").click();
+  await expect(page.getByText("基本信息已保存").first()).toBeVisible({ timeout: 8000 });
+  await page.goto("/");
+  await expect(page.getByTestId("nav-uit").first()).toBeVisible();
   await expectNoConsoleErrors();
 });
 
@@ -467,8 +474,3 @@ test("LOAD-001-T4b 资源池 DTO 占位字段（loadTest/uiTest=false 联动 §4
   await expectNoConsoleErrors();
 });
 
-// ═══════ 段三：恢复企业版（并行文件的后置用例可能依赖企业态） ═══════
-
-test("S11-收尾：恢复企业版态", async ({ request }) => {
-  await ensureEnterprise(request);
-});

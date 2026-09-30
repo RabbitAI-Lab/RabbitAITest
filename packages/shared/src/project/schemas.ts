@@ -10,9 +10,9 @@ export const moduleFlagsSchema = z.object({
   api: z.boolean().default(true),
   plan: z.boolean().default(true),
   bug: z.boolean().default(true),
-  // S-future LOAD-001/UIT-001：企业版方向占位开关（缺省即关——与上四键缺省开相反，存量项目 JSON 零迁移）
-  load: z.boolean().default(false),
-  uit: z.boolean().default(false),
+  // LOAD-001/UIT-001：模块开关（管理员可关）；缺省开=ENTP-009 开源全功能口径（2026-09-30 前缺省关）
+  load: z.boolean().default(true),
+  uit: z.boolean().default(true),
 });
 
 export const projectUpsertSchema = z.object({

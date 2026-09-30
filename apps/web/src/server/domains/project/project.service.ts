@@ -1,7 +1,12 @@
 /** PROJ-001：组织成员、项目生命周期（软删 30 天可撤销/结束只读）、项目成员与信息编辑。 */
-import { DomainError, ErrCode } from "@rabbit/shared";
+import { DomainError, ErrCode, moduleFlagsSchema } from "@rabbit/shared";
 import type { ProjectUpdateInput } from "@rabbit/shared";
 import { prisma, initOrgAndProjectPresets } from "@rabbit/db";
+
+/** modules 出口归一化（ENTP-009）：存量 JSON 缺 load/uit 键时按缺省补齐——消费端恒得六布尔值。 */
+function normalizeModules(raw: unknown): Record<string, boolean> {
+  return moduleFlagsSchema.parse(raw ?? {}) as Record<string, boolean>;
+}
 
 // ── 组织成员（PROJ-001 成员搜索添加数据源）──
 
@@ -75,7 +80,7 @@ export async function listOrgProjects(
       num: p.num,
       description: p.description,
       status: p.status,
-      modules: p.modules,
+      modules: normalizeModules(p.modules),
       memberCount: p._count.members,
       deletedAt: p.deletedAt?.toISOString() ?? null,
       purgeAt: p.purgeAt?.toISOString() ?? null,
@@ -137,7 +142,7 @@ export async function getProjectInfo(projectId: string) {
   if (!p) throw new DomainError(ErrCode.PROJECT_NOT_FOUND, "项目不存在或无权访问");
   return {
     ...p,
-    modules: p.modules as Record<string, boolean>,
+    modules: normalizeModules(p.modules),
     createdAt: p.createdAt.toISOString(),
   };
 }
@@ -171,7 +176,7 @@ export async function updateProject(projectId: string, actorId: string, input: P
       },
     })
     .catch(() => undefined);
-  return { ...updated, modules: updated.modules as Record<string, boolean> };
+  return { ...updated, modules: normalizeModules(updated.modules) };
 }
 
 /** 结束=只读（写端点统一 422 code 10005，由守卫 requireWritable 兜底）；开启恢复。 */

@@ -68,12 +68,18 @@ export default function LicensePage() {
   const s: LicenseStatus | undefined = statusQ.data;
   const enterprise = s?.edition === "ENTERPRISE";
   const expiringSoon = enterprise && (s?.daysLeft ?? 999) <= 30;
+  // ENTP-009：开源全功能模式（默认）——License 仅作授权信息，不门控任何功能
+  const gate = s?.featureGateEnabled ?? false;
 
   return (
     <div>
       <PageHeader
         title="授权管理"
-        sub="系统 › 授权管理 · 企业版功能总开关（License）"
+        sub={
+          gate
+            ? "系统 › 授权管理 · 企业版功能总开关（License）"
+            : "系统 › 授权管理 · 授权信息管理（开源全功能：License 不门控，ENTP-009）"
+        }
         extra={
           canUpdate && (
             <Space>
@@ -83,7 +89,7 @@ export default function LicensePage() {
                     更换
                   </Button>
                   <Popconfirm
-                    title="移除后回退社区版（多组织/SSO/多资源池等将锁定）"
+                    title={gate ? "移除后回退社区版（多组织/SSO/多资源池等将锁定）" : "移除授权信息（开源全功能模式下所有功能不受影响）"}
                     onConfirm={() => removeMut.mutate()}
                   >
                     <Button danger data-testid="btn-remove-license">
@@ -113,8 +119,10 @@ export default function LicensePage() {
           className="mb-4"
           message={
             s?.daysLeft === 0
-              ? "企业版授权已过期，企业功能已锁定（现有数据保留）"
-              : `企业版授权将于 ${s?.daysLeft} 天后到期，到期后企业功能将锁定`
+              ? "企业版授权已过期（现有数据保留）"
+              : gate
+                ? `企业版授权将于 ${s?.daysLeft} 天后到期，到期后企业功能将锁定`
+                : `企业版授权将于 ${s?.daysLeft} 天后到期（开源全功能模式，功能不受影响）`
           }
           data-testid="license-expire-banner"
         />
@@ -144,23 +152,40 @@ export default function LicensePage() {
             <p className="text-xs text-[#87888D]" data-testid="license-status-sub">
               {enterprise
                 ? `序列号 ${s?.lic ?? "—"} · 剩余 ${s?.daysLeft} 天（${s?.expiresAt?.slice(0, 10)} 到期） · 用户上限 ${s?.maxUsers ?? "不限"}`
-                : "开源许可 · 当前部署为社区版"}
+                : gate
+                  ? "开源许可 · 当前部署为社区版"
+                  : "开源全功能 · 所有能力开放，License 不门控（ENTP-009）"}
             </p>
           </div>
         </div>
         {!enterprise && (
           <div className="mt-3 border-t border-[#F0F1F3] pt-3">
-            <p className="text-xs text-[#646A73] mb-1.5">社区版容量与能力</p>
+            <p className="text-xs text-[#646A73] mb-1.5">
+              {gate ? "社区版容量与能力" : "开源版（全功能）"}
+            </p>
             <div
               className="grid grid-cols-2 gap-x-6 gap-y-1 text-xs text-[#646A73] md:grid-cols-3"
               data-testid="community-limits"
             >
-              <span>· 1 个组织</span>
-              <span>· 30 名用户</span>
-              <span>· 1 个默认资源池</span>
-              <span>· 默认主题</span>
-              <span>· 固定消息模板</span>
-              <span>· 账号密码登录</span>
+              {gate ? (
+                <>
+                  <span>· 1 个组织</span>
+                  <span>· 30 名用户</span>
+                  <span>· 1 个默认资源池</span>
+                  <span>· 默认主题</span>
+                  <span>· 固定消息模板</span>
+                  <span>· 账号密码登录</span>
+                </>
+              ) : (
+                <>
+                  <span>· 多组织 / 部门</span>
+                  <span>· 用户数不限</span>
+                  <span>· 多资源池</span>
+                  <span>· 自定义主题</span>
+                  <span>· 自定义消息模板 / SSO</span>
+                  <span>· 性能测试 / UI 测试</span>
+                </>
+              )}
             </div>
           </div>
         )}
@@ -195,6 +220,11 @@ export default function LicensePage() {
                   <Badge
                     status="processing"
                     text={<span data-testid={`feature-${enabled ? "on" : "off"}`}>已授权</span>}
+                  />
+                ) : !gate ? (
+                  <Badge
+                    status="success"
+                    text={<span data-testid="feature-on">已开放（开源版）</span>}
                   />
                 ) : (
                   <span className="text-xs text-[#A8ABB0]" data-testid="feature-state">
