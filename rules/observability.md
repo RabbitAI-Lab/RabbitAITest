@@ -45,12 +45,16 @@
 
 ## 6. 指标（QA-001 基线数据源）
 
-最小指标集（Prometheus 文本格式暴露 `/api/v1/system/metrics`，P2 起）：
+`GET /api/v1/system/metrics` 输出 Prometheus 文本格式（S8 INFRA-004 最小集 → S10 INFRA-007 v2 兑现并扩展；完整指标目录、鉴权矩阵、抓取配置与看板见 [docs/deployment/monitoring.md](../docs/deployment/monitoring.md)）：
 
-- 队列：待执行深度、执行中数量、dead 数（按 pool 分）
-- 引擎：并发槽占用率、任务 P50/P95 时长、采样错误分类码计数
-- Web：API P95（按路由组）、DB 慢查询计数（>200ms）
-- 业务：每日执行任务数、失败率、误报命中率
+- 队列（按池，label=BullMQ 队列名）：待执行深度、执行中、dead 数
+- 引擎（按池）：并发槽占用/容量（池心跳快照）、任务 P50/P95 时长（近 1h 终态）
+- Web：API 计数（路由组×状态类）、P50/P95 时延双口径——ms summary（512 样本滑窗）+ **seconds histogram 桶族**（加法式并存，跨副本 histogram_quantile 可聚合，INFRA-010）、DB 慢查询计数（admin+tenant 双 Prisma 通道 ≥200ms，`RABBIT_SLOW_QUERY_MS` 可调/0 关闭）
+- 业务：24h 任务分布与失败率、失败分类计数（FailureKind 四类+UNCLASSIFIED）、采样器/步骤错误分类码计数（dns/connect/tls/timeout 等结构化枚举，INFRA-008）、误报命中数与命中率
+- 进程运行时：`rabbit_process_*{process}`——web 自采（uptime/cpu/rss/heap/eventloop_lag，INFRA-008）+ engine 节点心跳 proc 快照（engine-{nodeId}，INFRA-009）+ mock 自暴露 `/metrics`（mock，INFRA-010）
+- 鉴权：会话或个人 APIKEY（`Authorization: Bearer ak.sk`），权限统一 `SYSTEM_METRICS:READ`；APIKEY 通道限流 30 次/分（mock `/metrics` 为内网支撑服务无鉴权，与 /healthz 同口径）
+
+指标 Backlog 已清零（INFRA-007~010）；未来事项非缺口：多副本成为默认形态时废止 ms summary（另行勘误）。
 
 ## 7. 排障包（失败任务自助定位）
 

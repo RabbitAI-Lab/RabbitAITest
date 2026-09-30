@@ -8,6 +8,7 @@ const MENU = [
   { href: "/personal", label: "个人信息", key: "me" },
   { href: "/personal/password", label: "修改密码", key: "password" },
   { href: "/personal/api-keys", label: "APIKEY", key: "api-keys" },
+  { href: "/personal/authorizations", label: "授权会话", key: "authorizations" },
   { href: "/personal/local-runner", label: "本地执行", key: "local-runner" },
   { href: "/personal/ai-model", label: "模型设置", key: "ai-model" },
 ];

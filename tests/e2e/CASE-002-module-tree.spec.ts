@@ -338,8 +338,10 @@ test("CASE-002-03 批量移动与模块计数、批量编辑、行分享、默�
   }
   expect(renamedOpened, "右键菜单「重命名」应在重试内可点开").toBe(true);
   const renamed = `未规划改名${uniq}`;
-  const dialog = page.getByRole("dialog");
-  await dialog.getByPlaceholder("模块名称").fill(renamed);
+  // INFRA-006 加固：前一步批量编辑 dialog 关闭动画未摘除时 getByRole('dialog') 双弹窗严格冲突 → fill 空转超时；
+  // 按可访问名锁定重命名弹窗（error-context 证实产品行为正确：弹窗开/值可填/确定可点，纯时序竞态）
+  const dialog = page.getByRole("dialog", { name: "重命名模块" });
+  await dialog.getByPlaceholder("模块名称").fill(renamed, { timeout: 15_000 });
   const renameApi = expectApi("**/api/v1/projects/*/modules/*", "PUT");
   await dialog.getByRole("button", { name: /^(确\s*定|OK)$/ }).click();
   const renameRes = await renameApi;

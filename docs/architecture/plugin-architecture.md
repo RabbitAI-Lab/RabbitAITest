@@ -15,9 +15,11 @@
 | ---------- | --------------------------------------------------------------- | -------------------------------- | ------------------------------------------------------------- |
 | 协议插件   | `SamplerPlugin`：构建采样器（解析协议配置 → 发包 → 标准化响应） | TS 插件包（tarball）             | TCP/SSH/Redis/MongoDB/WebSocket 等协议扩展（P4 起步）         |
 | 平台插件   | `PlatformPlugin`：缺陷/需求 CRUD、状态映射、附件、连接测试      | TS 插件包（tarball）             | Jira / 禅道 / TAPD 对接                                       |
-| 数据库驱动 | `DriverPlugin`：连接池 + query/execute                          | TS 插件包（tarball）+ 二进制驱动 | Oracle/SQLServer/达梦 等非内置数据源（内置 PostgreSQL/MySQL） |
+| 数据库驱动 | `DriverPlugin`：testConnection + query（参数绑定+只读事务）   | TS 插件包（tarball，驱动内联）   | PostgreSQL / MySQL / Oracle / SQL Server / 达梦 DM 五家（PLUG-004） |
 
 **明确决策：不兼容 pf4j/jar 生态**；插件只以本项目 SPI 分发（应用市场 = 仓库 release 附件）。
+
+**驱动来源铁律（PLUG-004 §0）**：五家驱动一律取自数据库厂商官方渠道（npm registry 官方来源，pnpm-lock 锁定），禁用飞致云应用商店再分发包；纯 TS 无 JVM，JDBC jar 不装载——「官方 JDBC 驱动」的等价实现 = 厂商官方 Node 驱动（pg / mysql2 / oracledb / mssql / dmdb，全部纯 JS 可内联）。勘误（PLUG-004）：原「内置 PostgreSQL/MySQL」口径调整为**五家统一 tarball 上传启用**；管理面连接测试对 PG 保留 web 内置直连（PROJ-003 交付语义延续、零上传可用），其余四家与执行面（SQL 处理器）一律走已启用驱动插件。
 
 ## 2. 隔离模型（与 pf4j 最大差异）
 

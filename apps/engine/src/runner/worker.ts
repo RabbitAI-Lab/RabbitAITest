@@ -11,6 +11,7 @@ import { postCallback } from "../callback.js";
 import { runScenarioItem, type ScenarioItemOutcome } from "../kernel/scenario.js";
 import { runPlanItem } from "../kernel/plan.js";
 import { startProtocolSync } from "../kernel/samplers/registry.js";
+import { startDriverSync } from "../kernel/drivers/registry.js";
 import { runStep } from "./step.js";
 import { runUiCase } from "../uit/runner.js";
 
@@ -412,6 +413,24 @@ export async function runTask(
   );
 }
 
+/** INFRA-009：进程运行时快照（心跳携带；Node 内建零依赖；导出供单测）。 */
+export function procSnapshot(): {
+  uptimeSeconds: number;
+  cpuSeconds: number;
+  rssBytes: number;
+  heapUsedBytes: number;
+} {
+  const cpu = process.cpuUsage();
+  const mem = process.memoryUsage();
+  const num = (n: number): number => (Number.isFinite(n) && n >= 0 ? n : 0);
+  return {
+    uptimeSeconds: num(process.uptime()),
+    cpuSeconds: num((cpu.user + cpu.system) / 1e6),
+    rssBytes: Math.round(num(mem.rss)),
+    heapUsedBytes: Math.round(num(mem.heapUsed)),
+  };
+}
+
 /** worker + 注册/心跳 v2（busy 槽位 + 在执任务清单 + 并发动态下发，EXEC-002 §2；ENTP-006 POOL_ID 池绑定）。 */
 export function startWorker(): void {
   const connection = new Redis(config.redisUrl, { maxRetriesPerRequest: null });
@@ -450,6 +469,7 @@ export function startWorker(): void {
           taskIds: [...inFlight],
           ts: Date.now(),
           poolId: config.enginePoolId,
+          proc: procSnapshot(), // INFRA-009：进程指标随心跳上报（web 摊入 nodes JSON）
         }),
       });
       if (res.ok) {
@@ -482,6 +502,8 @@ export function startWorker(): void {
   process.on("SIGTERM", () => void shutdown());
   // S6 PLUG-002：协议插件注册表周期同步（30s 轮询 web internal 清单；版本变更才拉包）
   startProtocolSync();
+  // PLUG-004：驱动插件注册表同模式同步（SQL 前后置执行面）
+  startDriverSync();
   logFor("engine").info(
     { version: VERSION, nodeId: NODE_ID, queue: queueName, poolId: config.enginePoolId },
     "worker started",

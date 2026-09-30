@@ -1,5 +1,6 @@
 /** Sprint 2 接口域契约（API-002/003/004/005、PROJ-003/004、SYS-006、RPT-002、CASE-006）。 */
 import { z } from "zod";
+import { DRIVERS, DRIVER_META } from "../plugins/driver-kit";
 import {
   assertSchema,
   envDatasourceSchema,
@@ -237,9 +238,22 @@ export const environmentImportSchema = z.object({
     .min(1)
     .max(50),
 });
-export const datasourceTestSchema = z.object({
-  url: z.string().regex(/^postgresql:\/\//, "仅支持 PostgreSQL 数据源"),
-});
+export const datasourceTestSchema = z
+  .object({
+    /** PLUG-004：连接测试随数据源 driver 泛化（PG 内置直连，其余走已启用驱动插件） */
+    driver: z.enum(DRIVERS),
+    url: z.string().min(1).max(512),
+  })
+  .superRefine((d, ctx) => {
+    const meta = DRIVER_META[d.driver];
+    if (!meta.urlRegex.test(d.url)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["url"],
+        message: `URL 须以 ${d.driver}:// 开头（示例 ${meta.urlPlaceholder}）`,
+      });
+    }
+  });
 
 // ── 文件管理（PROJ-004）──
 

@@ -37,7 +37,22 @@
     "pg": "^8.23.0",
     "turbo": "^2.3.3",
     "typescript": "^5.7.2",
-    "undici": "^7.3.0"
+    "undici": "^7.3.0",
+    "mysql2": "^3.24.4",
+    "oracledb": "^7.0.1",
+    "mssql": "^12.7.2",
+    "dmdb": "^1.0.52452",
+    "@types/pg": "^8.23.1",
+    "@types/oracledb": "^7.0.3",
+    "@types/mssql": "^12.3.0",
+    "ssh2": "^1.17.0",
+    "ioredis": "^5.8.2",
+    "mongodb": "^6.20.0",
+    "@grpc/grpc-js": "^1.14.1",
+    "@grpc/proto-loader": "^0.8.0",
+    "amqplib": "^0.10.9",
+    "@types/ssh2": "^1.15.6",
+    "@types/amqplib": "^0.10.8"
   },
   "engines": {
     "node": ">=20"

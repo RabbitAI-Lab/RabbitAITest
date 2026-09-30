@@ -26,3 +26,8 @@ export const E2E_HOST = new URL(E2E_BASE).host;
 
 /** e2e 栈 Redis（engine2 等测试内自起进程用——键空间含逻辑库号=slot） */
 export const E2E_REDIS = process.env.E2E_REDIS_URL ?? E.e2e.redisUrl;
+
+/** e2e 栈自带 embedded PG（PLUG-004：数据源连接测试/SQL 处理器真连目标——本栈内库，凭据为栈种子口径） */
+export const E2E_PG_URL =
+  process.env.E2E_DATABASE_URL ??
+  `postgresql://postgres:postgres@127.0.0.1:${E.e2e.pgPort}/${E.e2e.database}`;

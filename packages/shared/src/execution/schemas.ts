@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { DRIVERS, DRIVER_META } from "../plugins/driver-kit";
 import {
   uiStepSchema as uiStepSchemaForExec,
   uiCaseItemCommandSchema as uiCaseItemCommandSchemaForExec,
@@ -146,6 +147,19 @@ export const processorSchema = z.discriminatedUnion("kind", [
       .min(1)
       .max(16 * 1024),
     datasourceId: z.string().min(1).max(128),
+    /** 绑定参数（PLUG-004：{var} 引用运行时变量 / {value} 字面值，二选一；
+     * 值仅经驱动绑定通道传入，仓库不提供变量→SQL 文本的插值能力） */
+    params: z
+      .array(
+        z
+          .object({
+            var: z.string().min(1).max(128).optional(),
+            value: z.string().max(2048).optional(),
+          })
+          .refine((p) => (p.var !== undefined) !== (p.value !== undefined), "var 与 value 二选一"),
+      )
+      .max(32)
+      .default([]),
     /** 首行结果列 → 变量名映射（{colName: varName}），仅前置/后置 SQL 提取用 */
     varMapping: z.record(z.string().min(1).max(128), z.string().min(1).max(128)).default({}),
   }),
@@ -211,12 +225,24 @@ export const envHostMappingSchema = z.object({
   address: z.string().min(1).max(256),
 });
 
-export const envDatasourceSchema = z.object({
-  id: z.string().min(1).max(128),
-  name: z.string().min(1).max(128),
-  driver: z.literal("postgresql"),
-  url: z.string().min(1).max(512),
-});
+export const envDatasourceSchema = z
+  .object({
+    id: z.string().min(1).max(128),
+    name: z.string().min(1).max(128),
+    /** PLUG-004：driver 自 PostgreSQL 锁定放开为五家（白名单=shared DRIVERS） */
+    driver: z.enum(DRIVERS),
+    url: z.string().min(1).max(512),
+  })
+  .superRefine((d, ctx) => {
+    const meta = DRIVER_META[d.driver];
+    if (!meta.urlRegex.test(d.url)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["url"],
+        message: `URL 须以 ${d.driver}:// 开头（示例 ${meta.urlPlaceholder}）`,
+      });
+    }
+  });
 
 export const envSnapshotSchema = z.object({
   vars: z.record(z.string().min(1).max(128), z.string().max(8192)).default({}),
@@ -599,6 +625,8 @@ export const logFrame = z.object({
   message: z.string().max(4000),
   /** v3：log 子类（"vars-final"=场景变量终值 JSON 于 message；引擎/报告约定，additive） */
   kind: z.string().max(32).optional(),
+  /** INFRA-008：错误分类码（dns/connect/reset/tls/timeout/url/aborted/other_net/config/script——仅 level=error 步骤失败时携带；additive） */
+  code: z.string().max(32).optional(),
   stepPath: z.string().max(64).optional(),
 });
 /** v3：步骤跳过帧（disabled/condition/once/abort）——报告树灰色节点依据（API-006/RPT-003）。 */
@@ -666,7 +694,7 @@ export const execCallbackSchema = z.object({
 });
 export type ExecCallback = z.infer<typeof execCallbackSchema>;
 
-/** 心跳与注册（EXEC-002 v2：slots=总并发，busy=在执数；响应下发 maxConcurrency；poolId=S9 ENTP-006 引擎绑定池，缺省默认池兼容旧引擎）。 */
+/** 心跳与注册（EXEC-002 v2：slots=总并发，busy=在执数；响应下发 maxConcurrency；poolId=S9 ENTP-006 引擎绑定池，缺省默认池兼容旧引擎；proc=INFRA-009 进程指标快照，additive 可选——旧引擎无此字段照常注册，web 摊入 nodes JSON）。 */
 export const heartbeatSchema = z.object({
   nodeId: z.string(),
   version: z.string(),
@@ -674,6 +702,15 @@ export const heartbeatSchema = z.object({
   busy: z.number().int().default(0),
   ts: z.number(),
   poolId: z.string().uuid().optional(),
+  /** INFRA-009：engine 进程运行时快照（Node 内建采集；可选——旧引擎缺省兼容）。 */
+  proc: z
+    .object({
+      uptimeSeconds: z.number(),
+      cpuSeconds: z.number(),
+      rssBytes: z.number(),
+      heapUsedBytes: z.number(),
+    })
+    .optional(),
 });
 export type Heartbeat = z.infer<typeof heartbeatSchema>;
 

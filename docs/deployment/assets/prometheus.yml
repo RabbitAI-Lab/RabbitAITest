@@ -1,0 +1,43 @@
+# RabbitAITest 抓取配置示例（完整文档见 docs/deployment/monitoring.md）
+# 凭据：Web「个人设置 → APIKEY」创建（sk 仅返回一次）；属主须具备 SYSTEM_METRICS:READ。
+# 单 key 限流 30 次/分钟——scrape_interval 不要低于 2s（默认 15s 余量充足）。
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: rabbitaitest
+    metrics_path: /api/v1/system/metrics
+    scrape_interval: 15s
+    scrape_timeout: 10s
+    # 形态 A：Bearer ak.sk
+    authorization:
+      type: Bearer
+      credentials: "rak_CHANGE_ME.sk_CHANGE_ME"
+    # 形态 B（二选一）：Basic ak:sk
+    # basic_auth:
+    #   username: "rak_CHANGE_ME"
+    #   password: "sk_CHANGE_ME"
+    static_configs:
+      - targets: ["rabbit-web:3000"]
+        labels:
+          env: production
+
+  # INFRA-010：mock 进程指标自暴露（内网直抓无凭据——与 mock /healthz 同口径，生产不公网暴露）
+  - job_name: rabbitaitest-mock
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["rabbit-mock:4000"]
+        labels:
+          env: production
+
+  # ── 平台组件 exporter（按需启用：替换 target 后去注释；说明见 monitoring.md §5）──
+  # - job_name: postgres            # docker run -d -p 9187:9187 -e DATA_SOURCE_NAME=... prometheuscommunity/postgres_exporter
+  #   static_configs:
+  #     - targets: ["postgres-exporter:9187"]
+  # - job_name: redis               # docker run -d -p 9121:9121 -e REDIS_ADDR=redis://redis:6379 oliver006/redis_exporter
+  #   static_configs:
+  #     - targets: ["redis-exporter:9121"]
+  # - job_name: node                # 宿主机（与 rabbit_process_* 互补：机器 vs 进程）
+  #   static_configs:
+  #     - targets: ["node-exporter:9100"]

@@ -660,6 +660,14 @@ export async function createScenarioTask(
   return { taskId: created.id, warnings };
 }
 
+/** INFRA-008：从条目帧提取首个错误分类码（engine 错误 log 帧 additive 字段 code；导出供单测）。 */
+export function errorCodeOfFrames(
+  frames: Array<{ type: string; code?: unknown; [k: string]: unknown }>,
+): string | undefined {
+  const hit = frames.find((f) => f.type === "log" && typeof f.code === "string");
+  return hit ? (hit.code as string) : undefined;
+}
+
 export async function handleCallback(taskId: string, cb: ExecCallback) {
   const task = await prisma.execTask.findFirst({
     where: { id: taskId },
@@ -777,11 +785,13 @@ export async function handleCallback(taskId: string, cb: ExecCallback) {
             };
           }
         }
+        // INFRA-008：步骤错误分类码冗余进 result（FAKE_ERROR 改判后仍保留；指标聚合走 item 行）
+        const errCode = errorCodeOfFrames(itemFrames);
         await tx.execItem.update({
           where: { id: item.id },
           data: {
             status,
-            result: resultPayload,
+            result: errCode ? { ...resultPayload, errorCode: errCode } : resultPayload,
             startedAt: startedAt ? new Date(startedAt.ts) : null,
             finishedAt: new Date(),
           },
@@ -831,13 +841,19 @@ export async function handleCallback(taskId: string, cb: ExecCallback) {
         if (planId) await tx.report.updateMany({ where: { taskId }, data: { planId } });
       }
     } else {
-      // api_debug（S0 兼容）：单 item 落库
+      // api_debug（S0 兼容）：单 item 落库（INFRA-008：result 补齐并携带错误分类码）
+      const dbgCode = errorCodeOfFrames(frames);
       const item = await tx.execItem.create({
         data: {
           taskId,
           refType: "api_debug",
           refId: "",
           status: cb.outcome === "success" ? "SUCCESS" : "FAILED",
+          result: {
+            status: cb.outcome === "success" ? "SUCCESS" : "FAILED",
+            message: cb.message ?? "",
+            ...(dbgCode ? { errorCode: dbgCode } : {}),
+          },
         },
       });
       if (frames.length > 0) {

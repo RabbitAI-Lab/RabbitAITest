@@ -31,6 +31,7 @@ model User {
   projectMembers     ProjectMember[]
   groupMembers       GroupMember[]
   apiKeys            ApiKey[]
+  oauthGrants        OAuthGrant[]
   follows            Follow[]
   comments           Comment[]
   changeLogs         ChangeLog[]
@@ -313,6 +314,53 @@ model ApiKey {
 
   @@index([prefix])
   @@map("api_keys")
+}
+
+/// SYS-009：OAuth Device Flow 待授权码（RFC 8628；10 分钟一次性，status CONSUMED 防双花）
+model OAuthDeviceCode {
+  id             String    @id @default(uuid())
+  clientId       String    @default("rabbit-cli") @map("client_id") @db.VarChar(64)
+  deviceCodeHash String    @map("device_code_hash") @db.VarChar(128)
+  userCode       String    @map("user_code") @db.VarChar(16)
+  scope          String    @db.VarChar(64)
+  status         String    @default("PENDING") @db.VarChar(16) // PENDING | APPROVED | DENIED | CONSUMED
+  userId         String?   @map("user_id")
+  ip             String?   @db.VarChar(64)
+  userAgent      String?   @map("user_agent") @db.VarChar(256)
+  approveFails   Int       @default(0) @map("approve_fails")
+  expiresAt      DateTime  @map("expires_at")
+  approvedAt     DateTime? @map("approved_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  @@index([deviceCodeHash])
+  @@index([userCode])
+  @@map("oauth_device_codes")
+}
+
+/// SYS-009：OAuth 授权会话（一次 device flow 登录=一行 family；refresh 旋转原行更新，
+/// prevRefreshHash 保留旧值哈希——重放检测命中即整会话吊销）
+model OAuthGrant {
+  id               String    @id @default(uuid())
+  userId           String    @map("user_id")
+  user             User      @relation(fields: [userId], references: [id])
+  clientId         String    @default("rabbit-cli") @map("client_id") @db.VarChar(64)
+  deviceName       String?   @map("device_name") @db.VarChar(128)
+  scope            String    @db.VarChar(64)
+  status           String    @default("ACTIVE") @db.VarChar(16) // ACTIVE | REVOKED
+  accessTokenHash  String    @map("access_token_hash") @db.VarChar(128)
+  accessExpiresAt  DateTime  @map("access_expires_at")
+  prevRefreshHash  String?   @map("prev_refresh_hash") @db.VarChar(128)
+  refreshTokenHash String?   @map("refresh_token_hash") @db.VarChar(128)
+  refreshExpiresAt DateTime? @map("refresh_expires_at")
+  lastUsedAt       DateTime? @map("last_used_at")
+  rotatedAt        DateTime? @map("rotated_at")
+  ip               String?   @db.VarChar(64)
+  createdAt        DateTime  @default(now()) @map("created_at")
+  revokedAt        DateTime? @map("revoked_at")
+
+  @@index([accessTokenHash])
+  @@index([userId])
+  @@map("oauth_grants")
 }
 
 /// 组织级三方平台服务集成（INTG-001/002：地址+凭据密文；一组织一平台一条）

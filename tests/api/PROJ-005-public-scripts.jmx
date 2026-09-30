@@ -406,6 +406,13 @@
           <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
         </HTTPSamplerProxy>
         <hashTree>
+          <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="提取 SCRIPT_NAME">
+            <stringProp name="JSONPostProcessor.referenceNames">SCRIPT_NAME</stringProp>
+            <stringProp name="JSONPostProcessor.jsonPathExprs">$.data.name</stringProp>
+            <stringProp name="JSONPostProcessor.match_numbers">1</stringProp>
+            <stringProp name="JSONPostProcessor.defaultValues">NOT_FOUND</stringProp>
+          </JSONPostProcessor>
+          <hashTree/>
           <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="提取 SCRIPT2">
             <stringProp name="JSONPostProcessor.referenceNames">SCRIPT2</stringProp>
             <stringProp name="JSONPostProcessor.jsonPathExprs">$.data.id</stringProp>
@@ -436,7 +443,7 @@
             <collectionProp name="Arguments.arguments">
               <elementProp name="" elementType="HTTPArgument">
                 <boolProp name="HTTPArgument.always_encode">false</boolProp>
-                <stringProp name="Argument.value">{&quot;name&quot;:&quot;jm-err-${__time(yyyyMMddHHmmss)}&quot;,&quot;language&quot;:&quot;javascript&quot;,&quot;tags&quot;:[],&quot;params&quot;:[],&quot;content&quot;:&quot;&quot;}</stringProp>
+                <stringProp name="Argument.value">{&quot;name&quot;:&quot;${SCRIPT_NAME}&quot;,&quot;language&quot;:&quot;javascript&quot;,&quot;tags&quot;:[],&quot;params&quot;:[],&quot;content&quot;:&quot;&quot;}</stringProp>
                 <stringProp name="Argument.metadata">=</stringProp>
               </elementProp>
             </collectionProp>

@@ -1,19 +1,15 @@
 #!/usr/bin/env node
 /**
- * S11 JMeter 用例生成器：LOAD-003 性能测试 / UIT-002 UI 测试 两份计划。
- * rules/testing §2：四类场景（正常/401·403·404/422/分页信封）× 四项断言（HTTP/code/JSONPath/耗时）。
- * License 门控（ENTP-007 口径）：生成期同密钥预计算 License UDV（含 LOAD_TEST/UI_TEST 特性）；
- * G0 组 admin 登录+License 幂等覆盖；门控断言=403·90001（无 License 组先移除 License 再断言）。
- * 栈前提：api-test-stack.sh（OUTBOUND_ALLOW_PRIVATE=1、LICENSE_SIGNING_SECRET 缺省同密钥）。
- * 生成物提交入库；重跑 --force 覆盖。
+ * Sprint 11 JMeter 用例生成器：tests/api/SYS-009-oauth-token-channel.jmx。
+ * 规范 rules/testing §2：四类场景（正常/401·403/422/列表信封）×四项断言。
+ * 说明：oauth/device/code 与 oauth/token 为 RFC 8628 原生形状（无 {code,data} 信封）——
+ * 该两采样器 raw=true 跳过 code 断言，以关键字段断言（$.error/$.device_code/$.access_token）替代。
  */
-import { writeFileSync, mkdirSync, existsSync } from "node:fs";
+import { writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { createHmac, randomUUID } from "node:crypto";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const FORCE = process.argv.includes("--force");
 const OUT = path.join(ROOT, "tests/api");
 
 const esc = (s) =>
@@ -27,10 +23,10 @@ const esc = (s) =>
     .split('"')
     .join("&quot;");
 
-/** 采样器：四项断言；status>=400 assume_success；extract=JSONPostProcessor。 */
+/** 采样器四项断言（HTTP/code/关键字段/耗时）；raw=true 跳过信封 code 断言（RFC 形状端点）。 */
 function sampler(d) {
   const status = d.status ?? 200;
-  const code = d.code ?? 0;
+  const code = d.raw ? null : (d.code ?? 0);
   const assume =
     status >= 400 ? `\n            <boolProp name="Assertion.assume_success">true</boolProp>` : "";
   const assertions = [];
@@ -41,14 +37,16 @@ function sampler(d) {
             <intProp name="Assertion.test_type">8</intProp>
           </ResponseAssertion>
           <hashTree/>`);
-  assertions.push(`
+  if (code !== null) {
+    assertions.push(`
           <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="code=${code}">
             <stringProp name="JSON_PATH">$.code</stringProp>
             <stringProp name="EXPECTED_VALUE">${code}</stringProp>
             <boolProp name="JSONVALIDATION">true</boolProp>
           </JSONPathAssertion>
           <hashTree/>`);
-  for (const [jp, expect] of d.field ? [d.field] : []) {
+  }
+  for (const [jp, expect] of d.fields ?? []) {
     assertions.push(`
           <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="field ${jp}=${esc(expect)}">
             <stringProp name="JSON_PATH">${esc(jp)}</stringProp>
@@ -57,7 +55,7 @@ function sampler(d) {
           </JSONPathAssertion>
           <hashTree/>`);
   }
-  for (const [jp, frag] of d.contains ? [d.contains] : []) {
+  for (const [jp, frag] of d.contains ?? []) {
     assertions.push(`
           <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="contains ${esc(frag)}">
             <stringProp name="JSON_PATH">${esc(jp)}</stringProp>
@@ -71,7 +69,7 @@ function sampler(d) {
             <stringProp name="DurationAssertion.duration">${d.duration ?? 3000}</stringProp>
           </DurationAssertion>
           <hashTree/>`);
-  const extractDefs = (d.extracts ?? (d.extract ? [d.extract] : []))
+  const extracts = (d.extracts ?? [])
     .map(
       (e) => `
           <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="提取 ${e.var}">
@@ -83,14 +81,17 @@ function sampler(d) {
           <hashTree/>`,
     )
     .join("");
-  const jsr = d.jsr223
-    ? `
-          <JSR223PostProcessor guiclass="TestBeanGUI" testclass="JSR223PostProcessor" testname="props 桥 ${esc(d.jsr223.name ?? "")}">
+  // 变量→JMeter 属性桥（跨线程组传递：Bearer 负向断言须在无 cookie 组执行——session 会遮蔽 token 失效面）
+  const setProps = (d.setProps ?? [])
+    .map(
+      ([varName, propName]) => `
+          <JSR223PostProcessor guiclass="TestBeanGUI" testclass="JSR223PostProcessor" testname="prop ${propName}">
             <stringProp name="scriptLanguage">groovy</stringProp>
-            <stringProp name="script">${esc(d.jsr223.script)}</stringProp>
+            <stringProp name="script">props.put("${propName}", vars.get("${varName}"))</stringProp>
           </JSR223PostProcessor>
-          <hashTree/>`
-    : "";
+          <hashTree/>`,
+    )
+    .join("");
   let bodyProp = "";
   if (d.body !== undefined) {
     bodyProp = `
@@ -104,15 +105,48 @@ function sampler(d) {
             </collectionProp>
           </elementProp>`;
   }
+  // form 裸体模式：值含 % 的预编码体会被 JMeter 二次编码（%3A→%253A）——
+  // postBodyRaw 直发原始字节（SYS-009 的 RFC 8628 form 端点专用）
+  if (d.postRaw) {
+    bodyProp = `
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                <stringProp name="Argument.value">${esc(d.body)}</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>`;
+  }
+  const mgr = (d.headers ?? [])
+    .map(
+      ([k, v]) => `
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">${esc(k)}</stringProp>
+                <stringProp name="Header.value">${esc(v)}</stringProp>
+              </elementProp>`,
+    )
+    .join("");
+  const headers = mgr
+    ? `
+          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="Headers">
+            <collectionProp name="HeaderManager.headers">${mgr}
+            </collectionProp>
+          </HeaderManager>
+          <hashTree/>`
+    : "";
   return `
         <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="${esc(d.name)}">${bodyProp}
           <stringProp name="HTTPSampler.domain">\${__P(HOST,localhost)}</stringProp>
           <stringProp name="HTTPSampler.port">\${__P(PORT,3100)}</stringProp>
           <stringProp name="HTTPSampler.path">${esc(d.path)}</stringProp>
           <stringProp name="HTTPSampler.method">${d.method}</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">${d.noFollow ? "false" : "true"}</boolProp>
           <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
         </HTTPSamplerProxy>
-        <hashTree>${extractDefs}${jsr}${assertions.join("")}
+        <hashTree>${headers}${extracts}${setProps}${assertions.join("")}
         </hashTree>`;
 }
 
@@ -167,596 +201,312 @@ function plan(title, vars, groups) {
 `;
 }
 
-// ═══════ License 签发（与 web 同密钥同算法；含 LOAD_TEST/UI_TEST 特性） ═══════
-const SECRET = process.env.LICENSE_SIGNING_SECRET ?? "rabbit-dev-license-secret";
-function issueLicense(payload) {
-  const seg = Buffer.from(JSON.stringify(payload), "utf8").toString("base64url");
-  const sig = createHmac("sha256", SECRET).update(seg).digest("base64url");
-  return `RABBIT-ENT1.${seg}.${sig}`;
-}
-const LIC_FULL = issueLicense({
-  lic: `RAB-JMX-S11-${randomUUID().slice(0, 8).toUpperCase()}`,
-  edition: "ENTERPRISE",
-  issuedAt: new Date().toISOString(),
-  expiresAt: new Date(Date.now() + 365 * 86_400_000).toISOString(),
-  features: ["LOAD_TEST", "UI_TEST"],
-});
-// 特性缺失 License（不含 LOAD_TEST——断言 90005 特性未授权）
-const LIC_NO_LOAD = issueLicense({
-  lic: `RAB-JMX-NOL-${randomUUID().slice(0, 8).toUpperCase()}`,
-  edition: "ENTERPRISE",
-  issuedAt: new Date().toISOString(),
-  expiresAt: new Date(Date.now() + 365 * 86_400_000).toISOString(),
-  features: ["UI_TEST"],
-});
-
 const TS = "${__time(yyyyMMddHHmmss)}";
-const ADMIN_LOGIN = { email: "admin@rabbit.test", password: "rabbit-admin-123" };
-const MOCK_BASE = "http://${__P(MOCKHOST,127.0.0.1)}:${__P(MOCKPORT,4020)}";
+const ADMIN = { email: "admin@rabbit.test", password: "rabbit-admin-123" };
+const DEVICE_GRANT = "urn:ietf:params:oauth:grant-type:device_code";
+const form = (pairs) => pairs.map(([k, v]) => `${k}=${v}`).join("&");
 
-/** G0：admin 登录 → 添加全特性 License（幂等覆盖）。 */
-const adminWithLicense = [
+const loginSampler = () =>
   sampler({
-    name: "G0 admin 登录",
-    method: "POST",
+    name: "登录（admin 种子）",
     path: "/api/v1/auth/login",
-    body: ADMIN_LOGIN,
-    field: ["$.code", "0"],
-  }),
-  sampler({
-    name: "G0 添加 License（含 LOAD_TEST/UI_TEST）",
     method: "POST",
-    path: "/api/v1/system/license",
-    body: { code: "${LICENSE}" },
-    field: ["$.data.edition", "ENTERPRISE"],
-  }),
-];
+    body: ADMIN,
+    headers: [["Content-Type", "application/json"]],
+    fields: [["$.data.email", ADMIN.email]],
+  });
 
-/** G9：admin 终态清理——移除 License（还原社区版，防污染后续计划）。 */
-const adminCleanup = [
+// ══════ G1 正常路径（cookie 组）：登录→发码→pending→批准→交换→旋转→重放 ══════
+const g1 = threadGroup("SYS-009-T1 正常路径", [
+  loginSampler(),
   sampler({
-    name: "G9 admin 回会话",
+    name: "device/code 发码（RFC 形状）",
+    path: "/api/v1/oauth/device/code",
     method: "POST",
-    path: "/api/v1/auth/login",
-    body: ADMIN_LOGIN,
-    field: ["$.code", "0"],
+    raw: true,
+    body: form([["client_id", "rabbit-cli"], ["scope", "read,exec"]]),
+    headers: [["Content-Type", "application/x-www-form-urlencoded"]],
+    fields: [["$.expires_in", "600"]],
+    contains: [
+      ["$.device_code", "rdc_"],
+      ["$.user_code", "-"],
+      ["$.verification_uri_complete", "/oauth/device?code="],
+    ],
+    extracts: [
+      { var: "DEVICE_CODE", path: "$.device_code" },
+      { var: "USER_CODE", path: "$.user_code" },
+    ],
   }),
   sampler({
-    name: "G9 移除 License（还原社区版）",
+    name: "token 轮询（未批准→authorization_pending）",
+    path: "/api/v1/oauth/token",
+    method: "POST",
+    status: 400,
+    raw: true,
+    body: form([
+      ["grant_type", DEVICE_GRANT],
+      ["device_code", "${DEVICE_CODE}"],
+      ["client_id", "rabbit-cli"],
+    ]),
+    headers: [["Content-Type", "application/x-www-form-urlencoded"]],
+    fields: [["$.error", "authorization_pending"]],
+  }),
+  sampler({
+    name: "approve 批准（session）",
+    path: "/api/v1/oauth/device/approve",
+    method: "POST",
+    body: { userCode: "${USER_CODE}", approve: true },
+    headers: [["Content-Type", "application/json"]],
+    fields: [["$.data.approved", "true"]],
+  }),
+  sampler({
+    name: "token 交换（→access/refresh）",
+    path: "/api/v1/oauth/token",
+    method: "POST",
+    raw: true,
+    body: form([
+      ["grant_type", DEVICE_GRANT],
+      ["device_code", "${DEVICE_CODE}"],
+      ["client_id", "rabbit-cli"],
+    ]),
+    headers: [["Content-Type", "application/x-www-form-urlencoded"]],
+    fields: [
+      ["$.expires_in", "7200"],
+      ["$.scope", "read,exec"],
+      ["$.token_type", "Bearer"],
+    ],
+    contains: [
+      ["$.access_token", "rat_"],
+      ["$.refresh_token", "rrt_"],
+    ],
+    extracts: [
+      { var: "AT", path: "$.access_token" },
+      { var: "RT", path: "$.refresh_token" },
+    ],
+    setProps: [["AT", "AT"]],
+  }),
+  sampler({
+    name: "refresh 旋转（新 access）",
+    path: "/api/v1/oauth/token",
+    method: "POST",
+    raw: true,
+    body: form([
+      ["grant_type", "refresh_token"],
+      ["refresh_token", "${RT}"],
+    ]),
+    headers: [["Content-Type", "application/x-www-form-urlencoded"]],
+    contains: [["$.access_token", "rat_"]],
+    extracts: [
+      { var: "AT2", path: "$.access_token" },
+      { var: "RT2", path: "$.refresh_token" },
+    ],
+    setProps: [["AT2", "AT2"]],
+  }),
+  sampler({
+    name: "重放旧 refresh（→invalid_grant）",
+    path: "/api/v1/oauth/token",
+    method: "POST",
+    status: 400,
+    raw: true,
+    body: form([
+      ["grant_type", "refresh_token"],
+      ["refresh_token", "${RT}"],
+    ]),
+    headers: [["Content-Type", "application/x-www-form-urlencoded"]],
+    fields: [["$.error", "invalid_grant"]],
+  }),
+]);
+
+// ══════ G2a read-scope 取证（cookie 组：approve 需 session；AT_RO 桥接属性）══════
+const g2a = threadGroup("SYS-009-T2a read-scope 取证", [
+  loginSampler(),
+  sampler({
+    name: "read-scope 发码",
+    path: "/api/v1/oauth/device/code",
+    method: "POST",
+    raw: true,
+    body: form([["client_id", "rabbit-cli"], ["scope", "read"]]),
+    headers: [["Content-Type", "application/x-www-form-urlencoded"]],
+    contains: [["$.device_code", "rdc_"]],
+    extracts: [
+      { var: "D2", path: "$.device_code" },
+      { var: "U2", path: "$.user_code" },
+    ],
+  }),
+  sampler({
+    name: "read-scope 批准",
+    path: "/api/v1/oauth/device/approve",
+    method: "POST",
+    body: { userCode: "${U2}", approve: true },
+    headers: [["Content-Type", "application/json"]],
+    fields: [["$.data.approved", "true"]],
+  }),
+  sampler({
+    name: "read-scope 交换",
+    path: "/api/v1/oauth/token",
+    method: "POST",
+    raw: true,
+    body: form([["grant_type", DEVICE_GRANT], ["device_code", "${D2}"]]),
+    headers: [["Content-Type", "application/x-www-form-urlencoded"]],
+    fields: [["$.scope", "read"]],
+    extracts: [{ var: "AT_RO", path: "$.access_token" }],
+    setProps: [["AT_RO", "AT_RO"]],
+  }),
+]);
+
+// ══════ G2b Bearer 负向断言（无 cookie 组——session 会遮蔽 token 失效面）══════
+const g2b = threadGroup(
+  "SYS-009-T2b Bearer 越权/失效（无 cookie）",
+  [
+    sampler({
+      name: "伪造 access token→401",
+      path: "/api/v1/personal/me",
+      method: "GET",
+      status: 401,
+      code: 10001,
+      headers: [["Authorization", "Bearer rat_forged-token-jmx"]],
+      fields: [["$.code", "10001"]],
+    }),
+    sampler({
+      name: "伪造 device_code→expired_token",
+      path: "/api/v1/oauth/token",
+      method: "POST",
+      status: 400,
+      raw: true,
+      body: form([
+        ["grant_type", DEVICE_GRANT],
+        ["device_code", "rdc_jmx-forged"],
+      ]),
+      headers: [["Content-Type", "application/x-www-form-urlencoded"]],
+      fields: [["$.error", "expired_token"]],
+    }),
+    sampler({
+      name: "read token 写操作→403 10003（scope 缺 write）",
+      path: "/api/v1/personal/api-keys",
+      method: "POST",
+      status: 403,
+      code: 10003,
+      body: { name: "jmx-scope" },
+      headers: [
+        ["Content-Type", "application/json"],
+        ["Authorization", "Bearer ${__P(AT_RO)}"],
+      ],
+      fields: [["$.code", "10003"]],
+      contains: [["$.message", "scope"]],
+    }),
+    sampler({
+      name: "read token 读操作→200（scope 允许）",
+      path: "/api/v1/personal/api-keys",
+      method: "GET",
+      headers: [["Authorization", "Bearer ${__P(AT_RO)}"]],
+    }),
+    sampler({
+      name: "重放后全家吊销（旋转 access→401）",
+      path: "/api/v1/personal/me",
+      method: "GET",
+      status: 401,
+      code: 10001,
+      headers: [["Authorization", "Bearer ${__P(AT2)}"]],
+      fields: [["$.code", "10001"]],
+    }),
+    sampler({
+      name: "oauth/revoke 登出（豁免 scope）",
+      path: "/api/v1/oauth/revoke",
+      method: "POST",
+      body: {},
+      headers: [
+        ["Content-Type", "application/json"],
+        ["Authorization", "Bearer ${__P(AT_RO)}"],
+      ],
+      fields: [["$.data.revoked", "true"]],
+    }),
+    sampler({
+      name: "吊销后再用→401",
+      path: "/api/v1/personal/me",
+      method: "GET",
+      status: 401,
+      code: 10001,
+      headers: [["Authorization", "Bearer ${__P(AT_RO)}"]],
+      fields: [["$.code", "10001"]],
+    }),
+  ],
+  false,
+);
+
+// ══════ G3 校验类（422/400 参数面）══════
+const g3 = threadGroup("SYS-009-T3 校验失败", [
+  loginSampler(),
+  sampler({
+    name: "approve 坏 user_code→422 10030",
+    path: "/api/v1/oauth/device/approve",
+    method: "POST",
+    status: 422,
+    code: 10030,
+    body: { userCode: "ZZZZ-ZZZZ", approve: true },
+    headers: [["Content-Type", "application/json"]],
+    fields: [["$.code", "10030"]],
+  }),
+  sampler({
+    name: "approve 缺字段→422",
+    path: "/api/v1/oauth/device/approve",
+    method: "POST",
+    status: 422,
+    code: 20422,
+    body: { userCode: "ABCD-EFGH" },
+    headers: [["Content-Type", "application/json"]],
+    fields: [["$.code", "20422"]],
+  }),
+  sampler({
+    name: "device/code 非法 scope→invalid_scope",
+    path: "/api/v1/oauth/device/code",
+    method: "POST",
+    status: 400,
+    raw: true,
+    body: form([["client_id", "rabbit-cli"], ["scope", "admin"]]),
+    headers: [["Content-Type", "application/x-www-form-urlencoded"]],
+    fields: [["$.error", "invalid_scope"]],
+  }),
+  sampler({
+    name: "token 未知 grant_type→unsupported",
+    path: "/api/v1/oauth/token",
+    method: "POST",
+    status: 400,
+    raw: true,
+    body: form([["grant_type", "password"]]),
+    headers: [["Content-Type", "application/x-www-form-urlencoded"]],
+    fields: [["$.error", "unsupported_grant_type"]],
+  }),
+]);
+
+// ══════ G4 列表信封：授权会话（含分页语义 data 数组）══════
+const g4 = threadGroup("SYS-009-T4 授权会话列表信封", [
+  loginSampler(),
+  sampler({
+    name: "授权会话列表（session）",
+    path: "/api/v1/personal/authorizations",
+    method: "GET",
+    fields: [["$.code", "0"]],
+    contains: [
+      ["$.data[0].clientId", "rabbit-cli"],
+      ["$.data[0].scope", "read"],
+    ],
+  }),
+  sampler({
+    name: "全部吊销（DELETE）",
+    path: "/api/v1/personal/authorizations",
     method: "DELETE",
-    path: "/api/v1/system/license",
-    field: ["$.data.edition", "COMMUNITY"],
+    fields: [["$.code", "0"]],
+    contains: [["$.data.revoked", "0"]],
   }),
-];
-
-/** 注册+取项目（emailVar：线程组独立邮箱变量——__time 秒级求值，共享变量同秒撞邮箱=10101 已注册）。 */
-const registerSetup = (emailVar = "EMAIL") => [
   sampler({
-    name: "T0 注册并取会话+项目",
-    method: "POST",
-    path: "/api/v1/auth/register",
-    body: { email: `\${${emailVar}}`, password: "rabbit-pass-123" },
-    status: 201,
-    contains: ["$.data.projectId", "-"],
-    extract: { var: "PROJECT_ID", path: "$.data.projectId" },
-    duration: 8000,
-    jsr223: { name: "PROJECT_ID→props（跨组）", script: "props.put('PROJECT_ID', vars.get('PROJECT_ID'))" },
+    name: "吊销后再列（数组仍在，状态 REVOKED）",
+    path: "/api/v1/personal/authorizations",
+    method: "GET",
+    fields: [["$.code", "0"]],
+    contains: [["$.data[0].status", "REVOKED"]],
   }),
-];
+]);
 
-const files = new Map();
-const emit = (name, title, vars, groups) => files.set(name, plan(title, vars, groups));
-
-// ═══════ LOAD-003 性能测试 ═══════
-emit(
-  "LOAD-003-load-tests.jmx",
-  "LOAD-003 性能测试（CRUD/执行/停止/门控；四类场景）",
-  {
-    EMAIL: `jm-load3-a-${TS}@rabbit.test`,
-    EMAIL_G2: `jm-load3-b-${TS}@rabbit.test`,
-    EMAIL_G5: `jm-load3-c-${TS}@rabbit.test`,
-    EMAIL_G6: `jm-load3-d-${TS}@rabbit.test`,
-    LICENSE: LIC_FULL,
-    LICENSE_NO_LOAD: LIC_NO_LOAD,
-    TS,
-  },
-  [
-    threadGroup("G0 admin+License（全特性）", adminWithLicense),
-    threadGroup("G1 施压计划 CRUD 主链（正常+分页）", [
-      ...registerSetup(),
-      sampler({
-        name: "T1-1 新建施压计划（tps 模式，mock /perf/echo）",
-        method: "POST",
-        path: "/api/v1/projects/${PROJECT_ID}/load-tests",
-        body: {
-          name: "jm-基线压测${TS}",
-          target: { method: "GET", url: `${MOCK_BASE}/perf/echo` },
-          pressure: { mode: "tps", durationSec: 10, targetTps: 5, rampSec: 2 },
-          thresholds: { okRateMin: 50, p95MsMax: 5000, avgMsMax: 3000 },
-        },
-        status: 201,
-        extract: { var: "LT_ID", path: "$.data.id" },
-        contains: ["$.data.id", "-"],
-        jsr223: { name: "LT_ID→props", script: "props.put('LT_ID', vars.get('LT_ID'))" },
-      }),
-      sampler({
-        name: "T1-2 列表含新计划（分页信封）",
-        method: "GET",
-        path: "/api/v1/projects/${PROJECT_ID}/load-tests?page=1&pageSize=20",
-        contains: ["$.data.list[?(@.id=='${LT_ID}')].name", "jm-基线压测"],
-        extracts: [
-          { var: "LT_TOTAL", path: "$.data.total" },
-          { var: "LT_PAGE", path: "$.data.page" },
-        ],
-        jsr223: {
-          name: "分页信封核对",
-          script: "if (vars.get('LT_TOTAL') == 'NOT_FOUND' || vars.get('LT_PAGE') != '1') { prev.setSuccessful(false); prev.setResponseMessage('分页信封缺失 total/page') }",
-        },
-      }),
-      sampler({
-        name: "T1-3 详情回读",
-        method: "GET",
-        path: "/api/v1/projects/${PROJECT_ID}/load-tests/${LT_ID}",
-        field: ["$.data.pressure.targetTps", "5"],
-      }),
-      sampler({
-        name: "T1-4 更新（改 TPS）",
-        method: "PUT",
-        path: "/api/v1/projects/${PROJECT_ID}/load-tests/${LT_ID}",
-        body: { pressure: { mode: "tps", durationSec: 12, targetTps: 8, rampSec: 3 } },
-        field: ["$.data.pressure.targetTps", "8"],
-      }),
-      sampler({
-        name: "T1-5 删除（软删）",
-        method: "DELETE",
-        path: "/api/v1/projects/${PROJECT_ID}/load-tests/${LT_ID}",
-        field: ["$.data.id", "${LT_ID}"],
-      }),
-      sampler({
-        name: "T1-6 删除后详情 404·90070",
-        method: "GET",
-        path: "/api/v1/projects/${PROJECT_ID}/load-tests/${LT_ID}",
-        status: 404,
-        code: 90070,
-      }),
-    ]),
-    threadGroup("G2 执行链路（run→metrics→stop→任务终态）", [
-      ...registerSetup("EMAIL_G2"),
-      sampler({
-        name: "T2-0 重建计划（8s 小压力）",
-        method: "POST",
-        path: "/api/v1/projects/${PROJECT_ID}/load-tests",
-        body: {
-          name: "jm-执行链${TS}",
-          target: { method: "GET", url: `${MOCK_BASE}/perf/echo` },
-          pressure: { mode: "tps", durationSec: 8, targetTps: 5, rampSec: 0 },
-          thresholds: { okRateMin: 50, p95MsMax: 8000, avgMsMax: 5000 },
-        },
-        status: 201,
-        extract: { var: "LT2_ID", path: "$.data.id" },
-      }),
-      sampler({
-        name: "T2-1 触发执行（202 异步）",
-        method: "POST",
-        path: "/api/v1/projects/${PROJECT_ID}/load-tests/${LT2_ID}/run",
-        status: 202,
-        extract: { var: "TASK_ID", path: "$.data.taskId" },
-        jsr223: { name: "TASK_ID→props", script: "props.put('TASK_ID', vars.get('TASK_ID'))" },
-      }),
-      sampler({
-        name: "T2-2 等引擎起压（5s）",
-        method: "GET",
-        path: "/api/v1/projects/${PROJECT_ID}/load-tasks?page=1&pageSize=5",
-        jsr223: { name: "sleep5s", script: "Thread.sleep(5000)" },
-        contains: ["$.data.list[0].taskId", "-"],
-      }),
-      sampler({
-        name: "T2-3 秒级度量回放（帧数组）",
-        method: "GET",
-        path: "/api/v1/projects/${PROJECT_ID}/load-tasks/${TASK_ID}/metrics",
-        contains: ["$.data.frames", "-"],
-      }),
-      sampler({
-        name: "T2-4 停止施压",
-        method: "POST",
-        path: "/api/v1/projects/${PROJECT_ID}/load-tasks/${TASK_ID}/stop",
-        field: ["$.data.taskId", "${TASK_ID}"],
-      }),
-      sampler({
-        name: "T2-5 等终态落库（6s）",
-        method: "GET",
-        path: "/api/v1/projects/${PROJECT_ID}/load-tasks?page=1&pageSize=5",
-        jsr223: { name: "sleep6s", script: "Thread.sleep(6000)" },
-      }),
-      sampler({
-        name: "T2-6 任务列表含该任务（ABORTED/SUCCESS 之一）",
-        method: "GET",
-        path: "/api/v1/projects/${PROJECT_ID}/load-tasks?page=1&pageSize=20",
-        contains: ["$.data.list[?(@.taskId=='${TASK_ID}')].status", "-"],
-      }),
-      sampler({
-        name: "T2-7 重复停止终态任务 409·90072",
-        method: "POST",
-        path: "/api/v1/projects/${PROJECT_ID}/load-tasks/${TASK_ID}/stop",
-        status: 409,
-        code: 90072,
-      }),
-    ]),
-    threadGroup("G3 无会话 401（无 Cookie）", [
-      sampler({
-        name: "T3-1 未登录建计划",
-        method: "POST",
-        path: "/api/v1/projects/\${__P(PROJECT_ID,NOT_FOUND)}/load-tests",
-        body: { name: "x" },
-        status: 401,
-        code: 10001,
-      }),
-    ], false),
-    threadGroup("G4 普通成员越权 403（注册普通用户）", [
-      sampler({
-        name: "T4-0 注册普通用户（无项目权限）",
-        method: "POST",
-        path: "/api/v1/auth/register",
-        body: { email: "jm-load3-member${TS}@rabbit.test", password: "rabbit-pass-123" },
-        status: 201,
-        extract: { var: "MEMBER_PID", path: "$.data.projectId" },
-        duration: 8000,
-      }),
-      sampler({
-        name: "T4-1 普通用户跨项目读他人计划列表 404·20404（非成员防枚举——成员缺权限点的 403 由 G6 门控组既有覆盖）",
-        method: "GET",
-        path: "/api/v1/projects/\${__P(PROJECT_ID,NOT_FOUND)}/load-tests",
-        status: 404,
-        code: 20404,
-      }),
-    ]),
-    threadGroup("G5 校验失败 422", [
-      ...registerSetup("EMAIL_G5"),
-      sampler({
-        name: "T5-1 坏压力模型（并发超上限 201）",
-        method: "POST",
-        path: "/api/v1/projects/${PROJECT_ID}/load-tests",
-        body: {
-          name: "jm-坏模型${TS}",
-          target: { method: "GET", url: `${MOCK_BASE}/perf/echo` },
-          pressure: { mode: "concurrency", durationSec: 10, maxConcurrency: 201, ramp: [{ atSec: 0, concurrency: 1 }] },
-        },
-        status: 422,
-        code: 20422,
-      }),
-      sampler({
-        name: "T5-2 坏目标 URL（相对路径）",
-        method: "POST",
-        path: "/api/v1/projects/${PROJECT_ID}/load-tests",
-        body: {
-          name: "jm-坏URL${TS}",
-          target: { method: "GET", url: "/perf/echo" },
-          pressure: { mode: "tps", durationSec: 10, targetTps: 5, rampSec: 0 },
-        },
-        status: 422,
-        code: 20422,
-      }),
-    ]),
-    threadGroup("G6 License 门控（无授权 90001 / 特性缺失 90005）", [
-      ...registerSetup("EMAIL_G6"),
-      sampler({
-        name: "T6-0 admin 移除 License（本组态=社区版）",
-        method: "POST",
-        path: "/api/v1/auth/login",
-        body: ADMIN_LOGIN,
-        field: ["$.code", "0"],
-        jsr223: { name: "切回 admin 会话", script: "// 本采样器仅重建 admin 会话；下一步 admin 侧删除 License" },
-      }),
-      sampler({
-        name: "T6-1 admin 删除 License",
-        method: "DELETE",
-        path: "/api/v1/system/license",
-        field: ["$.data.edition", "COMMUNITY"],
-      }),
-      sampler({
-        name: "T6-2 用户回会话（重新注册态 cookie 仍有效；License 已撤）",
-        method: "POST",
-        path: "/api/v1/auth/login",
-        body: { email: "${EMAIL_G6}", password: "rabbit-pass-123" },
-        field: ["$.code", "0"],
-      }),
-      sampler({
-        name: "T6-3 无 License 建计划 403·90001",
-        method: "POST",
-        path: "/api/v1/projects/${PROJECT_ID}/load-tests",
-        body: {
-          name: "jm-门控${TS}",
-          target: { method: "GET", url: `${MOCK_BASE}/perf/echo` },
-          pressure: { mode: "tps", durationSec: 10, targetTps: 5, rampSec: 0 },
-        },
-        status: 403,
-        code: 90001,
-      }),
-      sampler({
-        name: "T6-4 admin 加特性缺失 License（仅 UI_TEST）",
-        method: "POST",
-        path: "/api/v1/auth/login",
-        body: ADMIN_LOGIN,
-        field: ["$.code", "0"],
-        jsr223: { name: "切 admin", script: "// admin 会话" },
-      }),
-      sampler({
-        name: "T6-5 admin 安装特性缺失 License",
-        method: "POST",
-        path: "/api/v1/system/license",
-        body: { code: "${LICENSE_NO_LOAD}" },
-        field: ["$.data.edition", "ENTERPRISE"],
-      }),
-      sampler({
-        name: "T6-6 用户回会话（特性缺失 License 下）",
-        method: "POST",
-        path: "/api/v1/auth/login",
-        body: { email: "${EMAIL_G6}", password: "rabbit-pass-123" },
-        field: ["$.code", "0"],
-      }),
-      sampler({
-        name: "T6-7 特性缺失建计划 403·90005",
-        method: "POST",
-        path: "/api/v1/projects/${PROJECT_ID}/load-tests",
-        body: {
-          name: "jm-门控2${TS}",
-          target: { method: "GET", url: `${MOCK_BASE}/perf/echo` },
-          pressure: { mode: "tps", durationSec: 10, targetTps: 5, rampSec: 0 },
-        },
-        status: 403,
-        code: 90005,
-      }),
-      sampler({
-        name: "T6-8 admin 恢复全特性 License（供后续组/计划）",
-        method: "POST",
-        path: "/api/v1/auth/login",
-        body: ADMIN_LOGIN,
-        field: ["$.code", "0"],
-        jsr223: { name: "切 admin", script: "// admin 会话" },
-      }),
-      sampler({
-        name: "T6-9 admin 恢复全特性 License",
-        method: "POST",
-        path: "/api/v1/system/license",
-        body: { code: "${LICENSE}" },
-        field: ["$.data.edition", "ENTERPRISE"],
-      }),
-    ]),
-    threadGroup("G9 终态清理（移除 License 还原社区版）", adminCleanup),
-  ],
-);
-
-// ═══════ UIT-002 UI 测试 ═══════
-emit(
-  "UIT-002-ui-tests.jmx",
-  "UIT-002 UI 测试（元素库/用例 CRUD/执行/门控；四类场景）",
-  {
-    EMAIL: `jm-uit2-a-${TS}@rabbit.test`,
-    EMAIL_G2: `jm-uit2-b-${TS}@rabbit.test`,
-    EMAIL_G5: `jm-uit2-c-${TS}@rabbit.test`,
-    EMAIL_G6: `jm-uit2-d-${TS}@rabbit.test`,
-    LICENSE: LIC_FULL,
-    TS,
-  },
-  [
-    threadGroup("G0 admin+License（全特性）", adminWithLicense),
-    threadGroup("G1 元素库 CRUD 主链（正常+分页）", [
-      ...registerSetup(),
-      sampler({
-        name: "T1-1 新建元素（testid）",
-        method: "POST",
-        path: "/api/v1/projects/${PROJECT_ID}/ui-elements",
-        body: { name: "jm-输入框${TS}", locatorType: "testid", locator: "demo-username", description: "演示页输入框" },
-        status: 201,
-        extract: { var: "EL_ID", path: "$.data.id" },
-        jsr223: { name: "EL_ID→props", script: "props.put('EL_ID', vars.get('EL_ID'))" },
-      }),
-      sampler({
-        name: "T1-2 元素列表含新元素（分页信封）",
-        method: "GET",
-        path: "/api/v1/projects/${PROJECT_ID}/ui-elements?page=1&pageSize=50",
-        contains: ["$.data.list[?(@.id=='${EL_ID}')].locator", "demo-username"],
-        extracts: [
-          { var: "EL_TOTAL", path: "$.data.total" },
-          { var: "EL_PAGE", path: "$.data.page" },
-        ],
-        jsr223: {
-          name: "分页信封核对",
-          script: "if (vars.get('EL_TOTAL') == 'NOT_FOUND' || vars.get('EL_PAGE') != '1') { prev.setSuccessful(false); prev.setResponseMessage('分页信封缺失 total/page') }",
-        },
-      }),
-      sampler({
-        name: "T1-3 更新元素（改 locator）",
-        method: "PUT",
-        path: "/api/v1/projects/${PROJECT_ID}/ui-elements/${EL_ID}",
-        body: { locator: "demo-username", description: "改备注" },
-        field: ["$.data.description", "改备注"],
-      }),
-      sampler({
-        name: "T1-4 删除元素（悬空语义：用例保留）",
-        method: "DELETE",
-        path: "/api/v1/projects/${PROJECT_ID}/ui-elements/${EL_ID}",
-        field: ["$.data.id", "${EL_ID}"],
-      }),
-    ]),
-    threadGroup("G2 UI 用例 CRUD+执行主链", [
-      ...registerSetup("EMAIL_G2"),
-      sampler({
-        name: "T2-0 建元素（执行链路引用）",
-        method: "POST",
-        path: "/api/v1/projects/${PROJECT_ID}/ui-elements",
-        body: { name: "jm-提交按钮${TS}", locatorType: "testid", locator: "demo-submit" },
-        status: 201,
-        extract: { var: "EL2_ID", path: "$.data.id" },
-      }),
-      sampler({
-        name: "T2-1 新建用例（goto/click/assert-text 三步，mock /uit/demo）",
-        method: "POST",
-        path: "/api/v1/projects/${PROJECT_ID}/ui-cases",
-        body: {
-          name: "jm-演示页提交${TS}",
-          steps: [
-            { op: "goto", url: `${MOCK_BASE}/uit/demo` },
-            { op: "click", elementId: "${EL2_ID}" },
-            { op: "assert-text", expected: "提交成功", locator: { locatorType: "css", locator: ".demo-result-text" } },
-          ],
-        },
-        status: 201,
-        extract: { var: "CASE_ID", path: "$.data.id" },
-        contains: ["$.data.id", "-"],
-      }),
-      sampler({
-        name: "T2-2 用例列表含新用例",
-        method: "GET",
-        path: "/api/v1/projects/${PROJECT_ID}/ui-cases?page=1&pageSize=20",
-        contains: ["$.data.list[?(@.id=='${CASE_ID}')].name", "jm-演示页提交"],
-      }),
-      sampler({
-        name: "T2-3 触发执行（202 异步）",
-        method: "POST",
-        path: "/api/v1/projects/${PROJECT_ID}/ui-cases/${CASE_ID}/run",
-        status: 202,
-        extract: { var: "UIT_TASK", path: "$.data.taskId" },
-        jsr223: { name: "UIT_TASK→props", script: "props.put('UIT_TASK', vars.get('UIT_TASK'))" },
-      }),
-      sampler({
-        name: "T2-4 等 chromium 执行（12s）",
-        method: "GET",
-        path: "/api/v1/projects/${PROJECT_ID}/ui-cases/${CASE_ID}",
-        jsr223: { name: "sleep12s", script: "Thread.sleep(12000)" },
-        field: ["$.data.id", "${CASE_ID}"],
-      }),
-      sampler({
-        name: "T2-5 任务详情（步骤行三态+帧结构）",
-        method: "GET",
-        path: "/api/v1/projects/${PROJECT_ID}/ui-tasks/${UIT_TASK}",
-        contains: ["$.data.items[0].steps", "-"],
-      }),
-      sampler({
-        name: "T2-6 批量执行（≤20 条）",
-        method: "POST",
-        path: "/api/v1/projects/${PROJECT_ID}/ui-cases/batch-run",
-        body: { caseIds: ["${CASE_ID}"] },
-        status: 202,
-        extract: { var: "UIT_BATCH_TASK", path: "$.data.taskId" },
-      }),
-      sampler({
-        name: "T2-7 批量超上限 422·90083（21 条）",
-        method: "POST",
-        path: "/api/v1/projects/${PROJECT_ID}/ui-cases/batch-run",
-        body: { caseIds: Array.from({ length: 21 }, () => "${CASE_ID}") },
-        status: 422,
-        code: 20422, // zod batchSchema max(20) 先于服务层（40083 保留服务层兜底）
-      }),
-    ]),
-    threadGroup("G3 无会话 401（无 Cookie）", [
-      sampler({
-        name: "T3-1 未登录建用例",
-        method: "POST",
-        path: "/api/v1/projects/\${__P(PROJECT_ID,NOT_FOUND)}/ui-cases",
-        body: { name: "x", steps: [{ op: "wait", ms: 1 }] },
-        status: 401,
-        code: 10001,
-      }),
-    ], false),
-    threadGroup("G4 普通成员越权 403", [
-      sampler({
-        name: "T4-0 注册普通用户",
-        method: "POST",
-        path: "/api/v1/auth/register",
-        body: { email: "jm-uit2-member${TS}@rabbit.test", password: "rabbit-pass-123" },
-        status: 201,
-        duration: 8000,
-      }),
-      sampler({
-        name: "T4-1 普通用户跨项目读他人用例列表 404·20404（非成员防枚举——成员缺权限点的 403 由 G6 门控组既有覆盖）",
-        method: "GET",
-        path: "/api/v1/projects/\${__P(PROJECT_ID,NOT_FOUND)}/ui-cases",
-        status: 404,
-        code: 20404,
-      }),
-    ]),
-    threadGroup("G5 校验失败 422", [
-      ...registerSetup("EMAIL_G5"),
-      sampler({
-        name: "T5-1 坏步骤（交互指令缺元素引用与内联定位器）",
-        method: "POST",
-        path: "/api/v1/projects/${PROJECT_ID}/ui-cases",
-        body: { name: "jm-坏步骤${TS}", steps: [{ op: "goto", url: `${MOCK_BASE}/uit/demo` }, { op: "click" }] },
-        status: 422,
-        code: 20422,
-      }),
-      sampler({
-        name: "T5-2 坏定位方式（bogus）",
-        method: "POST",
-        path: "/api/v1/projects/${PROJECT_ID}/ui-elements",
-        body: { name: "jm-坏元素${TS}", locatorType: "bogus", locator: "#x" },
-        status: 422,
-        code: 20422,
-      }),
-    ]),
-    threadGroup("G6 License 门控（无授权 90001）", [
-      ...registerSetup("EMAIL_G6"),
-      sampler({
-        name: "T6-0 admin 移除 License",
-        method: "POST",
-        path: "/api/v1/auth/login",
-        body: ADMIN_LOGIN,
-        field: ["$.code", "0"],
-        jsr223: { name: "切 admin", script: "// admin 会话" },
-      }),
-      sampler({
-        name: "T6-1 admin 删除 License",
-        method: "DELETE",
-        path: "/api/v1/system/license",
-        field: ["$.data.edition", "COMMUNITY"],
-      }),
-      sampler({
-        name: "T6-2 用户回会话",
-        method: "POST",
-        path: "/api/v1/auth/login",
-        body: { email: "${EMAIL_G6}", password: "rabbit-pass-123" },
-        field: ["$.code", "0"],
-      }),
-      sampler({
-        name: "T6-3 无 License 建用例 403·90001",
-        method: "POST",
-        path: "/api/v1/projects/${PROJECT_ID}/ui-cases",
-        body: { name: "jm-门控${TS}", steps: [{ op: "wait", ms: 1 }] },
-        status: 403,
-        code: 90001,
-      }),
-      sampler({
-        name: "T6-4 admin 恢复全特性 License",
-        method: "POST",
-        path: "/api/v1/auth/login",
-        body: ADMIN_LOGIN,
-        field: ["$.code", "0"],
-        jsr223: { name: "切 admin", script: "// admin 会话" },
-      }),
-      sampler({
-        name: "T6-5 admin 恢复 License",
-        method: "POST",
-        path: "/api/v1/system/license",
-        body: { code: "${LICENSE}" },
-        field: ["$.data.edition", "ENTERPRISE"],
-      }),
-    ]),
-    threadGroup("G9 终态清理（移除 License 还原社区版）", adminCleanup),
-  ],
-);
-
-// ═══════ 写文件 ═══════
-mkdirSync(OUT, { recursive: true });
-let written = 0;
-for (const [name, content] of files) {
-  const fp = path.join(OUT, name);
-  if (existsSync(fp) && !FORCE) {
-    console.log(`[gen-jmx-s11] 跳过已存在 ${name}（--force 覆盖）`);
-    continue;
-  }
-  writeFileSync(fp, content);
-  written++;
-  console.log(`[gen-jmx-s11] 写出 ${name}（${content.length} 字符）`);
-}
-console.log(`[gen-jmx-s11] 完成：${written}/${files.size} 份`);
+const xml = plan("SYS-009 OAuth Token 通道", { TS }, [g1, g2a, g2b, g3, g4]);
+writeFileSync(path.join(OUT, "SYS-009-oauth-token-channel.jmx"), xml);
+console.log("[gen-jmx-s11] 写入 tests/api/SYS-009-oauth-token-channel.jmx");

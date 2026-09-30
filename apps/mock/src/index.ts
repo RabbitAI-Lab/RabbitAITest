@@ -19,6 +19,32 @@ const redis = new Redis(process.env.REDIS_URL ?? "redis://127.0.0.1:6379", {
 app.get("/healthz", (c) => c.json({ status: "UP" }));
 app.get("/hello", (c) => c.json({ message: "hello", status: "UP" }));
 
+// ── INFRA-010：进程指标（Prometheus 内网直抓；与 /healthz 同口径无鉴权——生产不公网暴露，monitoring.md 安全注意）──
+app.get("/metrics", (c) => {
+  const cpu = process.cpuUsage();
+  const mem = process.memoryUsage();
+  const num = (n: number): number => (Number.isFinite(n) && n >= 0 ? n : 0);
+  const label = 'process="mock"';
+  const body = [
+    "# HELP rabbit_process_uptime_seconds Mock process uptime in seconds.",
+    "# TYPE rabbit_process_uptime_seconds gauge",
+    `rabbit_process_uptime_seconds{${label}} ${num(process.uptime())}`,
+    "# HELP rabbit_process_cpu_seconds_total Cumulative CPU seconds, user+system; resets on restart.",
+    "# TYPE rabbit_process_cpu_seconds_total counter",
+    `rabbit_process_cpu_seconds_total{${label}} ${num((cpu.user + cpu.system) / 1e6)}`,
+    "# HELP rabbit_process_resident_memory_bytes Resident set size in bytes.",
+    "# TYPE rabbit_process_resident_memory_bytes gauge",
+    `rabbit_process_resident_memory_bytes{${label}} ${Math.round(num(mem.rss))}`,
+    "# HELP rabbit_process_heap_used_bytes V8 heap used bytes.",
+    "# TYPE rabbit_process_heap_used_bytes gauge",
+    `rabbit_process_heap_used_bytes{${label}} ${Math.round(num(mem.heapUsed))}`,
+  ].join("\n");
+  return c.body(`${body}\n`, 200, {
+    "content-type": "text/plain; version=0.0.4; charset=utf-8",
+    "cache-control": "no-store",
+  });
+});
+
 // ── 性能基准回显（S8 QA-001 场景 C 采样目标；零延迟回显，排除外网抖动）──
 const perfEcho = async (c: Context) => {
   let body: unknown = null;

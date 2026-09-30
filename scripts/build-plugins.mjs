@@ -48,6 +48,22 @@ const PLUGINS = [
     format: "cjs",
   },
   { name: "mqtt", kind: "protocol", version: "1.0.0", spiVersion: "1.0", entry: "index.js" },
+  // PLUG-004 五家数据库驱动（name=driver 标识——引擎/运行时按 driver 字面量查插件）。
+  // 驱动依赖=根 devDependencies（厂商官方 Node 驱动，npm 官方 registry——来源铁律 PLUG-004 §0）。
+  // 全部 format=cjs：五家驱动均为 CJS 包（pg/mysql2/oracledb/mssql(tedious)/dmdb），
+  // ESM bundle 的 dynamic-require 垫片不支持 require("events") 等内建——PLUG-003 勘误 5 同 pathology。
+  { name: "postgresql", kind: "driver", version: "1.0.0", spiVersion: "1.0", entry: "index.js", format: "cjs" },
+  { name: "mysql", kind: "driver", version: "1.0.0", spiVersion: "1.0", entry: "index.js", format: "cjs" },
+  { name: "oracle", kind: "driver", version: "1.0.0", spiVersion: "1.0", entry: "index.js", format: "cjs" },
+  { name: "sqlserver", kind: "driver", version: "1.0.0", spiVersion: "1.0", entry: "index.js", format: "cjs" },
+  { name: "dm", kind: "driver", version: "1.0.0", spiVersion: "1.0", entry: "index.js", format: "cjs" },
+  // PLUG-005 五家协议插件（name=protocol 标识；全部 format=cjs——目标依赖全 CJS；
+  // ssh2 可选原生 cpu-features 统一 alias 空桩（勘误 1：纯 JS 回退为 ssh2 内建行为））
+  { name: "ssh", kind: "protocol", version: "1.0.0", spiVersion: "1.0", entry: "index.js", format: "cjs" },
+  { name: "redis", kind: "protocol", version: "1.0.0", spiVersion: "1.0", entry: "index.js", format: "cjs" },
+  { name: "mongodb", kind: "protocol", version: "1.0.0", spiVersion: "1.0", entry: "index.js", format: "cjs" },
+  { name: "grpc", kind: "protocol", version: "1.0.0", spiVersion: "1.0", entry: "index.js", format: "cjs" },
+  { name: "amqp", kind: "protocol", version: "1.0.0", spiVersion: "1.0", entry: "index.js", format: "cjs" },
 ];
 
 const DIST = path.join(ROOT, "plugins", "dist");
@@ -66,6 +82,8 @@ for (const p of PLUGINS) {
     outfile: path.join(stage, "index.js"),
     // @rabbit/shared 仅 type-only 依赖：bundle 后自包含
     external: [],
+    // PLUG-005 勘误 1：ssh2 可选原生 cpu-features → 空桩（纯 JS 回退=ssh2 内建行为）
+    alias: { "cpu-features": path.join(ROOT, "scripts", "cpu-features-stub.js") },
     logLevel: "warning",
   });
   writeFileSync(

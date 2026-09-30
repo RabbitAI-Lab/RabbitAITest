@@ -1,0 +1,64 @@
+# Sprint 10 — 数据面加固 · 迭代概览
+
+| 元信息项   | 内容                                                                                                                                          |
+| ---------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| 迭代编号   | Sprint 10（主仓，分支 `INFRA-006-rls-tenant-isolation`，基线 main 837eebd）                                                                   |
+| 迭代名称   | 数据面加固（RLS 租户纵深防御）——源自 2026-09-29 多租户方案调研                                                                                |
+| 周期       | 规划外追加迭代（调研驱动；原 27 周计划止于 S9+P4）                                                                                            |
+| 覆盖优先级 | INFRA（安全加固；无产品面变更，无 ENTP/门禁 6 冲突）                                                                                          |
+| 文档数     | 5 份（1 概览 + 4 规格；INFRA-006 RLS 由并行会话先行交付，INFRA-007~010 指标面同迭代续作至 Backlog 清零）                                |
+| 文档状态   | Implemented（2026-09-29 交付；远端 CI 随 PR 验证；走查随验收）                                                                                |
+| 上游依据   | 2026-09-29 多租户调研结论：租户抽象=Organization（MeterSphere 12.1 口径）、维持 Pool 模式、RLS 作第二道数据库层防线；ENTP-001（多组织已交付） |
+| 前置迭代   | S0-S9 + sprint-future-p4 全量；关键输入：guard 体系（SYS-002/004/PROJ-001）、门禁 3（一次建齐——本规格零业务表 DDL）                           |
+| 阻塞下游   | SaaS 化配额/限流/provisioning（方向未确认，不立项）；排除面表格去规范化 Backlog（门禁 3 例外流程）                                            |
+
+---
+
+## 1. 迭代目标
+
+在「应用层 guard 单防线」之下补 PostgreSQL 行级安全（RLS）第二道防线：漏过滤的跨组织查询在数据库层返回零行、越租户写入被 `WITH CHECK` 拒绝；合法路径行为零变化（既有单测/JMeter/Playwright 全量回归绿即证据）。租户抽象维持 **Organization = 租户**（调研结论，不引入 Tenant 层、不做 schema/db-per-tenant）。
+
+成功判定：
+
+| 维度         | 目标                                                                   | 判定方式                                        |
+| ------------ | ---------------------------------------------------------------------- | ----------------------------------------------- |
+| 数据库层断路 | `rabbit_tenant` 角色下，未设租户上下文→零行；跨组织行/写→拒            | rls-verify（CI migrate-replay 步骤）策略级断言  |
+| 行为兼容     | 全部合法路径结果不变；请求级原子性增强（项目/组织作用域=单事务）       | Vitest 全量 + jmx 70 计划 + e2e 131+ 双分片全绿 |
+| 门面零侵入   | `prisma` 导出面与类型不变，服务层 `$transaction`/raw 零改动            | 门面单测（路由/平铺/回落）+ typecheck           |
+| 降级安全     | 外部库无法建角色→降级回纯应用层防线（一次性告警），启动不阻断          | 降级路径单测                                    |
+| 文档与纪律   | rules/database.md 新增 §7（新表必须同步 RLS 策略）；排除面登记 Backlog | 规格评审 + CI                                   |
+
+**本迭代不做**：schema-per-tenant / db-per-tenant、Tenant 实体层、SaaS 配额/限流/provisioning（方向未确认）、排除面表格补列（门禁 3 例外流程 Backlog）、开放 API（withApiKey）租户上下文（登记 Backlog）。
+
+## 2. 交付范围（1 规格 + 并行交付登记）
+
+| #   | 交付项                                  | 内容                                                                                                                                        | 文档        |
+| --- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
+| 1   | RLS 租户纵深防御                        | 迁移（策略×51 表 + app_tenant_id() 函数）+ 双客户端/角色引导 + prisma 门面（ambient 路由）+ guard 接线 + rls-verify + jmx + 门面单测        | `INFRA-006` |
+| 2   | 指标面 v2（PR #16 已合 main）           | Prometheus 企业级监控对接（6 组指标/全池队列槽位/APIKEY 直连抓取）；query 事件订阅与本规格 admin 客户端构造处衔接（tenant.ts，rebase 汇合） | `INFRA-007` |
+| 3   | 指标面 v2.1（PR #18 已合 main）         | 采样器错误码十枚举（engine classifySamplerError→帧 code→item.result.errorCode→`rabbit_sampler_errors_24h`）+ web 进程运行时五指标 + exporter 文档 | `INFRA-008` |
+| 4   | 指标面收尾（PR #20 已合 main）          | 租户通道慢查询双通道 + engine 心跳 proc 进程指标（`rabbit_process_*{process}`）+ 多副本 histogram 化决策记录；概览回填                      | `INFRA-009` |
+| 5   | 指标面终结（本分支）                    | HTTP 时延 histogram 加法式（seconds 桶族与 ms summary 并存）+ mock `/metrics` 自暴露（`process="mock"`）——指标 Backlog 清零                  | `INFRA-010` |
+
+## 3. 测试总账
+
+| 层     | 交付                                                                                    |
+| ------ | --------------------------------------------------------------------------------------- |
+| Vitest | 门面路由/事务平铺/回落/降级（packages/db 新增；quality job 无 PG 可跑）                 |
+| 脚本   | scripts/rls-verify.mjs（策略级双租户正/负/断路/admin 旁路断言；CI migrate-replay 步骤） |
+| JMeter | INFRA-006-tenant-isolation.jmx（四类×四断言）                                           |
+| e2e    | 豁免登记（纯数据层无 UI 能力行）；全量回归双分片即兼容性证据                            |
+
+## 4. 验收演示与走查材料
+
+- **验收视频**：`docs/sprint-10-hardening/demo/infra6-acceptance-demo.webm`（35s · 1280×720 · 终端实演六段：pg_policy 策略计数 → rls-verify 实跑 → 真实 API 跨组织 404 防枚举 → SET LOCAL ROLE 断路/42501/admin 豁免实演 → Vitest/JMeter/CI 回归汇总 → 收尾；全程真实执行输出，无编造文本）。复录脚本：`tests/demo/infra6-demo-record.mjs`（幂等；前置 RABBIT_SLOT=6 RLS 激活栈，见脚本头）。
+- e2e 豁免登记：纯数据层加固无 UI 能力行，以全量 e2e 双分片回归为兼容性证据（CI）。
+
+## 5. 验收清单
+
+- [x] 规格 + 概览（接口契约评审口径，目标式授权）
+- [x] 迁移 + 实现 + 三层测试
+- [x] rules/database.md §6.6/§7.5 纪律登记
+- [x] 远端 CI 全绿（2026-09-30 run 36611028399 九作业：lint/build/依赖审计/性能基线/迁移重放含 rls-verify/e2e 双分片/JMeter 双分片；rebase main c806fdc 后）
+- [x] 验收演示视频归档（复录脚本幂等可重跑）
+- [ ] 用户看视频走查 → Verified

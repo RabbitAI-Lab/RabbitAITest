@@ -55,6 +55,7 @@
 3. 禁止破坏性变更直上：删列/改类型/加非空默认 → 走 **expand-contract**（先加新列双写 → 迁移数据 → 切读 → 删旧列），每步独立 migration + 评审。
 4. migration 与消费代码同 PR；CI 对空库做全量 migration 重放验证 + `prisma migrate diff` 快照一致性检查。
 5. 种子数据（`prisma/seed.ts`）幂等，可重复执行；测试数据只用 seed 或测试自建，禁止依赖手工库。
+6. **新表必须同步 RLS 租户策略（INFRA-006）**：凡携带 `org_id`/`project_id`（或经父表可达）的业务表，建表 migration 必须同时 `ENABLE ROW LEVEL SECURITY` + `CREATE POLICY tenant_isolation ... TO PUBLIC`（谓词模板见 `20260929120000_s10_rls_tenant_isolation`，锚函数 `app_tenant_id()`）；多态实体键（`entity_type+entity_id`）或个人域表**不入策略**的须在规格登记排除面与理由。CI `scripts/rls-verify.mjs` 校验策略数量与双租户断路语义。
 
 ## 7. embedded-postgres 与环境
 
@@ -62,6 +63,7 @@
 2. 外接模式：`DATABASE_URL` 指向标准 PostgreSQL 16（版本与 embedded 对齐，升级前双环境跑 migration 重放）。
 3. 测试隔离：单测/集成测试每 worker 独立库（embedded 起多实例或 TEMPLATE 库克隆）；E2E 用独立 embedded 实例 + seed。
 4. 备份恢复：`deploy/backup.sh`（pg_dump）与恢复脚本，属 INFRA-004 验收项；embedded 模式备份同样基于 pg_dump。
+5. **RLS 租户隔离（INFRA-006）**：运行时双客户端——admin（owner，RLS 豁免）+ `rabbit_tenant`（非 owner，行级安全生效）；组织/项目作用域请求经 guard → `runWithTenantContext(orgId)` 进入 `app.tenant_id` 事务；服务层一律 import `prisma`（门面），**禁止绕过门面直连 PrismaClient 实例做作用域查询**。`ensureTenantRuntime()` 失败自动降级（admin 直连 + 一次性 warn），外接库缺 CREATEROLE 时行为回到纯应用层防线。跨租户异步副作用显式 `runAsAdmin()`。
 
 ## 8. 安全与合规
 

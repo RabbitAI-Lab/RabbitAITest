@@ -1,13 +1,32 @@
-import { PrismaClient } from "@prisma/client";
+import {
+  prismaFacade,
+  runAsAdmin,
+  runWithTenantContext,
+  tenantRuntimeStatus,
+  prismaAdmin,
+  currentTenantContext,
+  ensureTenantRuntime,
+} from "./tenant";
 
 /**
  * 全仓唯一 PrismaClient 出口（rules/database §1.2：仅 apps/web/src/server 使用）。
- * globalThis 缓存：Next 生产构建按 chunk 实例化模块，不加缓存时每个 chunk 各建
- * 一个连接池，111 路由规模下连接数爆掉 embedded PG 的 max_connections（P2037）。
+ * INFRA-006 起 `prisma` 为 RLS 门面：组织/项目作用域（guard → runWithTenantContext）
+ * 内的路由进 rabbit_tenant 事务（行级安全过滤），其余直连 admin（owner，行为同历史）。
+ * 服务层导入面与类型（PrismaClient）不变；admin 客户端经 globalThis 缓存防 Next 多
+ * chunk 多连接池（见 tenant.ts）。
+ * INFRA-007：query 事件在 tenant.ts 的 admin 构造处启用（apps/web metrics-db 慢查询计量订阅；
+ * RABBIT_SLOW_QUERY_MS=0 可关闭——事件仅在有订阅消费时产生开销）。
  */
-const g = globalThis as unknown as { __rabbitPrisma?: PrismaClient };
-export const prisma = g.__rabbitPrisma ?? new PrismaClient();
-g.__rabbitPrisma = prisma;
+export const prisma = prismaFacade;
+
+export {
+  runWithTenantContext,
+  runAsAdmin,
+  tenantRuntimeStatus,
+  currentTenantContext,
+  ensureTenantRuntime,
+  prismaAdmin,
+};
 
 /**
  * 项目内自增编号（rules/database §5.7）：
