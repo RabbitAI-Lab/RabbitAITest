@@ -124,27 +124,43 @@ export async function expandNavGroups(page: import("@playwright/test").Page): Pr
 }
 
 /** SYS-010：确保左导航链接可见（折叠组内则先展开）。
- *  必须先等 leftnav 挂载——CI 慢机上 goto 后立即 isVisible() 会拿到「元素不存在」，
- *  误判为无需展开而直接点击隐藏链接（CASE 族 CI 大面积 10s 超时的根因）。 */
+ *  权限数据可能晚于侧栏挂载（CI 慢机：canGlobal 未就绪时组内项为空、整组不渲染，
+ *  展开动作会扑空）——轮询「点一个折叠头→等一会」直至链接可见，waitFor 兜底。 */
 export async function ensureNavVisible(
   page: import("@playwright/test").Page,
   linkName: string,
 ): Promise<void> {
   const link = page.getByTestId("leftnav").getByRole("link", { name: linkName });
   await page.getByTestId("leftnav").waitFor({ state: "visible" });
-  if (!(await link.isVisible())) await expandNavGroups(page);
+  for (let i = 0; i < 10 && !(await link.isVisible()); i++) {
+    await page
+      .getByTestId("leftnav")
+      .locator("button[aria-expanded=false]")
+      .first()
+      .click({ timeout: 2000 })
+      .catch(() => {});
+    await page.waitForTimeout(400);
+  }
   await link.waitFor({ state: "visible" });
 }
 
 /** SYS-010：testid 版菜单点击（折叠组内自动展开；域内菜单需先 enterRealm）。
- *  同 ensureNavVisible：先等 leftnav 挂载再判可见性（CI 慢机时序）。 */
+ *  同 ensureNavVisible 的轮询展开（CI 慢机权限晚到时序）。 */
 export async function navClick(
   page: import("@playwright/test").Page,
   testid: string,
 ): Promise<void> {
   const link = page.getByTestId(testid);
   await page.getByTestId("leftnav").waitFor({ state: "visible" });
-  if (!(await link.isVisible())) await expandNavGroups(page);
+  for (let i = 0; i < 10 && !(await link.isVisible()); i++) {
+    await page
+      .getByTestId("leftnav")
+      .locator("button[aria-expanded=false]")
+      .first()
+      .click({ timeout: 2000 })
+      .catch(() => {});
+    await page.waitForTimeout(400);
+  }
   await link.click();
 }
 
