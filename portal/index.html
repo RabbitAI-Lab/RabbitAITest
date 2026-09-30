@@ -113,9 +113,9 @@
 
 <!-- ══════════ 功能 ══════════ -->
 <section id="features" class="mx-auto max-w-6xl scroll-mt-16 px-4 py-20">
-  <h2 class="text-center text-3xl font-bold text-slate-900">九大功能域，全部已交付</h2>
+  <h2 class="text-center text-3xl font-bold text-slate-900">十大能力域，全部已交付</h2>
   <p class="mx-auto mt-3 max-w-2xl text-center text-slate-500">
-    覆盖系统设置、项目管理、测试用例、测试计划、缺陷管理、接口测试、工作台、消息协作、AI 九大模块。
+    覆盖系统设置、项目管理、测试用例、测试计划、缺陷管理、接口测试、工作台、消息协作、AI 与 CLI 终端十大模块。
     以下每条能力都可追溯到仓库内的功能规格与变更日志。
   </p>
   <div class="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
@@ -227,6 +227,19 @@
         <li>· pino 统一日志 + reqId 链路 + Prometheus 指标</li>
         <li>· 备份/恢复脚本 roundtrip 验证</li>
       </ul>
+    </div>
+
+    <div class="reveal rounded-xl border border-brand-200 bg-brand-50/50 p-6">
+      <div class="text-2xl">⌨️</div>
+      <h3 class="mt-3 font-semibold text-slate-900">CLI（rabbit）<span class="ml-1 rounded bg-brand-600 px-1.5 py-0.5 align-middle text-[10px] font-medium text-white">NEW</span></h3>
+      <ul class="mt-3 space-y-1.5 text-sm leading-relaxed text-slate-600">
+        <li>· AI 原生终端：静态单二进制（Go，零依赖，麒麟 loong64）</li>
+        <li>· OAuth Device Flow 登录：浏览器批准，令牌自动旋转续期</li>
+        <li>· scope 最小权限（read/write/exec），read/exec 可跑不可改</li>
+        <li>· 三层命令：+run 快捷 / 资源命令 / raw api 兜底</li>
+        <li>· 结构化 JSON 输出 + schema 自省 + Agent 技能分发</li>
+      </ul>
+      <a href="./docs/#/quickstart/cli" class="mt-4 inline-flex items-center gap-1 text-sm font-medium text-brand-600 hover:underline">CLI 快速上手文档 →</a>
     </div>
 
   </div>
@@ -358,6 +371,7 @@ docker compose -f deploy/docker-compose.yml up -d</code></pre>
       <h3 class="font-semibold text-slate-900">文档导航（仓库内真实文档）</h3>
       <ul class="mt-4 space-y-2.5 text-sm">
         <li class="flex gap-2"><span class="text-brand-500">▸</span><a class="font-medium text-brand-600 hover:underline" href="./docs/">📘 产品文档站 — 安装部署 · 功能手册 · 常见问题 · 开发文档</a></li>
+        <li class="flex gap-2"><span class="text-brand-500">▸</span><a class="font-medium text-brand-600 hover:underline" href="./docs/#/quickstart/cli">⌨️ CLI 快速上手（rabbit） — AI 原生终端 · Device Flow 登录 · 三层命令</a></li>
         <li class="flex gap-2"><span class="text-brand-500">▸</span><a class="text-slate-700 hover:text-brand-600" target="_blank" rel="noopener" href="https://github.com/RabbitAI-Lab/RabbitAITest/blob/main/docs/README.md">docs/README.md — 设计文档体系总索引（三层结构）</a></li>
         <li class="flex gap-2"><span class="text-brand-500">▸</span><a class="text-slate-700 hover:text-brand-600" target="_blank" rel="noopener" href="https://github.com/RabbitAI-Lab/RabbitAITest/blob/main/docs/需求文档.md">需求文档.md — 产品需求总纲（P0–P4 分级与验收维度）</a></li>
         <li class="flex gap-2"><span class="text-brand-500">▸</span><a class="text-slate-700 hover:text-brand-600" target="_blank" rel="noopener" href="https://github.com/RabbitAI-Lab/RabbitAITest/blob/main/docs/MeterSphere功能清单.md">MeterSphere功能清单.md — 对标基线（v1.0 覆盖率核对依据）</a></li>

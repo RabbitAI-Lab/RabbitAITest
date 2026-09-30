@@ -114,9 +114,9 @@
 
 <!-- ══════════ Features ══════════ -->
 <section id="features" class="mx-auto max-w-6xl scroll-mt-16 px-4 py-20">
-  <h2 class="text-center text-3xl font-bold text-slate-900">Nine capability areas, all delivered</h2>
+  <h2 class="text-center text-3xl font-bold text-slate-900">Ten capability areas, all delivered</h2>
   <p class="mx-auto mt-3 max-w-2xl text-center text-slate-500">
-    System settings, project management, test cases, test plans, defects, API testing, workbench, messaging and AI.
+    System settings, project management, test cases, test plans, defects, API testing, workbench, messaging, AI and the CLI terminal.
     Every capability below is traceable to a feature spec and changelog entry in the repository.
   </p>
   <div class="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
@@ -228,6 +228,19 @@
         <li>· Unified pino logs + reqId tracing + Prometheus metrics</li>
         <li>· Backup/restore scripts with verified round-trip</li>
       </ul>
+    </div>
+
+    <div class="reveal rounded-xl border border-brand-200 bg-brand-50/50 p-6">
+      <div class="text-2xl">⌨️</div>
+      <h3 class="mt-3 font-semibold text-slate-900">CLI (rabbit) <span class="ml-1 rounded bg-brand-600 px-1.5 py-0.5 align-middle text-[10px] font-medium text-white">NEW</span></h3>
+      <ul class="mt-3 space-y-1.5 text-sm leading-relaxed text-slate-600">
+        <li>· AI-native terminal: static single binary (Go, zero deps, Kylin loong64)</li>
+        <li>· OAuth Device Flow login: browser approval, auto-rotating tokens</li>
+        <li>· Least-privilege scopes (read/write/exec) — run without write access</li>
+        <li>· Three command layers: +run shortcuts / resource commands / raw api</li>
+        <li>· Structured JSON output + schema introspection + Agent skill packs</li>
+      </ul>
+      <a href="../docs/#/quickstart/cli" class="mt-4 inline-flex items-center gap-1 text-sm font-medium text-brand-600 hover:underline">CLI getting-started guide (中文) →</a>
     </div>
 
   </div>
@@ -358,7 +371,8 @@ docker compose -f deploy/docker-compose.yml up -d</code></pre>
     <div class="reveal min-w-0">
       <h3 class="font-semibold text-slate-900">Documentation (all real files in the repo)</h3>
       <ul class="mt-4 space-y-2.5 text-sm">
-        <li class="flex gap-2"><span class="text-brand-500">▸</span><a class="font-medium text-brand-600 hover:underline" href="../docs/">📘 Product docs site — Installation · User manual · FAQ · Developer guide</a></li>
+        <li class="flex gap-2"><span class="text-brand-500">▸</span><a class="font-medium text-brand-600 hover:underline" href="../docs/">📘 Product docs site — Installation · User manual · FAQ · Developer guide</a>
+        <li class="flex gap-2"><span class="text-brand-500">▸</span><a class="font-medium text-brand-600 hover:underline" href="../docs/#/quickstart/cli">⌨️ CLI getting started (rabbit) — AI-native terminal · Device Flow login · three command layers</a></li></li>
         <li class="flex gap-2"><span class="text-brand-500">▸</span><a class="text-slate-700 hover:text-brand-600" target="_blank" rel="noopener" href="https://github.com/RabbitAI-Lab/RabbitAITest/blob/main/docs/README.md">docs/README.md — master index of the three-layer design doc system</a></li>
         <li class="flex gap-2"><span class="text-brand-500">▸</span><a class="text-slate-700 hover:text-brand-600" target="_blank" rel="noopener" href="https://github.com/RabbitAI-Lab/RabbitAITest/blob/main/docs/需求文档.md">Requirements (需求文档.md) — product requirements with P0–P4 priorities</a></li>
         <li class="flex gap-2"><span class="text-brand-500">▸</span><a class="text-slate-700 hover:text-brand-600" target="_blank" rel="noopener" href="https://github.com/RabbitAI-Lab/RabbitAITest/blob/main/docs/MeterSphere功能清单.md">MeterSphere feature list — the v1.0 coverage baseline</a></li>
