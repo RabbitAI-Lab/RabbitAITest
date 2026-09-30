@@ -91,8 +91,15 @@ test("MAINFLOW-s4 计划完整链路", async ({
 
   // 报告 Tab：阈值横幅 + 点分组（主链路点）+ CSV（S8 加固：Tab 切换动画稳定窗口放宽——
   // element not stable 在全量并发下偶发超时，等待可见后再点击并放宽至 20s）
-  // 报告 Tab 直进（URL 路由——antd Tab 切换动画在 CI 8 聚合 workers 下 element not stable 超时实证；
-  //  Tab 点击的交互验证归 PLAN-001/003 用例组，本主链路聚焦报告内容）
+  // 报告视图主判定=接口就绪（plan-report-view 聚合由引擎回写驱动，CI 高压下 >40s 实证——
+  //  UI Tab 切换动画 + report 数据两阶段竞态的老教训：视图以数据接口为唯一真源）
+  {
+    const r = await page.waitForResponse(
+      (resp) => resp.url().includes(`/api/v1/projects/`) && resp.url().includes("/report/view") && resp.status() === 200,
+      { timeout: 60_000 },
+    );
+    void r;
+  }
   const reportTab = page.getByTestId("plan-report-tab");
   await expect(reportTab).toBeVisible({ timeout: 20_000 });
   await reportTab.click({ timeout: 20_000, force: true });
