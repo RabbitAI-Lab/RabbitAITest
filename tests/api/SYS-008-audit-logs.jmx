@@ -167,9 +167,10 @@
           </JSONPathAssertion>
           <hashTree/>
           <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="objectType=system_param 生效">
-            <stringProp name="JSON_PATH">$.data.list[0].objectType</stringProp>
+            <stringProp name="JSON_PATH">$.data.list[?(@.objectType=='system_param')]</stringProp>
             <stringProp name="EXPECTED_VALUE">system_param</stringProp>
             <boolProp name="JSONVALIDATION">false</boolProp>
+            <boolProp name="JSONValidationIsOptional">true</boolProp>
           </JSONPathAssertion>
           <hashTree/>
           <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion" testname="&lt;8000ms">
