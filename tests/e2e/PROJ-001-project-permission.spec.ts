@@ -167,3 +167,50 @@ test("PROJ-001-03 组织成员加入 → 项目成员添加（P-2）", async ({ 
   const list = ((await members.json()) as { data: { items: { email: string }[] } }).data.items;
   expect(list.some((m) => m.email === email)).toBe(true);
 });
+
+/**
+ * PROJ-001-04 基本信息：加载失败可感知、可重试（2026-09-30 线上报障回归）。
+ * 病理：dev 栈重启/网络闪断时 /info 查询失败，页面把「错误」也渲染成 Spin——无限转圈无提示。
+ * 口径：拦截 /info 回 500 信封 → 断言错误态（含服务端 message）替代 Spin → 放行后点「重试」恢复表单。
+ * Console 白名单：模拟 500 必然产生 [http 500] 留痕（fixtures §4xx/5xx 一并记录），显式登记。
+ */
+test("PROJ-001-04 基本信息：加载失败错误态与重试恢复", async ({
+  authedPage,
+  page,
+  expectNoConsoleErrors,
+}) => {
+  void authedPage;
+  const failBody = JSON.stringify({ code: 50000, message: "E2E模拟服务重启" });
+  await page.route("**/api/v1/projects/*/info", (route) =>
+    route.fulfill({ status: 500, contentType: "application/json", body: failBody }),
+  );
+
+  // 用户路径：首页（建立项目上下文）→ 项目设置 › 基本信息
+  await page.goto("/");
+  await page.getByTestId("nav-settings-info").click();
+
+  // UI 断言：错误态替代无限 Spin，透出服务端 message
+  await expect(page.getByTestId("project-info-error")).toBeVisible({ timeout: 15000 });
+  await expect(page.getByText("E2E模拟服务重启")).toBeVisible();
+  // 旧缺陷口径：表单不应出现（否则说明错误态没接管）
+  await expect(page.getByTestId("input-project-name")).toHaveCount(0);
+
+  // 恢复：放行真实接口 → 重试 → 表单可见
+  await page.unroute("**/api/v1/projects/*/info");
+  await page.getByTestId("btn-retry-info").click();
+  await expect(page.getByTestId("input-project-name")).toBeVisible({ timeout: 15000 });
+
+  await expectNoConsoleErrors([
+    {
+      // 客户端导航瞬间 URL 未切到 /settings/info 也可能完成响应 → 不钉页面，靠 /info 收口
+      pageUrlPattern: ".*",
+      textPattern: "\\[http 500\\] GET .*/info",
+      reason: "本用例主动模拟 /info 500（route.fulfill），非产品缺陷",
+    },
+    {
+      pageUrlPattern: ".*",
+      textPattern: "Failed to load resource: the server responded with a status of 500",
+      reason: "浏览器对上述模拟 500 的自动 console 记录，非产品缺陷",
+    },
+  ]);
+});
