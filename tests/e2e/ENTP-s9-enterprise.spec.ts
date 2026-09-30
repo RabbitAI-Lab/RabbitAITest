@@ -672,7 +672,16 @@ test("ENTP-004-01 界面设置：改色+品牌 → 保存并应用 → 登录页
   await expect(page.getByTestId("login-brand-name")).toContainText("RabbitAI", { timeout: 10_000 });
 
   await resetTheme(request);
-  await expectNoConsoleErrors();
+  await expectNoConsoleErrors([
+    {
+      // 本用例两度 context.clearCookies() 切换登出视角验证登录页品牌——清 cookie 瞬间
+      // 页面在途查询（dashboard/permissions/projects）以失效会话补发 401，属预期噪音
+      // （CI 慢机窗口放大；SYS-010 前后行为一致，仅时序更易命中）
+      pageUrlPattern: ".*",
+      textPattern: "\\[http 401\\] GET http://localhost:3100/api/v1/(personal|projects)/",
+      reason: "clearCookies 切登出视角期间在途查询 401",
+    },
+  ]);
 });
 
 // ═══════ ENTP-005 消息模板 ═══════

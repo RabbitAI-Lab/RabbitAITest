@@ -1,4 +1,4 @@
-import { test, expect, navClick, enterRealm } from "./fixtures";
+import { test, expect, navClick, enterRealm, expandNavGroups } from "./fixtures";
 
 /**
  * PROJ-001 项目成员、项目级权限与项目生命周期（docs/sprint-1-mvp-test-mgmt/PROJ-001-project-permission.md §5 T2/T3）：
@@ -44,6 +44,8 @@ test("PROJ-001-01 模块开关与删除撤销", async ({
   const savedOn = await saveOnApi;
   expect(savedOn.status).toBe(200);
   expect(savedOn.code).toBe(0);
+  // SYS-010：「缺陷管理」在默认折叠的测试管理组内——显隐断言前先展开
+  await expandNavGroups(page);
   await expect(page.getByTestId("nav-bugs")).toBeVisible();
 
   // 用户路径：左导航 → 组织 › 项目管理（nav-org-projects）

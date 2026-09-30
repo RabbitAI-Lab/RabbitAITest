@@ -99,15 +99,25 @@ export const test = base.extend<{
 
 export { expect };
 
+/** SYS-010 域专属菜单名（项目/组织域侧栏不存在，仅对应域渲染）——navFromHome 按名自动进域。 */
+const SYSTEM_ONLY_NAMES = ["参数设置", "认证配置", "授权管理", "资源池", "模型设置", "插件管理", "系统日志"];
+const ORG_ONLY_NAMES = ["部门管理"];
+
 /**
  * 用户路径导航（rules/testing §3.2.2）：从首页经左侧菜单进入功能页，录屏呈现真实入口。
- * SYS-010：菜单可能在折叠分组内——不可见时先展开全部折叠分组再点击。
+ * SYS-010：菜单可能在折叠分组内——不可见时先展开全部折叠分组再点击；
+ * 域专属菜单名（资源池等）自动经头像下拉进入对应域。
  */
 export async function navFromHome(
   page: import("@playwright/test").Page,
   linkName: string,
 ): Promise<void> {
   await page.goto("/");
+  if (SYSTEM_ONLY_NAMES.includes(linkName)) {
+    await enterRealm(page, "system").catch(() => {});
+  } else if (ORG_ONLY_NAMES.includes(linkName)) {
+    await enterRealm(page, "org").catch(() => {});
+  }
   await ensureNavVisible(page, linkName);
   // 限定左侧导航作用域：避免与工作台快捷卡等同名链接冲突（strict mode）
   await page.getByTestId("leftnav").getByRole("link", { name: linkName }).click();
