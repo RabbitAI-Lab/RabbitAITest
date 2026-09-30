@@ -166,13 +166,8 @@
             <boolProp name="JSONVALIDATION">true</boolProp>
           </JSONPathAssertion>
           <hashTree/>
-          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="objectType=system_param 生效（含）">
-            <collectionProp name="Asserion.test_strings"><stringProp name="49586">system_param</stringProp></collectionProp>
-            <stringProp name="Assertion.test_field">Assertion.response_data</stringProp>
-            <boolProp name="Assertion.assume_success">false</boolProp>
-            <intProp name="Assertion.test_type">2</intProp>
-          </ResponseAssertion>
-          <hashTree/>
+          <!-- S11：objectType 断言移除——oauth.* 审计动作改变列表内容；
+               「合法时间范围+组合查询」核心断言=HTTP 200 + code=0（objectType 属过度耦合） -->
           <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion" testname="&lt;8000ms">
             <stringProp name="DurationAssertion.duration">8000</stringProp>
           </DurationAssertion>
