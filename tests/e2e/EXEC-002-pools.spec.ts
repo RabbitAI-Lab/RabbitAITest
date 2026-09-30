@@ -36,7 +36,7 @@ async function loginSeedAdmin(
   await context.addCookies([{ name: "ras", value: ras!, url: E2E_BASE }]);
 }
 
-test("EXEC-002-01 默认池：节点 ONLINE + 并发编辑 4 + 新建池 License 禁用", async ({
+test("EXEC-002-01 默认池：节点 ONLINE + 并发编辑 4 + 新建池无 License 可用（ENTP-009）", async ({
   page,
   context,
   request,
@@ -127,24 +127,12 @@ test("EXEC-002-01 默认池：节点 ONLINE + 并发编辑 4 + 新建池 License
   expect(put4.status).toBe(200);
   expect((put4.data as { maxConcurrency: number }).maxConcurrency).toBe(4);
 
-  // 二态：新建资源池 = 企业版功能——社区版 disabled / 企业版 enabled（S9 勘误：ENTP spec 并行持证
-  // 时按钮解锁，门控 403/放行已在 ENTP-007 e2e+jmx 全覆盖）。读态与断言间存在并行持证竞态
-  // （读到社区→按钮随即被解锁）——重试环桥接：任一轮「读态↔按钮态」一致即过（≤30s）
-  for (let attempt = 0; attempt < 10; attempt++) {
-    const lic = await request.get("/api/v1/public/license-status");
-    const edition = ((await lic.json()) as { data: { edition: string } }).data.edition;
-    const disabledCount = await page
-      .getByTestId("btn-new-pool")
-      .evaluate((el) => ((el as HTMLButtonElement).disabled ? 1 : 0));
-    const expectDisabled = edition === "COMMUNITY" ? 1 : 0;
-    if (disabledCount === expectDisabled) break;
-    if (attempt === 9) {
-      throw new Error(`门控二态竞态未收敛：edition=${edition} disabled=${disabledCount === 1}`);
-    }
-    await page.waitForTimeout(3_000);
-    await page.reload();
-    await expect(page.getByTestId("pool-nodes")).toBeVisible();
-  }
+  // E NTP-009 开源全功能：新建资源池不再被 License 门控——无 License（社区版态）按钮亦可用
+  //（原「社区版 disabled/企业版 enabled」二态随门控停用翻转；建池放行链路在 ENTP-006/007 e2e+jmx 覆盖）
+  const lic = await request.get("/api/v1/public/license-status");
+  const licBody = (await lic.json()) as { data: { edition: string; featureGateEnabled: boolean } };
+  expect(licBody.data.featureGateEnabled).toBe(false);
+  await expect(page.getByTestId("btn-new-pool")).toBeEnabled();
 
   await expectNoConsoleErrors();
 });

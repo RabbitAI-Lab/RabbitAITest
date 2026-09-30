@@ -1,6 +1,6 @@
 # 认证与授权（企业版）
 
-RabbitAITest 分社区版与企业版两个 edition：企业版能力由 License 统一门控，未授权时以社区版运行，六项企业特性全部关闭。本页说明授权管理与各企业特性的入口。
+RabbitAITest 分社区版与企业版两个 edition。**ENTP-009（2026-09-30）起开源全功能：License 不再门控任何功能**——本页所有特性无 License 即可用，授权管理页仅作授权信息登记；企业发行版可设 `RABBIT_FEATURE_GATE=1` 恢复下述门控口径（此时未授权以社区版运行、特性关闭）。
 
 > 所需权限：授权管理要求系统级 License 管理权限；多组织管理要求 ENTP_ORG:READ / ENTP_ORG:CREATE / ENTP_ORG:UPDATE / ENTP_ORG:DELETE。
 

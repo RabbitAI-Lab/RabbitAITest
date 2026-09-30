@@ -20,6 +20,7 @@ export async function GET(): Promise<NextResponse> {
         daysLeft: null,
         lic: null,
         maxUsers: null,
+        featureGateEnabled: false, // 兜底口径与开源默认一致（ENTP-009）
       },
     ),
     { headers: { "Cache-Control": "no-store" } },

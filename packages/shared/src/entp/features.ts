@@ -18,6 +18,21 @@ export type EntpFeature = (typeof ENTP_FEATURES)[number]["key"];
 
 export const ENTP_FEATURE_KEYS: readonly EntpFeature[] = ENTP_FEATURES.map((f) => f.key);
 
+// ── 开源全功能模式（ENTP-009，2026-09-30 产品决策）──
+// false（默认）= License 不门控任何特性：无 License / 任意 License 均全功能（开源发行口径）；
+// true = 恢复 ENTP-007 特性门控（企业发行口径，RABBIT_FEATURE_GATE=1 启用；门控代码全量保留可一键回切）。
+// 服务端读 env 一次；客户端经 license-status 响应字段 featureGateEnabled 下发（单一事实源，防两端漂移）。
+let featureGate = process.env.RABBIT_FEATURE_GATE === "1";
+
+export function featureGateEnabled(): boolean {
+  return featureGate;
+}
+
+/** 仅供单测翻转门控断言两侧语义（生产恒以 RABBIT_FEATURE_GATE 初始化） */
+export function setFeatureGateEnabled(v: boolean): void {
+  featureGate = v;
+}
+
 export const ENTP_FEATURE_LABELS: Record<EntpFeature, string> = Object.fromEntries(
   ENTP_FEATURES.map((f) => [f.key, f.label]),
 ) as Record<EntpFeature, string>;

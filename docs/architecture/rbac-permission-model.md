@@ -68,15 +68,17 @@ ENTP_SSO:UPDATE  ENTP_POOL:CREATE|UPDATE        # 企业版权限点（License �
 - 组织级资源强制 `org_id`；跨域引用只经 Provider 接口（test-domain-model §3）
 - 任务中心/日志按用户所在 org/project 范围过滤
 
-## 6. License 门控（企业版开关）——S9 ENTP-007 已实现
+## 6. License 门控（企业版开关）——S9 ENTP-007 已实现；ENTP-009（2026-09-30）起默认停用
 
 ```ts
 // apps/web/src/server/domains/entp/license.service.ts（全仓唯一门控入口）
 assertEntpEnabled(feature: EntpFeature): void
-// MULTI_ORG / SSO / MULTI_POOL / THEME / MSG_TEMPLATE / USER_SCALE（packages/shared/src/entp/features.ts）
+// MULTI_ORG / SSO / MULTI_POOL / THEME / MSG_TEMPLATE / USER_SCALE / LOAD_TEST / UI_TEST（entp/features.ts）
 // 无有效 License → 403 90001；特性未授权 → 403 90005；与 10003（RBAC）正交：先权限后门控
+// E NTP-009 开源全功能：featureGateEnabled()=false（默认，RABBIT_FEATURE_GATE 未设）时三函数直接放行；
+// 门控代码全量保留，置 RABBIT_FEATURE_GATE=1 恢复企业口径（license.test.ts 双侧单测锁定）
 ```
 
 - 门控点集中登记（`license.service.ts` + `ENTP_FEATURES` 目录），企业版功能端点必须在 Route Handler 内调用 `assertEntpEnabled`，Code Review 按 ENTP 前缀规格核对
-- 前端对应菜单/按钮经 `GET /api/v1/public/license-status`（无鉴权）驱动禁用+锁提示；社区版容量限制（默认池唯一、用户上限 30）在后端强制，前端只做提示
+- 前端对应菜单/按钮经 `GET /api/v1/public/license-status`（无鉴权，含 `featureGateEnabled` 字段）驱动；ENTP-009 起门控停用=前端恒放行，社区版容量限制（用户上限 30）仅门控恢复态在后端强制
 - 权限点兑现：`SYSTEM_LICENSE:READ|UPDATE`、`ENTP_ORG:READ|CREATE|UPDATE|DELETE`、`ENTP_SSO:READ|CREATE|UPDATE|DELETE`、`ENTP_POOL:CREATE|UPDATE|DELETE`、`ORG_DEPARTMENT:READ|CREATE|UPDATE|DELETE`（§3 预登记语义落地）
