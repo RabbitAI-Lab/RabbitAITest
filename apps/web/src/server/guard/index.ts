@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import { DomainError, ErrCode, ErrMsg, fail, ok } from "@rabbit/shared";
+import { DomainError, ErrCode, ErrMsg, fail, ok, requiredScopeFor } from "@rabbit/shared";
 import { logFor, runWithLogContext } from "@rabbit/shared/logger";
 import { getSession } from "@/lib/session";
-import { getActiveUserId } from "@/server/current-user";
+import { getActiveUserId, getTokenScope } from "@/server/current-user";
 import { prisma, runWithTenantContext } from "@rabbit/db";
 import { permissionSetFor } from "@/server/rbac";
 import { ensureBoot } from "@/server/boot";
@@ -91,6 +91,8 @@ export function toResponse(err: unknown): NextResponse {
                   // S9 ENTP
                   ErrCode.SSO_SOURCE_NOT_FOUND,
                   ErrCode.DEPARTMENT_NOT_FOUND,
+                  // S11 SYS-009（授权会话 404 防枚举）
+                  ErrCode.OAUTH_GRANT_NOT_FOUND,
                 ] as number[]
               ).includes(err.code)
             ? 404
@@ -196,6 +198,8 @@ export function toResponse(err: unknown): NextResponse {
                       ErrCode.OPEN_SYNC_VALIDATION_FAILED,
                       ErrCode.OPEN_SYNC_LIMIT_EXCEEDED,
                       ErrCode.OPEN_CAPTURE_INVALID,
+                      // S11 SYS-009（设备码无效/过期/锁定 422）
+                      ErrCode.OAUTH_USER_CODE_INVALID,
                       ErrCode.POOL_CONFIG_INVALID,
                       ErrCode.REPORT_STATS_INVALID,
                     ] as number[]
@@ -225,6 +229,31 @@ export interface AuthedCtx {
   email?: string;
 }
 
+/**
+ * SYS-009 §2.3：Token 通道 scope 断言——所需类别由 requiredScopeFor（exec 注册表+方法缺省）判定；
+ * session/APIKEY 通道 tokenScope=null 不受约束。scope 是收窄不是替代：RBAC requirePerm 照常。
+ */
+async function assertTokenScope(req: unknown): Promise<void> {
+  const scope = await getTokenScope();
+  if (!scope || !(req instanceof Request)) return;
+  let path = "";
+  try {
+    path = new URL(req.url).pathname;
+  } catch {
+    path = "invalid";
+  }
+  // oauth/* 生命周期端点（revoke 等）豁免：token 自管理（RFC 7009 语义——
+  // 吊销由 token 自身认证，read/exec token 也必须能登出；SYS-009 §4.3 登记）
+  if (path.startsWith("/api/v1/oauth/")) return;
+  const need = requiredScopeFor(req.method, path);
+  if (!scope.includes(need)) {
+    throw new DomainError(
+      ErrCode.FORBIDDEN,
+      `token scope 缺少 ${need}（当前：${scope.join(",") || "无"}）`,
+    );
+  }
+}
+
 /** SYS-002：认证守卫（未登录 401 code 10001）。 */
 export function withAuth<Ctx, Args extends unknown[]>(
   handler: (ctx: AuthedCtx & Ctx, ...args: Args) => Promise<NextResponse>,
@@ -244,6 +273,7 @@ export function withAuth<Ctx, Args extends unknown[]>(
         }
         const session = await getSession();
         const ctx = { userId, email: session.email } as AuthedCtx & Ctx;
+        await assertTokenScope(args[0]);
         return await runWithLogContext({ userId }, () => handler(ctx, ...args));
       } catch (err) {
         return toResponse(err);
@@ -283,6 +313,7 @@ export function withProjectScope<Args extends unknown[]>(
         }
         const seg = args[0] as { params: Promise<{ projectId: string }> } | undefined;
         const projectId = seg ? (await seg.params).projectId : "";
+        await assertTokenScope(req);
         const member = await prisma.projectMember.findFirst({
           where: { projectId, userId },
           select: { id: true },
@@ -348,6 +379,7 @@ export function withSystemPerm(point: string) {
               status: 403,
             });
           }
+          await assertTokenScope(req);
           const session = await getSession();
           return await runWithLogContext({ userId }, () =>
             handler({ userId, email: session.email }, req, ...args),
@@ -391,6 +423,7 @@ export function withOrgScope<Args extends unknown[]>(
         }
         const seg = args[0] as { params: Promise<{ orgId: string }> } | undefined;
         const orgId = seg ? (await seg.params).orgId : "";
+        await assertTokenScope(req);
         const member = await prisma.orgMember.findFirst({
           where: { orgId, userId },
           select: { id: true },

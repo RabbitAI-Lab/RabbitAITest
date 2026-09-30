@@ -19,6 +19,9 @@
       "name": "exec-tasks"
     },
     {
+      "name": "oauth"
+    },
+    {
       "name": "open"
     },
     {
@@ -468,6 +471,81 @@
         "summary": "POST /api/v1/internal/pools/register",
         "tags": [
           "内部（引擎）"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/oauth/device/approve": {
+      "post": {
+        "summary": "POST /api/v1/oauth/device/approve",
+        "tags": [
+          "oauth"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/oauth/device/pending": {
+      "get": {
+        "summary": "GET /api/v1/oauth/device/pending",
+        "tags": [
+          "oauth"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/oauth/revoke": {
+      "post": {
+        "summary": "POST /api/v1/oauth/revoke",
+        "tags": [
+          "oauth"
         ],
         "security": [
           {
@@ -1686,6 +1764,79 @@
       },
       "post": {
         "summary": "POST /api/v1/personal/api-keys",
+        "tags": [
+          "个人中心"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/personal/authorizations/{id}": {
+      "delete": {
+        "summary": "DELETE /api/v1/personal/authorizations/{id}",
+        "tags": [
+          "个人中心"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/personal/authorizations": {
+      "get": {
+        "summary": "GET /api/v1/personal/authorizations",
+        "tags": [
+          "个人中心"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "DELETE /api/v1/personal/authorizations",
         "tags": [
           "个人中心"
         ],

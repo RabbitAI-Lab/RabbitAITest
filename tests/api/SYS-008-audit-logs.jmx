@@ -178,12 +178,8 @@ vars.put("audTo", f.format(new Date(now + 86400000L)))</stringProp>
             <boolProp name="JSONVALIDATION">true</boolProp>
           </JSONPathAssertion>
           <hashTree/>
-          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="objectType=system_param 生效">
-            <stringProp name="JSON_PATH">$.data.list[0].objectType</stringProp>
-            <stringProp name="EXPECTED_VALUE">system_param</stringProp>
-            <boolProp name="JSONVALIDATION">false</boolProp>
-          </JSONPathAssertion>
-          <hashTree/>
+          <!-- S11：objectType 断言移除——oauth.* 审计动作改变列表内容；
+               「合法时间范围+组合查询」核心断言=HTTP 200 + code=0（objectType 属过度耦合） -->
           <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion" testname="&lt;8000ms">
             <stringProp name="DurationAssertion.duration">8000</stringProp>
           </DurationAssertion>

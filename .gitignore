@@ -14,6 +14,10 @@ playwright-report/
 tests/.e2e.env
 apps/web/tsconfig.tsbuildinfo
 
+# CLI-001：Go 构建产物（bin/rabbit 为本地/CI 产物不入库；版本经 ldflags 注入）
+apps/cli/bin/
+apps/cli/dist/
+
 # 视觉比对生成物（原型渲染 PNG / 快照 / 报告，CI artifact 上传留档）
 tests/visual/
 dump.rdb
