@@ -130,7 +130,7 @@ export default function OrgsPage() {
     <div>
       <PageHeader
         title="组织管理"
-        sub="系统 › 组织管理 · 多组织为企业版能力（MULTI_ORG）"
+        sub="系统 › 组织管理 · 多组织与项目隔离"
         extra={
           canCreate &&
           (multiOrg ? (

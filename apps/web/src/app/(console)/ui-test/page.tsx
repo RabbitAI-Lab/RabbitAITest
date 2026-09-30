@@ -83,7 +83,7 @@ export default function UiTestPage() {
   if (!currentProjectId) {
     return (
       <div className="p-4 md:p-6 max-w-[1100px]">
-        <PageHeader title="UI 测试" sub="企业版 · License 门控" />
+        <PageHeader title="UI 测试" sub="元素库 · 步骤用例编排 · 截图报告" />
         <Empty className="py-24" description="请先选择项目" />
       </div>
     );
@@ -94,12 +94,7 @@ export default function UiTestPage() {
     <div className="p-4 md:p-6 space-y-4 max-w-[1100px]" data-testid="uit-page">
       {msgCtx}
       <PageHeader
-        title={
-          <span className="flex items-center gap-2">
-            UI 测试
-            <Tag color="purple">企业版</Tag>
-          </span>
-        }
+        title="UI 测试"
         sub="元素库 · 步骤用例编排 · chromium 执行 · 逐步截图报告"
         extra={
           <span className="space-x-2">

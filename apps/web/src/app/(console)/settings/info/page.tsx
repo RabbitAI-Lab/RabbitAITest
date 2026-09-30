@@ -12,8 +12,8 @@ const MODULE_OPTIONS: {
   key: "case" | "plan" | "bug" | "api" | "load" | "uit";
   label: string;
   desc: string;
-  defaultOn?: boolean; // S-future LOAD-001/UIT-001：load/uit 缺省即关（与 case/api/plan/bug 缺省开相反）
-  enterprise?: boolean; // 企业版方向占位标记
+  defaultOn?: boolean; // E NTP-009（2026-09-30）起六键缺省全开；此标记仅存于历史项目 JSON 解析口径
+  enterprise?: boolean; // 历史占位标记（E NTP-009 开源全功能后不再渲染企业徽标，仅控制 desc 常显）
 }[] = [
   { key: "case", label: "测试用例", desc: "用例库、评审与回收站" },
   { key: "plan", label: "测试计划", desc: "计划编排与执行" },
@@ -22,14 +22,14 @@ const MODULE_OPTIONS: {
   {
     key: "load",
     label: "性能测试",
-    desc: "开启后左导航出现「性能测试」占位入口（企业版方向，无执行能力）",
+    desc: "施压计划、秒级执行监控与压测报告",
     defaultOn: false,
     enterprise: true,
   },
   {
     key: "uit",
     label: "UI 测试",
-    desc: "开启后左导航出现「UI 测试」占位入口（企业版方向，无执行能力）",
+    desc: "元素库、步骤用例编排与截图报告",
     defaultOn: false,
     enterprise: true,
   },
@@ -180,11 +180,6 @@ export default function SettingsInfoPage() {
                         data-testid={`module-switch-${m.key}`}
                       />
                       <span className="text-[13px] w-20">{m.label}</span>
-                      {m.enterprise && (
-                        <span className="border border-amber-400 text-amber-600 rounded px-1.5 py-0.5 text-[11px]">
-                          企业版方向
-                        </span>
-                      )}
                       {m.enterprise ? (
                         <span className="text-xs text-[#A8ABB0]">{m.desc}</span>
                       ) : on ? (
