@@ -25,7 +25,7 @@ scrape_configs:
 
 要求：该 APIKEY 属主具备 `SYSTEM_METRICS:READ` 权限点（系统管理员组）。**普通用户的 key 抓取会得到 403（10003）**；无效/吊销 key 得 401（10010）；单 key 限 30 次/分钟（429，默认抓取间隔 15s 远低于此）。
 
-Grafana：导入 `assets/rabbit-overview.grafana.json`（8 面板总览：队列/槽位/HTTP/任务/误报/慢查询），数据源选上述 Prometheus。
+Grafana：导入 `assets/rabbit-overview.grafana.json`（v2·10 面板总览：队列/槽位/HTTP/任务/失败与误报/慢查询/**采样器错误分类**/**进程资源 web·engine·mock**），数据源选上述 Prometheus。
 
 ## 2. 指标目录
 

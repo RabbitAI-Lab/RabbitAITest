@@ -84,3 +84,4 @@ DoD：§5 三项测试 + 全量回归绿 + 远端 CI 全绿；契约冻结点=§
 
 1. **jmx 断言正则语义复用确认**：本规格 T1.1 断言串 `le="+Inf"` 含正则元字符 `+`，依 INFRA-009 勘误①纪律写作 `le="\+Inf"`（首跑即绿，纪律生效佐证）。
 2. **SYS-008 T3.1 过期时间炸弹修复（跨规格测试修复，2026-09-30）**：CI 确定性红（两轮同一样本）+ 本地单计划复现 + 四变体对照实验定位——T3.1 的 `to=2026-09-30T00:00:00Z` 为**硬编码上界**，UTC 时刻越过该边界后审计行 createdAt>to 恒被 `lte` 排除（边界前 ~100s 临界窗叠加审计异步 flush 延迟亦可落空）；与本分支代码无关（分片重排只是把该计划挪离了曾提供历史 system_param 行的邻居分片，使炸弹显形）。修复：JSR223 PreProcessor 预置 UTC 动态窗口（from=now-7d、to=now+1d，SimpleDateFormat 显式 UTC——规避 `__timeShift` JVM 本地时区歧义）。对照实验数据（objectType/from/宽窗 全命中、原样窗恒 0）存证于会话记录。
+3. **看板资产补齐（2026-09-30，PR #24 合并后补）**：Grafana 总览看板仍为 INFRA-007 时点 8 面板，滞后于 008/009/010 新增指标面——升级 v2 补两面板：「采样器错误分类（by code）」（`rabbit_sampler_errors_24h`）与「进程资源（by process：RSS 左轴 + `rate(cpu_seconds_total)` 右轴——web/engine-{nodeId}/mock 同图）」；既有 8 面板查询零改动（ms summary/无 label selector 语义兼容验证过的口径）。
