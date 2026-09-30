@@ -1,5 +1,9 @@
 import { z } from "zod";
 import { DRIVERS, DRIVER_META } from "../plugins/driver-kit";
+import {
+  uiStepSchema as uiStepSchemaForExec,
+  uiCaseItemCommandSchema as uiCaseItemCommandSchemaForExec,
+} from "../uit/schemas";
 
 /**
  * 执行契约 v3（API-006 冻结，web ↔ engine 双方不得私改；engine-execution-architecture §3）。
@@ -483,6 +487,25 @@ export const execCommandSchema = z.discriminatedUnion("type", [
     mode: z.enum(["serial", "parallel"]).default("serial"),
     items: z.array(planItemCommandSchema).min(1).max(200),
   }),
+  z.object({
+    /** v5（S11 UIT-002）：UI 单用例任务——步骤指令序列（元素引用已预解析内联），engine playwright-core 驱动。 */
+    taskId: z.string().uuid(),
+    projectId: z.string().uuid(),
+    type: z.literal("ui_case"),
+    itemId: z.string().uuid(),
+    caseId: z.string().uuid(),
+    name: z.string().min(1).max(512),
+    steps: z.array(uiStepSchemaForExec).min(1).max(50),
+    timeoutMs: z.number().int().min(5000).max(60000),
+  }),
+  z.object({
+    /** v5（S11 UIT-002）：UI 批量任务——item 级串行/并行（池并发），与 api_case 同构。 */
+    taskId: z.string().uuid(),
+    projectId: z.string().uuid(),
+    type: z.literal("ui_batch"),
+    stopOnFail: z.boolean().default(false),
+    items: z.array(uiCaseItemCommandSchemaForExec).min(1).max(20),
+  }),
 ]);
 export type ExecCommand = z.infer<typeof execCommandSchema>;
 
@@ -585,6 +608,15 @@ export const stepOpFrame = z.object({
   durationMs: z.number().int().default(0),
   message: z.string().max(2000).default(""),
 });
+/** v5（S11 UIT-002）：UI 步骤截图帧——截图指令与失败自动截图落 internal/files，帧携带 fileId 引用（不内联字节，防 Stream/DB 膨胀）。 */
+export const uiScreenshotFrame = z.object({
+  ...frameBase,
+  type: z.literal("ui-screenshot"),
+  itemId: z.string().uuid().optional(),
+  stepSeq: z.number().int().min(1),
+  fileId: z.string().uuid(),
+  name: z.string().max(256).default(""),
+});
 export const logFrame = z.object({
   ...frameBase,
   type: z.literal("log"),
@@ -638,6 +670,7 @@ export const eventFrameSchema = z.discriminatedUnion("type", [
   stepResultFrame,
   stepSkipFrame,
   stepOpFrame,
+  uiScreenshotFrame,
   logFrame,
   taskFinalFrame,
 ]);
@@ -647,7 +680,8 @@ export type EventFrame = z.infer<typeof eventFrameSchema>;
 type DistributiveOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K> : never;
 export type FrameInput = DistributiveOmit<EventFrame, "taskId" | "seq" | "ts">;
 
-/** 回调（engine → web，终态）。varUpdates=提取 scope=env 的写回（API-004 §2）。 */
+/** 回调（engine → web，终态）。varUpdates=提取 scope=env 的写回（API-004 §2）。
+ * v5（S11 LOAD-003）：+loadSummary 可选载荷（type=load 任务终态阈值汇总，additive——web 回调分支按 loadSummarySchema 解析）。 */
 export const execCallbackSchema = z.object({
   outcome: z.enum(["success", "failed", "stopped"]),
   failureKind: failureKindSchema.optional(),
@@ -656,6 +690,7 @@ export const execCallbackSchema = z.object({
   varUpdates: z
     .array(z.object({ name: z.string().max(128), value: z.string().max(8192) }))
     .default([]),
+  loadSummary: z.unknown().optional(),
 });
 export type ExecCallback = z.infer<typeof execCallbackSchema>;
 
@@ -693,8 +728,9 @@ export const taskStatusSchema = z.enum(["PENDING", "RUNNING", "SUCCESS", "FAILED
 export type TaskStatus = z.infer<typeof taskStatusSchema>;
 
 /** 引擎契约版本（心跳协商：不一致节点 web 标「版本不匹配」不下发新类型任务展示）
- * v4（S4 PLAN-003）：+plan 命令（计划引擎执行）、step-start 帧 +stepName——全 additive。 */
-export const EXEC_CONTRACT_VERSION = 4;
+ * v4（S4 PLAN-003）：+plan 命令（计划引擎执行）、step-start 帧 +stepName——全 additive。
+ * v5（S11 UIT-002）：+ui_case/ui_batch 命令分支 + ui-screenshot 帧——全 additive。 */
+export const EXEC_CONTRACT_VERSION = 5;
 
 // ── K8S 型资源池（S-future EXEC-004 §4）──
 

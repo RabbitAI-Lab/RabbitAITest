@@ -108,6 +108,9 @@ importers:
       p-limit:
         specifier: ^6.2.0
         version: 6.2.0
+      playwright-core:
+        specifier: ^1.49.0
+        version: 1.63.0
       quickjs-emscripten:
         specifier: ^0.32.0
         version: 0.32.0
@@ -262,8 +265,8 @@ importers:
         specifier: ^15.1.6
         version: 15.5.26(@playwright/test@1.63.0)(@types/node@22.20.4)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       nodemailer:
-        specifier: ^9.1.1
-        version: 9.1.1
+        specifier: ^10.0.13
+        version: 10.0.13
       pg:
         specifier: ^8.23.0
         version: 8.23.0
@@ -3183,9 +3186,9 @@ packages:
     resolution: {integrity: sha512-s+w+rBWnpTMwSFbaE0UXsRlg7hU4FjekKU4eyAih5T8nJuNZT1nNsskXpxmeqSK9UzkBl6UgRlnKc8hz8IEqOw==}
     hasBin: true
 
-  nodemailer@9.1.1:
-    resolution: {integrity: sha512-izw9mVKFix6YSnC9eLgV6g1opl9DUlRio9ZNcq+Wu9Ujn2UwF+8Nl0B8nz22kEC+CTZCvinkxwJ0DeFbb6NwcQ==}
-    engines: {node: '>=6.0.0'}
+  nodemailer@10.0.13:
+    resolution: {integrity: sha512-SzG86OlvcW/NNhUFC6uROMwRTL4n7MswfQqC/T8mhkmnY1YVa23zUEMYi4ijSeXSl9GLz9ZeTJDUatEDuY5FeQ==}
+    engines: {node: '>=20.0.0'}
 
   normalize-path@3.0.0:
     resolution: {integrity: sha512-6eZs5Ls3WtCisHWp9S2GUy8dqkpGi4BVSz3GaqiE6ezub0512ESztXUwUB6C6IKbQkY2Pnb/mD4WYojCRwcwLA==}
@@ -6522,7 +6525,7 @@ snapshots:
       detect-libc: 2.1.2
     optional: true
 
-  nodemailer@9.1.1: {}
+  nodemailer@10.0.13: {}
 
   normalize-path@3.0.0: {}
 

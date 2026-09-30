@@ -22,7 +22,9 @@ export function useEntp(): EntpState {
   const q = useQuery({
     queryKey: ["entp-license-status"],
     queryFn: () => licenseApi.publicStatus(),
-    staleTime: 10_000,
+    staleTime: 0, // License 全局态瞬变（S11 门控页：缓存+多订阅者共享 stale 帧——竞态教训）
+    refetchOnMount: "always", // 挂载即取新数（同 key 已有订阅者时不再复用 stale 帧，S11 T8 占位闪现根修）
+    refetchOnWindowFocus: true,
   });
   const data = q.data;
   return {

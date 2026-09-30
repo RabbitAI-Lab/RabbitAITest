@@ -38,6 +38,8 @@ jobs:
       - run: corepack enable
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @rabbit/db generate
+      # S11：engine uit 单测内嵌真 chromium 执行（playwright-core；CI 无浏览器=CONFIG_ERROR 假红）
+      - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm test

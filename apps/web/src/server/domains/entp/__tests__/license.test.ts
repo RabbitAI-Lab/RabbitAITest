@@ -109,7 +109,7 @@ describe("状态机与门控（prisma mock）", () => {
     __setState("license", { code: "x", status: "VALID", payload: payload() });
     const s = await getLicenseState();
     expect(s.edition).toBe("ENTERPRISE");
-    expect(s.features!).toHaveLength(6);
+    expect(s.features!).toHaveLength(8); // S11：八特性目录（+LOAD_TEST/UI_TEST）
     await expect(assertEntpEnabled("MSG_TEMPLATE")).resolves.toBeUndefined();
     expect(await entpFeatureActive("THEME")).toBe(true);
   });

@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>LOAD-003 性能测试模块 · 高保真原型</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-slate-50 text-slate-800">
+    <header class="h-12 bg-white border-b flex items-center px-4 gap-3 sticky top-0">
+      <span class="font-bold text-[#574BFF]">RabbitAITest</span>
+      <span class="text-slate-300">/</span>
+      <span>演示项目 #1</span>
+      <span class="text-slate-300">/</span>
+      <span class="font-medium">性能测试</span>
+      <span class="ml-auto text-xs text-slate-400">S11 · LOAD-003 · 企业版（License 已激活）</span>
+    </header>
+    <main class="p-4 space-y-4 max-w-[1100px]">
+
+      <!-- 画板一 · 施压计划列表 -->
+      <section class="bg-white border rounded-md" data-testid="load-tests-board">
+        <div class="px-4 py-3 border-b flex items-center gap-2">
+          <span class="font-medium">画板一 · 施压计划列表（/load）</span>
+          <span class="text-xs text-slate-400">默认页：表格+新建入口</span>
+        </div>
+        <div class="p-4 space-y-3">
+          <div class="flex items-center gap-2">
+            <input class="border rounded px-2 py-1 text-sm w-56" placeholder="搜索名称" data-testid="load-search" />
+            <button class="bg-[#574BFF] text-white rounded px-3 py-1.5 text-sm" data-testid="load-create-btn">新建施压计划</button>
+          </div>
+          <table class="w-full text-sm" data-testid="load-tests-table">
+            <thead>
+              <tr class="text-left text-slate-500 border-b">
+                <th class="py-2">名称</th><th>目标</th><th>压力模型</th><th>最近任务</th><th class="text-right">操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="border-b">
+                <td class="py-2.5 font-medium">下单链路-基线压测</td>
+                <td class="text-slate-500">POST http://mock:4000/ping</td>
+                <td class="text-slate-500">并发阶梯 · 300s</td>
+                <td><span class="border rounded px-1.5 py-0.5 text-xs text-emerald-600 border-emerald-200 bg-emerald-50">SUCCESS</span></td>
+                <td class="text-right space-x-2">
+                  <button class="text-[#574BFF]">执行</button><button class="text-slate-500">编辑</button><button class="text-red-400">删除</button>
+                </td>
+              </tr>
+              <tr>
+                <td class="py-2.5 font-medium">登录接口-容量探索</td>
+                <td class="text-slate-500">POST http://mock:4000/login</td>
+                <td class="text-slate-500">目标 TPS 500 · 120s</td>
+                <td><span class="border rounded px-1.5 py-0.5 text-xs text-amber-600 border-amber-200 bg-amber-50">RUNNING</span></td>
+                <td class="text-right space-x-2">
+                  <button class="text-[#574BFF]">监控</button><button class="text-slate-500">编辑</button><button class="text-red-400">删除</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="flex justify-between text-xs text-slate-400"><span>共 2 条</span><span>1 / 1 页</span></div>
+        </div>
+      </section>
+
+      <!-- 画板二 · 施压计划编辑器 -->
+      <section class="bg-white border rounded-md" data-testid="load-plan-board">
+        <div class="px-4 py-3 border-b flex items-center gap-2">
+          <span class="font-medium">画板二 · 施压计划编辑器（/load/{id}）</span>
+          <span class="text-xs text-slate-400">目标请求 + 压力模型 + 断言阈值</span>
+        </div>
+        <div class="p-4 grid grid-cols-2 gap-4">
+          <div class="space-y-3 border rounded p-3" data-testid="load-target-form">
+            <div class="text-sm font-medium text-slate-600">目标请求</div>
+            <div class="flex gap-2">
+              <select class="border rounded px-2 py-1.5 text-sm w-24"><option>POST</option><option>GET</option></select>
+              <input class="border rounded px-2 py-1.5 text-sm flex-1" value="http://127.0.0.1:4000/ping" />
+            </div>
+            <div class="text-xs text-slate-400">Headers（Key/Value 行，+ 添加）</div>
+            <div class="flex gap-2"><input class="border rounded px-2 py-1 text-xs flex-1" value="Content-Type" /><input class="border rounded px-2 py-1 text-xs flex-1" value="application/json" /></div>
+            <div class="text-xs text-slate-400">Body</div>
+            <textarea class="border rounded px-2 py-1 text-xs w-full font-mono h-16">{"sku": "rabbit-1"}</textarea>
+          </div>
+          <div class="space-y-3">
+            <div class="border rounded p-3 space-y-3" data-testid="load-pressure-form">
+              <div class="text-sm font-medium text-slate-600">压力模型</div>
+              <div class="flex gap-2 text-sm">
+                <span class="border border-[#574BFF] text-[#574BFF] rounded px-2 py-1">并发阶梯</span>
+                <span class="border rounded px-2 py-1 text-slate-400">目标 TPS</span>
+              </div>
+              <div class="grid grid-cols-2 gap-2 text-sm">
+                <label class="space-y-1"><span class="text-xs text-slate-500">持续时长（秒）</span><input class="border rounded px-2 py-1.5 w-full" value="300" /></label>
+                <label class="space-y-1"><span class="text-xs text-slate-500">并发上限</span><input class="border rounded px-2 py-1.5 w-full" value="100" /></label>
+              </div>
+              <div class="text-xs text-slate-400">阶梯（秒 → 并发）</div>
+              <div class="space-y-1 font-mono text-xs">
+                <div class="flex gap-2"><input class="border rounded px-2 py-1 w-20" value="0" /><span class="py-1.5">→</span><input class="border rounded px-2 py-1 w-20" value="20" /><span class="py-1.5 text-slate-400">并发</span></div>
+                <div class="flex gap-2"><input class="border rounded px-2 py-1 w-20" value="60" /><span class="py-1.5">→</span><input class="border rounded px-2 py-1 w-20" value="60" /><span class="py-1.5 text-slate-400">并发</span></div>
+                <div class="flex gap-2"><input class="border rounded px-2 py-1 w-20" value="120" /><span class="py-1.5">→</span><input class="border rounded px-2 py-1 w-20" value="100" /><span class="py-1.5 text-slate-400">并发</span></div>
+              </div>
+              <button class="text-xs text-[#574BFF]">+ 添加阶梯</button>
+            </div>
+            <div class="border rounded p-3 space-y-2" data-testid="load-threshold-form">
+              <div class="text-sm font-medium text-slate-600">断言阈值（结论判定）</div>
+              <div class="grid grid-cols-3 gap-2 text-sm">
+                <label class="space-y-1"><span class="text-xs text-slate-500">成功率 ≥</span><input class="border rounded px-2 py-1.5 w-full" value="99%" /></label>
+                <label class="space-y-1"><span class="text-xs text-slate-500">P95 ≤</span><input class="border rounded px-2 py-1.5 w-full" value="500ms" /></label>
+                <label class="space-y-1"><span class="text-xs text-slate-500">平均 RT ≤</span><input class="border rounded px-2 py-1.5 w-full" value="200ms" /></label>
+              </div>
+            </div>
+            <div class="flex gap-2 justify-end">
+              <button class="border rounded px-3 py-1.5 text-sm">取消</button>
+              <button class="bg-[#574BFF] text-white rounded px-3 py-1.5 text-sm" data-testid="load-save-btn">保存计划</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 画板三 · 任务监控（实时曲线） -->
+      <section class="bg-white border rounded-md" data-testid="load-monitor-board">
+        <div class="px-4 py-3 border-b flex items-center gap-2">
+          <span class="font-medium">画板三 · 任务监控实时曲线（/load/tasks/{taskId}）</span>
+          <span class="border rounded px-1.5 py-0.5 text-xs text-amber-600 border-amber-200 bg-amber-50">RAMPING_UP</span>
+          <span class="text-xs text-slate-400 ml-auto">已运行 00:47 / 300s</span>
+          <button class="border border-red-300 text-red-500 rounded px-3 py-1 text-sm" data-testid="load-stop-btn">停止施压</button>
+        </div>
+        <div class="p-4 space-y-3">
+          <div class="grid grid-cols-4 gap-3 text-center">
+            <div class="border rounded p-2"><div class="text-xs text-slate-400">当前 TPS</div><div class="text-lg font-semibold" data-testid="load-tps-now">312</div></div>
+            <div class="border rounded p-2"><div class="text-xs text-slate-400">已发压</div><div class="text-lg font-semibold">14,208</div></div>
+            <div class="border rounded p-2"><div class="text-xs text-slate-400">失败率</div><div class="text-lg font-semibold text-emerald-600">0.2%</div></div>
+            <div class="border rounded p-2"><div class="text-xs text-slate-400">RT P95</div><div class="text-lg font-semibold">186ms</div></div>
+          </div>
+          <div class="border rounded p-3" data-testid="load-monitor-chart">
+            <div class="text-xs text-slate-500 mb-1">TPS / 并发（秒级，SSE 推进）</div>
+            <svg viewBox="0 0 640 160" class="w-full h-40">
+              <g stroke="#e2e8f0" stroke-width="1"><line x1="0" y1="40" x2="640" y2="40"/><line x1="0" y1="80" x2="640" y2="80"/><line x1="0" y1="120" x2="640" y2="120"/></g>
+              <polyline fill="none" stroke="#574BFF" stroke-width="2" points="0,150 60,146 120,138 180,126 240,110 300,92 360,74 420,60 480,50 540,44 600,40 640,38" />
+              <polyline fill="none" stroke="#10b981" stroke-width="2" stroke-dasharray="5 3" points="0,158 60,157 120,155 180,152 240,148 300,142 360,136 420,130 480,126 540,124 600,122 640,121" />
+              <text x="4" y="14" font-size="10" fill="#574BFF">TPS</text><text x="36" y="14" font-size="10" fill="#10b981">并发</text>
+            </svg>
+          </div>
+          <div class="text-xs text-slate-400">最近秒级点（每秒新增一行；停止/完成后自动跳转报告页）</div>
+        </div>
+      </section>
+
+      <!-- 画板四 · 压测报告 -->
+      <section class="bg-white border rounded-md" data-testid="load-report-board">
+        <div class="px-4 py-3 border-b flex items-center gap-2">
+          <span class="font-medium">画板四 · 压测报告（/load/reports/{reportId}）</span>
+          <span class="border rounded px-1.5 py-0.5 text-xs text-emerald-600 border-emerald-200 bg-emerald-50">结论 SUCCESS</span>
+          <button class="ml-auto border rounded px-3 py-1 text-sm">导出</button>
+        </div>
+        <div class="p-4 space-y-3">
+          <div class="grid grid-cols-5 gap-3 text-center" data-testid="load-report-summary">
+            <div class="border rounded p-2"><div class="text-xs text-slate-400">总请求</div><div class="text-base font-semibold">88,412</div></div>
+            <div class="border rounded p-2"><div class="text-xs text-slate-400">成功率</div><div class="text-base font-semibold text-emerald-600">99.8%</div></div>
+            <div class="border rounded p-2"><div class="text-xs text-slate-400">峰值 TPS</div><div class="text-base font-semibold">508</div></div>
+            <div class="border rounded p-2"><div class="text-xs text-slate-400">P95</div><div class="text-base font-semibold">412ms</div></div>
+            <div class="border rounded p-2"><div class="text-xs text-slate-400">P99</div><div class="text-base font-semibold">689ms</div></div>
+          </div>
+          <div class="border rounded p-3" data-testid="load-report-chart">
+            <div class="text-xs text-slate-500 mb-1">RT 分位（P50 / P95 / P99，秒级）</div>
+            <svg viewBox="0 0 640 140" class="w-full h-36">
+              <g stroke="#e2e8f0" stroke-width="1"><line x1="0" y1="35" x2="640" y2="35"/><line x1="0" y1="70" x2="640" y2="70"/><line x1="0" y1="105" x2="640" y2="105"/></g>
+              <polyline fill="none" stroke="#574BFF" stroke-width="2" points="0,120 80,118 160,114 240,110 320,104 400,98 480,92 560,88 640,86" />
+              <polyline fill="none" stroke="#f59e0b" stroke-width="2" points="0,100 80,98 160,94 240,90 320,84 400,78 480,72 560,66 640,62" />
+              <polyline fill="none" stroke="#ef4444" stroke-width="2" stroke-dasharray="4 3" points="0,82 80,80 160,76 240,72 320,66 400,58 480,50 560,42 640,36" />
+              <text x="4" y="14" font-size="10" fill="#574BFF">P50</text><text x="28" y="14" font-size="10" fill="#f59e0b">P95</text><text x="52" y="14" font-size="10" fill="#ef4444">P99</text>
+            </svg>
+          </div>
+          <div class="text-xs text-slate-500 border rounded p-2 bg-slate-50" data-testid="load-report-verdict">
+            阈值判定：成功率 99.8% ≥ 99% ✓ · P95 412ms ≤ 500ms ✓ · 平均 RT 231ms ≤ 200ms ✗ —— 1/3 越限（结论以全部达标为 SUCCESS；任意越限=FAIL 并逐项标红）
+          </div>
+        </div>
+      </section>
+
+      <p class="text-xs text-slate-400">门控说明：modules.load 开关 ∧ PROJECT_LOAD:READ+ ∧ License 特性 LOAD_TEST 三重满足才渲染以上真实模块；任一不满足回退 LOAD-001 占位页（社区版态，90001）。</p>
+    </main>
+  </body>
+</html>

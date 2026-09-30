@@ -71,12 +71,10 @@ test("PROJ-001-01 模块开关与删除撤销", async ({
     .getByTestId("btn-delete-project")
     .click();
   await expect(page.getByText(/30 天内可在「已删除」页签撤销恢复/)).toBeVisible();
-  const deleteApi = expectApi("**/api/v1/projects/*");
   await page.getByRole("dialog").getByRole("button", { name: "确认删除" }).click();
-  const deleted = await deleteApi;
-  expect(deleted.status).toBe(200);
-  expect(deleted.code).toBe(0);
-  await expect(page.getByText(/项目已删除/)).toBeVisible();
+  // 删除完成信号=toast+列表行消失（expectApi 高压竞态漏窗口教训——收口 UI 断言；DELETE 负载断言归 jmx 层）
+  await expect(page.getByText(/项目已删除/)).toBeVisible({ timeout: 10000 });
+  await expect(page.getByRole("row", { name: new RegExp(projectName) })).toHaveCount(0);
 
   // 「已删除」页签出现该项目 → 撤销恢复（接口断言 POST restore）→ 回「项目列表」页签
   await page.getByTestId("tab-deleted").click();

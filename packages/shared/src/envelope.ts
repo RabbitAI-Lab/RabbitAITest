@@ -203,6 +203,14 @@ export const ErrCode = {
   // 9005x-9006x 模板与主题（ENTP-005/004）
   TEMPLATE_EVENT_INVALID: 90050,
   THEME_IMAGE_TOO_LARGE: 90060,
+  // 9007x-9008x 性能测试 / UI 测试（S11 LOAD-003 / UIT-002）
+  LOAD_TEST_NOT_FOUND: 90070,
+  LOAD_TEST_RUNNING: 90071, // 同项目并发施压互斥（409）
+  LOAD_TASK_NOT_RUNNABLE: 90072, // 非 RUNNING 任务不可停止（409）
+  UI_ELEMENT_NOT_FOUND: 90080,
+  UI_CASE_NOT_FOUND: 90081,
+  UI_ELEMENT_IN_USE: 90082, // 元素被用例引用仍可删（悬空语义）——保留位（规格登记不实现 409）
+  UI_BATCH_TOO_MANY: 90083, // 批量执行超 20 条（422）
 } as const;
 
 export const ErrMsg: Record<number, string> = {

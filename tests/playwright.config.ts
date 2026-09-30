@@ -40,7 +40,7 @@ export default defineConfig({
     command: [
       "bash -c '",
       `if [ -f ${E.e2e.tmpWebRoot}/apps/web/.next/BUILD_ID ]; then `,
-      `cd ${E.e2e.tmpWebRoot}/apps/web && exec env MOCK_PUBLIC_URL=${E.e2e.mockUrl} AI_ALLOW_PRIVATE_BASEURL=1 pnpm exec next start -p ${E.e2e.webPort};`,
+      `cd ${E.e2e.tmpWebRoot}/apps/web && exec env MOCK_PUBLIC_URL=${E.e2e.mockUrl} AI_ALLOW_PRIVATE_BASEURL=1 DATABASE_URL="\${E2E_DATABASE_URL:-\${DATABASE_URL:-postgresql://postgres:postgres@127.0.0.1:${E.e2e.pgPort}/${E.e2e.database}}}" REDIS_URL="\${E2E_REDIS_URL:-\${REDIS_URL:-${E.e2e.redisUrl}}}" WEB_URL=${E.e2e.webUrl} SESSION_SECRET=e2e-session-secret-32chars-ok!!!!! INTERNAL_TOKEN=e2e-internal-token SESSION_COOKIE_SECURE=false RABBIT_USER_LIMIT=1000 RABBIT_INTEGRATION_SECRET=\${RABBIT_INTEGRATION_SECRET:-e2e-integration-secret-32chars-ok!!} OUTBOUND_ALLOW_PRIVATE=1 PORT=${E.e2e.webPort} pnpm exec next start -p ${E.e2e.webPort};`,
       "else ",
       `export DATABASE_URL="\${E2E_DATABASE_URL:-\${DATABASE_URL:-postgresql://postgres:postgres@127.0.0.1:${E.e2e.pgPort}/${E.e2e.database}}}"`,
       `REDIS_URL="\${E2E_REDIS_URL:-\${REDIS_URL:-${E.e2e.redisUrl}}}"`,

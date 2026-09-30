@@ -91,6 +91,10 @@ export function toResponse(err: unknown): NextResponse {
                   // S9 ENTP
                   ErrCode.SSO_SOURCE_NOT_FOUND,
                   ErrCode.DEPARTMENT_NOT_FOUND,
+                  // S11 LOAD/UIT
+                  ErrCode.LOAD_TEST_NOT_FOUND,
+                  ErrCode.UI_ELEMENT_NOT_FOUND,
+                  ErrCode.UI_CASE_NOT_FOUND,
                   // S11 SYS-009（授权会话 404 防枚举）
                   ErrCode.OAUTH_GRANT_NOT_FOUND,
                 ] as number[]
@@ -106,7 +110,10 @@ export function toResponse(err: unknown): NextResponse {
                 err.code === ErrCode.POOL_HAS_TASKS ||
                 err.code === ErrCode.DEPARTMENT_NAME_EXISTS ||
                 err.code === ErrCode.DEPARTMENT_HAS_CHILDREN ||
-                err.code === ErrCode.SSO_ACCOUNT_CONFLICT
+                err.code === ErrCode.SSO_ACCOUNT_CONFLICT ||
+                // S11 LOAD/UIT 409
+                err.code === ErrCode.LOAD_TEST_RUNNING ||
+                err.code === ErrCode.LOAD_TASK_NOT_RUNNABLE
               ? 409
               : err.code === ErrCode.VALIDATION_FAILED ||
                   (

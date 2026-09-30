@@ -91,7 +91,14 @@ function toState(row: LicenseRow | null): {
 
 /** 当前有效授权（惰性降级：过期即按无授权处理并落库 EXPIRED）。 */
 export async function validLicense(): Promise<LicensePayload | null> {
-  const row = await prisma.license.findFirst({ orderBy: { updatedAt: "desc" } });
+  // 写读一致性兜底（S11 e2e 教训：生产形态下 addLicense POST 200 后紧随读偶发 NONE——
+  // 事务提交→可见性的微窗口；NONE 时 50ms 复询一次再判，调用方零感知）
+  let row = await prisma.license.findFirst({ orderBy: { updatedAt: "desc" } });
+  if (!row) {
+    await new Promise((r) => setTimeout(r, 50));
+    row = await prisma.license.findFirst({ orderBy: { updatedAt: "desc" } });
+  }
+
   const { payload, status } = toState(row);
   if (row && status === "EXPIRED" && row.status !== "EXPIRED") {
     await prisma.license
@@ -161,6 +168,17 @@ export async function addLicense(code: string): Promise<LicenseStatus> {
       data: { code: code.trim(), status: "VALID", payload: payload as unknown as object },
     }),
   ]);
+  // 写读一致性（S11 e2e 教训：embedded-pg 下 POST 返回后紧随的公开状态 GET 偶发读回 NONE——
+  // 回源 read-back 至本行可见（≤2s），保证「addLicense 200 = 状态已可读」的调用方契约）
+  const deadline = Date.now() + 2000;
+  for (;;) {
+    const row = await prisma.license.findFirst({
+      where: { status: "VALID" },
+      select: { id: true },
+    });
+    if (row || Date.now() >= deadline) break;
+    await new Promise((r) => setTimeout(r, 50));
+  }
   return getLicenseState();
 }
 

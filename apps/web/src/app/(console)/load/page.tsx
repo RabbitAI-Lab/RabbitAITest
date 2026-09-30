@@ -1,47 +1,235 @@
-/** S-future LOAD-001：性能测试占位页（企业版方向，对齐基线 v3 社区版「仅占位」口径——无数据面零 API）。 */
-import { Gauge } from "lucide-react";
-import { PageHeader } from "@/components/PageHeader";
+"use client";
 
-export default function LoadPlaceholderPage() {
+import { Empty, Modal, Spin, Table, Tag, message } from "antd";
+import { Gauge } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { loadApi, ApiError, licenseApi, type LoadTestRow } from "@rabbit/api-client";
+import { PageHeader } from "@/components/PageHeader";
+import { usePermissions } from "@/hooks/usePermissions";
+import { useProjectStore } from "@/stores/project";
+import { LoadPlaceholder } from "./placeholder";
+
+/** S11 LOAD-003：性能测试列表（三重门控：modules.load ∧ PROJECT_LOAD:READ ∧ License LOAD_TEST）。
+ *  License 不满足→占位页（LOAD-001 社区版口径保持，placeholder.tsx 复刻原 LOAD-001 页）。 */
+
+const STATUS_COLOR: Record<string, string> = {
+  SUCCESS: "success",
+  FAILED: "error",
+  RUNNING: "processing",
+  PENDING: "default",
+  STOPPED: "warning",
+};
+
+export default function LoadListPage() {
+  const router = useRouter();
+  const qc = useQueryClient();
+  const { currentProjectId } = useProjectStore();
+  const { canGlobal } = usePermissions();
+  // 门控直读（不经共享 useEntp 缓存——License 写后首读一致性窗口用 2s 轮询吸收；S11 教训）
+  const licQ = useQuery({
+    queryKey: ["load-gate-license"],
+    queryFn: () => licenseApi.publicStatus(),
+    refetchInterval: (q) => (q.state.data?.features?.includes("LOAD_TEST") ? false : 2000),
+    staleTime: 0,
+  });
+  const entp = {
+    can: (f: string) =>
+      licQ.data?.edition === "ENTERPRISE" && (licQ.data?.features ?? []).includes(f),
+    loading: licQ.isLoading,
+  };
+  const [name, setName] = useState("");
+  const [page, setPage] = useState(1);
+  const [msg, msgCtx] = message.useMessage();
+
+  const entitled = entp.can("LOAD_TEST");
+  const permitted = canGlobal("PROJECT_LOAD:READ");
+  // 未授权时限流轮询（2s × 15 次≈30s）：License 刚激活（同页/他处）自动转正，无需手动刷新（S11 教训）
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["load-tests", currentProjectId, page, name],
+    queryFn: () => loadApi.list(currentProjectId!, { page, name: name || undefined }),
+    enabled: Boolean(currentProjectId) && entitled && permitted,
+  });
+
+  const runMut = useMutation({
+    mutationFn: (id: string) => loadApi.run(currentProjectId!, id),
+    onSuccess: (r) => {
+      msg.success("施压任务已触发");
+      void qc.invalidateQueries({ queryKey: ["load-tests"] });
+      router.push(`/load/tasks/${r.taskId}`);
+    },
+    onError: (e) => {
+      msg.error(
+        e instanceof ApiError && e.code === 90071
+          ? "项目内已有运行中的施压任务"
+          : `触发失败：${e instanceof Error ? e.message : e}`,
+      );
+    },
+  });
+
+  const delMut = useMutation({
+    mutationFn: (id: string) => loadApi.remove(currentProjectId!, id),
+    onSuccess: () => {
+      msg.success("已删除");
+      void qc.invalidateQueries({ queryKey: ["load-tests"] });
+    },
+  });
+
+  if (!currentProjectId) {
+    return (
+      <div className="p-4 md:p-6 max-w-[1100px]">
+        <PageHeader title="性能测试" sub="企业版 · License 门控" />
+        <Empty className="py-24" description="请先选择项目" />
+      </div>
+    );
+  }
+  if (entp.loading) {
+    return (
+      <div className="p-4 md:p-6 max-w-[1100px]">
+        <PageHeader title="性能测试" sub="企业版 · License 门控" />
+        <div className="py-24 text-center text-slate-400 text-sm">授权状态加载中…</div>
+      </div>
+    );
+  }
+  if (!entitled) return <LoadPlaceholder reason="license" />;
+
   return (
-    <div className="p-4 md:p-6 space-y-4 max-w-[1100px]">
+    <div className="p-4 md:p-6 space-y-4 max-w-[1100px]" data-testid="load-page">
+      {msgCtx}
       <PageHeader
         title={
           <span className="flex items-center gap-2">
             性能测试
-            <span className="border border-amber-400 text-amber-600 rounded px-1.5 py-0.5 text-xs font-normal">
-              企业版方向
-            </span>
+            <Tag color="purple">企业版</Tag>
           </span>
         }
-        sub="标准版与 MeterSphere v3 社区版同口径：不提供性能测试模块（占位入口，可在项目设置-信息中开关）"
+        sub="施压计划 · 执行监控 · 压测报告（秒级时间线）"
+        extra={
+          <button
+            className="bg-[#574BFF] text-white rounded px-3 py-1.5 text-sm"
+            data-testid="load-create-btn"
+            onClick={() => router.push("/load/new")}
+          >
+            新建施压计划
+          </button>
+        }
       />
-      <div
-        data-testid="load-placeholder"
-        className="bg-white border rounded-md p-10 flex flex-col items-center justify-center text-center space-y-3 min-h-[300px]"
-      >
-        <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center">
-          <Gauge size={26} className="text-slate-400" />
-        </div>
-        <div className="font-medium text-base">性能测试 · 企业版方向规划中</div>
-        <p className="text-slate-500 text-sm max-w-md leading-relaxed">
-          以下能力为企业版规划占位，License
-          激活后开放；分布式压测架构设计见规格文档（标准版不自研压测内核）。
-        </p>
-        <div className="flex gap-2 text-xs text-slate-400">
-          {["压测场景编排", "分布式压力节点", "压测报告对比"].map((s) => (
-            <span key={s} className="border rounded px-2 py-1 opacity-60">
-              {s}
-            </span>
-          ))}
-        </div>
-        <a
-          className="text-[#574BFF] text-xs underline"
-          href="https://github.com/RabbitAI-Lab/RabbitAITest/blob/main/docs/sprint-future-p4/LOAD-001-load-test-module.md"
-          target="_blank"
-          rel="noreferrer"
-        >
-          查看规划：LOAD-001 / LOAD-002 规格文档
+      <div className="flex items-center gap-2">
+        <input
+          className="border rounded px-2 py-1 text-sm w-56"
+          placeholder="搜索名称"
+          data-testid="load-search"
+          value={name}
+          onChange={(e) => {
+            setName(e.target.value);
+            setPage(1);
+          }}
+        />
+      </div>
+      <Spin spinning={isLoading}>
+        {data && data.list.length === 0 ? (
+          <Empty
+            className="py-20 bg-white border rounded"
+            description="还没有施压计划——点击右上「新建施压计划」开始"
+          />
+        ) : (
+          <Table<LoadTestRow>
+            rowKey="id"
+            data-testid="load-tests-table"
+            size="small"
+            dataSource={data?.list ?? []}
+            pagination={{
+              current: page,
+              pageSize: 20,
+              total: data?.total ?? 0,
+              onChange: setPage,
+              showSizeChanger: false,
+            }}
+            columns={[
+              {
+                title: "名称",
+                dataIndex: "name",
+                render: (v: string, r) => (
+                  <a className="text-[#574BFF]" onClick={() => router.push(`/load/${r.id}`)}>
+                    {v}
+                  </a>
+                ),
+              },
+              {
+                title: "目标",
+                key: "target",
+                render: (_, r) => (
+                  <span className="font-mono text-xs text-slate-500">
+                    {r.target.method} {r.target.url}
+                  </span>
+                ),
+              },
+              {
+                title: "压力模型",
+                key: "pressure",
+                render: (_, r) =>
+                  r.pressure.mode === "concurrency"
+                    ? `并发阶梯 · ${r.pressure.durationSec}s · ≤${r.pressure.maxConcurrency} 并发`
+                    : `目标 TPS ${r.pressure.targetTps} · ${r.pressure.durationSec}s`,
+              },
+              {
+                title: "最近任务",
+                key: "lastTask",
+                width: 130,
+                render: (_, r) =>
+                  r.lastTask ? (
+                    <Tag
+                      color={STATUS_COLOR[r.lastTask.status] ?? "default"}
+                      data-testid={`load-last-status-${r.id}`}
+                    >
+                      {r.lastTask.status}
+                    </Tag>
+                  ) : (
+                    <span className="text-xs text-slate-400">未执行</span>
+                  ),
+              },
+              {
+                title: "操作",
+                key: "ops",
+                width: 200,
+                render: (_, r) => (
+                  <span className="space-x-3">
+                    <a
+                      className="text-[#574BFF]"
+                      data-testid={`load-run-${r.id}`}
+                      onClick={() => runMut.mutate(r.id)}
+                    >
+                      {r.lastTask?.status === "RUNNING" ? "监控" : "执行"}
+                    </a>
+                    <a className="text-slate-500" onClick={() => router.push(`/load/${r.id}`)}>
+                      编辑
+                    </a>
+                    <a
+                      className="text-red-400"
+                      onClick={() =>
+                        Modal.confirm({
+                          title: `删除施压计划「${r.name}」？`,
+                          content: "软删除，历史任务与报告保留",
+                          onOk: () => delMut.mutateAsync(r.id),
+                        })
+                      }
+                    >
+                      删除
+                    </a>
+                  </span>
+                ),
+              },
+            ]}
+          />
+        )}
+      </Spin>
+      <div className="text-xs text-slate-400">
+        <Gauge size={12} className="inline mr-1 -mt-0.5" />
+        全部执行记录见{" "}
+        <a className="text-[#574BFF]" onClick={() => router.push("/load/history")}>
+          执行历史
         </a>
       </div>
     </div>

@@ -152,10 +152,22 @@ const ORG_DEPARTMENT = [
   "ORG_DEPARTMENT:DELETE",
 ] as const;
 
-/** 性能测试/UI 测试占位保留位（S-future LOAD-001/UIT-001：企业版方向，仅 READ；
- * 消费方=LeftNav 占位导航双门控（模块开关 ∧ 权限点），激活真实模块时随 ENTP 扩展动作集） */
-const PROJECT_LOAD = ["PROJECT_LOAD:READ"] as const;
-const PROJECT_UIT = ["PROJECT_UIT:READ"] as const;
+/** 性能测试/UI 测试（S-future LOAD-001/UIT-001 保留 READ；S11 LOAD-003/UIT-002 扩展全动作——
+ * READ/CREATE/UPDATE/DELETE/EXECUTE 与 PROJECT_API 口径同构；EXECUTE=run/stop 端点） */
+const PROJECT_LOAD = [
+  "PROJECT_LOAD:READ",
+  "PROJECT_LOAD:CREATE",
+  "PROJECT_LOAD:UPDATE",
+  "PROJECT_LOAD:DELETE",
+  "PROJECT_LOAD:EXECUTE",
+] as const;
+const PROJECT_UIT = [
+  "PROJECT_UIT:READ",
+  "PROJECT_UIT:CREATE",
+  "PROJECT_UIT:UPDATE",
+  "PROJECT_UIT:DELETE",
+  "PROJECT_UIT:EXECUTE",
+] as const;
 
 export const PERMISSION_POINTS = [
   ...SYSTEM_USER,
@@ -287,6 +299,8 @@ export const PRESET_GROUP_PERMISSIONS = {
     "PROJECT_SCRIPT:CREATE",
     "PROJECT_MESSAGE:READ",
     "PROJECT_AI:READ",
+    "PROJECT_LOAD:READ",
+    "PROJECT_UIT:READ",
     ...PROJECT_EXEC_TASK,
   ],
 } as const;

@@ -66,6 +66,8 @@
 | ENTP-006 | [multi-resource-pool](./ENTP-006-multi-resource-pool/index.html)（多池卡片/新建弹窗/绑定命令提示 + 执行弹窗选池下拉二态）                      | 待确认                          | —        |
 | ENTP-007 | [license-system](./ENTP-007-license-system/index.html)（授权管理社区版⇄企业版两态+功能矩阵+添加弹窗 + 到期黄条/红条横幅）                      | 待确认                          | —        |
 | ENTP-008 | [user-scale-department](./ENTP-008-user-scale-department/index.html)（部门树+成员表+添加弹窗 + 用户管理上限进度条社区版⇄企业版）               | 待确认                          | —        |
+| LOAD-003 | [load-test](./LOAD-003-load-test/index.html)（施压计划列表/编辑器（双模式+阶梯+阈值）/任务监控实时曲线/压测报告四画板）                       | 待确认                          | —        |
+| UIT-002  | [ui-test](./UIT-002-ui-test/index.html)（用例列表/步骤编辑器（8 指令行式）/元素库/执行报告截图网格四画板）                                      | 待确认                          | —        |
 
 **勘误 1（2026-09-26，原型透明度）**：Sprint 1 十一组原型（2026-09-26 产出）当前页高亮统一 `bg-[#574BFF]/10`（Tailwind v3 CDN 不编译 /8 透明度刻度，与 CASE-001 基线一致）。
 

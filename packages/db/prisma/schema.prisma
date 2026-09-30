@@ -106,6 +106,9 @@ model Project {
   robots           Robot[]
   messageTemplates MessageTemplate[]
   attachments      Attachment[]
+  loadTests        LoadTest[]
+  uiElements       UiElement[]
+  uiCases          UiTestCase[]
 
   @@unique([orgId, num])
   @@index([deletedAt])
@@ -1021,7 +1024,7 @@ model ExecTask {
   id             String          @id @default(uuid())
   projectId      String          @map("project_id")
   project        Project         @relation(fields: [projectId], references: [id])
-  type           String          @db.VarChar(32) // api_debug | api_case | scenario | plan
+  type           String          @db.VarChar(32) // api_debug | api_case | scenario | plan | load | ui_case | ui_batch（S11）
   refType        String?         @map("ref_type") @db.VarChar(32)
   refId          String?         @map("ref_id") @db.VarChar(64)
   status         String          @default("PENDING") @db.VarChar(16)
@@ -1083,7 +1086,7 @@ model Report {
   projectId      String          @map("project_id")
   project        Project         @relation(fields: [projectId], references: [id])
   planId         String?         @map("plan_id")
-  reportType     String          @map("report_type") @db.VarChar(32) // api_case | scenario | plan
+  reportType     String          @map("report_type") @db.VarChar(32) // api_case | scenario | plan | load | ui（S11）
   name           String          @db.VarChar(256)
   summary        String?         @db.VarChar(4000)
   snapshot       Json? // 分享快照（P0 不启用）
@@ -1195,4 +1198,63 @@ model AiGenRecord {
 
   @@index([projectId, createdAt])
   @@map("ai_gen_records")
+}
+
+/// S11 LOAD-003 施压计划（企业版 License 门控；任务复用 ExecTask(type=load)、秒级时间线载于 Report.summary Json——门禁 3 对齐 LOAD-002 §2）
+model LoadTest {
+  id         String    @id @default(uuid())
+  projectId  String    @map("project_id")
+  project    Project   @relation(fields: [projectId], references: [id])
+  name       String    @db.VarChar(128)
+  status     String    @default("ACTIVE") @db.VarChar(16)
+  /// 目标 HTTP 请求（method/url/headers/body，zod 校验）
+  target     Json
+  /// 压力模型（mode=concurrency|tps、durationSec、ramp 阶梯数组、maxConcurrency/targetTps）
+  pressure   Json
+  /// 断言阈值（okRateMin/p95MsMax/avgMsMax，结论判定）
+  thresholds Json
+  envId      String?   @map("env_id")
+  createdBy  String    @map("created_by")
+  deletedAt  DateTime? @map("deleted_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+
+  @@index([projectId, deletedAt])
+  @@map("load_tests")
+}
+
+/// S11 UIT-002 元素库（定位器仓库；删除后用例引用悬空→执行时 CONFIG_ERROR，不级联删用例）
+model UiElement {
+  id          String    @id @default(uuid())
+  projectId   String    @map("project_id")
+  project     Project   @relation(fields: [projectId], references: [id])
+  name        String    @db.VarChar(128)
+  locatorType String    @map("locator_type") @db.VarChar(16) // css | xpath | testid | text | role
+  locator     String    @db.VarChar(512)
+  description String?   @db.VarChar(512)
+  moduleId    String?   @map("module_id")
+  deletedAt   DateTime? @map("deleted_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@index([projectId, deletedAt])
+  @@map("ui_elements")
+}
+
+/// S11 UIT-002 UI 用例（步骤指令序列 Json，8 指令 discriminatedUnion；执行=ExecTask(type=ui_case|ui_batch)+chromium）
+model UiTestCase {
+  id        String    @id @default(uuid())
+  projectId String    @map("project_id")
+  project   Project   @relation(fields: [projectId], references: [id])
+  name      String    @db.VarChar(128)
+  /// 步骤序列（上限 50，zod 校验）
+  steps     Json
+  timeoutMs Int       @default(15000) @map("timeout_ms")
+  createdBy String    @map("created_by")
+  deletedAt DateTime? @map("deleted_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  @@index([projectId, deletedAt])
+  @@map("ui_test_cases")
 }
