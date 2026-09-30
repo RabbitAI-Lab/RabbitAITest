@@ -15,11 +15,16 @@ import { rateLimit } from "@/server/rate-limit";
 import { accessLog, toResponse } from "@/server/guard";
 import { parseAuthHeader, verifyApiKey } from "@/server/domains/api/apikey.service";
 import { execQueueFor } from "@/server/redis";
-import { httpCounterSnapshot, httpDurationSnapshot } from "@/server/metrics-counter";
+import {
+  httpCounterSnapshot,
+  httpDurationSnapshot,
+  httpHistogramSnapshot,
+} from "@/server/metrics-counter";
 import {
   escapeLabelValue,
   failureKindRows,
   httpDurationRows,
+  httpHistogramRows,
   percentile,
   ratio,
   samplerErrorRows,
@@ -244,6 +249,12 @@ function processSection(lines: string[], pools: PoolRow[]): void {
     "# HELP rabbit_http_request_duration_ms HTTP request duration per route group (in-process sliding window of last 512 samples per group; resets on restart).",
     "# TYPE rabbit_http_request_duration_ms summary",
     ...httpDurationRows(httpDurationSnapshot()),
+  );
+  // INFRA-010：加法式 histogram（seconds 族，与 ms summary 同点双写；跨副本 histogram_quantile 聚合就绪）
+  lines.push(
+    "# HELP rabbit_http_request_duration_seconds HTTP request duration histogram per route group in seconds (in-process counters, resets on restart; cross-replica: histogram_quantile(sum by (route_group,le)(rate(..._bucket[5m])))).",
+    "# TYPE rabbit_http_request_duration_seconds histogram",
+    ...httpHistogramRows(httpHistogramSnapshot()),
   );
   lines.push(
     "# HELP rabbit_db_slow_queries_total Prisma queries slower than RABBIT_SLOW_QUERY_MS across admin+tenant channels (default 200ms; in-process counter, resets on restart).",

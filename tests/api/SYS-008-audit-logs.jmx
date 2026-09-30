@@ -146,10 +146,22 @@
           <hashTree/>
         </hashTree>
 
+        <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="预置审计时间窗变量（UTC±：from=now-7d，to=now+1d——原硬编码 to=2026-09-30 为过期时间炸弹，勘误见 INFRA-010 规格 §7-②）">
+          <stringProp name="cacheKey">true</stringProp>
+          <stringProp name="filename"></stringProp>
+          <stringProp name="parameters"></stringProp>
+          <stringProp name="script">def f = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
+f.setTimeZone(java.util.TimeZone.getTimeZone("UTC"))
+long now = System.currentTimeMillis()
+vars.put("audFrom", f.format(new Date(now - 7L * 86400000L)))
+vars.put("audTo", f.format(new Date(now + 86400000L)))</stringProp>
+          <stringProp name="scriptLanguage">groovy</stringProp>
+        </JSR223PreProcessor>
+        <hashTree/>
         <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="T3.1 合法时间范围+对象类型组合查询（from&lt;to 高级筛选）">
           <stringProp name="HTTPSampler.domain">${__P(HOST,localhost)}</stringProp>
           <stringProp name="HTTPSampler.port">${__P(PORT,3100)}</stringProp>
-          <stringProp name="HTTPSampler.path">/api/v1/system/audit-logs?action=param&amp;objectType=system_param&amp;from=2026-09-01T00:00:00Z&amp;to=2026-09-30T00:00:00Z&amp;page=1&amp;pageSize=20</stringProp>
+          <stringProp name="HTTPSampler.path">/api/v1/system/audit-logs?action=param&amp;objectType=system_param&amp;from=${audFrom}&amp;to=${audTo}&amp;page=1&amp;pageSize=20</stringProp>
           <stringProp name="HTTPSampler.method">GET</stringProp>
           <boolProp name="HTTPSampler.use_keepalive">false</boolProp>
         </HTTPSamplerProxy>

@@ -20,6 +20,9 @@ export function ratio(num: number, den: number): number {
   return den > 0 ? num / den : 0;
 }
 
+/** INFRA-010：HTTP 时延 histogram 桶界（秒，契约冻结点——规格 §2.1；+Inf 由行构造补齐）。 */
+export const DURATION_BUCKETS_S = [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5] as const;
+
 /** 失败分类行：failure_kind NULL → UNCLASSIFIED（规格 §2.1 契约）。 */
 export function failureKindRows(rows: Array<{ kind: string | null; n: number }>): string[] {
   return rows.map(
@@ -54,6 +57,28 @@ export function httpDurationRows(
     );
     lines.push(`rabbit_http_request_duration_ms_sum{${label}} ${g.sum}`);
     lines.push(`rabbit_http_request_duration_ms_count{${label}} ${g.samples.length}`);
+  }
+  return lines;
+}
+
+/** INFRA-010：HTTP 时延 histogram 行（seconds 族·加法式，与 ms summary 并存；counts 非累积→le 行累积；空组跳过）。 */
+export function httpHistogramRows(
+  snap: Array<{ routeGroup: string; counts: number[]; sum: number; count: number }>,
+): string[] {
+  const lines: string[] = [];
+  for (const g of snap) {
+    if (g.count === 0) continue;
+    const label = `route_group="${escapeLabelValue(g.routeGroup)}"`;
+    let cum = 0;
+    for (let i = 0; i < DURATION_BUCKETS_S.length; i++) {
+      cum += g.counts[i] ?? 0;
+      lines.push(
+        `rabbit_http_request_duration_seconds_bucket{${label},le="${DURATION_BUCKETS_S[i]}"} ${cum}`,
+      );
+    }
+    lines.push(`rabbit_http_request_duration_seconds_bucket{${label},le="+Inf"} ${g.count}`);
+    lines.push(`rabbit_http_request_duration_seconds_sum{${label}} ${g.sum}`);
+    lines.push(`rabbit_http_request_duration_seconds_count{${label}} ${g.count}`);
   }
   return lines;
 }

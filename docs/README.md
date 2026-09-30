@@ -53,7 +53,7 @@ RabbitAITest 是一套**复刻 [MeterSphere](https://metersphere.io) v3.x 社区
 | M9     | W22-23 | [sprint-8-stabilize](./sprint-8-stabilize/sprint-overview.md)                     | 稳定化 → **标准版 v1.0 GA**（性能基线/安全加固/可观测与备份）           | 3      | Implemented（2026-09-28 worktree 分支 sprint-8-stabilize 交付；走查随验收）                          |
 | M10    | W24-27 | [sprint-9-enterprise](./sprint-9-enterprise/sprint-overview.md)                   | 企业版核心（P3）→ v2.0                                                  | 8      | Implemented（2026-09-28 worktree 分支 sprint-9-enterprise 交付，PR #4；走查随验收）                  |
 | —      | W28+   | [sprint-future-p4](./sprint-future-p4/sprint-overview.md)                         | 远期 P4：协议插件（WS/MQTT）·外部工具契约·报告分析·K8S 池·LOAD/UIT 占位 | 8      | Implemented（2026-09-28 worktree 分支 sprint-future-p4 交付；走查随验收）                            |
-| —      | 追加   | [sprint-10-hardening](./sprint-10-hardening/sprint-overview.md)                   | 数据面加固（规划外追加）：RLS 租户纵深防御（INFRA-006）·指标面 v2/v2.1/收尾 Prometheus 对接（INFRA-007/008/009） | 4      | Implemented（2026-09-29/30 交付；走查随验收）                                                          |
+| —      | 追加   | [sprint-10-hardening](./sprint-10-hardening/sprint-overview.md)                   | 数据面加固（规划外追加）：RLS 租户纵深防御（INFRA-006）·指标面 v2→终结 Prometheus 全面对接（INFRA-007~010，Backlog 清零） | 5      | Implemented（2026-09-29/30 交付；走查随验收）                                            |
 
 各 Sprint 的完整文档清单见 [plan/迭代架构设计与功能规格拆解.md](./plan/迭代架构设计与功能规格拆解.md) §二目录树。
 

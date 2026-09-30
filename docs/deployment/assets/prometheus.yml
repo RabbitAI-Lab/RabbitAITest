@@ -23,6 +23,14 @@ scrape_configs:
         labels:
           env: production
 
+  # INFRA-010：mock 进程指标自暴露（内网直抓无凭据——与 mock /healthz 同口径，生产不公网暴露）
+  - job_name: rabbitaitest-mock
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["rabbit-mock:4000"]
+        labels:
+          env: production
+
   # ── 平台组件 exporter（按需启用：替换 target 后去注释；说明见 monitoring.md §5）──
   # - job_name: postgres            # docker run -d -p 9187:9187 -e DATA_SOURCE_NAME=... prometheuscommunity/postgres_exporter
   #   static_configs:
