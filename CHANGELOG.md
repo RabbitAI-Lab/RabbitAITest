@@ -2,7 +2,15 @@
 
 本项目的所有显著变更记录于此。格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本遵循语义化版本。
 
-## [Unreleased] — Sprint 11 性能测试 / UI 测试兑现（企业版 License 门控）
+## [Unreleased] — Sprint 11 性能测试 / UI 测试兑现 + 开源全功能模式
+
+### 变更（产品方向 · E NTP-009 开源全功能，2026-09-30）
+
+- **License 不再门控任何功能**：无 License=全功能（八特性全开：多组织/SSO/多资源池/主题/消息模板/用户扩容/性能测试/UI 测试；用户数不限）。实现=单点开关 `featureGateEnabled()`（`RABBIT_FEATURE_GATE=1` 恢复企业门控口径，代码零删除）；`license-status` 契约新增 `featureGateEnabled` 字段（前端单一事实源）
+- **项目模块开关缺省改开**：`moduleFlagsSchema` load/uit 缺省 false→true（存量项目显式关闭不受影响，管理员仍可按项目关闭）；LeftNav 兜底同步
+- **授权管理页开源口径**：社区版状态卡显示「开源全功能·所有能力开放」；企业能力矩阵无 License 显示「已开放（开源版）」（有 License 仍显示「已授权」信息）
+- **License 体系全量保留**：签发/验签/状态机/授权管理页/门控函数（assertEntpEnabled/entpFeatureActive/effectiveUserLimit 短路放行）/占位页组件（死代码保留，恢复态复活）——单测双侧锁定两种口径
+
 
 ### 新增（全量交付：三层测试 + CI 全绿）
 

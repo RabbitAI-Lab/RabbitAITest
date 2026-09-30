@@ -10,6 +10,7 @@ import {
   config,
   licensePayloadSchema,
   ENTP_FEATURE_KEYS,
+  featureGateEnabled,
   type EntpFeature,
   type LicensePayload,
   type LicenseStatus,
@@ -118,6 +119,7 @@ export async function getLicenseState(): Promise<LicenseStatus> {
       daysLeft: null,
       lic: null,
       maxUsers: null,
+      featureGateEnabled: featureGateEnabled(),
     };
   const daysLeft = Math.max(
     0,
@@ -130,14 +132,18 @@ export async function getLicenseState(): Promise<LicenseStatus> {
     daysLeft,
     lic: payload.lic,
     maxUsers: payload.maxUsers ?? null,
+    featureGateEnabled: featureGateEnabled(),
   };
 }
 
 /**
  * 特性门控（rbac §6 兑现）：无有效 License → 90001；features 不含该特性 → 90005。
  * 企业版端点必须在服务层入口调用；与 RBAC 10003 正交（先权限后门控）。
+ * ENTP-009（2026-09-30 开源决策）：门控默认停用——featureGateEnabled()=false 时直接放行，
+ * License 体系（签发/验签/状态/增删）全量保留，置 RABBIT_FEATURE_GATE=1 一键恢复企业口径。
  */
 export async function assertEntpEnabled(feature: EntpFeature): Promise<void> {
+  if (!featureGateEnabled()) return;
   const payload = await validLicense();
   if (!payload) throw new DomainError(ErrCode.LICENSE_REQUIRED, "该功能需企业版授权（License）");
   const features = payload.features ?? [...ENTP_FEATURE_KEYS];
@@ -145,16 +151,19 @@ export async function assertEntpEnabled(feature: EntpFeature): Promise<void> {
     throw new DomainError(ErrCode.LICENSE_FEATURE_NOT_ENABLED, `当前授权未包含特性 ${feature}`);
 }
 
-/** 非抛错判定（消费侧回退用，如 ENTP-005 dispatch 模板渲染）。 */
+/** 非抛错判定（消费侧回退用，如 ENTP-005 dispatch 模板渲染）。ENTP-009：门控停用期恒 true。 */
 export async function entpFeatureActive(feature: EntpFeature): Promise<boolean> {
+  if (!featureGateEnabled()) return true;
   const payload = await validLicense().catch(() => null);
   if (!payload) return false;
   const features = payload.features ?? [...ENTP_FEATURE_KEYS];
   return features.includes(feature);
 }
 
-/** License 下有效用户上限（ENTP-008）：有= payload.maxUsers ?? Infinity；无=config.userLimit。 */
+/** License 下有效用户上限（ENTP-008）：有= payload.maxUsers ?? Infinity；无=config.userLimit。
+ *  ENTP-009：开源全功能期不设用户上限（config.userLimit 仅门控恢复后生效）。 */
 export async function effectiveUserLimit(): Promise<number> {
+  if (!featureGateEnabled()) return Number.POSITIVE_INFINITY;
   const payload = await validLicense();
   if (!payload) return config.userLimit;
   return payload.maxUsers ?? Number.POSITIVE_INFINITY;

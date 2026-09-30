@@ -24,20 +24,21 @@ describe("LOAD-001-T1 / UIT-001-T1 占位权限点", () => {
   });
 });
 
-describe("模块开关缺省语义（load/uit 缺省=关，存量四键缺省=开）", () => {
-  it("空对象 parse 后 load/uit=false 而 case/api/plan/bug=true", () => {
+describe("模块开关缺省语义（ENTP-009 起六键缺省全开；显式 false 持久化不翻转）", () => {
+  it("空对象 parse 后六键均 true（开源全功能口径，2026-09-30 前 load/uit 缺省为关）", () => {
     const m = moduleFlagsSchema.parse({});
     expect(m).toMatchObject({
       case: true,
       api: true,
       plan: true,
       bug: true,
-      load: false,
-      uit: false,
+      load: true,
+      uit: true,
     });
   });
-  it("开启语义可持久化", () => {
+  it("显式开关可持久化（管理员关闭 load/uit 不被缺省翻转）", () => {
     expect(moduleFlagsSchema.parse({ load: true, uit: true }).load).toBe(true);
+    expect(moduleFlagsSchema.parse({ load: false, uit: false }).uit).toBe(false);
   });
 });
 

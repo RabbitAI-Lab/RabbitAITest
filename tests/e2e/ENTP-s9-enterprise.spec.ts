@@ -16,8 +16,10 @@ import { E2E_BASE, E2E_HOST, E2E_REDIS } from "./env";
 /**
  * Sprint 9 ENTP 全量 e2e（8 用例，单文件串行——License/主题为全局态，跨文件并行 workers=4 会互踩；
  * 全局 afterEach：License 移除；ENTP-004 用例内自恢复主题默认）。
- * 覆盖：ENTP-007 授权/门控二态、ENTP-001 多组织+切换器、ENTP-002 OIDC mock 全链、ENTP-003 钉钉扫码 mock 全链、
+ * 覆盖：ENTP-007 授权管理、ENTP-001 多组织+切换器、ENTP-002 OIDC mock 全链、ENTP-003 钉钉扫码 mock 全链、
  * ENTP-006 多池+engine2 绑定执行、ENTP-008 部门树+容量条、ENTP-004 主题品牌应用、ENTP-005 模板渲染事件链。
+ * E NTP-009（2026-09-30 开源全功能）：原「社区版锁定二态」断言全部翻转为「无 License 可用」；
+ * License 添加/移除仍验证授权信息链（徽标/矩阵/到期条/校验文案）。
  */
 
 // ═══════ ENTP-007 License 体系 ═══════
@@ -45,11 +47,12 @@ test("ENTP-007-01 添加→企业版徽标+六特性矩阵→移除回社区版"
   expect(api.status).toBe(200);
   expect(api.code).toBe(0);
 
-  // 移除 → 社区版徽标 + 容量清单
+  // 移除 → 社区版徽标 + 开源全功能清单（ENTP-009：容量清单翻转为全能力口径）
   await page.getByTestId("btn-remove-license").click();
   await page.getByRole("button", { name: /OK|确 定|是/ }).click();
   await expect(page.getByTestId("license-badge-community")).toBeVisible({ timeout: 10_000 });
-  await expect(page.getByTestId("community-limits")).toContainText("30 名用户");
+  await expect(page.getByTestId("community-limits")).toContainText("用户数不限");
+  await expect(page.getByTestId("license-status-sub")).toContainText("开源全功能");
 
   await expectNoConsoleErrors();
 });
@@ -108,13 +111,13 @@ test("ENTP-001-01 建组织→切换器→项目过滤→结束消失；社区�
   });
   expect(ownerRes.status()).toBe(201);
 
-  // ── 社区版二态：新建按钮禁用（License 未加）──
+  // ── 开源全功能二态（ENTP-009）：无 License 新建组织即可用 ──
   await loginSeedAdmin(request, context);
   await page.goto("/system/orgs");
   await expect(page.getByTestId("orgs-table")).toBeVisible();
-  await expect(page.getByTestId("btn-new-pool-locked")).toBeDisabled();
+  await expect(page.getByTestId("btn-new-org")).toBeEnabled();
 
-  // ── 企业版：建组织 ──
+  // ── 授权信息链仍通（License 加载态与功能态解耦）──
   await addLicense(request);
   await page.reload();
   await expect(page.getByTestId("orgs-table")).toBeVisible();
@@ -377,12 +380,12 @@ test("ENTP-006-01 建池→engine2 绑定（POOL_ID）→场景选池执行→�
 }) => {
   await loginSeedAdmin(request, context);
 
-  // ── 社区版：新建禁用 ──
+  // ── 开源全功能（ENTP-009）：无 License 新建池即可用 ──
   await page.goto("/system/pools");
   await expect(page.getByTestId("pool-nodes")).toBeVisible();
-  await expect(page.getByTestId("btn-new-pool")).toBeDisabled();
+  await expect(page.getByTestId("btn-new-pool")).toBeEnabled();
 
-  // ── 企业版：清扫残留池 → 建池 ──
+  // ── 清扫残留池 → 建池（License 加载不改变可用性）──
   await addLicense(request);
   await sweepPools(request);
   await page.reload();
@@ -511,15 +514,15 @@ test("ENTP-008-01 部门树 CRUD+成员挂载；社区版门控二态；容量�
 
   await loginSeedAdmin(request, context);
 
-  // ── 社区版二态：API 403 90001（探测本人组织——假 org 会先被 withOrgScope 404 遮蔽门控码）──
+  // ── 开源全功能二态（ENTP-009）：无 License 部门 API 即可用（原 90001 门控已停用）──
   const myOrgs = (
     (await (await request.get("/api/v1/personal/orgs")).json()) as { data: { id: string }[] }
   ).data;
   const before = await request.get(`/api/v1/orgs/${myOrgs[0]!.id}/departments`);
-  expect(((await before.json()) as { code: number }).code).toBe(90001);
+  expect(((await before.json()) as { code: number }).code).toBe(0);
   const seedOrgId = myOrgs[0]!.id;
 
-  // ── 企业版：解锁（先清扫部门残留——失败用例遗留会触发重名 422）──
+  // ── 授权信息链仍通（先清扫部门残留——失败用例遗留会触发重名 422）──
   await addLicense(request);
   const orgId = seedOrgId;
   {
@@ -592,10 +595,10 @@ test("ENTP-008-01 部门树 CRUD+成员挂载；社区版门控二态；容量�
   await expect(page.getByTestId("user-limit-bar")).toBeVisible();
   await expect(page.getByTestId("user-limit-bar")).toContainText("不限");
 
-  // 社区版口径：移除 license → 容量条回数字
+  // 开源口径（ENTP-009）：移除 license → 容量条仍「不限」（用户上限随门控停用解除）
   await removeLicense(request);
   await page.reload();
-  await expect(page.getByTestId("user-limit-bar")).toContainText(/\/ \d+/);
+  await expect(page.getByTestId("user-limit-bar")).toContainText("不限");
 
   // 清理：删子部门 → 删根部门（恢复 license 后）
   await addLicense(request);
@@ -615,17 +618,17 @@ test("ENTP-004-01 界面设置：改色+品牌 → 保存并应用 → 登录页
 }) => {
   await loginSeedAdmin(request, context);
 
-  // ── 社区版：Tab 禁用态 ──
+  // ── 开源全功能（ENTP-009）：无 License 表单即可用（原社区版 Tab 禁用态已解除）──
   await page.goto("/system/params");
   await page.getByRole("tab", { name: "界面设置" }).click();
-  await expect(page.getByTestId("theme-locked-alert")).toBeVisible();
+  await expect(page.getByTestId("theme-form")).toBeVisible();
+  await expect(page.getByTestId("theme-locked-alert")).toHaveCount(0);
 
-  // ── 企业版：表单可用 ──
+  // ── 授权信息链仍通（License 加载态与功能态解耦）──
   await addLicense(request);
   await page.reload();
   await page.getByRole("tab", { name: "界面设置" }).click();
   await expect(page.getByTestId("theme-form")).toBeVisible();
-  await expect(page.getByTestId("theme-locked-alert")).toHaveCount(0);
 
   // 实时预览随表单联动（UI 断言）
   await page.getByTestId("input-theme-site-name").fill("星舟测试平台");
@@ -683,10 +686,10 @@ test("ENTP-005-01 定制缺陷模板 → 触发缺陷创建 → 站内信按模�
 }) => {
   const { projectId } = authedPage;
 
-  // ── 社区版二态：模板 Tab 禁用 ──
+  // ── 开源全功能二态（ENTP-009）：无 License 模板 Tab 即可用 ──
   await page.goto("/settings/messages");
   await page.getByRole("tab", { name: "模板" }).click();
-  await expect(page.getByTestId("template-locked-alert")).toBeVisible();
+  await expect(page.getByTestId("template-events")).toContainText("缺陷创建");
 
   // 造接收人与事件配置（authedPage 会话）
   const info = await page.request.get(`/api/v1/projects/${projectId}/info`);

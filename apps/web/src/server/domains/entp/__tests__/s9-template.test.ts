@@ -1,6 +1,6 @@
 /** S9 单测（ENTP-005）：dispatch 模板渲染挂钩（模板→渲染/无模板→defaults 回退 S5 零回归）+ 模板服务。 */
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import { DomainError, ErrCode } from "@rabbit/shared";
+import { DomainError, ErrCode , setFeatureGateEnabled } from "@rabbit/shared";
 
 // prisma mock：appSetting/robot/notification/user + messageTemplate + license
 vi.mock("@rabbit/db", () => {
@@ -154,9 +154,14 @@ describe("dispatch 模板渲染挂钩（ENTP-005 §2）", () => {
     expect(created[0]!.title).toBe("[缺陷] 支付 500 新建");
   });
 
-  it("模板存在但 License 失效/无 MSG_TEMPLATE → 仍回退 defaults（不报错）", async () => {
+  it("模板存在但 License 未含 MSG_TEMPLATE：开源态用模板（ENTP-009）；门控恢复态回退 defaults", async () => {
     __setState("license", { status: "VALID", payload: licensePayload(["MULTI_ORG"]) }); // 未含 MSG_TEMPLATE
     __setState("template", { title: "TPL", content: "TPL" });
+    const created = () =>
+      (prisma as unknown as { __state: Record<string, unknown> }).__state.created as {
+        title: string;
+      }[];
+    // 开源全功能（默认）：License 未含特性不拦截，自定义模板生效
     await dispatch({
       projectId: P,
       event: "BUG_CREATED",
@@ -164,11 +169,24 @@ describe("dispatch 模板渲染挂钩（ENTP-005 §2）", () => {
       defaults: { title: "DEFAULT", content: "DEFAULT" },
       actorId: ACTOR,
     });
-    const created = (prisma as unknown as { __state: Record<string, unknown> }).__state.created as {
-      title: string;
-    }[];
-    expect(created).toHaveLength(1);
-    expect(created[0]!.title).toBe("DEFAULT");
+    expect(created()).toHaveLength(1);
+    expect(created()[0]!.title).toBe("TPL");
+    // 门控恢复态（RABBIT_FEATURE_GATE=1）：未含 MSG_TEMPLATE 仍回退 defaults（原 S9 语义保留）
+    (prisma as unknown as { __state: Record<string, unknown> }).__state.created = [];
+    setFeatureGateEnabled(true);
+    try {
+      await dispatch({
+        projectId: P,
+        event: "BUG_CREATED",
+        vars: { a: 1 },
+        defaults: { title: "DEFAULT", content: "DEFAULT" },
+        actorId: ACTOR,
+      });
+      expect(created()).toHaveLength(1);
+      expect(created()[0]!.title).toBe("DEFAULT");
+    } finally {
+      setFeatureGateEnabled(false);
+    }
   });
 
   it("直传 title/content（robot 测试发送路径）不经模板", async () => {

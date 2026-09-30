@@ -1,6 +1,6 @@
 /** S9 单测（ENTP-007）：License 三段式校验管线 + 状态机 + 六特性门控矩阵 + 用户上限（prisma mock）。 */
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import { DomainError, type LicensePayload } from "@rabbit/shared";
+import { DomainError, setFeatureGateEnabled, type LicensePayload } from "@rabbit/shared";
 
 // prisma mock：license 表 + $transaction
 vi.mock("@rabbit/db", () => {
@@ -43,6 +43,17 @@ import {
   addLicense,
 } from "../license.service";
 
+// ENTP-009 开源全功能（默认态）与门控恢复态（RABBIT_FEATURE_GATE=1）双侧语义均须覆盖：
+// 门控代码全量保留，单测以 setFeatureGateEnabled 翻转验证两口径不漂移。
+const withGate = async (enabled: boolean, fn: () => Promise<void>) => {
+  setFeatureGateEnabled(enabled);
+  try {
+    await fn();
+  } finally {
+    setFeatureGateEnabled(false); // 还原开源默认
+  }
+};
+
 const __setState = (k: string, v: unknown) =>
   (prisma as unknown as { __setState: (k: string, v: unknown) => void }).__setState(k, v);
 
@@ -56,6 +67,7 @@ const payload = (over: Partial<LicensePayload> = {}): LicensePayload => ({
 
 beforeEach(() => {
   __setState("license", null);
+  setFeatureGateEnabled(false); // ENTP-009 开源默认
 });
 
 function expectDomain(fn: () => unknown, code: number) {
@@ -99,13 +111,31 @@ describe("verifyLicenseCode 四步管线", () => {
 });
 
 describe("状态机与门控（prisma mock）", () => {
-  it("NONE：社区版，门控 90001", async () => {
+  it("ENTP-009 开源默认：无 License 全放行 + 状态下发 featureGateEnabled=false", async () => {
     const s = await getLicenseState();
     expect(s.edition).toBe("COMMUNITY");
-    await expect(assertEntpEnabled("MULTI_ORG")).rejects.toMatchObject({ code: 90001 });
-    expect(await entpFeatureActive("SSO")).toBe(false);
+    expect(s.featureGateEnabled).toBe(false);
+    await expect(assertEntpEnabled("MULTI_ORG")).resolves.toBeUndefined();
+    expect(await entpFeatureActive("SSO")).toBe(true);
+    expect(await effectiveUserLimit()).toBe(Number.POSITIVE_INFINITY);
   });
-  it("VALID：全特性放行", async () => {
+  it("ENTP-009 门控恢复态（RABBIT_FEATURE_GATE=1）：NONE → 90001 / SSO 关 / 上限 30", async () => {
+    await withGate(true, async () => {
+      expect((await getLicenseState()).featureGateEnabled).toBe(true);
+      await expect(assertEntpEnabled("MULTI_ORG")).rejects.toMatchObject({ code: 90001 });
+      expect(await entpFeatureActive("SSO")).toBe(false);
+      expect(await effectiveUserLimit()).toBe(30);
+    });
+  });
+  it("NONE + 门控恢复：社区版，门控 90001", async () => {
+    await withGate(true, async () => {
+      const s = await getLicenseState();
+      expect(s.edition).toBe("COMMUNITY");
+      await expect(assertEntpEnabled("MULTI_ORG")).rejects.toMatchObject({ code: 90001 });
+      expect(await entpFeatureActive("SSO")).toBe(false);
+    });
+  });
+  it("VALID：全特性放行（开源态与门控态一致）", async () => {
     __setState("license", { code: "x", status: "VALID", payload: payload() });
     const s = await getLicenseState();
     expect(s.edition).toBe("ENTERPRISE");
@@ -113,30 +143,39 @@ describe("状态机与门控（prisma mock）", () => {
     await expect(assertEntpEnabled("MSG_TEMPLATE")).resolves.toBeUndefined();
     expect(await entpFeatureActive("THEME")).toBe(true);
   });
-  it("features 子集：未含特性 90005", async () => {
+  it("features 子集：门控恢复态未含特性 90005；开源态仍放行", async () => {
     __setState("license", {
       code: "x",
       status: "VALID",
       payload: payload({ features: ["MULTI_ORG"] }),
     });
     await expect(assertEntpEnabled("MULTI_ORG")).resolves.toBeUndefined();
-    await expect(assertEntpEnabled("SSO")).rejects.toMatchObject({ code: 90005 });
+    await expect(assertEntpEnabled("SSO")).resolves.toBeUndefined(); // ENTP-009：不门控
+    await withGate(true, async () => {
+      await expect(assertEntpEnabled("SSO")).rejects.toMatchObject({ code: 90005 });
+    });
   });
-  it("EXPIRED：惰性降级按 NONE 门控", async () => {
+  it("EXPIRED：惰性降级按 NONE 处理（门控恢复态 90001）", async () => {
     __setState("license", {
       code: "x",
       status: "VALID",
       payload: payload({ expiresAt: new Date(Date.now() - 5000).toISOString() }),
     });
     expect((await getLicenseState()).edition).toBe("COMMUNITY");
-    await expect(assertEntpEnabled("MULTI_POOL")).rejects.toMatchObject({ code: 90001 });
+    await expect(assertEntpEnabled("MULTI_POOL")).resolves.toBeUndefined(); // 开源态放行
+    await withGate(true, async () => {
+      await expect(assertEntpEnabled("MULTI_POOL")).rejects.toMatchObject({ code: 90001 });
+    });
   });
-  it("用户上限四态：社区 30 / 无限 / maxUsers 封顶", async () => {
-    expect(await effectiveUserLimit()).toBe(30); // config.userLimit 默认
-    __setState("license", { code: "x", status: "VALID", payload: payload() });
-    expect(await effectiveUserLimit()).toBe(Number.POSITIVE_INFINITY);
-    __setState("license", { code: "x", status: "VALID", payload: payload({ maxUsers: 500 }) });
-    expect(await effectiveUserLimit()).toBe(500);
+  it("用户上限：开源态恒无限；门控态 社区30/无限/maxUsers 封顶", async () => {
+    expect(await effectiveUserLimit()).toBe(Number.POSITIVE_INFINITY); // ENTP-009 开源
+    await withGate(true, async () => {
+      expect(await effectiveUserLimit()).toBe(30); // config.userLimit 默认
+      __setState("license", { code: "x", status: "VALID", payload: payload() });
+      expect(await effectiveUserLimit()).toBe(Number.POSITIVE_INFINITY);
+      __setState("license", { code: "x", status: "VALID", payload: payload({ maxUsers: 500 }) });
+      expect(await effectiveUserLimit()).toBe(500);
+    });
   });
   it("addLicense：过期拒绝；合法覆盖落库", async () => {
     await expect(

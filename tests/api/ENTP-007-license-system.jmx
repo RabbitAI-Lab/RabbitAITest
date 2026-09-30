@@ -183,18 +183,24 @@
             <boolProp name="JSONVALIDATION">true</boolProp>
           </JSONPathAssertion>
           <hashTree/>
+          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="featureGateEnabled=false（ENTP-009 开源口径）">
+            <stringProp name="JSON_PATH">$.data.featureGateEnabled</stringProp>
+            <stringProp name="EXPECTED_VALUE">false</stringProp>
+            <boolProp name="JSONVALIDATION">true</boolProp>
+          </JSONPathAssertion>
+          <hashTree/>
           <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion" testname="&lt;3000ms">
             <stringProp name="DurationAssertion.duration">3000</stringProp>
           </DurationAssertion>
           <hashTree/>
         </hashTree>
 
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="T1.5 社区版建池 403 90001">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="T1.5 无 License 建池放行（开源口径·ENTP-009）">
           <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments">
             <collectionProp name="Arguments.arguments">
               <elementProp name="" elementType="HTTPArgument">
                 <boolProp name="HTTPArgument.always_encode">false</boolProp>
-                <stringProp name="Argument.value">{&quot;name&quot;:&quot;门控池${TS}&quot;,&quot;type&quot;:&quot;NODE&quot;,&quot;maxConcurrency&quot;:4}</stringProp>
+                <stringProp name="Argument.value">{&quot;name&quot;:&quot;授权池${TS}&quot;,&quot;type&quot;:&quot;NODE&quot;,&quot;maxConcurrency&quot;:4}</stringProp>
                 <stringProp name="Argument.metadata">=</stringProp>
               </elementProp>
             </collectionProp>
@@ -207,16 +213,51 @@
           <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
         </HTTPSamplerProxy>
         <hashTree>
-          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="HTTP 403">
-            <collectionProp name="Asserion.test_strings"><stringProp name="49586">403</stringProp></collectionProp>
+          <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="提取 POOL_ID5">
+            <stringProp name="JSONPostProcessor.referenceNames">POOL_ID5</stringProp>
+            <stringProp name="JSONPostProcessor.jsonPathExprs">$.data.id</stringProp>
+            <stringProp name="JSONPostProcessor.match_numbers">1</stringProp>
+            <stringProp name="JSONPostProcessor.defaultValues">NOT_FOUND</stringProp>
+          </JSONPostProcessor>
+          <hashTree/>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="HTTP 201">
+            <collectionProp name="Asserion.test_strings"><stringProp name="49586">201</stringProp></collectionProp>
             <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
             <boolProp name="Assertion.assume_success">true</boolProp>
             <intProp name="Assertion.test_type">8</intProp>
           </ResponseAssertion>
           <hashTree/>
-          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="code=90001">
+          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="code=0">
             <stringProp name="JSON_PATH">$.code</stringProp>
-            <stringProp name="EXPECTED_VALUE">90001</stringProp>
+            <stringProp name="EXPECTED_VALUE">0</stringProp>
+            <boolProp name="JSONVALIDATION">true</boolProp>
+          </JSONPathAssertion>
+          <hashTree/>
+          <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion" testname="&lt;3000ms">
+            <stringProp name="DurationAssertion.duration">3000</stringProp>
+          </DurationAssertion>
+          <hashTree/>
+        </hashTree>
+
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="T1.5b 清理开源口径池">
+          <stringProp name="HTTPSampler.domain">${__P(HOST,localhost)}</stringProp>
+          <stringProp name="HTTPSampler.port">${__P(PORT,3100)}</stringProp>
+          <stringProp name="HTTPSampler.path">/api/v1/system/pools/${POOL_ID5}</stringProp>
+          <stringProp name="HTTPSampler.method">DELETE</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="HTTP 200">
+            <collectionProp name="Asserion.test_strings"><stringProp name="49586">200</stringProp></collectionProp>
+            <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+            <boolProp name="Assertion.assume_success">true</boolProp>
+            <intProp name="Assertion.test_type">8</intProp>
+          </ResponseAssertion>
+          <hashTree/>
+          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="code=0">
+            <stringProp name="JSON_PATH">$.code</stringProp>
+            <stringProp name="EXPECTED_VALUE">0</stringProp>
             <boolProp name="JSONVALIDATION">true</boolProp>
           </JSONPathAssertion>
           <hashTree/>
@@ -301,12 +342,12 @@
           <hashTree/>
         </hashTree>
 
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="T1.8 同池创建放行（门控二态）">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="T1.8 授权态建池放行（授权信息与功能解耦）">
           <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments">
             <collectionProp name="Arguments.arguments">
               <elementProp name="" elementType="HTTPArgument">
                 <boolProp name="HTTPArgument.always_encode">false</boolProp>
-                <stringProp name="Argument.value">{&quot;name&quot;:&quot;门控池${TS}&quot;,&quot;type&quot;:&quot;NODE&quot;,&quot;maxConcurrency&quot;:4}</stringProp>
+                <stringProp name="Argument.value">{&quot;name&quot;:&quot;授权池${TS}&quot;,&quot;type&quot;:&quot;NODE&quot;,&quot;maxConcurrency&quot;:4}</stringProp>
                 <stringProp name="Argument.metadata">=</stringProp>
               </elementProp>
             </collectionProp>
@@ -350,7 +391,7 @@
           <hashTree/>
         </hashTree>
 
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="T1.9 清理门控池">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="T1.9 清理授权池">
           <stringProp name="HTTPSampler.domain">${__P(HOST,localhost)}</stringProp>
           <stringProp name="HTTPSampler.port">${__P(PORT,3100)}</stringProp>
           <stringProp name="HTTPSampler.path">/api/v1/system/pools/${POOL_ID}</stringProp>

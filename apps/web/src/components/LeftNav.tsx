@@ -34,7 +34,7 @@ interface NavItem {
   label: string;
   icon: React.ReactNode;
   perm?: string; // 菜单级权限守卫（SYS-004：无权限点菜单不出现）
-  module?: "case" | "plan" | "bug" | "api" | "load" | "uit"; // 模块开关（PROJ-001：关闭=菜单隐藏；load/uit 缺省即关，S-future 占位口径）
+  module?: "case" | "plan" | "bug" | "api" | "load" | "uit"; // 模块开关（PROJ-001：关闭=菜单隐藏；缺省全开=ENTP-009 开源口径）
   testid?: string;
 }
 
@@ -42,7 +42,7 @@ export function LeftNav() {
   const pathname = usePathname();
   const { canGlobal } = usePermissions();
   const project = useProjectInfo();
-  const modules = project?.modules ?? { case: true, api: true, plan: true, bug: true };
+  const modules = project?.modules ?? { case: true, api: true, plan: true, bug: true, load: true, uit: true };
 
   const groups: { label: string; items: NavItem[] }[] = [
     {

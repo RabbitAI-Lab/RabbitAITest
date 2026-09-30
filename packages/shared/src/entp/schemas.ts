@@ -26,6 +26,8 @@ export const licenseStatusSchema = z.object({
   daysLeft: z.number().int().nullable(),
   lic: z.string().nullable(),
   maxUsers: z.number().int().nullable(),
+  /** ENTP-009：true=ENTP-007 特性门控生效（企业发行口径）；false=开源全功能（默认，License 不门控） */
+  featureGateEnabled: z.boolean(),
 });
 export type LicenseStatus = z.infer<typeof licenseStatusSchema>;
 
