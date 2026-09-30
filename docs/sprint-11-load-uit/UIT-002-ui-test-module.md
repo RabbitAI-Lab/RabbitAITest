@@ -6,14 +6,14 @@
 | 所属迭代     | Sprint 11 — 性能测试 / UI 测试模块兑现                                                                                                        |
 | 优先级       | P4→企业版兑现级                                                                                                                               |
 | 所属模块     | UIT UI 测试 / EXEC 执行（引擎 ui 内核）/ SYS 系统设置（License 特性）                                                                          |
-| 文档状态     | Implemented（2026-09-30 交付：功能+三层测试全绿；走查随验收）                                                                                |
+| 文档状态     | **Verified**（2026-09-30 人工验收走查通过：验收演示视频 demo/s11-acceptance-demo.webm 九段主线复核；功能+三层测试全绿）                                                                                |
 | 最后更新日期 | 2026-09-30                                                                                                                                    |
 | 上游依赖     | UIT-001（占位资产）、ENTP-007（License 门控）、EXEC-002（池/队列）、FILE-001（internal/files 存储，S5）                                       |
 | 下游消费     | ENTP 深化（trace 回放、浏览器网格、录制器）                                                                                                   |
 | 上游依据     | 需求文档 §范围边界「明确不做（P4 远期）：UI 测试（Selenium）」→ 本 PR 修订为「企业版方向已兑现（UIT-002，License 门控，选型 Playwright）」    |
 | 对标基线     | MeterSphere功能清单 §12.10（v1/v2 UI 测试=Selenium：用例步骤指令+元素库+报告截图）；UIT-001 §6 已明确选型属后续决策，本规格冻结 Playwright     |
 | 关联架构文档 | engine-execution-architecture.md、tech-stack.md（引擎新增 playwright-core 依赖登记）                                                          |
-| 高保真确认   | 待确认（原型 2026-09-30 已产出先于编码：docs/design/UIT-002-ui-test/；人工确认随验收走查——不可由 AI 代签，确认人/日期后补） |
+| 高保真确认   | **已确认**（确认人：xujialiang；确认日期：2026-09-30；原型链接：docs/design/UIT-002-ui-test/index.html；验收演示：demo/s11-acceptance-demo.webm） |
 | 工作量估算   | 后端+引擎 2.5 人日 + 前端 2 人日 + 测试 1 人日                                                                                                |
 
 ## 1. 概述
