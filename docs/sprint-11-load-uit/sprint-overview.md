@@ -72,6 +72,7 @@ admin 签发企业 License（含 LOAD_TEST/UI_TEST）→ ① 项目设置开启 
 | 4. 三层测试齐备 | ✅ | Vitest 543 全绿（engine 127/web 227/shared 163/db 8/mock 14/runner 4）；JMeter LOAD-003 37 采样器+UIT-002 31 采样器 jtl 失败数=0；Playwright e2e S11 聚合 9/9 两连绿 |
 | 5. OpenAPI 快照 --check 过 | ✅ | 320 paths（284→320）；CI quality job |
 | 6. 远端 CI 全绿（门禁 9） | ✅ | **CI run 36681103838**：lint+typecheck+unit / 依赖审计 / 空库迁移 / go cli / next build / Playwright E2E 分片×2 / JMeter 分片×2 九 job 全 success；PR #29 已合入 main（merge commit 77c784e） |
+| 7. 验收演示视频（门禁 2 走查录屏） | ✅ | `demo/s11-acceptance-demo.webm`（84.6s · 1280×720 · 5.3MB · 九段主线；PR #31 归档 main，复录脚本 tests/demo/s11-demo-record.mjs 幂等） |
 
 ### 7.1 实现过程缺陷与教训（首红/返工记录）
 
