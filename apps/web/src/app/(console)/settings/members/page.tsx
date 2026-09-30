@@ -106,7 +106,7 @@ export default function SettingsMembersPage() {
         <div className="flex-1 min-w-0 rabbit-card">
           <div className="flex items-center gap-2 p-3 border-b border-[#F0F1F3] flex-wrap">
             <Input
-              className="w-64"
+              style={{ width: 256 }}
               allowClear
               prefix={<Search size={14} className="text-[#A8ABB0]" />}
               placeholder="搜索成员邮箱 / 姓名"

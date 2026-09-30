@@ -127,6 +127,94 @@ export default function AiPromptsPage() {
     onError: (e) => message.error(e instanceof Error ? e.message : "删除失败"),
   });
 
+  const SceneTable = () => (
+    <Table<AiPromptRow>
+      rowKey="id"
+      size="small"
+      loading={listQ.isLoading}
+      dataSource={rows}
+      locale={{ emptyText: <Empty description="暂无模板" data-testid="ai-prompt-empty" /> }}
+      pagination={false}
+      data-testid="ai-prompt-table"
+      columns={[
+        {
+          title: "名称",
+          dataIndex: "name",
+          width: 180,
+          render: (v, r) => <span data-testid={`ai-prompt-row-${r.name}`}>{v}</span>,
+        },
+        {
+          title: "设计方法",
+          dataIndex: "designMethod",
+          width: 140,
+          render: (v: string | null) =>
+            v ? <Tag color="blue">{v}</Tag> : <span className="text-slate-300">—</span>,
+        },
+        {
+          title: "默认",
+          dataIndex: "isDefault",
+          width: 70,
+          render: (v: boolean) =>
+            v ? <span className="text-amber-500">★</span> : <span className="text-slate-300">—</span>,
+        },
+        {
+          title: "启用",
+          dataIndex: "enabled",
+          width: 70,
+          render: (v: boolean, r) => (
+            <Switch
+              size="small"
+              checked={v}
+              disabled={!canUpdate}
+              loading={save.isPending}
+              onChange={(checked) =>
+                save.mutate({
+                  name: r.name,
+                  template: r.template,
+                  designMethod: r.designMethod ?? undefined,
+                  isDefault: checked ? r.isDefault : false,
+                  enabled: checked,
+                })
+              }
+            />
+          ),
+        },
+        {
+          title: "更新时间",
+          dataIndex: "updatedAt",
+          width: 140,
+          render: (s: string) => (
+            <span className="text-slate-400 text-xs">{s.replace("T", " ").slice(0, 16)}</span>
+          ),
+        },
+        {
+          title: "操作",
+          key: "ops",
+          width: 200,
+          render: (_, r) => (
+            <span className="space-x-2">
+              {canUpdate && (
+                <>
+                  <a onClick={() => openEdit(r)}>编辑</a>
+                  {!r.isDefault && r.enabled && (
+                    <a onClick={() => setDefault.mutate(r)} data-testid={`ai-prompt-default-${r.name}`}>
+                      设为默认
+                    </a>
+                  )}
+                </>
+              )}
+              {canDelete && (
+                <Popconfirm title="删除该模板？" onConfirm={() => remove.mutate(r.id)}>
+                  <a className="text-red-500">删除</a>
+                </Popconfirm>
+              )}
+            </span>
+          ),
+        },
+      ]}
+    />
+  );
+
   return (
     <div>
       <PageHeader
@@ -140,114 +228,28 @@ export default function AiPromptsPage() {
           )
         }
       />
-      <div className="border rounded-lg bg-white">
+      {/* 一体式 Tabs（对齐消息管理）：内容挂在 children；padding 放卡片 div 上——
+          Tailwind 工具类直接挂 antd 组件根（Tabs className）会被 antd 无层样式整体压制（实测 px-4 失效贴边） */}
+      <div className="border rounded-lg bg-white px-4 pt-2 pb-3">
         <Tabs
           activeKey={scene}
           onChange={(k) => setScene(k as AiPromptScene)}
-          className="px-4 pt-2"
           items={(["case_gen", "api_gen"] as AiPromptScene[]).map((s) => ({
             key: s,
             label: AI_PROMPT_SCENE_LABEL[s],
+            children: (
+              <>
+                <div className="pb-2 text-xs text-slate-400">
+                  合法占位符：
+                  {PROMPT_PLACEHOLDERS[s].map((p) => (
+                    <Tag key={p} className="font-mono !text-[10px]" color="purple">{`{{${p}}}`}</Tag>
+                  ))}
+                  ；无模板时生成抽屉回退「内置默认」；停用模板不出现在生成抽屉且不可为默认
+                </div>
+                <SceneTable />
+              </>
+            ),
           }))}
-        />
-        <div className="px-4 pb-2 text-xs text-slate-400">
-          合法占位符：
-          {placeholders.map((p) => (
-            <Tag key={p} className="font-mono !text-[10px]" color="purple">{`{{${p}}}`}</Tag>
-          ))}
-          ；无模板时生成抽屉回退「内置默认」；停用模板不出现在生成抽屉且不可为默认
-        </div>
-        <Table<AiPromptRow>
-          rowKey="id"
-          size="small"
-          loading={listQ.isLoading}
-          dataSource={rows}
-          locale={{ emptyText: <Empty description="暂无模板" data-testid="ai-prompt-empty" /> }}
-          pagination={false}
-          data-testid="ai-prompt-table"
-          columns={[
-            {
-              title: "名称",
-              dataIndex: "name",
-              width: 180,
-              render: (v, r) => <span data-testid={`ai-prompt-row-${r.name}`}>{v}</span>,
-            },
-            {
-              title: "设计方法",
-              dataIndex: "designMethod",
-              width: 140,
-              render: (v: string | null) =>
-                v ? <Tag color="blue">{v}</Tag> : <span className="text-slate-300">—</span>,
-            },
-            {
-              title: "默认",
-              dataIndex: "isDefault",
-              width: 70,
-              render: (v: boolean) =>
-                v ? (
-                  <span className="text-amber-500">★</span>
-                ) : (
-                  <span className="text-slate-300">—</span>
-                ),
-            },
-            {
-              title: "启用",
-              dataIndex: "enabled",
-              width: 70,
-              render: (v: boolean, r) => (
-                <Switch
-                  size="small"
-                  checked={v}
-                  disabled={!canUpdate}
-                  loading={save.isPending}
-                  onChange={(checked) =>
-                    save.mutate({
-                      name: r.name,
-                      template: r.template,
-                      designMethod: r.designMethod ?? undefined,
-                      isDefault: checked ? r.isDefault : false,
-                      enabled: checked,
-                    })
-                  }
-                />
-              ),
-            },
-            {
-              title: "更新时间",
-              dataIndex: "updatedAt",
-              width: 140,
-              render: (s: string) => (
-                <span className="text-slate-400 text-xs">{s.replace("T", " ").slice(0, 16)}</span>
-              ),
-            },
-            {
-              title: "操作",
-              key: "ops",
-              width: 200,
-              render: (_, r) => (
-                <span className="space-x-2">
-                  {canUpdate && (
-                    <>
-                      <a onClick={() => openEdit(r)}>编辑</a>
-                      {!r.isDefault && r.enabled && (
-                        <a
-                          onClick={() => setDefault.mutate(r)}
-                          data-testid={`ai-prompt-default-${r.name}`}
-                        >
-                          设为默认
-                        </a>
-                      )}
-                    </>
-                  )}
-                  {canDelete && (
-                    <Popconfirm title="删除该模板？" onConfirm={() => remove.mutate(r.id)}>
-                      <a className="text-red-500">删除</a>
-                    </Popconfirm>
-                  )}
-                </span>
-              ),
-            },
-          ]}
         />
       </div>
       <Drawer

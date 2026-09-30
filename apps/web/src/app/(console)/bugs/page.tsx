@@ -204,8 +204,9 @@ export default function BugListPage() {
         )}
         <div className="rabbit-card flex-1 min-w-0">
           <div className="flex gap-2 p-3 border-b border-[#F0F1F3] flex-wrap">
+            {/* 宽度用 style 而非 className：带 prefix/allowClear 的 antd Input（rc-input affix 分支）不消费透传 className，宽度类会失效 */}
             <Input
-              className="w-56"
+              style={{ width: 224 }}
               allowClear
               prefix={<Search size={14} className="text-[#A8ABB0]" />}
               placeholder="标题 / 编号搜索"
@@ -230,7 +231,7 @@ export default function BugListPage() {
               data-testid="select-bug-status"
             />
             <Input
-              className="w-40"
+              style={{ width: 160 }}
               allowClear
               placeholder="标签（逗号分隔）"
               value={tags}
@@ -337,6 +338,8 @@ export default function BugListPage() {
             loading={listQ.isLoading}
             dataSource={listQ.data?.items ?? []}
             data-testid="bug-table"
+            /* 列宽合计超出容器时出横向滚动而非挤压主列（标题列曾因此被压到极窄、严重程度折行） */
+            scroll={{ x: 1260 }}
             rowSelection={{
               selectedRowKeys: selectedIds,
               onChange: (keys) => setSelectedIds(keys as string[]),
@@ -361,6 +364,8 @@ export default function BugListPage() {
               {
                 title: "标题",
                 dataIndex: "title",
+                width: 220,
+                ellipsis: true,
                 render: (v: string, r) => (
                   <a
                     className="text-[#1F2329] hover:text-[#574BFF] font-medium"
@@ -419,11 +424,13 @@ export default function BugListPage() {
               {
                 title: "严重程度",
                 key: "severity",
-                width: 90,
+                width: 96,
                 render: (_, r) => {
                   const sev = r.fields?.severity;
                   return sev ? (
-                    <span className="text-xs font-medium text-[#FA8C16]">{String(sev)}</span>
+                    <span className="text-xs font-medium text-[#FA8C16] whitespace-nowrap">
+                      {String(sev)}
+                    </span>
                   ) : (
                     <span className="text-[#A8ABB0]">—</span>
                   );
