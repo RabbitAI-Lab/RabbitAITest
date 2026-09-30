@@ -64,7 +64,28 @@ admin 签发企业 License（含 LOAD_TEST/UI_TEST）→ ① 项目设置开启 
 
 ## 7. 交付自查（2026-09-30 回填）
 
-（交付时回填：每条验收标准的证据——单测/jmx/e2e 编号与结果、CI run 链接。）
+| 验收标准 | 结果 | 证据 |
+| --- | --- | --- |
+| 1. License 门控（社区版占位+90001；三重门控满足→真实模块） | ✅ | e2e S11-load-uit T9/T4/T3（占位页+API 90001）；jmx G6 门控组（90001/90005） |
+| 2. 性能测试（CRUD→执行→监控曲线→报告） | ✅ | e2e LOAD-003-T8（mock /perf/echo 8s 真执行→监控曲线帧推进→报告结论）；jmx G2 执行链（run 202/metrics 帧/stop/终态）；引擎单测（调度表/聚合器/内嵌 echo 真施压+停键 ≤2s） |
+| 3. UI 测试（元素库→步骤编排→chromium 执行→截图报告） | ✅ | e2e UIT-002-T7/T8（真 chromium 执行，成功/断言失败两侧+截图网格）；jmx G2（CRUD 四类+run 202+ui-tasks 详情帧）；引擎单测（schema 矩阵/PW 映射/内嵌静态页真执行） |
+| 4. 三层测试齐备 | ✅ | Vitest 543 全绿（engine 127/web 227/shared 163/db 8/mock 14/runner 4）；JMeter LOAD-003 37 采样器+UIT-002 31 采样器 jtl 失败数=0；Playwright e2e S11 聚合 9/9 两连绿 |
+| 5. OpenAPI 快照 --check 过 | ✅ | 320 paths（284→320）；CI quality job |
+| 6. 远端 CI 全绿（门禁 9） | ✅ | **CI run 36681103838**：lint+typecheck+unit / 依赖审计 / 空库迁移 / go cli / next build / Playwright E2E 分片×2 / JMeter 分片×2 九 job 全 success；PR #29 已合入 main（merge commit 77c784e） |
+
+### 7.1 实现过程缺陷与教训（首红/返工记录）
+
+1. **真实缺陷修复（e2e 暴露）**：antd `Form.Item` 内 span wrapper 断受控链——`validateFields` 落 `initialValues`（元素 locatorType 恒 css 之因，现场复现定位后改直挂）；antd Select `data-testid` 不透传根 div（span 载体先例落地）。
+2. **CI 高压竞态链**（8 聚合 workers 实证）：`expectApi` 后置监听漏窗口（收口 UI/URL 断言）/MAINFLOW-s4 报告 `waitForResponse` 误捕自动跳转残留请求（组件内 isLoading+轮询为真源）/antd Tab 切换动画 element not stable（force click）。
+3. **License 全局态跨文件竞态**（顽固假红根因）：并行文件的 afterEach 摘除与自愈循环互相打架——License 互斥单文件收编（beforeAll 激活→功能段→社区版段→恢复→afterAll 清，S9 聚合文件先例）。
+4. **CI 环境差异**：quality job 缺 chromium（engine uit 单测真浏览器执行）补安装步；nodemailer 9.1.1→10.0.13（GHSA-v53p-9fqp-m79j high 回溯阻塞审计，main 同病）。
+5. **读一致性窗口**（License 写后首读偶发旧快照）：validLicense 50ms 复询兜底 + addLicense read-back（≤2s 至可见）+ useEntp staleTime=0/refetchOnMount=always + 页面级 refetchInterval 授权轮询。
+
+## 8. 迭代教训（收尾回填）
+
+- **「本地绿 ≠ CI 绿」在 e2e 层呈形态差**：本地 4 workers 全绿的断言写法在 CI 8 聚合下三类竞态（响应监听窗口/动画稳定性/异步聚合时长）概率化暴露——以后新增 e2e 断言时，凡依赖「事件后监听」的一律改为「先挂监听后触发」或 UI/状态轮询。
+- **全局态（License/主题/系统参数）的 e2e 必须是互斥单文件**：跨文件并行共享 DB 全局态时，任何 per-test 加删生命周期都会在 worker 边界互踩（本迭代最长教训链）。
+- **门禁 9 的 CI 循环要把「形态差异」当一等输入**：本地通过≠合并候选，远端 CI 的红必须按「是否 CI 形态特有」分类处置（本迭代 CI 侧红全部 CI 特有：chromium 缺失/审计回溯/8 聚合竞态）。
 
 ## 8. 迭代教训（收尾回填）
 
