@@ -91,18 +91,15 @@ test("MAINFLOW-s4 计划完整链路", async ({
 
   // 报告 Tab：阈值横幅 + 点分组（主链路点）+ CSV（S8 加固：Tab 切换动画稳定窗口放宽——
   // element not stable 在全量并发下偶发超时，等待可见后再点击并放宽至 20s）
-  // 报告视图主判定=接口就绪（plan-report-view 聚合由引擎回写驱动，CI 高压下 >40s 实证——
-  //  UI Tab 切换动画 + report 数据两阶段竞态的老教训：视图以数据接口为唯一真源）
-  {
-    const r = await page.waitForResponse(
-      (resp) => resp.url().includes(`/api/v1/projects/`) && resp.url().includes("/report/view") && resp.status() === 200,
-      { timeout: 60_000 },
-    );
-    void r;
-  }
+  // 报告 Tab 先挂载（激活 viewQ 首查），再判定视图——waitForResponse 必须先于触发
+  //  （先挂响应监听=竞态零窗口；report/view 聚合由引擎回写驱动，CI 高压 >40s 实证放宽 90s）
   const reportTab = page.getByTestId("plan-report-tab");
   await expect(reportTab).toBeVisible({ timeout: 20_000 });
   await reportTab.click({ timeout: 20_000, force: true });
+  await page.waitForResponse(
+    (resp) => resp.url().includes(`/api/v1/projects/`) && resp.url().includes("/report/view") && resp.status() === 200,
+    { timeout: 90_000 },
+  );
   await expect(page.getByTestId("plan-report-v2")).toBeVisible({ timeout: 40_000 }); // 高压下引擎回写 >15s（CI 8 聚合 workers 三次超时实证）
   await expect(page.getByTestId("plan-report-v2")).toContainText(`主链路点-${uniq}`, {
     timeout: 15_000,
