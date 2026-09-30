@@ -93,13 +93,20 @@ export async function uploadPlugin(request: APIRequestContext, tgzName: string):
   return found!.id;
 }
 
-/** 启用插件（幂等；失败消息带响应体便于定位 runner 状态） */
+/** 启用插件（幂等；失败消息带响应体便于定位 runner 状态）。
+ *  容忍「已加载」幂等态：内嵌 runner 对同 id 重复 load 报 70004（如 tgz 重建后内容
+ *  变化、同 spec 内多步启用）——已处于启用态视为成功。 */
 export async function enablePlugin(request: APIRequestContext, id: string): Promise<void> {
   const res = await request.put(`/api/v1/system/plugins/${id}`, { data: { enabled: true } });
-  expect(
-    res.status(),
-    `启用插件应 200（实际 ${res.status()}：${(await res.text()).slice(0, 200)}）`,
-  ).toBe(200);
+  if (res.status() !== 200) {
+    const errBody = (await res.json().catch(() => ({}))) as { code?: number; message?: string };
+    const alreadyLoaded = errBody.code === 70004 && /已加载/.test(errBody.message ?? "");
+    expect(
+      alreadyLoaded,
+      `启用插件应 200 或幂等已加载（实际 ${res.status()}：${JSON.stringify(errBody).slice(0, 200)}）`,
+    ).toBe(true);
+    return;
+  }
   const body = (await res.json()) as { code: number; data: { ok: boolean } };
   expect(body.code).toBe(0);
   expect(body.data.ok).toBe(true);

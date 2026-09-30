@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/session";
 import { TopBar } from "@/components/TopBar";
-import { LeftNav } from "@/components/LeftNav";
+import { NavShell } from "./NavShell";
 
 export default async function ConsoleLayout({ children }: { children: React.ReactNode }) {
   const session = await getSession();
@@ -9,10 +9,8 @@ export default async function ConsoleLayout({ children }: { children: React.Reac
   return (
     <div className="min-h-screen">
       <TopBar email={session.email} />
-      <div className="flex" style={{ minHeight: "calc(100vh - 48px)" }}>
-        <LeftNav />
-        <main className="flex-1 p-6 min-w-0">{children}</main>
-      </div>
+      {/* SYS-010：三域侧栏 + 多标签栏 + 收起/展开编排（客户端壳统一管理） */}
+      <NavShell>{children}</NavShell>
     </div>
   );
 }

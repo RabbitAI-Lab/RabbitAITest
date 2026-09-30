@@ -1,4 +1,4 @@
-import { test, expect } from "./fixtures";
+import { test, expect, ensureNavVisible } from "./fixtures";
 import { removeLicense, loginSeedAdmin, MOCK_URL } from "./s9-helpers";
 import { pickOption } from "./s2-helpers";
 
@@ -373,6 +373,8 @@ test("LOAD-001-T4（ENTP-009 回归）模块缺省开→导航入口+真实页�
   // 演示项目：开关自愈为开（存量显式 false 场景）→ 导航出现
   await enableModule(page, "load");
   await page.goto("/");
+  // SYS-010：「性能测试」分组默认折叠——显隐断言前先展开分组
+  await ensureNavVisible(page, "性能测试");
   await expect(page.getByTestId("nav-load").first()).toBeVisible();
 
   // 设置页开关开启态回显
@@ -419,6 +421,8 @@ test("UIT-001-T3（ENTP-009 回归）uit 缺省开→真实页可用→关闭即
   // 缺省契约已在 LOAD-001-T4 以新项目验证（六键同源断言）——此处聚焦 uit 开关行为
   await enableModule(page, "uit");
   await page.goto("/");
+  // SYS-010：「UI 测试」分组默认折叠——显隐断言前先展开分组
+  await ensureNavVisible(page, "UI 测试");
   await expect(page.getByTestId("nav-uit").first()).toBeVisible();
 
   await page.goto("/settings/info");
@@ -450,6 +454,7 @@ test("UIT-001-T3（ENTP-009 回归）uit 缺省开→真实页可用→关闭即
   await page.getByTestId("btn-save-info").click();
   await expect(page.getByText("基本信息已保存").first()).toBeVisible({ timeout: 8000 });
   await page.goto("/");
+  await ensureNavVisible(page, "UI 测试");
   await expect(page.getByTestId("nav-uit").first()).toBeVisible();
   await expectNoConsoleErrors();
 });

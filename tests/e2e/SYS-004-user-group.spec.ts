@@ -1,4 +1,4 @@
-import { test, expect } from "./fixtures";
+import { test, expect, navClick, enterRealm, ensureNavVisible } from "./fixtures";
 import type { APIRequestContext, BrowserContext } from "@playwright/test";
 import { E2E_BASE } from "./env";
 
@@ -40,7 +40,8 @@ test("SYS-004-01 用户管理与用户组管理主链路（管理员）", async 
 
   // 用户路径：首页 → 系统设置 › 用户管理（LeftNav.tsx nav-system-users）
   await page.goto("/");
-  await page.getByTestId("nav-system-users").click();
+  await enterRealm(page, "system");
+  await navClick(page, "nav-system-users");
   // UI 断言：用户表可见（种子管理员在列，system/users/page.tsx user-email）
   // 全量轮次中系统用户表逐用例累积（每用例注册独立用户）且按创建时间倒序——admin 不在第 1 页，
   // 用页面搜索框定位（真实用户路径），断言强度不变
@@ -68,7 +69,8 @@ test("SYS-004-01 用户管理与用户组管理主链路（管理员）", async 
   await page.getByRole("dialog").getByRole("button", { name: "知道了" }).click();
 
   // 用户路径：左导航 → 系统设置 › 用户组（GroupManager scope=system）
-  await page.getByTestId("nav-system-groups").click();
+  await enterRealm(page, "system");
+  await navClick(page, "nav-system-groups");
   await expect(page.getByTestId("btn-new-group")).toBeVisible();
   // UI 断言：预置组「系统成员」只读提示（GroupManager.tsx Alert banner）
   await page.getByTestId("group-item-系统成员").click();
@@ -111,14 +113,15 @@ test("SYS-004-02 无系统权限用户 403（菜单隐藏 + code 10003）", asyn
   // 用户路径：首页（确认会话与导航渲染）
   await page.goto("/");
   await expect(page.getByTestId("topbar")).toBeVisible();
-  // UI 断言：左侧导航无系统管理入口（LeftNav 按 SYSTEM_USER:READ/SYSTEM_GROUP:READ 过滤）
-  await expect(page.getByTestId("nav-system-users")).toHaveCount(0);
-  await expect(page.getByTestId("nav-system-groups")).toHaveCount(0);
+  // UI 断言（SYS-010 语义）：头像下拉无「系统设置」入口（按 SYSTEM_*:READ 任一权限点过滤）
+  await page.getByTestId("user-avatar").click();
+  await expect(page.getByTestId("menu-system-settings")).toHaveCount(0);
+  await page.getByTestId("user-avatar").click(); // 收起下拉
 
   // §3.2.2 例外（守卫类断言）：直访 /system/users——页面可达，但数据接口 403
   const listApi = expectApi("**/api/v1/system/users*");
   await page.goto("/system/users");
-  await expect(page.getByText("用户管理", { exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "用户管理" })).toBeVisible();
   const list = await listApi;
   expect(list.status).toBe(403);
   expect(list.code).toBe(10003);
@@ -161,7 +164,8 @@ test("SYS-004-03 预置组成员可管理（权限只读、成员增删可用）
   expect(created.status()).toBe(201);
 
   await page.goto("/");
-  await page.getByTestId("nav-system-groups").click();
+  await enterRealm(page, "system");
+  await navClick(page, "nav-system-groups");
   // 选中预置组「系统管理员」：权限只读提示仍在（语义=权限点不可改）
   await page.getByTestId("group-item-系统管理员").click();
   await expect(page.getByText("预置组权限不可修改")).toBeVisible();
@@ -202,8 +206,9 @@ test("SYS-004-03 预置组成员可管理（权限只读、成员增删可用）
 
 test("SYS-004-04 组织组候选源=组织成员（普通组织管理员不 403）", async ({ authedPage, page }) => {
   // authedPage=自注册组织管理员（无 SYSTEM_USER:READ，修复前候选源 /system/users 会 403→选项为空）
+  // 旧版 nth(1) 实为项目设置组的「用户组」（/settings/groups）；SYS-010 后按 testid 直达
   await page.goto("/");
-  await page.getByTestId("leftnav").getByRole("link", { name: "用户组" }).nth(1).click();
+  await navClick(page, "nav-settings-groups");
   await page.getByRole("button", { name: /新\s*建用户组/ }).click();
   await page.getByTestId("input-new-group-name").fill(`回归组-${Date.now()}`);
   await page.getByRole("button", { name: /创\s*建/ }).click();
@@ -255,6 +260,7 @@ test("SYS-004-05 受限成员：用例列表可见、新建按钮隐藏、直发
 
   // 用户路径：首页 → 左侧菜单「测试用例」——列表可见（READ 保留），新建按钮隐藏（CREATE 缺失）
   await page.goto("/");
+  await ensureNavVisible(page, "测试用例");
   await page.getByTestId("leftnav").getByRole("link", { name: "测试用例" }).click();
   await expect(page.getByTestId("case-table")).toBeVisible();
   await expect(page.getByTestId("btn-new-case")).toHaveCount(0);
@@ -303,7 +309,8 @@ test("SYS-004-06 重置密码、禁用（会话失效）与软删除用户", asy
 
   // 用户路径：首页 → 系统设置 › 用户管理，搜索定位受害用户
   await page.goto("/");
-  await page.getByTestId("nav-system-users").click();
+  await enterRealm(page, "system");
+  await navClick(page, "nav-system-users");
   await page.getByTestId("input-user-keyword").fill(victimEmail);
   const victimRow = page.getByRole("row", { name: new RegExp(victimEmail) });
   await expect(victimRow).toBeVisible();
@@ -357,7 +364,8 @@ test("SYS-004-07 编辑用户姓名与手机（P-3）", async ({ request, contex
   expect(reg.status()).toBe(201);
 
   await page.goto("/");
-  await page.getByTestId("nav-system-users").click();
+  await enterRealm(page, "system");
+  await navClick(page, "nav-system-users");
   // 定位到目标行（列表按创建时间倒序，用搜索收敛）
   await page.getByTestId("input-user-keyword").fill(email.split("@")[0]);
   await page.keyboard.press("Enter");

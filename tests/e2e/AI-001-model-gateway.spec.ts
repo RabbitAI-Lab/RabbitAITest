@@ -1,4 +1,4 @@
-import { test, expect } from "./fixtures";
+import { test, expect, navClick, enterRealm } from "./fixtures";
 import type { APIRequestContext, BrowserContext } from "@playwright/test";
 import { E2E_BASE, MOCK_BASE } from "./env";
 
@@ -28,7 +28,8 @@ test("AI-001-01 模型管理全链路（新建/掩码/连接测试/设默认/SSR
   const uniq = `M${Date.now() % 1e7}`;
 
   await page.goto("/");
-  await page.getByTestId("nav-system-ai-models").click();
+  await enterRealm(page, "system");
+  await navClick(page, "nav-system-ai-models");
   await expect(page.getByTestId("ai-model-list").locator("div").first()).toBeVisible();
   // 种子 mock 模型在列（global-setup 注入 RABBIT_SEED_AI_MOCK_BASE）
   await expect(page.getByTestId("ai-model-card-e2e-mock-模型")).toBeVisible();

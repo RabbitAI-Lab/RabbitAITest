@@ -1,4 +1,4 @@
-import { test, expect, navFromHome } from "./fixtures";
+import { test, expect, navFromHome, navClick } from "./fixtures";
 
 /**
  * PROJ-002 模板与动态自定义字段（docs/sprint-1-mvp-test-mgmt/PROJ-002-template-custom-fields.md §5 T2/T3）：
@@ -21,7 +21,7 @@ test("PROJ-002-01 字段→模板→用例联动（必填 422 + 列表列）", a
 
   // 用户路径：首页 → 项目设置 › 模板管理（scene 默认=用例，字段 Tab 默认激活）
   await page.goto("/");
-  await page.getByTestId("nav-settings-templates").click();
+  await navClick(page, "nav-settings-templates");
   await expect(page.getByTestId("btn-new-field")).toBeVisible();
 
   // ① 字段 Tab：新建「严重程度」单选字段（选项一行一个；必填留到模板绑定勾——验证模板级覆写）
@@ -108,7 +108,7 @@ test("PROJ-002-02 工作流矩阵与非法流转", async ({
 
   // 用户路径：首页 → 项目设置 › 模板管理 → 切缺陷场景 → 工作流 Tab
   await page.goto("/");
-  await page.getByTestId("nav-settings-templates").click();
+  await navClick(page, "nav-settings-templates");
   await page.getByTestId("scene-bug").click();
   await page.getByTestId("tab-workflow").click();
   // UI 断言：预置工作流（待处理=初始 / 已关闭=结束）
@@ -191,7 +191,7 @@ test("PROJ-002-03 项目模板开关不可逆与设默认/复制", async ({
 
   // 用户路径：首页 → 项目设置 › 模板管理 → 模板 Tab（scene 默认=用例）
   await page.goto("/");
-  await page.getByTestId("nav-settings-templates").click();
+  await navClick(page, "nav-settings-templates");
   await page.getByTestId("tab-templates").click();
   // UI 断言：模板来源=组织模板（继承）+ 启用入口 + 系统默认模板预置（含「系统」标记）
   await expect(page.getByText("模板来源：")).toBeVisible();

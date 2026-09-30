@@ -1,19 +1,52 @@
 "use client";
 
 import { Avatar, Badge, Dropdown, Empty } from "antd";
-import { HelpCircle, LogOut, Bell, Sparkles, UserCircle2 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { HelpCircle, LogOut, Bell, Building2, Settings2, ShieldCheck, Sparkles, UserCircle2 } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { notificationApi, themeApi, type ThemeParam } from "@rabbit/api-client";
 import { ProjectSwitcher } from "./ProjectSwitcher";
 import { OrgSwitcher } from "./OrgSwitcher";
 import { AiAssistantDrawer } from "./ai/AiAssistantDrawer";
+import { useOpenTab } from "./TabBar";
+import { usePermissions } from "@/hooks/usePermissions";
+import { realmOf } from "@/stores/tabs";
+
+/** 帮助文档兜底地址：RabbitAITest 文档站（GitHub Pages，docs-site/ 发布于 /docs/）；ENTP-004 主题参数 helpUrl 可覆盖。 */
+const DEFAULT_HELP_URL = "https://rabbitai-lab.github.io/RabbitAITest/docs/";
+
+/** 头像下拉「组织管理/系统设置」入口的权限点（SYS-004 口径：任一即可见）。 */
+const ORG_ENTRY_PERMS = ["ORG_PROJECT:READ", "ORG_MEMBER:READ", "ORG_DEPARTMENT:READ", "ORG_GROUP:READ", "ORG_TEMPLATE:READ"];
+const SYSTEM_ENTRY_PERMS = [
+  "SYSTEM_USER:READ",
+  "SYSTEM_GROUP:READ",
+  "SYSTEM_PARAM:READ",
+  "ENTP_SSO:READ",
+  "ENTP_ORG:READ",
+  "SYSTEM_LICENSE:READ",
+  "SYSTEM_POOL:READ",
+  "SYSTEM_AI:READ",
+  "SYSTEM_PLUGIN:READ",
+  "SYSTEM_AUDIT:READ",
+];
 
 /** 顶栏（SYS-003 视觉基线；S7 AI 助手入口；S9 ENTP-001 组织切换器 + ENTP-004 品牌定制）。 */
 export function TopBar({ email }: { email?: string }) {
   const router = useRouter();
+  const pathname = usePathname();
+  const realm = realmOf(pathname ?? "/");
+  const { canGlobal } = usePermissions();
+  const openTab = useOpenTab();
   const [aiOpen, setAiOpen] = useState(false);
+
+  const gotoRealm = (href: string) => {
+    openTab(href);
+    router.push(href);
+  };
+  const canOrgEntry = ORG_ENTRY_PERMS.some((p) => canGlobal(p));
+  const canSystemEntry = SYSTEM_ENTRY_PERMS.some((p) => canGlobal(p));
+
   // ENTP-004：品牌定制（公开 theme；失败/未配置=默认品牌）
   const themeQ = useQuery({
     queryKey: ["public-theme"],
@@ -73,8 +106,30 @@ export function TopBar({ email }: { email?: string }) {
         </span>
       </div>
       <div className="w-px h-4 bg-[#E5E6EB]" />
-      <OrgSwitcher />
-      <ProjectSwitcher />
+      {/* SYS-010 三域顶栏上下文：项目域=组织+项目切换器；组织域=组织切换器+标识；系统域=标识 */}
+      {realm === "project" && (
+        <>
+          <OrgSwitcher />
+          <ProjectSwitcher />
+        </>
+      )}
+      {realm === "org" && (
+        <>
+          <OrgSwitcher />
+          <span className="flex items-center gap-2 text-[13px] font-medium text-[#1F2329]">
+            <Building2 size={16} style={{ color: primary }} />
+            组织管理
+            <span className="text-[11px] font-normal text-[#87888D]">组织级 · 跨项目</span>
+          </span>
+        </>
+      )}
+      {realm === "system" && (
+        <span className="flex items-center gap-2 text-[13px] font-medium text-[#1F2329]">
+          <ShieldCheck size={16} style={{ color: primary }} />
+          系统设置
+          <span className="text-[11px] font-normal text-[#87888D]">跨项目 · 平台级</span>
+        </span>
+      )}
       <div className="ml-auto flex items-center gap-1 text-[#646A73]">
         <button
           aria-label="AI 助手"
@@ -139,9 +194,7 @@ export function TopBar({ email }: { email?: string }) {
         <button
           aria-label="帮助"
           className="w-8 h-8 rounded-md grid place-items-center hover:bg-[#F2F3F5] cursor-pointer"
-          onClick={() =>
-            window.open(theme?.helpUrl || "https://metersphere.io/docs/v3.x/", "_blank")
-          }
+          onClick={() => window.open(theme?.helpUrl || DEFAULT_HELP_URL, "_blank")}
         >
           <HelpCircle size={16} strokeWidth={1.8} />
         </button>
@@ -149,10 +202,28 @@ export function TopBar({ email }: { email?: string }) {
           menu={{
             items: [
               { key: "personal", icon: <UserCircle2 size={14} />, label: "个人中心" },
+              // SYS-010：组织管理/系统设置域入口（权限门控，与侧栏三域隔离配套）
+              ...(canOrgEntry
+                ? [{
+                    key: "org",
+                    icon: <Building2 size={14} />,
+                    label: <span data-testid="menu-org-management">组织管理</span>,
+                  }]
+                : []),
+              ...(canSystemEntry
+                ? [{
+                    key: "system",
+                    icon: <Settings2 size={14} />,
+                    label: <span data-testid="menu-system-settings">系统设置</span>,
+                  }]
+                : []),
+              { type: "divider" },
               { key: "logout", icon: <LogOut size={14} />, label: "退出登录" },
             ],
             onClick: async ({ key }) => {
               if (key === "personal") router.push("/personal");
+              if (key === "org") gotoRealm("/org/projects");
+              if (key === "system") gotoRealm("/system/users");
               if (key === "logout") {
                 await fetch("/api/v1/auth/logout", { method: "POST" });
                 window.location.href = "/login";

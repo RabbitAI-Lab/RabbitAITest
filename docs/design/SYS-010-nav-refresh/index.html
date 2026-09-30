@@ -1,0 +1,527 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SYS-010 全局导航改版（确认版 · 方向 A + 多标签页）</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 钉与 apps/web lucide-react ^1.48 同系的 UMD，避免 @latest 图标名漂移 -->
+    <script src="https://unpkg.com/lucide@1.48.0/dist/umd/lucide.min.js"></script>
+    <style>
+      body { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; }
+      ::-webkit-scrollbar { width: 6px; height: 6px; }
+      ::-webkit-scrollbar-thumb { background: #d5d7db; border-radius: 3px; }
+      ::-webkit-scrollbar-track { background: transparent; }
+      .nav-item { transition: background-color .12s, color .12s; }
+      .grp-arrow { transition: transform .15s; }
+      .grp-collapsed .grp-arrow { transform: rotate(-90deg); }
+      .grp-collapsed .grp-items { display: none; }
+      /* 标签页 */
+      .tab { transition: background-color .12s; }
+      .tab .close-x { opacity: 0; }
+      .tab:hover .close-x, .tab.tab-active .close-x { opacity: 1; }
+      .ctx-item { width: 100%; text-align: left; padding: 6px 12px; font-size: 13px; color: #3D4350; }
+      .ctx-item:hover { background: #F2F3F5; }
+      .ctx-item[data-disabled="1"] { color: #C0C4CC; pointer-events: none; }
+      /* ── 收起模式（第⑧轮）：侧栏整体隐藏，左缘贴边展开钮 ── */
+      .rail-hidden { width: 0 !important; border-right-width: 0; overflow: hidden; }
+      .rail-hidden * { visibility: hidden; }
+      /* 标签栏：隐藏横向滚动条但保留滚动能力（滚轮横滚见 JS） */
+      #tabs { scrollbar-width: none; -ms-overflow-style: none; }
+      #tabs::-webkit-scrollbar { display: none; }
+    </style>
+  </head>
+  <body class="bg-[#EEF0F4] text-[#1F2329] text-[13px]">
+    <!-- ══════════ 原型说明条（非产品 UI） ══════════ -->
+    <div class="bg-[#1B1F2A] text-white/90 px-5 py-3 flex items-center gap-4 flex-wrap">
+      <span class="font-semibold">SYS-010 全局导航改版 · 方向 A 确认版（第⑨轮）</span>
+      <span class="text-white/50 text-xs">已合入：①系统设置→头像下拉 ②多标签页 ③~⑨收起=侧栏隐藏+左缘悬浮小圆钮（⑨去竖条）/三域/分组节奏/细节</span>
+      <span class="ml-auto text-[11px] text-white/40">历史版本：v1-three-directions.html</span>
+    </div>
+    <div class="px-5 py-2 text-xs text-slate-500 bg-white border-b border-slate-200">
+      走查路径：分割线中间<b>小圆钮</b>收起侧栏（侧栏整体隐藏）→ 内容区<b>左缘悬浮小圆钮</b>（骑线，不占宽度），点击恢复 → 头像下拉：个人中心 / 组织管理 / 系统设置（三域）→ 标签右键/「批量」批量关闭。
+    </div>
+
+    <!-- ══════════ 产品外壳 ══════════ -->
+    <div class="flex flex-col h-[840px] overflow-hidden">
+      <!-- 顶栏 48px -->
+      <header class="h-12 bg-white border-b border-[#E5E6EB] flex items-center px-4 gap-3 shrink-0 relative">
+        <div class="flex items-center gap-2 select-none">
+          <span class="w-7 h-7 rounded-lg text-white grid place-items-center text-[13px] font-bold" style="background:linear-gradient(135deg,#574BFF,#574BFFCC)">R</span>
+          <span class="font-semibold text-[15px] tracking-tight">Rabbit<span class="text-[#574BFF]">AI</span>Test</span>
+        </div>
+        <div class="w-px h-4 bg-[#E5E6EB]"></div>
+        <div id="ctx-project" class="flex items-center gap-2">
+          <span class="border border-[#E5E6EB] rounded px-2 py-1 text-[12px] text-[#3D4350] flex items-center gap-1">
+            <i data-lucide="building-2" class="w-3.5 h-3.5 text-[#87888D]"></i>飞兔科技
+            <i data-lucide="chevron-down" class="w-3 h-3 text-[#87888D]"></i>
+          </span>
+          <span class="border border-[#E5E6EB] rounded px-2 py-1 text-[12px] text-[#3D4350] flex items-center gap-1">
+            <i data-lucide="folder-kanban" class="w-3.5 h-3.5 text-[#87888D]"></i>电商平台测试
+            <i data-lucide="chevron-down" class="w-3 h-3 text-[#87888D]"></i>
+          </span>
+        </div>
+        <div id="ctx-system" class="hidden items-center gap-2 text-[13px] font-medium text-[#1F2329]">
+          <i data-lucide="shield-check" class="w-4 h-4 text-[#574BFF]"></i>系统设置
+          <span class="text-[11px] font-normal text-[#87888D]">跨项目 · 平台级</span>
+        </div>
+        <!-- 组织域上下文：保留组织切换、隐藏项目切换 -->
+        <div id="ctx-org" class="hidden items-center gap-2 text-[13px] font-medium text-[#1F2329]">
+          <span class="border border-[#E5E6EB] rounded px-2 py-1 text-[12px] font-normal text-[#3D4350] flex items-center gap-1">
+            <i data-lucide="building-2" class="w-3.5 h-3.5 text-[#87888D]"></i>飞兔科技
+            <i data-lucide="chevron-down" class="w-3 h-3 text-[#87888D]"></i>
+          </span>
+          <i data-lucide="building-2" class="w-4 h-4 text-[#574BFF]"></i>组织管理
+          <span class="text-[11px] font-normal text-[#87888D]">组织级 · 跨项目</span>
+        </div>
+        <div class="ml-auto flex items-center gap-1 text-[#646A73]">
+          <button class="w-8 h-8 rounded-md grid place-items-center hover:bg-[#F2F3F5]" title="AI 助手">
+            <i data-lucide="sparkles" class="w-4 h-4"></i>
+          </button>
+          <button class="w-8 h-8 rounded-md grid place-items-center hover:bg-[#F2F3F5] relative" title="消息">
+            <i data-lucide="bell" class="w-4 h-4"></i>
+            <span class="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full" style="background:#F53F3F"></span>
+          </button>
+          <button class="w-8 h-8 rounded-md grid place-items-center hover:bg-[#F2F3F5]" title="帮助">
+            <i data-lucide="help-circle" class="w-4 h-4"></i>
+          </button>
+          <!-- 头像下拉：个人中心 / 组织管理 / 系统设置 / 退出登录 -->
+          <div class="relative ml-1">
+            <button id="avatar-btn" onclick="event.stopPropagation();toggleMenu()" class="w-8 h-8 rounded-full grid place-items-center text-white text-[12px] font-medium" style="background:#574BFF" data-testid="user-avatar">徐</button>
+            <div id="avatar-menu" class="hidden absolute right-0 top-10 z-30 w-40 bg-white border border-[#E5E6EB] rounded-lg shadow-lg py-1 text-[13px]">
+              <button onclick="noOp()" class="w-full flex items-center gap-2.5 px-3 py-2 text-[#3D4350] hover:bg-[#F2F3F5]">
+                <i data-lucide="circle-user-round" class="w-4 h-4 text-[#87888D]"></i>个人中心
+              </button>
+              <button onclick="openFromNav('/org/projects')" class="w-full flex items-center gap-2.5 px-3 py-2 text-[#3D4350] hover:bg-[#F2F3F5]" data-testid="menu-org-management">
+                <i data-lucide="building-2" class="w-4 h-4 text-[#87888D]"></i>组织管理
+              </button>
+              <button onclick="openFromNav('/system/users')" class="w-full flex items-center gap-2.5 px-3 py-2 text-[#3D4350] hover:bg-[#F2F3F5]" data-testid="menu-system-settings">
+                <i data-lucide="settings-2" class="w-4 h-4 text-[#87888D]"></i>系统设置
+              </button>
+              <div class="my-1 border-t border-[#F0F1F3]"></div>
+              <button onclick="noOp()" class="w-full flex items-center gap-2.5 px-3 py-2 text-[#3D4350] hover:bg-[#F2F3F5]">
+                <i data-lucide="log-out" class="w-4 h-4 text-[#87888D]"></i>退出登录
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div class="flex flex-1 overflow-hidden">
+        <!-- ── 项目域侧栏 ── -->
+        <aside id="nav-project" class="relative w-[208px] bg-white border-r border-[#E5E6EB] shrink-0 flex flex-col transition-all duration-200">
+          <div class="overflow-y-auto flex-1 pb-3 pt-2" id="proj-groups"></div>
+          <!-- 分割线中间的收起小圆钮 -->
+          <button onclick="toggleRail('nav-project')" data-testid="rail-toggle" title="收起侧栏"
+            class="absolute right-[-9px] top-1/2 -translate-y-1/2 z-20 w-[18px] h-[18px] rounded-full bg-white border border-[#DDE0E6] shadow-[0_1px_4px_rgba(31,35,41,.10)] grid place-items-center text-[#87888D] hover:text-[#1F2329] hover:border-[#B9BDC6] cursor-pointer">
+            <i data-lucide="chevron-left" class="w-3 h-3"></i>
+          </button>
+        </aside>
+
+        <!-- ── 组织域侧栏（隔离：仅组织菜单 + 返回项目；顶栏保留组织切换） ── -->
+        <aside id="nav-org" class="relative w-[208px] bg-white border-r border-[#E5E6EB] shrink-0 flex-col hidden transition-all duration-200">
+          <button onclick="activateTab('/')" class="flex items-center gap-2 m-2 mb-1 px-3 py-2 rounded-md text-[12px] text-[#646A73] hover:bg-[#F2F3F5] border border-[#ECEEF1]" data-testid="back-to-project-org">
+            <i data-lucide="arrow-left" class="w-4 h-4 shrink-0"></i><span class="rail-label">返回项目</span>
+          </button>
+          <div class="overflow-y-auto flex-1 pb-3" id="org-groups"></div>
+          <button onclick="toggleRail('nav-org')" data-testid="rail-toggle-org" title="收起侧栏"
+            class="absolute right-[-9px] top-1/2 -translate-y-1/2 z-20 w-[18px] h-[18px] rounded-full bg-white border border-[#DDE0E6] shadow-[0_1px_4px_rgba(31,35,41,.10)] grid place-items-center text-[#87888D] hover:text-[#1F2329] hover:border-[#B9BDC6] cursor-pointer">
+            <i data-lucide="chevron-left" class="w-3 h-3"></i>
+          </button>
+        </aside>
+
+        <!-- ── 系统域侧栏 ── -->
+        <aside id="nav-system" class="relative w-[208px] bg-white border-r border-[#E5E6EB] shrink-0 flex-col hidden transition-all duration-200">
+          <button onclick="activateTab('/')" class="flex items-center gap-2 m-2 mb-1 px-3 py-2 rounded-md text-[12px] text-[#646A73] hover:bg-[#F2F3F5] border border-[#ECEEF1]" data-testid="back-to-project">
+            <i data-lucide="arrow-left" class="w-4 h-4 shrink-0"></i><span class="rail-label">返回项目</span>
+          </button>
+          <div class="overflow-y-auto flex-1 pb-3" id="sys-groups"></div>
+          <button onclick="toggleRail('nav-system')" data-testid="rail-toggle-sys" title="收起侧栏"
+            class="absolute right-[-9px] top-1/2 -translate-y-1/2 z-20 w-[18px] h-[18px] rounded-full bg-white border border-[#DDE0E6] shadow-[0_1px_4px_rgba(31,35,41,.10)] grid place-items-center text-[#87888D] hover:text-[#1F2329] hover:border-[#B9BDC6] cursor-pointer">
+            <i data-lucide="chevron-left" class="w-3 h-3"></i>
+          </button>
+        </aside>
+
+        <!-- ── 内容区：多标签栏 + 主区域 ── -->
+        <section class="relative flex-1 flex flex-col min-w-0">
+          <!-- 左缘展开小圆钮（侧栏收起后出现，悬浮骑在内容区左缘线上，与分割线小圆钮同款） -->
+          <button id="rail-expand" onclick="expandRail()" data-testid="rail-expand" title="展开侧栏"
+            class="hidden absolute left-[-9px] top-1/2 -translate-y-1/2 z-20 w-[18px] h-[18px] rounded-full bg-white border border-[#DDE0E6] shadow-[0_1px_4px_rgba(31,35,41,.10)] grid place-items-center text-[#87888D] hover:text-[#1F2329] hover:border-[#B9BDC6] cursor-pointer">
+            <i data-lucide="chevron-right" class="w-3 h-3"></i>
+          </button>
+          <div class="h-9 flex items-stretch bg-[#E9EBF0] border-b border-[#E0E2E8] shrink-0" data-testid="tab-bar">
+            <div id="tabs" class="flex items-end gap-1 overflow-x-auto flex-1 min-w-0 px-2"></div>
+            <div class="relative shrink-0 flex items-center border-l border-[#E0E2E8] bg-[#E9EBF0]">
+              <button id="tabs-ops-btn" class="h-full px-2.5 flex items-center gap-1 text-[12px] text-[#646A73] hover:text-[#1F2329] hover:bg-white/60" data-testid="tabs-ops">
+                <i data-lucide="chevrons-down" class="w-3.5 h-3.5"></i>批量
+              </button>
+              <div id="tabs-ops-menu" class="hidden absolute right-0 top-9 z-30 w-44 bg-white border border-[#E5E6EB] rounded-lg shadow-lg py-1">
+                <button class="ctx-item" onclick="closeOthers()">关闭其他标签页</button>
+                <button class="ctx-item" onclick="closeRight()">关闭右侧标签页</button>
+                <div class="my-1 border-t border-[#F0F1F3]"></div>
+                <button class="ctx-item" onclick="closeAll()">全部关闭（保留工作台）</button>
+              </div>
+            </div>
+          </div>
+          <!-- 标签右键菜单 -->
+          <div id="tab-ctx-menu" class="hidden fixed z-40 w-44 bg-white border border-[#E5E6EB] rounded-lg shadow-lg py-1">
+            <button id="ctx-close" class="ctx-item" onclick="closeTab(ctxKey)">关闭标签页</button>
+            <div class="my-1 border-t border-[#F0F1F3]"></div>
+            <button class="ctx-item" onclick="closeOthers()">关闭其他标签页</button>
+            <button class="ctx-item" onclick="closeRight()">关闭右侧标签页</button>
+            <div class="my-1 border-t border-[#F0F1F3]"></div>
+            <button class="ctx-item" onclick="closeAll()">全部关闭（保留工作台）</button>
+          </div>
+          <main id="demo-main" class="flex-1 bg-[#F5F6FA] overflow-y-auto"><div class="p-6" id="demo-main-inner"></div></main>
+        </section>
+      </div>
+    </div>
+
+    <script>
+      const P = "#574BFF";
+      const TAB_CAP = 20;
+
+      /* ── 菜单数据：icon=分组图标（多项组窄条用）；单项组不渲染分组头 ── */
+      const NAV = [
+        { id: "work", label: "工作区", single: true, items: [
+          { t: "工作台", i: "layout-dashboard", h: "/" },
+        ]},
+        { id: "tm", label: "测试管理", icon: "clipboard-list", items: [
+          { t: "测试用例", i: "scroll-text", h: "/cases" },
+          { t: "用例评审", i: "clipboard-check", h: "/reviews" },
+          { t: "测试计划", i: "network", h: "/plans" },
+          { t: "缺陷管理", i: "bug", h: "/bugs" },
+        ]},
+        { id: "api", label: "接口测试", icon: "workflow", items: [
+          { t: "接口定义", i: "network", h: "/apis" },
+          { t: "接口调试", i: "flask-conical", h: "/debug" },
+          { t: "接口场景", i: "workflow", h: "/scenarios" },
+          { t: "接口报告", i: "file-text", h: "/reports" },
+          { t: "文件管理", i: "folder-kanban", h: "/files" },
+        ]},
+        { id: "task", label: "任务中心", icon: "clipboard-list", items: [
+          { t: "任务中心", i: "clipboard-list", h: "/tasks" },
+        ]},
+        { id: "load", label: "性能测试", icon: "gauge", items: [
+          { t: "性能测试", i: "gauge", h: "/load" },
+        ]},
+        { id: "uit", label: "UI 测试", icon: "monitor-play", items: [
+          { t: "UI 测试", i: "monitor-play", h: "/ui-test" },
+        ]},
+        { id: "pset", label: "项目设置", icon: "settings", items: [
+          { t: "基本信息", i: "settings", h: "/settings/info" },
+          { t: "成员管理", i: "users", h: "/settings/members" },
+          { t: "用户组", i: "user-square-2", h: "/settings/groups" },
+          { t: "模板管理", i: "sliders-horizontal", h: "/settings/templates" },
+          { t: "环境管理", i: "flask-conical", h: "/settings/environments" },
+          { t: "公共脚本", i: "file-code-2", h: "/settings/public-scripts" },
+          { t: "消息管理", i: "bell", h: "/settings/messages" },
+          { t: "AI 提示词", i: "sparkles", h: "/settings/ai-prompts" },
+          { t: "服务集成", i: "network", h: "/settings/integrations" },
+          { t: "Swagger 同步", i: "refresh-cw", h: "/settings/swagger-sync" },
+        ]},
+      ];
+
+      const SYS_NAV = [
+        { id: "sys", label: "系统设置", icon: "shield-check", items: [
+          { t: "用户管理", i: "users", h: "/system/users" },
+          { t: "用户组", i: "user-square-2", h: "/system/groups" },
+          { t: "参数设置", i: "sliders-horizontal", h: "/system/params" },
+          { t: "认证配置", i: "key-round", h: "/system/sso" },
+          { t: "组织管理", i: "building-2", h: "/system/orgs" },
+          { t: "授权管理", i: "shield-check", h: "/system/license" },
+          { t: "资源池", i: "layout-dashboard", h: "/system/pools" },
+          { t: "模型设置", i: "sparkles", h: "/system/ai-models" },
+          { t: "插件管理", i: "puzzle", h: "/system/plugins" },
+          { t: "系统日志", i: "scroll-text", h: "/system/audit-logs" },
+        ]},
+      ];
+
+      /* ── 组织域菜单：原项目侧栏「组织」组 5 项，独立成域（与系统域平级） ── */
+      const ORG_NAV = [
+        { id: "org", label: "组织管理", icon: "building-2", items: [
+          { t: "项目管理", i: "folder-kanban", h: "/org/projects" },
+          { t: "成员管理", i: "users", h: "/org/members" },
+          { t: "部门管理", i: "network", h: "/org/departments" },
+          { t: "用户组", i: "user-square-2", h: "/org/groups" },
+          { t: "模板管理", i: "clipboard-check", h: "/org/templates" },
+        ]},
+      ];
+
+      const PATH_MAP = {};
+      [["project", NAV], ["org", ORG_NAV], ["system", SYS_NAV]].forEach(([realm, arr]) =>
+        arr.forEach((g) => g.items.forEach((it) => (PATH_MAP[it.h] = { ...it, realm }))),
+      );
+      const HOME = PATH_MAP["/"];
+
+      const collapsed = new Set(["tm", "pset"]); // 项目域默认展开 接口测试；组织/系统域各自单组默认展开
+      let TABS = [{ key: "/", title: HOME.t, icon: HOME.i, realm: "project", pinned: true }];
+      let activeTab = "/";
+      let ctxKey = null;
+
+      /* ── 侧栏渲染 ── */
+      function itemLink(it) {
+        return `
+        <a href="#" onclick="event.preventDefault();openFromNav('${it.h}')" class="nav-item relative flex items-center gap-2.5 px-3 py-[7px] rounded-md ${it.h === activeTab ? `bg-[${P}]/10 text-[${P}] font-medium` : "text-[#3D4350] hover:bg-[#F2F3F5]"}">
+          ${it.h === activeTab ? `<span class="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 rounded-r" style="background:${P}"></span>` : ""}
+          <i data-lucide="${it.i}" class="w-4 h-4 shrink-0 ${it.h === activeTab ? "" : "text-[#87888D]"}"></i>
+          <span class="rail-label truncate">${it.t}</span>
+        </a>`;
+      }
+      function groupLight(g) {
+        // 单项直点（无分组头）仅限显式标记（工作台）；其余单项组照常渲染分组头
+        const single = g.single === true;
+        const open = !collapsed.has(g.id);
+        if (single) {
+          // 单项组：无分组头，直接菜单项（上下留白与分组头节奏一致）
+          return `<div class="nav-group pt-2.5" data-grp="${g.id}"><div class="grp-items px-2">${g.items.map(itemLink).join("")}</div></div>`;
+        }
+        return `
+        <div class="nav-group ${open ? "" : "grp-collapsed"}" data-grp="${g.id}">
+          <button class="grp-head w-full flex items-center gap-1.5 px-4 pt-4 pb-1.5 text-[11px] text-[#909399] tracking-wide" onclick="toggleGrp('${g.id}', this)">
+            <i data-lucide="chevron-down" class="grp-arrow w-3 h-3 shrink-0"></i><span class="rail-label font-medium">${g.label}</span>
+          </button>
+          <div class="grp-items px-2">${g.items.map(itemLink).join("")}</div>
+        </div>`;
+      }
+      function toggleGrp(id, btn) {
+        const grp = btn.parentElement;
+        grp.classList.toggle("grp-collapsed");
+        if (grp.classList.contains("grp-collapsed")) collapsed.add(id);
+        else collapsed.delete(id);
+      }
+      function renderSidebars() {
+        document.getElementById("proj-groups").innerHTML = NAV.map(groupLight).join("");
+        document.getElementById("org-groups").innerHTML = ORG_NAV.map(groupLight).join("");
+        document.getElementById("sys-groups").innerHTML = SYS_NAV.map(groupLight).join("");
+      }
+
+      /* ── 标签栏 ── */
+      function renderTabs() {
+        document.getElementById("tabs").innerHTML = TABS.map((t) => `
+          <div class="tab ${t.key === activeTab ? "tab-active" : ""} group flex items-center gap-1.5 pl-3 ${t.pinned ? "pr-3" : "pr-1.5"} h-8 mt-1 rounded-t-md cursor-pointer text-[12px] whitespace-nowrap shrink-0 select-none ${t.key === activeTab ? `bg-white text-[#1F2329] font-medium border-t-2` : "text-[#646A73] hover:bg-white/60"}" style="${t.key === activeTab ? `border-top:2px solid ${P}` : ""}" data-key="${t.key}" data-testid="tab-${t.key}">
+            <i data-lucide="${t.icon}" class="w-3.5 h-3.5 shrink-0 ${t.key === activeTab ? `text-[${P}]` : "text-[#87888D]"}"></i>
+            <span>${t.title}</span>
+            ${t.pinned ? "" : `<span class="close-x ml-0.5 w-4 h-4 rounded grid place-items-center text-[#87888D] hover:bg-black/10 hover:text-[#1F2329]" data-testid="tab-close-${t.key}"><i data-lucide="x" class="w-3 h-3"></i></span>`}
+          </div>`).join("");
+      }
+      function renderMain() {
+        document.getElementById("demo-main-inner").innerHTML =
+          activeTab === "/" ? DEMO_PROJECT : activeTab === "/system/users" ? DEMO_SYSTEM : DEMO_GENERIC(PATH_MAP[activeTab]);
+      }
+      function syncRealm(realm) {
+        expandRail(); // 域切换自动展开侧栏（收起态不跨域保留）
+        document.getElementById("nav-project").classList.toggle("hidden", realm !== "project");
+        const org = document.getElementById("nav-org");
+        org.classList.toggle("hidden", realm !== "org");
+        org.classList.toggle("flex", realm === "org");
+        const sys = document.getElementById("nav-system");
+        sys.classList.toggle("hidden", realm !== "system");
+        sys.classList.toggle("flex", realm === "system");
+        document.getElementById("ctx-project").classList.toggle("hidden", realm !== "project");
+        const ctxOrg = document.getElementById("ctx-org");
+        ctxOrg.classList.toggle("hidden", realm !== "org");
+        ctxOrg.classList.toggle("flex", realm === "org");
+        const ctxSys = document.getElementById("ctx-system");
+        ctxSys.classList.toggle("hidden", realm !== "system");
+        ctxSys.classList.toggle("flex", realm === "system");
+      }
+      function renderAll() {
+        renderTabs();
+        renderSidebars();
+        renderMain();
+        lucide.createIcons();
+      }
+
+      /* ── 标签操作 ── */
+      function openFromNav(href) {
+        closeMenu();
+        openTab(href);
+        activateTab(href);
+      }
+      function openTab(href) {
+        if (TABS.find((t) => t.key === href)) return;
+        if (TABS.length >= TAB_CAP) { alert(`标签已达上限 ${TAB_CAP} 个，请先关闭部分标签`); return; }
+        const it = PATH_MAP[href];
+        if (!it) return;
+        TABS.push({ key: href, title: it.t, icon: it.i, realm: it.realm });
+      }
+      function activateTab(key) {
+        const t = TABS.find((x) => x.key === key);
+        if (!t) return;
+        activeTab = key;
+        syncRealm(t.realm);
+        renderAll();
+      }
+      function closeTab(key) {
+        hideMenus();
+        const t = TABS.find((x) => x.key === key);
+        if (!t || t.pinned) return;
+        const idx = TABS.indexOf(t);
+        TABS.splice(idx, 1);
+        if (activeTab === key) activateTab((TABS[idx] ?? TABS[Math.max(0, idx - 1)]).key);
+        else renderAll();
+      }
+      function closeOthers() {
+        hideMenus();
+        TABS = TABS.filter((t) => t.pinned || t.key === activeTab);
+        renderAll();
+      }
+      function closeRight() {
+        hideMenus();
+        const idx = TABS.findIndex((t) => t.key === activeTab);
+        TABS = TABS.slice(0, idx + 1);
+        renderAll();
+      }
+      function closeAll() {
+        hideMenus();
+        TABS = TABS.filter((t) => t.pinned);
+        activateTab("/");
+      }
+
+      /* ── 菜单开关 ── */
+      function toggleMenu() { document.getElementById("avatar-menu").classList.toggle("hidden"); }
+      function closeMenu() { document.getElementById("avatar-menu").classList.add("hidden"); }
+      function noOp() { closeMenu(); }
+            function hideMenus() {
+        document.getElementById("tab-ctx-menu").classList.add("hidden");
+        document.getElementById("tabs-ops-menu").classList.add("hidden");
+        closeMenu();
+      }
+      document.addEventListener("click", (e) => {
+        if (!e.target.closest("#avatar-btn") && !e.target.closest("#avatar-menu")) closeMenu();
+        if (!e.target.closest("#tabs-ops-btn") && !e.target.closest("#tabs-ops-menu")) document.getElementById("tabs-ops-menu").classList.add("hidden");
+        if (!e.target.closest("#tab-ctx-menu")) document.getElementById("tab-ctx-menu").classList.add("hidden");
+      });
+      document.getElementById("tabs-ops-btn").addEventListener("click", (e) => {
+        e.stopPropagation();
+        document.getElementById("tabs-ops-menu").classList.toggle("hidden");
+      });
+      document.getElementById("tabs").addEventListener("click", (e) => {
+        const tabEl = e.target.closest(".tab");
+        if (!tabEl) return;
+        if (e.target.closest(".close-x")) closeTab(tabEl.dataset.key);
+        else activateTab(tabEl.dataset.key);
+      });
+      document.getElementById("tabs").addEventListener("contextmenu", (e) => {
+        const tabEl = e.target.closest(".tab");
+        if (!tabEl) return;
+        e.preventDefault();
+        ctxKey = tabEl.dataset.key;
+        const menu = document.getElementById("tab-ctx-menu");
+        const t = TABS.find((x) => x.key === ctxKey);
+        document.getElementById("ctx-close").dataset.disabled = t?.pinned ? "1" : "0";
+        menu.classList.remove("hidden");
+        const clamp = (v, max) => Math.max(8, Math.min(v, max));
+        menu.style.left = clamp(e.clientX, window.innerWidth - 190) + "px";
+        menu.style.top = clamp(e.clientY, window.innerHeight - 180) + "px";
+      });
+      // 标签栏滚轮横滚（滚动条已隐藏，保留滚轮/触控板滚动能力）
+      document.getElementById("tabs").addEventListener("wheel", (e) => {
+        if (e.deltaY === 0) return;
+        e.preventDefault();
+        e.currentTarget.scrollLeft += e.deltaY;
+      }, { passive: false });
+
+      /* ── 收起/展开（第⑧轮：收起=侧栏整体隐藏，仅左缘展开钮） ── */
+      let railHiddenId = null;
+      function toggleRail(id) {
+        railHiddenId = id;
+        document.getElementById(id).classList.add("rail-hidden");
+        document.getElementById("rail-expand").classList.remove("hidden");
+      }
+      function expandRail() {
+        if (railHiddenId) {
+          document.getElementById(railHiddenId).classList.remove("rail-hidden");
+          railHiddenId = null;
+        }
+        document.getElementById("rail-expand").classList.add("hidden");
+      }
+
+      /* ── 主内容示意 ── */
+      const DEMO_PROJECT = `
+        <div class="flex items-center gap-3 mb-4">
+          <h1 class="text-[18px] font-semibold">工作台</h1>
+          <span class="text-xs text-[#87888D]">电商平台测试 · 2026-10-01</span>
+        </div>
+        <div class="grid grid-cols-4 gap-4 mb-4">
+          ${[
+            ["接口用例总数", "1,284", "+36 本周", "#574BFF"],
+            ["本周执行", "312", "成功率 94.2%", "#00B42A"],
+            ["待评审", "18", "3 个计划阻塞", "#FF7D00"],
+            ["未关闭缺陷", "27", "P0/P1 共 4", "#F53F3F"],
+          ].map(([t, v, s, c]) => `
+            <div class="bg-white border border-[#ECEEF1] rounded-[10px] p-4">
+              <p class="text-xs text-[#87888D] mb-1.5">${t}</p>
+              <p class="text-[24px] font-semibold leading-none">${v}</p>
+              <p class="text-[11px] mt-1.5" style="color:${c}">${s}</p>
+            </div>`).join("")}
+        </div>
+        <div class="bg-white border border-[#ECEEF1] rounded-[10px]">
+          <p class="px-4 py-3 border-b border-[#F0F1F3] text-[14px] font-semibold">最近执行</p>
+          <table class="w-full text-left">
+            <thead><tr class="text-[12px] text-[#87888D]">
+              <th class="px-4 py-2 font-normal">名称</th><th class="py-2 font-normal">类型</th><th class="py-2 font-normal">结果</th><th class="py-2 font-normal pr-4">时间</th>
+            </tr></thead>
+            <tbody class="text-[13px] text-[#3D4350]">
+              ${[
+                ["冒烟集-订单主链路", "场景", "通过", "#00B42A"],
+                ["用户注册接口回归", "接口", "失败 2", "#F53F3F"],
+                ["Sprint-38 全量回归", "计划", "执行中", "#574BFF"],
+              ].map(([n, ty, r, c]) => `
+                <tr class="border-t border-[#F5F6FA]">
+                  <td class="px-4 py-2.5">${n}</td><td class="py-2.5">${ty}</td>
+                  <td class="py-2.5" style="color:${c}">${r}</td>
+                  <td class="py-2.5 pr-4 text-[#87888D]">10-01 14:07</td>
+                </tr>`).join("")}
+            </tbody>
+          </table>
+        </div>`;
+
+      const DEMO_SYSTEM = `
+        <div class="flex items-center gap-3 mb-4">
+          <h1 class="text-[18px] font-semibold">用户管理</h1>
+          <span class="text-xs text-[#87888D]">平台级 · 全组织用户</span>
+          <button class="ml-auto px-3 h-8 rounded-md text-white text-[13px]" style="background:${P}">创建用户</button>
+        </div>
+        <div class="bg-white border border-[#ECEEF1] rounded-[10px]">
+          <table class="w-full text-left">
+            <thead><tr class="text-[12px] text-[#87888D] bg-[#F7F8FA]">
+              <th class="px-4 py-2.5 font-normal">用户</th><th class="py-2.5 font-normal">所属组织</th><th class="py-2.5 font-normal">状态</th><th class="py-2.5 font-normal pr-4">最近登录</th>
+            </tr></thead>
+            <tbody class="text-[13px] text-[#3D4350]">
+              ${[
+                ["admin@rabit.io", "飞兔科技", "启用", "#00B42A"],
+                ["qa-lead@rabit.io", "飞兔科技", "启用", "#00B42A"],
+                ["intern@rabit.io", "飞兔科技", "已禁用", "#87888D"],
+              ].map(([u, o, s, c]) => `
+                <tr class="border-t border-[#F5F6FA]">
+                  <td class="px-4 py-2.5">${u}</td><td class="py-2.5">${o}</td>
+                  <td class="py-2.5" style="color:${c}">${s}</td>
+                  <td class="py-2.5 pr-4 text-[#87888D]">10-01 09:32</td>
+                </tr>`).join("")}
+            </tbody>
+          </table>
+        </div>`;
+
+      function DEMO_GENERIC(it) {
+        const sub = it.realm === "system" ? "系统设置 · 平台级" : it.realm === "org" ? "组织管理 · 飞兔科技" : "电商平台测试";
+        return `
+        <div class="flex items-center gap-3 mb-4">
+          <h1 class="text-[18px] font-semibold">${it.t}</h1>
+          <span class="text-xs text-[#87888D]">${sub} · 标签页内容示意</span>
+        </div>
+        <div class="bg-white border border-[#ECEEF1] rounded-[10px] p-6">
+          <p class="text-xs text-[#87888D] mb-4">多标签原型聚焦标签机制；此页内容沿用现有实现不变。</p>
+          <div class="space-y-3">
+            <div class="h-8 rounded bg-[#F5F6FA] w-2/3"></div>
+            <div class="h-8 rounded bg-[#F5F6FA] w-1/2"></div>
+            <div class="h-8 rounded bg-[#F5F6FA] w-5/6"></div>
+          </div>
+        </div>`;
+      }
+
+      renderAll();
+    </script>
+  </body>
+</html>

@@ -101,12 +101,59 @@ export { expect };
 
 /**
  * 用户路径导航（rules/testing §3.2.2）：从首页经左侧菜单进入功能页，录屏呈现真实入口。
+ * SYS-010：菜单可能在折叠分组内——不可见时先展开全部折叠分组再点击。
  */
 export async function navFromHome(
   page: import("@playwright/test").Page,
   linkName: string,
 ): Promise<void> {
   await page.goto("/");
+  await ensureNavVisible(page, linkName);
   // 限定左侧导航作用域：避免与工作台快捷卡等同名链接冲突（strict mode）
   await page.getByTestId("leftnav").getByRole("link", { name: linkName }).click();
+}
+
+/** SYS-010：展开左侧栏全部折叠分组（分组头 aria-expanded=false）。
+ *  逐个重新解析 locator 点击——.all() 快照在点击重渲染后失效（元素 detach）。 */
+export async function expandNavGroups(page: import("@playwright/test").Page): Promise<void> {
+  for (let i = 0; i < 12; i++) {
+    const head = page.getByTestId("leftnav").locator("button[aria-expanded=false]").first();
+    if (!(await head.isVisible())) break;
+    await head.click();
+  }
+}
+
+/** SYS-010：确保左导航链接可见（折叠组内则先展开）。 */
+export async function ensureNavVisible(
+  page: import("@playwright/test").Page,
+  linkName: string,
+): Promise<void> {
+  const link = page.getByTestId("leftnav").getByRole("link", { name: linkName });
+  if (!(await link.isVisible())) await expandNavGroups(page);
+}
+
+/** SYS-010：testid 版菜单点击（折叠组内自动展开；域内菜单需先 enterRealm）。 */
+export async function navClick(
+  page: import("@playwright/test").Page,
+  testid: string,
+): Promise<void> {
+  const link = page.getByTestId(testid);
+  if (!(await link.isVisible())) await expandNavGroups(page);
+  await link.click();
+}
+
+/** SYS-010：经头像下拉进入组织/系统域（与侧栏三域隔离配套的真实用户路径）；已在目标域则幂等跳过。 */
+export async function enterRealm(
+  page: import("@playwright/test").Page,
+  realm: "org" | "system",
+): Promise<void> {
+  const inRealm = new RegExp(realm === "org" ? "^/org" : "^/system").test(
+    new URL(page.url()).pathname,
+  );
+  if (inRealm) return;
+  await page.getByTestId("user-avatar").click();
+  await page
+    .getByTestId(realm === "org" ? "menu-org-management" : "menu-system-settings")
+    .click();
+  await page.waitForURL(realm === "org" ? /\/org\// : /\/system\//);
 }

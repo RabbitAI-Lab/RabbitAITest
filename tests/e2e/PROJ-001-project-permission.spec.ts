@@ -1,4 +1,4 @@
-import { test, expect } from "./fixtures";
+import { test, expect, navClick, enterRealm } from "./fixtures";
 
 /**
  * PROJ-001 项目成员、项目级权限与项目生命周期（docs/sprint-1-mvp-test-mgmt/PROJ-001-project-permission.md §5 T2/T3）：
@@ -19,7 +19,7 @@ test("PROJ-001-01 模块开关与删除撤销", async ({
 
   // 用户路径：首页 → 项目设置 › 基本信息
   await page.goto("/");
-  await page.getByTestId("nav-settings-info").click();
+  await navClick(page, "nav-settings-info");
   await expect(page.getByTestId("project-info-form")).toBeVisible();
   await expect(page.getByTestId("module-switch-bug")).toBeVisible();
 
@@ -47,7 +47,8 @@ test("PROJ-001-01 模块开关与删除撤销", async ({
   await expect(page.getByTestId("nav-bugs")).toBeVisible();
 
   // 用户路径：左导航 → 组织 › 项目管理（nav-org-projects）
-  await page.getByTestId("nav-org-projects").click();
+  await enterRealm(page, "org");
+  await navClick(page, "nav-org-projects");
   await expect(page.getByRole("row", { name: /演示项目/ })).toBeVisible();
 
   // 新建项目（接口断言 POST /api/v1/orgs/{org}/projects）
@@ -103,7 +104,7 @@ test("PROJ-001-02 成员管理：注册创建者即项目成员", async ({
   // 用户路径：首页 → 项目设置 › 成员管理（nav-settings-members；先挂接口监听再导航，捕获首屏列表请求）
   await page.goto("/");
   const membersApi = expectApi("**/api/v1/projects/*/members*");
-  await page.getByTestId("nav-settings-members").click();
+  await navClick(page, "nav-settings-members");
 
   // 接口断言：成员分页信封 code=0 且包含本人
   const members = await membersApi;
@@ -146,7 +147,8 @@ test("PROJ-001-03 组织成员加入 → 项目成员添加（P-2）", async ({ 
 
   // 用户路径：组织 › 成员管理 → 搜索添加
   await page.goto("/");
-  await page.getByTestId("nav-org-members").click();
+  await enterRealm(page, "org");
+  await navClick(page, "nav-org-members");
   await page.getByTestId("org-member-candidate-select").click();
   await page.keyboard.type(email.split("@")[0]);
   await page.locator(`.ant-select-item-option[title*="${email}"]`).first().click();
@@ -187,7 +189,7 @@ test("PROJ-001-04 基本信息：加载失败错误态与重试恢复", async ({
 
   // 用户路径：首页（建立项目上下文）→ 项目设置 › 基本信息
   await page.goto("/");
-  await page.getByTestId("nav-settings-info").click();
+  await navClick(page, "nav-settings-info");
 
   // UI 断言：错误态替代无限 Spin，透出服务端 message
   await expect(page.getByTestId("project-info-error")).toBeVisible({ timeout: 15000 });
