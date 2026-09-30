@@ -98,7 +98,7 @@ export default function SystemUsersPage() {
         title="用户管理"
         sub={
           data?.limit == null
-            ? `系统用户 · 企业版（授权上限不限，当前 ${data?.total ?? 0} 人）`
+            ? `系统用户 · 上限不限（当前 ${data?.total ?? 0} 人）`
             : `系统用户（上限 ${data.limit} 人${data.limit === (data as { communityLimit?: number }).communityLimit ? " · 社区版" : " · 授权上限"}）`
         }
         extra={

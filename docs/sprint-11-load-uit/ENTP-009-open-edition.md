@@ -84,3 +84,13 @@
 ## 6. 状态流转
 
 Approved（2026-09-30 owner 指令）→ Implemented（本 PR）→ Verified（待人工验收走查）。
+
+## 7. 勘误 1（2026-10-01）——「企业版方向」残留文案清扫
+
+验收走查发现 UI 残留「企业版/企业版方向」标注误导开源口径。全量排查结论与处置：
+
+**活文案（开源态常显，已清 8 处）**：设置›模块开关「企业版方向」徽标+占位 desc（load/uit 各一）、性能测试/UI 测试页头紫色「企业版」Tag 及无项目分支 sub、组织管理页头 sub、消息设置事件 Tab Alert「自定义模板为企业版能力」、用户管理页头 sub「系统用户 · 企业版（授权上限不限）」。
+
+**死分支文案（门控恢复态语义正确，保留）**：load/ui-test placeholder 组件整体（owner 明令代码不删）、各页锁定态 Tooltip/Alert/空态文案（orgs/pools/sso/departments/ThemeTab/TemplateTab/login SSO 错误）、用户容量条「企业版授权扩容」链接——均位于 `can(feature)=false` 或 `!enabled` 分支，开源态不可达；恢复门控（RABBIT_FEATURE_GATE=1）时文案即回到正确语境。
+
+**正当展示（保留）**：系统›授权管理页的社区版/企业版徽标与授权信息——License 体系本身的信息呈现。

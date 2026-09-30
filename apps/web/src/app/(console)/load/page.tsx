@@ -83,7 +83,7 @@ export default function LoadListPage() {
   if (!currentProjectId) {
     return (
       <div className="p-4 md:p-6 max-w-[1100px]">
-        <PageHeader title="性能测试" sub="企业版 · License 门控" />
+        <PageHeader title="性能测试" sub="施压计划 · 执行监控 · 压测报告" />
         <Empty className="py-24" description="请先选择项目" />
       </div>
     );
@@ -94,12 +94,7 @@ export default function LoadListPage() {
     <div className="p-4 md:p-6 space-y-4 max-w-[1100px]" data-testid="load-page">
       {msgCtx}
       <PageHeader
-        title={
-          <span className="flex items-center gap-2">
-            性能测试
-            <Tag color="purple">企业版</Tag>
-          </span>
-        }
+        title="性能测试"
         sub="施压计划 · 执行监控 · 压测报告（秒级时间线）"
         extra={
           <button
