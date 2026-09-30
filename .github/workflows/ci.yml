@@ -59,6 +59,7 @@ jobs:
         with:
           go-version: "1.24"
       # OpenAPI 快照是 apidef 生成输入（gen-cli-services 消费）
+      - run: corepack enable
       - run: pnpm install --frozen-lockfile
       - name: apidef 契约校验（门禁 4 Go 侧：快照↔paths.go 一致）
         run: node scripts/gen-cli-services.mjs --check
