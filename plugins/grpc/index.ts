@@ -10,11 +10,9 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { randomUUID } from "node:crypto";
 // namespace 导入（esbuild CJS bundle 的 default interop 拿不到 proto-loader 的命名导出——
-// bundle 内 protoLoader.loadSync=undefined，勘误 7；两包统一走命名空间形态）
-import * as grpcPkg from "@grpc/grpc-js";
-import * as protoLoaderPkg from "@grpc/proto-loader";
-const grpc = grpcPkg;
-const protoLoader = protoLoaderPkg;
+// bundle 内 protoLoader.loadSync=undefined，勘误 7；值与类型同源，禁 const 别名（丢类型命名空间））
+import * as grpc from "@grpc/grpc-js";
+import * as protoLoader from "@grpc/proto-loader";
 import { raceTimeout, truncateBody, parseHostPort } from "../../packages/shared/src/plugins/protocol-kit";
 
 export interface GrpcConfig {
