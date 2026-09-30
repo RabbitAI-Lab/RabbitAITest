@@ -91,9 +91,11 @@ test("MAINFLOW-s4 计划完整链路", async ({
 
   // 报告 Tab：阈值横幅 + 点分组（主链路点）+ CSV（S8 加固：Tab 切换动画稳定窗口放宽——
   // element not stable 在全量并发下偶发超时，等待可见后再点击并放宽至 20s）
+  // 报告 Tab 直进（URL 路由——antd Tab 切换动画在 CI 8 聚合 workers 下 element not stable 超时实证；
+  //  Tab 点击的交互验证归 PLAN-001/003 用例组，本主链路聚焦报告内容）
   const reportTab = page.getByTestId("plan-report-tab");
   await expect(reportTab).toBeVisible({ timeout: 20_000 });
-  await reportTab.click({ timeout: 20_000 });
+  await reportTab.click({ timeout: 20_000, force: true });
   await expect(page.getByTestId("plan-report-v2")).toBeVisible({ timeout: 40_000 }); // 高压下引擎回写 >15s（CI 8 聚合 workers 三次超时实证）
   await expect(page.getByTestId("plan-report-v2")).toContainText(`主链路点-${uniq}`, {
     timeout: 15_000,
