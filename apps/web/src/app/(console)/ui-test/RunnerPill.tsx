@@ -177,7 +177,8 @@ export function RunnerPill() {
         : "环境正常 ✓";
 
   return (
-    <div className="ml-auto">
+    // inline-flex：与 PageHeader extra 槽内按钮同行流式排布（块级根会把行打散成两层、贴按钮零留白——走查缺陷2）
+    <span className="inline-flex items-center align-middle ml-1">
       {ctxHolder}
       <button
         className={`flex items-center gap-1.5 border rounded-full pl-2 pr-3 py-1 text-sm ${pillCls}`}
@@ -380,6 +381,6 @@ export function RunnerPill() {
           </div>
         </div>
       </Modal>
-    </div>
+    </span>
   );
 }
