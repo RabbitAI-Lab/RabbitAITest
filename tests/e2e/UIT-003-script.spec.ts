@@ -99,8 +99,10 @@ test("UIT-003-T9 粘贴导入→校验（绿）→执行→报告测试树+trace
   );
 
   await page.getByTestId("uit3-paste-import").click();
-  await expect(page.getByTestId("uit3-paste-modal")).toBeVisible({ timeout: 8000 });
-  await page.getByTestId("uit3-paste-name").locator("input").fill(caseName);
+  // antd Modal 的 testid 落在常驻 ant-modal-root（closed 态 hidden）——按仓库先例以 role=dialog 定位
+  const dialog = page.getByRole("dialog");
+  await expect(dialog).toBeVisible({ timeout: 8000 });
+  await dialog.getByPlaceholder("用例名称（默认取脚本内首个 test 标题）").fill(caseName);
   await page.getByTestId("uit3-paste-textarea").fill(okScript("uit3-t9"));
   await page.getByTestId("uit3-paste-create").click();
 
@@ -112,7 +114,7 @@ test("UIT-003-T9 粘贴导入→校验（绿）→执行→报告测试树+trace
   expect(res.status()).toBe(202);
 
   // 校验通过并创建 → 弹层关闭 + 列表行（模式=脚本 + 摘要）
-  await expect(page.getByTestId("uit3-paste-modal")).toBeHidden({ timeout: 30000 });
+  await expect(dialog).toBeHidden({ timeout: 30000 });
   await expect(page.getByTestId("uit-cases-table")).toContainText(caseName, { timeout: 10000 });
   const row = page.locator("tr", { hasText: caseName }).first();
   await expect(row.getByTestId("uit3-mode-script")).toBeVisible();

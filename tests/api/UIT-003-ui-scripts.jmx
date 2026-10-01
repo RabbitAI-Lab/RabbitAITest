@@ -240,6 +240,7 @@
           <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="HTTP 422">
             <collectionProp name="Asserion.test_strings"><stringProp name="49586">422</stringProp></collectionProp>
             <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+            <boolProp name="Assertion.assume_success">true</boolProp>
             <intProp name="Assertion.test_type">8</intProp>
           </ResponseAssertion>
           <hashTree/>
@@ -281,6 +282,7 @@
           <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="HTTP 422">
             <collectionProp name="Asserion.test_strings"><stringProp name="49586">422</stringProp></collectionProp>
             <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+            <boolProp name="Assertion.assume_success">true</boolProp>
             <intProp name="Assertion.test_type">8</intProp>
           </ResponseAssertion>
           <hashTree/>
@@ -316,6 +318,7 @@
           <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="HTTP 404">
             <collectionProp name="Asserion.test_strings"><stringProp name="49586">404</stringProp></collectionProp>
             <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+            <boolProp name="Assertion.assume_success">true</boolProp>
             <intProp name="Assertion.test_type">8</intProp>
           </ResponseAssertion>
           <hashTree/>
@@ -826,6 +829,7 @@
           <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="HTTP 401">
             <collectionProp name="Asserion.test_strings"><stringProp name="49586">401</stringProp></collectionProp>
             <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+            <boolProp name="Assertion.assume_success">true</boolProp>
             <intProp name="Assertion.test_type">8</intProp>
           </ResponseAssertion>
           <hashTree/>

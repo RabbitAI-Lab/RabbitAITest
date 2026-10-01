@@ -346,6 +346,20 @@ export interface ScriptValidateResult {
   error?: string;
 }
 
+/** 校验失败帧：一条 FAILED step-op 行承载编译错误尾部（报告页/轮询方经 items[].steps[0].message 读）。 */
+async function emitValidateError(writer: EventWriter, itemId: string, error: string) {
+  await writer.emit({
+    type: "step-op",
+    itemId,
+    stepPath: "1",
+    stepName: "校验失败",
+    op: "script",
+    status: "FAILED",
+    durationMs: 0,
+    message: error.slice(0, 2000),
+  });
+}
+
 // ───────────────────────── 执行主流程 ─────────────────────────
 
 /** 脚本用例执行：官方 runner 子进程 → report.json → step-op/ui-screenshot/ui-trace 帧。 */
@@ -539,10 +553,13 @@ export async function runUiScriptValidate(
     }
     if (res.code !== 0) {
       const tail = (res.stderr || res.stdout).trim().slice(-1500) || `exit ${res.code}`;
+      await emitValidateError(writer, cmd.itemId, tail);
       return { ok: false, titles, error: tail };
     }
     if (titles.length === 0) {
-      return { ok: false, titles, error: "未收集到任何测试（脚本须包含 test() 用例）" };
+      const err = "未收集到任何测试（脚本须包含 test() 用例）";
+      await emitValidateError(writer, cmd.itemId, err);
+      return { ok: false, titles, error: err };
     }
     for (let i = 0; i < titles.length; i++) {
       await writer.emit({
