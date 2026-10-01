@@ -657,6 +657,12 @@
             <boolProp name="JSONVALIDATION">true</boolProp>
           </JSONPathAssertion>
           <hashTree/>
+          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="field $.data.status=SUCCESS（S13 补强：缺浏览器假绿曾漏检）">
+            <stringProp name="JSON_PATH">$.data.status</stringProp>
+            <stringProp name="EXPECTED_VALUE">SUCCESS</stringProp>
+            <boolProp name="JSONVALIDATION">true</boolProp>
+          </JSONPathAssertion>
+          <hashTree/>
           <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="contains -">
             <stringProp name="JSON_PATH">$.data.items[0].steps</stringProp>
             <stringProp name="EXPECTED_VALUE">-</stringProp>
