@@ -6,7 +6,7 @@
 | 所属迭代     | Sprint 13 — UI 测试脚本化（AI 时代工作流）                                                                                                                     |
 | 优先级       | P1（用户直提：AI 时代表单式步骤编排不满足要求，须直录 Playwright 脚本 + runner 直执行）                                                                        |
 | 所属模块     | UIT UI 测试 / EXEC 执行（引擎 ui script runner）                                                                                                               |
-| 文档状态     | **Implemented**（PR #38：脚本直录/官方 runner 直执行/校验干跑/测试树+trace 报告全量交付；**远端 CI 全绿**（run 36844501785：e2e×3/JMeter×2/lint+unit/build/迁移重放/审计/性能基线/CLI 11 作业 + perf 工作流），待用户走查翻 Verified） |
+| 文档状态     | **Implemented**（**PR #38 已合 main**：merge 0f0bd93，2026-10-01，main 双工作流全绿 ci 36859304269 + perf 36859304401；随批修复 hydration mismatch（SYS-010 勘误1）+ CI jmeter 浏览器安装/假绿根治；待用户验收走查翻 Verified） |
 | 最后更新日期 | 2026-10-01                                                                                                                                                     |
 | 上游依赖     | UIT-002（UI 测试模块：任务面/事件流/截图上传/报告页先例）、EXEC-002（池/队列/停止链）、FILE-001（internal/files 存储）                                         |
 | 下游消费     | AI 生成 UI 脚本（对接 AI-004 对话式生成，P2）、内嵌 trace viewer（P2）、录制器（不做，红线同 UIT-002）                                                         |
