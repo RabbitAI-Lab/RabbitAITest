@@ -182,3 +182,27 @@ test("SYS-010-07 标签上限 20：超限提示且不新增", async ({ page, aut
   await expectNoConsoleErrors();
 });
 
+test("SYS-010-08 预置折叠记忆的首次加载（hydration 对齐防回归：记忆恢复 + 无错）", async ({
+  page,
+  authedPage,
+  expectNoConsoleErrors,
+}) => {
+  // 走查缺陷（2026-10-01 用户报 hydration mismatch）：折叠记忆经 useState 初始化器直接读
+  // localStorage → SSR 首帧默认态 ≠ 客户端记忆态。修复=首帧恒默认、挂载后恢复记忆、恢复完才持久化。
+  // 生产构建 React 对属性 mismatch 静默（dev 才报 console.error——已由 dev 栈脚本化红→绿验证，
+  // 见 PR 描述）；本用例锁生产行为面：预置记忆 → 挂载后记忆态正确 + 刷新保持 + 全程无 console error。
+  await page.addInitScript(() => {
+    localStorage.setItem("rabbit.nav.collapsed", JSON.stringify(["api", "uit"]));
+  });
+  await page.goto("/");
+  // 记忆=全量折叠集合：api/uit 折叠；tm 不在记忆=展开（与默认相反向，验证恢复而非默认）
+  await expect(page.getByTestId("nav-apis")).toBeHidden();
+  await expect(page.getByTestId("nav-uit")).toBeHidden();
+  await expect(page.getByTestId("nav-bugs")).toBeVisible();
+  // 刷新后保持（持久化在恢复完成后仍工作）
+  await page.reload();
+  await expect(page.getByTestId("nav-apis")).toBeHidden();
+  await expect(page.getByTestId("nav-bugs")).toBeVisible();
+  await expectNoConsoleErrors();
+});
+

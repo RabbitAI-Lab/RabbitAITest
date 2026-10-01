@@ -20,7 +20,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       ? String(theme.primaryColor)
       : "#574BFF";
   return (
-    <html lang="zh">
+    // suppressHydrationWarning（仅本元素）：浏览器扩展往 <html> 注入属性（如沉浸式翻译
+    // data-immersive-translate-*）造成的属性级 mismatch 噪音——Next 官方口径，不掩盖子树问题
+    <html lang="zh" suppressHydrationWarning>
       <body>
         <style
           // 主题 CSS 变量（ENTP-004）：登录渐变/导航选中态等消费 --rabbit-primary

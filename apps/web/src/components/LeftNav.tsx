@@ -16,21 +16,27 @@ const COLLAPSED_KEY = "rabbit.nav.collapsed";
 const DEFAULT_COLLAPSED = ["tm", "task", "load", "uit", "pset"];
 
 function useCollapsedGroups(): [Set<string>, (id: string) => void] {
-  const [collapsed, setCollapsed] = useState<Set<string>>(() => {
+  // hydration 对齐：首帧恒默认态（SSR/CSR 一致——浏览器记忆在挂载后恢复，防属性 mismatch 报错）；
+  // 持久化仅在恢复完成后生效（否则首帧会把默认态覆盖进 localStorage 清掉用户记忆）
+  const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set(DEFAULT_COLLAPSED));
+  const [restored, setRestored] = useState(false);
+  useEffect(() => {
     try {
       const raw = localStorage.getItem(COLLAPSED_KEY);
-      return new Set(raw ? (JSON.parse(raw) as string[]) : DEFAULT_COLLAPSED);
+      if (raw) setCollapsed(new Set(JSON.parse(raw) as string[]));
     } catch {
-      return new Set(DEFAULT_COLLAPSED);
+      /* 忽略配额/隐私模式 */
     }
-  });
+    setRestored(true);
+  }, []);
   useEffect(() => {
+    if (!restored) return;
     try {
       localStorage.setItem(COLLAPSED_KEY, JSON.stringify([...collapsed]));
     } catch {
       /* 忽略配额/隐私模式 */
     }
-  }, [collapsed]);
+  }, [collapsed, restored]);
   const toggle = (id: string) =>
     setCollapsed((prev) => {
       const next = new Set(prev);
