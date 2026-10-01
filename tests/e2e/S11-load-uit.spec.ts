@@ -219,6 +219,10 @@ test("UIT-002-T7 建元素 3 个→建用例（mock /uit/demo 4 步）→执行�
   await page.goto("/ui-test");
   await page.getByTestId("uit-create-btn").click();
   await expect(page.getByTestId("uit-case-form")).toBeVisible();
+  // S13 UIT-003 起新建默认脚本模式——存量步骤链路先显式切「步骤模式」（Segmented+确认弹窗）
+  await page.getByTestId("uit3-mode-segmented").getByText("步骤模式", { exact: true }).click();
+  await page.getByRole("button", { name: "确认切换" }).click();
+  await expect(page.getByTestId("uit-step-editor")).toBeVisible({ timeout: 8000 });
   const caseName = `e2e-演示提交-${Date.now()}`;
   await page.getByRole("textbox", { name: "用例名称" }).fill(caseName);
   // 步骤 1：goto
