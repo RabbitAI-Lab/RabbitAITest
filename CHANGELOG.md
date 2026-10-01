@@ -2,6 +2,17 @@
 
 本项目的所有显著变更记录于此。格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本遵循语义化版本。
 
+## [Unreleased] — Sprint 13 代码仓库
+
+### 新增（SCM-001 项目代码仓库，超出 MeterSphere 基线的自有增强）
+
+- **项目代码仓库绑定**：每项目可绑定多个代码仓库（上限 10、一个默认仓库），三种途径——① 平台 OAuth 授权选择（GitHub / Gitee（码云）/ GitLab（含自建实例）：组织成员授权后浏览/搜索可见仓库直接选中，授权账号组织内共享、GitLab 令牌 2h 自动旋转）② URL 直填（https 与 `git@host:o/r.git`、`ssh://` 三形态自动解析，官方域自动识别平台，自建/其他仅保存）③ 凭据四态（无凭据/OAuth/Token/账号密码；账密验证支持 Gitea、Gitee，GitHub/GitLab 给明确指引）
+- **连通性验证与元信息**：验证走平台 REST（ssh 地址不出站），成功回填默认分支/可见性并在卡片展示最近提交；状态机 已连接/凭据失效(401·403)/验证失败/未验证
+- **OAuth 应用双层配置**：系统设置新页「代码平台」（三平台 clientId/clientSecret，密钥 AES-256-GCM 加密、`******`=不修改）+ 组织「服务集成」新「代码平台」区块（覆盖/撤销覆盖，未配置自动继承系统级；组织不可改系统配置）
+- **安全**：全部凭据 AES-256-GCM（HKDF 平台派生）落库永不回显（hasSecret/掩码）；出站双层 SSRF 守卫（解析期 assertSafeOutboundUrl + 连接期 dispatcher）；OAuth state Redis 5min 一次性防 CSRF；新权限点 `PROJECT_REPO:*`（PROJECT_ADMIN 全量/PROJECT_MEMBER 读+建）；写操作全审计
+- **数据模型**：`scm_org_apps`/`scm_accounts`/`scm_repositories` 三表一次建齐（migration 20261001100000）；错误码 40470-40479 段；OpenAPI 329 paths
+- **测试**：Vitest 47（URL 矩阵/App 继承/state 机/CRUD/verify 状态机/SSRF 真实守卫）+ JMeter 30 采样器（四类×四断言，OAuth 契约链）+ Playwright 5 用例（三类断言：URL 直填验证/OAuth 浏览器全流/凭据失效与脱敏/默认互斥删除补位/越域与系统继承三态）；mock 新增 `/mock-scm/{provider}` OAuth 全链
+
 ## [Unreleased] — Sprint 13 UI 测试脚本化
 
 ### 变更（UIT-003 UI 测试脚本模式，2026-10-01）

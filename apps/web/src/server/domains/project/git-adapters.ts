@@ -334,3 +334,207 @@ export async function fetchPath(
     throw new GitAdapterError(err instanceof Error ? err.message : String(err), 500);
   }
 }
+
+// ───────────────────────── SCM-001 项目代码仓库（新增函数，FILE-001 既有函数零改动） ─────────────────────────
+
+export type ScmPlatform = FileRepoPlatform | "custom";
+
+/** SCM 绑定解析结果：custom 平台 apiBase=null（仅保存不验证）。 */
+export interface ScmRepoRef {
+  platform: ScmPlatform;
+  url: string;
+  scheme: string;
+  host: string;
+  owner: string;
+  repo: string;
+  apiBase: string | null;
+}
+
+function scmApiBase(platform: ScmPlatform, scheme: string, host: string): string | null {
+  switch (platform) {
+    case "gitea":
+      return `${scheme}://${host}/api/v1`;
+    case "github":
+      if (host === "github.com" || host === "www.github.com") return "https://api.github.com";
+      return `${scheme}://${host}/api/v3`; // GitHub Enterprise（FILE-001 同款简化：标准路径形态）
+    case "gitlab":
+      return `${scheme}://${host}/api/v4`;
+    case "gitee":
+      if (host === "gitee.com") return "https://gitee.com/api/v5";
+      return `${scheme}://${host}/api/v5`;
+    default:
+      return null; // custom：API 形态未知，仅保存
+  }
+}
+
+/**
+ * 解析 SCM 仓库地址（https / scp 形态 ssh / ssh:// 三形态），归一 owner/repo 与 apiBase。
+ * ssh 地址仅做解析绝不出站（SCM-001 §2）；平台由调用方（UI 自动识别/用户选择）给定。
+ */
+export function parseScmRepoUrl(platform: ScmPlatform, raw: string): ScmRepoRef {
+  const trimmed = raw.trim();
+  let scheme = "https";
+  let host = "";
+  let path = "";
+  const scp = trimmed.match(/^git@([\w.\-]+):(.+)$/);
+  const sshForm = trimmed.match(/^ssh:\/\/git@([\w.\-]+)(?::(\d+))?\/(.+)$/);
+  if (scp) {
+    host = scp[1] ?? "";
+    path = scp[2] ?? "";
+  } else if (sshForm) {
+    host = sshForm[1] ?? "";
+    path = sshForm[3] ?? "";
+  } else {
+    let u: URL;
+    try {
+      u = new URL(trimmed);
+    } catch {
+      throw new DomainError(
+        ErrCode.VALIDATION_FAILED,
+        "仓库地址非法（https://host/owner/repo 或 git@host:owner/repo.git）",
+      );
+    }
+    if (u.protocol !== "https:" && u.protocol !== "http:") {
+      throw new DomainError(
+        ErrCode.VALIDATION_FAILED,
+        "仓库地址仅允许 http(s) 或 git@/ssh:// 形态",
+      );
+    }
+    scheme = u.protocol.replace(":", "");
+    host = u.host;
+    path = u.pathname;
+  }
+  const segs = path
+    .replace(/^\/+|\/+$/g, "")
+    .split("/")
+    .filter(Boolean);
+  if (segs.length > 2 && !sshForm && !scp) {
+    // https 形态允许子路径部署（如 GHE 前缀），取末两段
+    segs.splice(0, segs.length - 2);
+  }
+  const owner = segs[0] ?? "";
+  const repo = (segs[1] ?? "").replace(/\.git$/, "");
+  if (!owner || !repo) {
+    throw new DomainError(ErrCode.VALIDATION_FAILED, "仓库地址需含 owner/repo 路径");
+  }
+  return {
+    platform,
+    url: trimmed,
+    scheme,
+    host,
+    owner,
+    repo,
+    apiBase: scmApiBase(platform, scheme, host),
+  };
+}
+
+/** SCM 验证用凭据：OAuth/Token → token；账密 → username+password。 */
+export interface ScmAuth {
+  token?: string | null;
+  username?: string | null;
+  password?: string | null;
+}
+
+function scmAuthHeaders(platform: ScmPlatform, auth: ScmAuth | null): Record<string, string> {
+  if (!auth) return {};
+  if (auth.token) {
+    if (platform === "gitlab") return { authorization: `Bearer ${auth.token}` };
+    return { authorization: `Basic ${Buffer.from(`token:${auth.token}`).toString("base64")}` };
+  }
+  if (auth.username && auth.password) {
+    // gitea/gitee API Basic 账密（github/gitlab 不支持，服务层按能力矩阵拦截）
+    return {
+      authorization: `Basic ${Buffer.from(`${auth.username}:${auth.password}`).toString("base64")}`,
+    };
+  }
+  return {};
+}
+
+function scmWithGiteeToken(url: string, platform: ScmPlatform, auth: ScmAuth | null): string {
+  if (platform !== "gitee" || !auth?.token) return url;
+  return `${url}${url.includes("?") ? "&" : "?"}access_token=${encodeURIComponent(auth.token)}`;
+}
+
+export interface ScmLatestCommit {
+  sha: string;
+  message: string;
+  committedAt: string | null;
+}
+
+export interface ScmRepoDetail {
+  defaultBranch: string | null;
+  visibility: "public" | "private" | "internal" | null;
+  latestCommit: ScmLatestCommit | null;
+}
+
+/**
+ * 仓库元信息（verify 消费）：repo 详情 + 最近一次提交。
+ * 失败形态沿用 GitAdapterError（401/403=凭据失效，由服务层映射 INVALID_CRED）。
+ */
+export async function getScmRepoDetail(
+  ref: ScmRepoRef,
+  auth: ScmAuth | null,
+  fetchFn: FetchLike,
+): Promise<ScmRepoDetail> {
+  if (!ref.apiBase) throw new GitAdapterError("custom 平台无 API 形态，不支持验证", 422);
+  const headers = { accept: "application/json", ...scmAuthHeaders(ref.platform, auth) };
+  if (ref.platform === "gitlab") {
+    const pid = encodeURIComponent(`${ref.owner}/${ref.repo}`);
+    const repoJson = await fetchJson<Record<string, unknown>>(
+      fetchFn,
+      `${ref.apiBase}/projects/${pid}`,
+      headers,
+    );
+    const commits = await fetchJson<{ id?: string; message?: string; committed_date?: string }[]>(
+      fetchFn,
+      `${ref.apiBase}/projects/${pid}/repository/commits?per_page=1`,
+      headers,
+    );
+    const c = commits[0];
+    return {
+      defaultBranch: typeof repoJson.default_branch === "string" ? repoJson.default_branch : null,
+      visibility:
+        repoJson.visibility === "private" ||
+        repoJson.visibility === "internal" ||
+        repoJson.visibility === "public"
+          ? (repoJson.visibility as "public" | "private" | "internal")
+          : null,
+      latestCommit: c?.id
+        ? {
+            sha: c.id,
+            message: (c.message ?? "").split("\n")[0] ?? "",
+            committedAt: c.committed_date ?? null,
+          }
+        : null,
+    };
+  }
+  // github / gitea / gitee contents 族同形
+  const repoUrl = `${ref.apiBase}/repos/${ref.owner}/${ref.repo}`;
+  const repoJson = await fetchJson<Record<string, unknown>>(
+    fetchFn,
+    scmWithGiteeToken(repoUrl, ref.platform, auth),
+    headers,
+  );
+  const commitUrl =
+    ref.platform === "gitea" ? `${repoUrl}/commits?limit=1` : `${repoUrl}/commits?per_page=1`;
+  const commits = await fetchJson<
+    { sha?: string; commit?: { message?: string; author?: { date?: string } } }[]
+  >(fetchFn, scmWithGiteeToken(commitUrl, ref.platform, auth), headers);
+  const c = commits[0];
+  return {
+    defaultBranch:
+      typeof repoJson.default_branch === "string"
+        ? repoJson.default_branch
+        : typeof repoJson.defaultBranch === "string"
+          ? repoJson.defaultBranch
+          : null,
+    visibility: repoJson.private === true ? "private" : "public",
+    latestCommit: c?.sha
+      ? {
+          sha: c.sha,
+          message: (c.commit?.message ?? "").split("\n")[0] ?? "",
+          committedAt: c.commit?.author?.date ?? null,
+        }
+      : null,
+  };
+}

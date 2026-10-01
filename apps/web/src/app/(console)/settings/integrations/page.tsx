@@ -6,6 +6,7 @@ import {
   Form,
   Input,
   Modal,
+  Popconfirm,
   Select,
   Space,
   Spin,
@@ -17,8 +18,13 @@ import {
 } from "antd";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { integrationApi, type IntegrationView, type SyncHistoryEntry } from "@rabbit/api-client";
-import { PLATFORM_META, PLATFORMS } from "@rabbit/shared";
+import {
+  integrationApi,
+  scmAppApi,
+  type IntegrationView,
+  type SyncHistoryEntry,
+} from "@rabbit/api-client";
+import { PLATFORM_META, PLATFORMS, SCM_PROVIDER_LABEL } from "@rabbit/shared";
 import { PageHeader } from "@/components/PageHeader";
 import { useApp } from "@/hooks/useApp";
 import { usePermissions } from "@/hooks/usePermissions";
@@ -27,7 +33,7 @@ import { useProjectStore } from "@/stores/project";
 
 const fmt = (v: string | null) => (v ? v.replace("T", " ").slice(0, 16) : "—");
 
-/** INTG-001/002：服务集成（组织级三平台配置+测试连接）+ 三方同步（项目关联/手动拉取/同步历史）。 */
+/** INTG-001/002：服务集成（组织级三平台配置+测试连接）+ 三方同步（项目关联/手动拉取/同步历史）+ 代码平台（SCM-001 组织覆盖）。 */
 export default function IntegrationsPage() {
   const { canGlobal, can } = usePermissions();
   const canOrgUpdate = canGlobal("ORG_INTEGRATION:UPDATE");
@@ -42,7 +48,12 @@ export default function IntegrationsPage() {
           {
             key: "org",
             label: "服务集成（组织）",
-            children: <OrgIntegrations canUpdate={canOrgUpdate} />,
+            children: (
+              <div className="space-y-5">
+                <OrgIntegrations canUpdate={canOrgUpdate} />
+                <ScmAppsBlock canUpdate={canOrgUpdate} />
+              </div>
+            ),
           },
           {
             key: "project",
@@ -424,5 +435,208 @@ function ProjectSync({ canUpdate }: { canUpdate: boolean }) {
         单条缺陷推送：缺陷列表行「同步」操作（推送创建/更新，platformKey 回写）
       </p>
     </div>
+  );
+}
+
+// ── SCM-001：代码平台（OAuth 应用）组织覆盖区块 ──
+
+function ScmAppsBlock({ canUpdate }: { canUpdate: boolean }) {
+  const qc = useQueryClient();
+  const { message } = useApp();
+  const info = useProjectInfo();
+  const orgId = info?.org.id;
+  const [editing, setEditing] = useState<"github" | "gitee" | "gitlab" | null>(null);
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["scm-apps", orgId],
+    queryFn: () => scmAppApi.list(orgId!),
+    enabled: Boolean(orgId),
+  });
+  const items = data?.items ?? [];
+
+  const removeOverride = useMutation({
+    mutationFn: (provider: "github" | "gitee" | "gitlab") => scmAppApi.remove(orgId!, provider),
+    onSuccess: () => {
+      message.success("已撤销覆盖（回落继承系统级）");
+      void qc.invalidateQueries({ queryKey: ["scm-apps", orgId] });
+    },
+    onError: (e) => message.error(e instanceof Error ? e.message : "操作失败"),
+  });
+
+  return (
+    <div className="border border-[#E5E6EB] rounded-lg p-4 bg-white" data-testid="scm-apps-block">
+      <div className="flex items-center gap-2 mb-3">
+        <span className="font-medium">代码平台（OAuth 应用）</span>
+        <span className="text-xs text-[#8F959E]">
+          覆盖后使用组织自己的 OAuth 应用；撤销覆盖回落继承系统级
+        </span>
+      </div>
+      {isLoading ? (
+        <Spin />
+      ) : (
+        <Table
+          size="small"
+          rowKey="provider"
+          pagination={false}
+          dataSource={items}
+          columns={[
+            {
+              title: "平台",
+              dataIndex: "provider",
+              render: (v: string) => SCM_PROVIDER_LABEL[v as "github"] ?? v,
+            },
+            {
+              title: "配置来源",
+              dataIndex: "source",
+              render: (v: "org" | "system" | "none") =>
+                v === "org" ? (
+                  <Tag color="purple">组织自定义</Tag>
+                ) : v === "system" ? (
+                  <Tag color="blue">继承系统级</Tag>
+                ) : (
+                  <Tag>未配置</Tag>
+                ),
+            },
+            {
+              title: "Client ID",
+              dataIndex: "clientId",
+              render: (v: string) => <span className="text-xs">{v || "—"}</span>,
+            },
+            {
+              title: "实例",
+              dataIndex: "baseUrl",
+              render: (v: string | null) => <span className="text-xs">{v || "—"}</span>,
+            },
+            {
+              title: "操作",
+              render: (_, r: (typeof items)[number]) =>
+                canUpdate ? (
+                  <Space>
+                    {r.source === "org" ? (
+                      <>
+                        <Button
+                          size="small"
+                          onClick={() => setEditing(r.provider)}
+                          data-testid={`btn-scm-app-edit-${r.provider}`}
+                        >
+                          编辑
+                        </Button>
+                        <Popconfirm
+                          title="撤销组织覆盖？"
+                          description="撤销后本组织授权走系统级应用"
+                          onConfirm={() => removeOverride.mutate(r.provider)}
+                        >
+                          <Button size="small" data-testid={`btn-scm-app-revoke-${r.provider}`}>
+                            撤销覆盖
+                          </Button>
+                        </Popconfirm>
+                      </>
+                    ) : (
+                      <Button
+                        size="small"
+                        onClick={() => setEditing(r.provider)}
+                        data-testid={`btn-scm-app-config-${r.provider}`}
+                      >
+                        配置覆盖
+                      </Button>
+                    )}
+                  </Space>
+                ) : null,
+            },
+          ]}
+        />
+      )}
+      {editing && orgId && (
+        <ScmOrgAppModal
+          orgId={orgId}
+          provider={editing}
+          open
+          onClose={() => setEditing(null)}
+          onSaved={() => {
+            setEditing(null);
+            void qc.invalidateQueries({ queryKey: ["scm-apps", orgId] });
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+function ScmOrgAppModal({
+  orgId,
+  provider,
+  open,
+  onClose,
+  onSaved,
+}: {
+  orgId: string;
+  provider: "github" | "gitee" | "gitlab";
+  open: boolean;
+  onClose: () => void;
+  onSaved: () => void;
+}) {
+  const { message } = useApp();
+  const [clientId, setClientId] = useState("");
+  const [clientSecret, setClientSecret] = useState("");
+  const [baseUrl, setBaseUrl] = useState(provider === "gitlab" ? "https://gitlab.com" : "");
+
+  const save = useMutation({
+    mutationFn: () =>
+      scmAppApi.save(orgId, provider, {
+        clientId: clientId.trim(),
+        ...(clientSecret ? { clientSecret } : {}),
+        ...(provider === "gitlab" ? { baseUrl: baseUrl.trim() || "https://gitlab.com" } : {}),
+        enabled: true,
+      }),
+    onSuccess: () => {
+      message.success("组织覆盖已保存");
+      onSaved();
+    },
+    onError: (e) => message.error(e instanceof Error ? e.message : "保存失败"),
+  });
+
+  return (
+    <Modal
+      title={`配置覆盖 · ${SCM_PROVIDER_LABEL[provider]}`}
+      open={open}
+      onCancel={onClose}
+      onOk={() => save.mutate()}
+      confirmLoading={save.isPending}
+      okText="保存"
+      okButtonProps={{ disabled: !clientId.trim() }}
+      data-testid={`modal-scm-app-${provider}`}
+    >
+      <Form layout="vertical">
+        <Form.Item label="Client ID" required>
+          <Input
+            value={clientId}
+            onChange={(e) => setClientId(e.target.value)}
+            data-testid={`input-org-client-id-${provider}`}
+          />
+        </Form.Item>
+        <Form.Item label="Client Secret">
+          <Input.Password
+            value={clientSecret}
+            onChange={(e) => setClientSecret(e.target.value)}
+            placeholder="留空＝不修改"
+            autoComplete="new-password"
+          />
+        </Form.Item>
+        {provider === "gitlab" && (
+          <Form.Item label="实例地址">
+            <Input
+              value={baseUrl}
+              onChange={(e) => setBaseUrl(e.target.value)}
+              placeholder="https://gitlab.com 或自建地址"
+            />
+          </Form.Item>
+        )}
+        <Alert
+          type="info"
+          showIcon
+          message="覆盖后本组织授权走该应用；「撤销覆盖」恢复继承系统级配置。"
+        />
+      </Form>
+    </Modal>
   );
 }
