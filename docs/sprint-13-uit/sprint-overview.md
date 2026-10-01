@@ -10,7 +10,7 @@
 
 | 编号    | 规格 | 状态       | 交付物                                                                                                                                       |
 | ------- | ---- | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| UIT-003 | 同上 | Prototyped | 脚本模式 CRUD/校验干跑/子进程执行/测试树报告/trace；存量步骤模式零回归（开发中，worktree RabbitAITest-s13 / 分支 UIT-003-playwright-script） |
+| UIT-003 | 同上 | **Implemented**（PR #38） | shared 契约 v6（ui_validate/ui-trace/脚本命令）+ db 迁移 + engine script-runner（官方 playwright test 子进程）+ web 双模式编辑器（CodeMirror 6）/粘贴导入/校验干跑/测试树+代码帧+trace 报告 + jmx 18 采样 + e2e 3 例；存量步骤模式零回归 |
 
 ## Backlog（非本 Sprint）
 
