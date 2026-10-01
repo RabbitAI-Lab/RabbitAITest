@@ -70,10 +70,16 @@ tar+upload ~40s）才能开始；而分片自建与 build 并行发生在 t=0~14
 
 结构性收益 = 解除串行链（e2e 从 t=0 起跑，不再等 quality+build 的 ~5m）；`.next/cache` 增益 ~30s/作业，远小于共享 runner 方差（同 run 内同 build 步骤 90s vs 162s，执行步骤 339s vs 476s——**单样本 CI 时长对比不可靠，结构变化以关键路径推导为准**）。
 
-### 6.1 慢机 flake 登记（attempt 2）
+### 6.1 慢机 flake 登记（attempt 2 + main 合并后）
 
-e2e① `MAINFLOW-s4 计划完整链路` 与 `SYS-010-04 权限二态` 各重试 2 次均超时（locator.click /
-waitForResponse 10s 窗口被拖满 + engine callback 404 留痕）；同 SHA attempt 1 同分片全绿、
-同缓存 attempt 2 分片②③全绿、attempt 3 单独重跑通过——判定为慢机 flake 非本变更引入。
-后续杠杆（不在本规格）：该两条用例的等待窗口按「CI 慢机」口径加宽（先例：SYS-010 nav
-helpers 轮询式展开）；e2e 分片再均衡（4 分片）待更多样本。
+**实例 1（attempt 2，分支 run）**：e2e① `MAINFLOW-s4 计划完整链路` 与 `SYS-010-04 权限二态`
+各重试 2 次均超时（locator.click / waitForResponse 10s 窗口被拖满 + engine callback 404
+留痕）；同 SHA attempt 1 同分片全绿、同缓存 attempt 2 分片②③全绿、attempt 3 单独重跑通过
+——判定为慢机 flake 非本变更引入。后续杠杆（不在本规格）：该两条用例的等待窗口按
+「CI 慢机」口径加宽（先例：SYS-010 nav helpers 轮询式展开）。
+
+**实例 2（main 36829380186，合并后首轮）**：e2e① `ENTP-004-01 界面设置` 三连红——
+clearCookies 切登出视角竞态的**浏览器原生 401 形状**（`Failed to load resource: ... 401`）
+漏出白名单（既有条目只盖应用侧 `[http 401]` 日志形状，commit bbd56b1 先例的另一半）；
+`MAINFLOW-s3`/`SYS-005-01` 单次失败重试通过（flaky-passed）。**修复**：ENTP-s9 白名单补
+原生形状条目（分支 INFRA-011-flake-401-whitelist）。

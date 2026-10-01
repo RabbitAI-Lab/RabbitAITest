@@ -681,6 +681,14 @@ test("ENTP-004-01 界面设置：改色+品牌 → 保存并应用 → 登录页
       textPattern: "\\[http 401\\] GET http://localhost:3100/api/v1/(personal|projects)/",
       reason: "clearCookies 切登出视角期间在途查询 401",
     },
+    {
+      // 同一竞态的另一半形状：在途 fetch/xhr 401 时 Chrome 原生 console.error（无资源
+      // URL，[http 401] 留痕可交叉定位）——上方条目只盖应用侧日志形状，此形状曾漏出，
+      // main run 36829380186 慢机三连红实证（INFRA-011 §6.1）
+      pageUrlPattern: "^\\[console\\.error\\]",
+      textPattern: "Failed to load resource: the server responded with a status of 401",
+      reason: "clearCookies 切登出视角期间在途请求的浏览器原生 401 资源日志",
+    },
   ]);
 });
 
