@@ -7,6 +7,8 @@ import { removeLicense, loginSeedAdmin, MOCK_URL } from "./s9-helpers";
  * T11 存量步骤模式零回归（mode 分发不破坏 UIT-002 链路）。
  * 三类断言：UI（导入弹层/列表模式列/报告树/trace 卡/截图）+ Console（无 error/pageerror）+
  * 接口（validate-script 202+载荷、run 202、报告数据含测试行与 trace）。
+ * CI 教训（2026-10-01 首轮）：引擎契约升版须同步 web pool.service EXPECTED_ENGINE_VERSION，
+ * 否则节点全标 UNMATCHED；本文件首轮 CI 三分片全绿（24s 复用栈）。
  */
 
 const TASK_URL_RE = /\/tasks\/[0-9a-f-]{36}/;
