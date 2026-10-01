@@ -30,6 +30,9 @@ test("MAINFLOW-s4 计划完整链路", async ({
   expectNoConsoleErrors,
   expectApi,
 }) => {
+  // 重负载链路显式放宽用例级超时（PR#41 main 实证：慢共享 runner 上报告聚合两阶段 >60s，
+  // 默认 60s 用例超时先于断言超时杀测试且重试同样中招；断言超时 120s 与之匹配）
+  test.setTimeout(180_000);
   const { projectId } = authedPage;
   const uniq = `${Date.now() % 1e7}`;
   const planName = `主链路计划-${uniq}`;
@@ -97,7 +100,7 @@ test("MAINFLOW-s4 计划完整链路", async ({
   const reportTab = page.getByTestId("plan-report-tab");
   await expect(reportTab).toBeVisible({ timeout: 20_000 });
   await reportTab.click({ timeout: 20_000, force: true });
-  await expect(page.getByTestId("plan-report-v2")).toBeVisible({ timeout: 60_000 }); // 引擎回写聚合 + react-query 首查两阶段（CI 高压实证 >40s）
+  await expect(page.getByTestId("plan-report-v2")).toBeVisible({ timeout: 120_000 }); // 引擎回写聚合 + react-query 首查两阶段（CI 高压实证 >40s；慢 runner >60s——PR#41 假红实证）
   await expect(page.getByTestId("plan-report-v2")).toContainText(`主链路点-${uniq}`, {
     timeout: 15_000,
   });
