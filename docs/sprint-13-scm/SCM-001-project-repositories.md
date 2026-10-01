@@ -6,7 +6,7 @@
 | 所属迭代     | Sprint 13 — 代码仓库                                                                                                                                                          |
 | 优先级       | P1                                                                                                                                                                            |
 | 所属模块     | project 域（scm 子域：OAuth 应用配置/授权账号/仓库绑定）+ system 域（params 扩展）                                                                                            |
-| 文档状态     | Implemented（2026-10-01 交付：三表+OAuth 双层配置+项目设置 tab+三件套测试全绿——Vitest 47 / JMeter 30 采样器 / Playwright 5；走查随验收） |
+| 文档状态     | Implemented（2026-10-01 PR #39 合入 main：c6a6062，CI run 36836913725 十一作业全绿——Vitest 47 / JMeter 30 采样器 / Playwright 5；走查随验收→Verified） |
 | 最后更新日期 | 2026-10-01                                                                                                                                                                    |
 | 上游依赖     | INTG-001（组织级服务集成与凭据加密先例）、FILE-001（git-adapters 四平台 REST 适配器与 SSRF/加密先例）、SYS-005（SystemParam 分组存储）、ENTP-002（浏览器 OAuth 授权码流先例） |
 | 下游消费     | Backlog：webhook 推送触发、代码克隆/文件浏览、AI 代码分析联动、GHE/Gitea OAuth                                                                                                |
