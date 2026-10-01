@@ -3,6 +3,10 @@ import { DRIVERS, DRIVER_META } from "../plugins/driver-kit";
 import {
   uiStepSchema as uiStepSchemaForExec,
   uiCaseItemCommandSchema as uiCaseItemCommandSchemaForExec,
+  uiValidateCommandSchema as uiValidateCommandSchemaForExec,
+  uiCaseModeSchema,
+  uiParamSchema,
+  UIT_SCRIPT_LIMITS,
 } from "../uit/schemas";
 
 /**
@@ -488,15 +492,19 @@ export const execCommandSchema = z.discriminatedUnion("type", [
     items: z.array(planItemCommandSchema).min(1).max(200),
   }),
   z.object({
-    /** v5（S11 UIT-002）：UI 单用例任务——步骤指令序列（元素引用已预解析内联），engine playwright-core 驱动。 */
+    /** v5（S11 UIT-002）：UI 单用例任务——步骤指令序列（元素引用已预解析内联），engine playwright-core 驱动。
+     * v6（S13 UIT-003）：+mode/script/params——script 模式走官方 playwright test 子进程（script-runner）。 */
     taskId: z.string().uuid(),
     projectId: z.string().uuid(),
     type: z.literal("ui_case"),
     itemId: z.string().uuid(),
     caseId: z.string().uuid(),
     name: z.string().min(1).max(512),
-    steps: z.array(uiStepSchemaForExec).min(1).max(50),
-    timeoutMs: z.number().int().min(5000).max(60000),
+    mode: uiCaseModeSchema.default("steps"),
+    steps: z.array(uiStepSchemaForExec).max(50).default([]),
+    script: z.string().max(UIT_SCRIPT_LIMITS.scriptMaxChars).optional(),
+    params: z.array(uiParamSchema).max(UIT_SCRIPT_LIMITS.paramsMax).default([]),
+    timeoutMs: z.number().int().min(5000).max(300000),
   }),
   z.object({
     /** v5（S11 UIT-002）：UI 批量任务——item 级串行/并行（池并发），与 api_case 同构。 */
@@ -506,6 +514,7 @@ export const execCommandSchema = z.discriminatedUnion("type", [
     stopOnFail: z.boolean().default(false),
     items: z.array(uiCaseItemCommandSchemaForExec).min(1).max(20),
   }),
+  uiValidateCommandSchemaForExec,
 ]);
 export type ExecCommand = z.infer<typeof execCommandSchema>;
 
@@ -617,6 +626,14 @@ export const uiScreenshotFrame = z.object({
   fileId: z.string().uuid(),
   name: z.string().max(256).default(""),
 });
+/** v6（S13 UIT-003）：UI 脚本执行 trace 帧官方 runner trace.zip 落 internal/files，帧携带 fileId；报告页下载/回放指引）。 */
+export const uiTraceFrame = z.object({
+  ...frameBase,
+  type: z.literal("ui-trace"),
+  itemId: z.string().uuid().optional(),
+  fileId: z.string().uuid(),
+  name: z.string().max(256).default(""),
+});
 export const logFrame = z.object({
   ...frameBase,
   type: z.literal("log"),
@@ -671,6 +688,7 @@ export const eventFrameSchema = z.discriminatedUnion("type", [
   stepSkipFrame,
   stepOpFrame,
   uiScreenshotFrame,
+  uiTraceFrame,
   logFrame,
   taskFinalFrame,
 ]);
@@ -729,8 +747,9 @@ export type TaskStatus = z.infer<typeof taskStatusSchema>;
 
 /** 引擎契约版本（心跳协商：不一致节点 web 标「版本不匹配」不下发新类型任务展示）
  * v4（S4 PLAN-003）：+plan 命令（计划引擎执行）、step-start 帧 +stepName——全 additive。
- * v5（S11 UIT-002）：+ui_case/ui_batch 命令分支 + ui-screenshot 帧——全 additive。 */
-export const EXEC_CONTRACT_VERSION = 5;
+ * v5（S11 UIT-002）：+ui_case/ui_batch 命令分支 + ui-screenshot 帧——全 additive。
+ * v6（S13 UIT-003）：+ui_validate 命令、ui_case/ui_batch +mode/script/params（脚本模式）、+ui-trace 帧——全 additive。 */
+export const EXEC_CONTRACT_VERSION = 6;
 
 // ── K8S 型资源池（S-future EXEC-004 §4）──
 

@@ -35,6 +35,37 @@ export const UIT_STEP_LIMITS = {
   batchMax: 20,
 } as const;
 
+// ───────────────────────── 脚本模式（S13 UIT-003：Playwright 直录直执行） ─────────────────────────
+
+export const UIT_SCRIPT_LIMITS = {
+  scriptMaxChars: 100 * 1024,
+  paramsMax: 20,
+  paramValueMax: 2048,
+  /** 脚本模式单 test 超时（→ playwright config.timeout） */
+  timeoutMsMin: 5000,
+  timeoutMsMax: 300000,
+  /** 脚本模式任务总超时（防 hang 硬顶——engine kill 进程树终态 FAILED） */
+  taskTotalTimeoutMs: 600000,
+} as const;
+
+/** 参数键=env 标识符风格（注入子进程 RABBIT_PARAM_{KEY 大写}）。 */
+export const uiParamKeySchema = z
+  .string()
+  .regex(/^[A-Za-z_][A-Za-z0-9_]{0,63}$/, "参数键须为字母/下划线开头的标识符（≤64）");
+export const uiParamSchema = z.object({
+  key: uiParamKeySchema,
+  value: z.string().max(UIT_SCRIPT_LIMITS.paramValueMax).default(""),
+});
+export type UiParam = z.infer<typeof uiParamSchema>;
+
+export const uiCaseModeSchema = z.enum(["steps", "script"]);
+export type UiCaseMode = z.infer<typeof uiCaseModeSchema>;
+
+/** 参数 env 名：RABBIT_PARAM_{KEY 大写}（脚本内 process.env 读取）。 */
+export function uiParamEnvKey(key: string): string {
+  return `RABBIT_PARAM_${key.toUpperCase()}`;
+}
+
 /** 元素引用：elementId（存储态）→ 执行时内联 locator（命令态 element 字段）。 */
 const elementRefSchema = z.object({
   elementId: z.string().uuid().optional(),
@@ -107,7 +138,7 @@ export const uiStepsSchema = z
   .refine(
     (steps) =>
       steps.every((s) => {
-        if (!((UI_ELEMENT_OPS as readonly string[]).includes(s.op))) return true;
+        if (!(UI_ELEMENT_OPS as readonly string[]).includes(s.op)) return true;
         const ref = s as z.infer<typeof elementRefSchema> & { op: string };
         return Boolean(ref.elementId) || Boolean(ref.locator);
       }),
@@ -116,39 +147,115 @@ export const uiStepsSchema = z
 
 // ───────────────────────── UI 用例 ─────────────────────────
 
-export const uiCaseCreateSchema = z.object({
+/** 交互/断言指令元素引用完备性（存储态校验，供 steps 模式复用）。 */
+function elementRefsOk(steps: UiStep[]): boolean {
+  return steps.every((s) => {
+    if (!(UI_ELEMENT_OPS as readonly string[]).includes(s.op)) return true;
+    const ref = s as { elementId?: string; locator?: unknown };
+    return Boolean(ref.elementId) || Boolean(ref.locator);
+  });
+}
+
+/**
+ * 用例创建（v6/S13：mode 二态）。steps 模式=指令序列（元素引用规则+超时上限沿用 UIT-002）；
+ * script 模式=标准 Playwright Test 脚本（非空、≤100KB；steps 恒存 []）。
+ */
+const uiCaseCreateObject = z.object({
   name: z.string().min(1).max(128),
-  steps: uiStepsSchema,
+  mode: uiCaseModeSchema.default("steps"),
+  steps: z.array(uiStepSchema).max(UIT_STEP_LIMITS.stepsMax).default([]),
+  script: z.string().max(UIT_SCRIPT_LIMITS.scriptMaxChars).optional(),
+  params: z.array(uiParamSchema).max(UIT_SCRIPT_LIMITS.paramsMax).default([]),
   timeoutMs: z
     .number()
     .int()
-    .min(UIT_STEP_LIMITS.timeoutMsMin)
-    .max(UIT_STEP_LIMITS.timeoutMsMax)
+    .min(UIT_SCRIPT_LIMITS.timeoutMsMin)
+    .max(UIT_SCRIPT_LIMITS.timeoutMsMax)
     .default(15000),
 });
+export const uiCaseCreateSchema = uiCaseCreateObject.superRefine((c, ctx) => {
+  if (c.mode === "steps") {
+    if (c.steps.length < 1) {
+      ctx.addIssue({ code: "custom", path: ["steps"], message: "步骤模式必须至少 1 个步骤" });
+      return;
+    }
+    if (!elementRefsOk(c.steps)) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["steps"],
+        message: "交互/断言指令必须引用元素库元素（elementId）或提供内联定位器（locator）",
+      });
+    }
+    if (c.timeoutMs > UIT_STEP_LIMITS.timeoutMsMax) {
+      ctx.addIssue({ code: "custom", path: ["timeoutMs"], message: "步骤模式超时上限 60000ms" });
+    }
+  } else if (!c.script || c.script.trim().length === 0) {
+    ctx.addIssue({ code: "custom", path: ["script"], message: "脚本模式必须提供脚本内容" });
+  }
+});
 export type UiCaseCreate = z.input<typeof uiCaseCreateSchema>;
+/** 解析后输出型（defaults 已应用：steps/params/mode 恒在——web 服务层入参口径）。 */
+export type UiCaseParsed = z.output<typeof uiCaseCreateSchema>;
 
-export const uiCaseUpdateSchema = uiCaseCreateSchema.partial();
+/** 更新=字段级 partial（跨字段条件由 service 合并现值后经 create schema 复核）。 */
+export const uiCaseUpdateSchema = uiCaseCreateObject.partial();
 export type UiCaseUpdate = z.input<typeof uiCaseUpdateSchema>;
 
-// ───────────────────────── 引擎命令（type=ui_case / ui_batch） ─────────────────────────
+// ───────────────────────── 引擎命令（type=ui_case / ui_batch / ui_validate） ─────────────────────────
 
-/** 单用例任务条目（web 预解析元素引用后内联；itemId=ExecItem.id）。 */
-export const uiCaseItemCommandSchema = z.object({
-  itemId: z.string().uuid(),
-  caseId: z.string().uuid(),
-  name: z.string().min(1).max(512),
-  steps: uiStepsSchema,
-  timeoutMs: z.number().int().min(UIT_STEP_LIMITS.timeoutMsMin).max(UIT_STEP_LIMITS.timeoutMsMax),
-});
+/** 单用例任务条目（web 预解析元素引用后内联；itemId=ExecItem.id；v6：script 模式分支）。 */
+export const uiCaseItemCommandSchema = z
+  .object({
+    itemId: z.string().uuid(),
+    caseId: z.string().uuid(),
+    name: z.string().min(1).max(512),
+    mode: uiCaseModeSchema.default("steps"),
+    steps: z.array(uiStepSchema).max(UIT_STEP_LIMITS.stepsMax).default([]),
+    script: z.string().max(UIT_SCRIPT_LIMITS.scriptMaxChars).optional(),
+    params: z.array(uiParamSchema).max(UIT_SCRIPT_LIMITS.paramsMax).default([]),
+    timeoutMs: z
+      .number()
+      .int()
+      .min(UIT_SCRIPT_LIMITS.timeoutMsMin)
+      .max(UIT_SCRIPT_LIMITS.timeoutMsMax),
+  })
+  .superRefine((c, ctx) => {
+    if (c.mode === "steps" && c.steps.length < 1) {
+      ctx.addIssue({ code: "custom", path: ["steps"], message: "步骤模式必须至少 1 个步骤" });
+    }
+    if (c.mode === "script" && !c.script) {
+      ctx.addIssue({ code: "custom", path: ["script"], message: "脚本模式必须提供脚本内容" });
+    }
+  });
 export type UiCaseItemCommand = z.infer<typeof uiCaseItemCommandSchema>;
+
+/** 脚本校验干跑命令（type=ui_validate：playwright test --list，不起浏览器，秒级）。 */
+export const uiValidateCommandSchema = z.object({
+  taskId: z.string().uuid(),
+  projectId: z.string().uuid(),
+  type: z.literal("ui_validate"),
+  itemId: z.string().uuid(),
+  name: z.string().min(1).max(512),
+  script: z.string().min(1).max(UIT_SCRIPT_LIMITS.scriptMaxChars),
+});
+export type UiValidateCommand = z.infer<typeof uiValidateCommandSchema>;
 
 // ───────────────────────── 报告视图 ─────────────────────────
 
-/** 步骤结果（报告逐步行；screenshotFileId=该步截图文件，失败自动截图亦入列）。 */
+/** 步骤/测试结果行（报告逐步视图；script 模式每 test 一行 op=script；screenshotFileId=失败自动截图）。 */
 export const uiStepResultSchema = z.object({
   seq: z.number().int().min(1),
-  op: z.enum(["goto", "click", "fill", "select", "assert-text", "assert-visible", "wait", "screenshot"]),
+  op: z.enum([
+    "goto",
+    "click",
+    "fill",
+    "select",
+    "assert-text",
+    "assert-visible",
+    "wait",
+    "screenshot",
+    "script",
+  ]),
   name: z.string().max(512).default(""),
   status: z.enum(["SUCCESS", "FAILED", "SKIPPED"]),
   durationMs: z.number().int().min(0),

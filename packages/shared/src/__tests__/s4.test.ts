@@ -10,7 +10,7 @@ import {
   pointUpsertSchema,
   resolvePointChain,
 } from "../plan/schemas2";
-import { execCommandSchema, EXEC_CONTRACT_VERSION } from "../execution/schemas";
+import { execCommandSchema, eventFrameSchema, EXEC_CONTRACT_VERSION } from "../execution/schemas";
 
 const CFG = (o: Record<string, unknown>) => o as never;
 
@@ -175,8 +175,8 @@ describe("S4 契约 schema 校验", () => {
     ).toBe(false);
   });
 
-  it("执行契约 v4→v5：plan 命令解析（additive；旧分支不受影响；v5=S11 ui_case/ui_batch+ui-screenshot 帧）", () => {
-    expect(EXEC_CONTRACT_VERSION).toBe(5);
+  it("执行契约 v4→v6：plan 命令解析（additive；旧分支不受影响；v5=S11 ui_case/ui_batch+ui-screenshot 帧；v6=S13 ui_validate+script 模式+ui-trace 帧）", () => {
+    expect(EXEC_CONTRACT_VERSION).toBe(6);
     const UUID = "00000000-0000-4000-8000-000000000001";
     const cmd = execCommandSchema.safeParse({
       taskId: UUID,
@@ -232,6 +232,60 @@ describe("S4 契约 schema 校验", () => {
             },
           },
         ],
+      }).success,
+    ).toBe(true);
+    // v6（S13 UIT-003）：ui_case script 模式分支 + ui_validate 命令 + ui-trace 帧
+    const scriptCmd = execCommandSchema.safeParse({
+      taskId: UUID,
+      projectId: UUID,
+      type: "ui_case",
+      itemId: UUID,
+      caseId: UUID,
+      name: "脚本用例",
+      mode: "script",
+      steps: [],
+      script: "import { test } from '@playwright/test';\n",
+      params: [{ key: "BASEURL", value: "http://127.0.0.1:1" }],
+      timeoutMs: 30000,
+    });
+    expect(scriptCmd.success).toBe(true);
+    if (scriptCmd.success && scriptCmd.data.type === "ui_case") {
+      expect(scriptCmd.data.mode).toBe("script");
+      expect(scriptCmd.data.steps).toEqual([]);
+    }
+    // v5 ui_case steps 模式缺省兼容（mode/steps 缺省）
+    const stepsCmd = execCommandSchema.safeParse({
+      taskId: UUID,
+      projectId: UUID,
+      type: "ui_case",
+      itemId: UUID,
+      caseId: UUID,
+      name: "步骤用例",
+      steps: [{ op: "goto", url: "http://127.0.0.1:1/x" }],
+      timeoutMs: 15000,
+    });
+    expect(stepsCmd.success && stepsCmd.data.type === "ui_case" && stepsCmd.data.mode).toBe(
+      "steps",
+    );
+    expect(
+      execCommandSchema.safeParse({
+        taskId: UUID,
+        projectId: UUID,
+        type: "ui_validate",
+        itemId: UUID,
+        name: "校验",
+        script: "test('x', async () => {});",
+      }).success,
+    ).toBe(true);
+    expect(
+      eventFrameSchema.safeParse({
+        taskId: UUID,
+        seq: 1,
+        ts: Date.now(),
+        type: "ui-trace",
+        itemId: UUID,
+        fileId: UUID,
+        name: "trace.zip",
       }).success,
     ).toBe(true);
   });

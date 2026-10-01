@@ -239,6 +239,9 @@ jobs:
           path: apps/web/.next/cache
           key: nextjs-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('apps/web/src/**/*.ts', 'apps/web/src/**/*.tsx', 'apps/web/next.config.ts') }}
           restore-keys: nextjs-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-
+      # S13 UIT-003：引擎 UI 执行（chromium）依赖 playwright 浏览器——本作业此前缺失（S11 起
+      # UIT-002 jmx T2-5 弱断言未查任务 status，缺浏览器恒 FAILED 却从未暴露——历史假绿，随强断言暴露）
+      - run: pnpm exec playwright install --with-deps chromium
       # S11 SYS-009：web build 静态预渲染阶段 systemParam.findUnique 需 DATABASE_URL
       # （main 上既有缺陷——schema 未变时 generate 不触发；本迭代 oauth 两表触发暴露）
       - run: pnpm --filter web build
