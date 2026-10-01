@@ -727,9 +727,11 @@ export async function handleCallback(taskId: string, cb: ExecCallback) {
             ? `场景执行 · ${existingItems.length} 个场景`
             : task.type === "plan"
               ? `计划执行 · ${existingItems.length} 条用例`
-              : stepResult
-                ? `${stepResult.requestSnapshot.method} ${shortUrl(stepResult.requestSnapshot.url)}`
-                : `任务 ${taskId.slice(0, 8)}`;
+              : task.type === "ui_validate"
+                ? `脚本校验 · ${(task.payload as { name?: string } | null)?.name ?? taskId.slice(0, 8)}`
+                : stepResult
+                  ? `${stepResult.requestSnapshot.method} ${shortUrl(stepResult.requestSnapshot.url)}`
+                  : `任务 ${taskId.slice(0, 8)}`;
       const existingReport = await tx.report.findFirst({ where: { taskId }, select: { id: true } });
       const report =
         existingReport ??

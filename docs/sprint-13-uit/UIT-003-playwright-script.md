@@ -1,20 +1,20 @@
 # UIT-003 UI 测试脚本模式（Playwright 直录直执行）
 
-| 元信息项     | 内容                                                                                                                                            |
-| ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| 文档编号     | UIT-003                                                                                                                                          |
-| 所属迭代     | Sprint 13 — UI 测试脚本化（AI 时代工作流）                                                                                                       |
-| 优先级       | P1（用户直提：AI 时代表单式步骤编排不满足要求，须直录 Playwright 脚本 + runner 直执行）                                                            |
-| 所属模块     | UIT UI 测试 / EXEC 执行（引擎 ui script runner）                                                                                                  |
-| 文档状态     | **Prototyped**（2026-10-01 规格评审通过 + 高保真原型人工确认，编码开始）                                                                           |
-| 最后更新日期 | 2026-10-01                                                                                                                                       |
-| 上游依赖     | UIT-002（UI 测试模块：任务面/事件流/截图上传/报告页先例）、EXEC-002（池/队列/停止链）、FILE-001（internal/files 存储）                              |
-| 下游消费     | AI 生成 UI 脚本（对接 AI-004 对话式生成，P2）、内嵌 trace viewer（P2）、录制器（不做，红线同 UIT-002）                                              |
-| 上游依据     | 用户诉求（2026-10-01）：「UI 测试，ai 时代这样是不满足要求的，需要支持直接录入 playwright 脚本，并且 runner 需要能够直接执行 playwright 脚本」        |
-| 对标基线     | MeterSphere功能清单 §12.10（v1/v2 UI 测试=Selenium 指令序列，无脚本直录）；AI 时代工作流：AI 助手直接产出标准 Playwright Test 脚本                   |
-| 关联架构文档 | engine-execution-architecture.md、tech-stack.md（engine 增 @playwright/test、web 增 CodeMirror 6 依赖登记）、rules/engine.md §6（沙箱例外修订）      |
+| 元信息项     | 内容                                                                                                                                                           |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 文档编号     | UIT-003                                                                                                                                                        |
+| 所属迭代     | Sprint 13 — UI 测试脚本化（AI 时代工作流）                                                                                                                     |
+| 优先级       | P1（用户直提：AI 时代表单式步骤编排不满足要求，须直录 Playwright 脚本 + runner 直执行）                                                                        |
+| 所属模块     | UIT UI 测试 / EXEC 执行（引擎 ui script runner）                                                                                                               |
+| 文档状态     | **Prototyped**（2026-10-01 规格评审通过 + 高保真原型人工确认，编码开始）                                                                                       |
+| 最后更新日期 | 2026-10-01                                                                                                                                                     |
+| 上游依赖     | UIT-002（UI 测试模块：任务面/事件流/截图上传/报告页先例）、EXEC-002（池/队列/停止链）、FILE-001（internal/files 存储）                                         |
+| 下游消费     | AI 生成 UI 脚本（对接 AI-004 对话式生成，P2）、内嵌 trace viewer（P2）、录制器（不做，红线同 UIT-002）                                                         |
+| 上游依据     | 用户诉求（2026-10-01）：「UI 测试，ai 时代这样是不满足要求的，需要支持直接录入 playwright 脚本，并且 runner 需要能够直接执行 playwright 脚本」                 |
+| 对标基线     | MeterSphere功能清单 §12.10（v1/v2 UI 测试=Selenium 指令序列，无脚本直录）；AI 时代工作流：AI 助手直接产出标准 Playwright Test 脚本                             |
+| 关联架构文档 | engine-execution-architecture.md、tech-stack.md（engine 增 @playwright/test、web 增 CodeMirror 6 依赖登记）、rules/engine.md §6（沙箱例外修订）                |
 | 高保真确认   | **已确认**（确认人：xujialiang；确认日期：2026-10-01；原型链接：docs/design/UIT-003-playwright-script/index.html；确认口径：「执行吧」——三项架构决策一并认可） |
-| 工作量估算   | 后端+引擎 2.5 人日 + 前端 2.5 人日 + 测试 1.5 人日（合计 ≈ 6.5 人日）                                                                              |
+| 工作量估算   | 后端+引擎 2.5 人日 + 前端 2.5 人日 + 测试 1.5 人日（合计 ≈ 6.5 人日）                                                                                          |
 
 ## 1. 概述
 
@@ -29,20 +29,20 @@ AI 时代测试脚本的生产方式已变：人 + AI 助手直接产出**标准
 
 ### 1.2 范围边界（能力行 → §5 用例映射）
 
-| 能力                                                                        | P1 ✅ | 后续                                             |
-| --------------------------------------------------------------------------- | ----- | ------------------------------------------------ |
-| 脚本用例 CRUD（mode=script；script≤100KB；软删）                            | ✅    | —                                                |
-| 代码编辑器（CodeMirror 6：TS 高亮/行号/搜索；模板下拉四套）                  | ✅    | API 自动补全/格式化（P2）                        |
-| **校验脚本**（引擎干跑 `playwright test --list`：用例清单/编译错误定位）     | ✅    | —                                                |
-| 参数注入（用例级 KV → 子进程 env `RABBIT_PARAM_*`，脚本 `process.env` 读取）| ✅    | 项目级环境参数联动（对接 PROJ-003，P2）          |
-| 执行（引擎子进程官方 runner；headless chromium；test 级超时+任务总超时）    | ✅    | 视口/设备矩阵、多浏览器（firefox/webkit，P2）    |
-| 停止（复用 exec 停止链：kill 进程树 SIGTERM→SIGKILL）                        | ✅    | —                                                |
-| 报告（测试树/错误代码帧/失败截图/trace.zip 下载+`show-trace` 指引）          | ✅    | 内嵌 trace viewer 网页回放（P2，登记）           |
-| 批量执行（ui_batch 复用 items 面，每 item 一子进程）                         | ✅    | —                                                |
-| 粘贴导入（列表页直达：大文本框粘贴→建用例）                                  | ✅    | 文件上传 .spec.ts / zip 批量导入（P2）           |
-| 步骤模式共存（存量用例不动；编辑器模式 Segmented 切换，双列数据独立保留）    | ✅    | 步骤↔脚本互转（不做自动互转，登记）              |
-| AI 生成脚本（AI-004 对话产出直填编辑器）                                     | ❌    | P2 登记（对接 S7 AI 域）                          |
-| 录制器 / Selenium 导入 / 移动端                                              | ❌    | 不做（红线继承 UIT-002 §1.2）                    |
+| 能力                                                                         | P1 ✅ | 后续                                          |
+| ---------------------------------------------------------------------------- | ----- | --------------------------------------------- |
+| 脚本用例 CRUD（mode=script；script≤100KB；软删）                             | ✅    | —                                             |
+| 代码编辑器（CodeMirror 6：TS 高亮/行号/搜索；模板下拉四套）                  | ✅    | API 自动补全/格式化（P2）                     |
+| **校验脚本**（引擎干跑 `playwright test --list`：用例清单/编译错误定位）     | ✅    | —                                             |
+| 参数注入（用例级 KV → 子进程 env `RABBIT_PARAM_*`，脚本 `process.env` 读取） | ✅    | 项目级环境参数联动（对接 PROJ-003，P2）       |
+| 执行（引擎子进程官方 runner；headless chromium；test 级超时+任务总超时）     | ✅    | 视口/设备矩阵、多浏览器（firefox/webkit，P2） |
+| 停止（复用 exec 停止链：kill 进程树 SIGTERM→SIGKILL）                        | ✅    | —                                             |
+| 报告（测试树/错误代码帧/失败截图/trace.zip 下载+`show-trace` 指引）          | ✅    | 内嵌 trace viewer 网页回放（P2，登记）        |
+| 批量执行（ui_batch 复用 items 面，每 item 一子进程）                         | ✅    | —                                             |
+| 粘贴导入（列表页直达：大文本框粘贴→建用例）                                  | ✅    | 文件上传 .spec.ts / zip 批量导入（P2）        |
+| 步骤模式共存（存量用例不动；编辑器模式 Segmented 切换，双列数据独立保留）    | ✅    | 步骤↔脚本互转（不做自动互转，登记）           |
+| AI 生成脚本（AI-004 对话产出直填编辑器）                                     | ❌    | P2 登记（对接 S7 AI 域）                      |
+| 录制器 / Selenium 导入 / 移动端                                              | ❌    | 不做（红线继承 UIT-002 §1.2）                 |
 
 ### 1.3 前置依赖
 
@@ -50,13 +50,13 @@ UIT-002 全链（UiElement/UiTestCase 表、ExecTask type=ui_case/ui_batch、事
 
 ### 1.4 对标基线核对
 
-| 基线行为（MeterSphere v1/v2 UI 测试）          | 本项目实现                                                | 口径       |
-| ---------------------------------------------- | --------------------------------------------------------- | ---------- |
-| UI 用例=步骤指令序列（表单编排）                | 步骤模式保留 + **脚本模式为主形态**（差异化升级）          | 超越基线   |
-| 元素库（定位仓库）                              | 保留（步骤模式引用；脚本模式只读参考复制定位器）           | 完全复刻   |
-| 浏览器驱动执行                                  | 官方 `playwright test` 子进程（Selenium→Playwright 冻结） | 简化实现   |
-| 报告截图/失败现场                               | 失败截图 + 错误代码帧 + trace.zip（基线无 trace）          | 超越基线   |
-| 脚本直录（基线无：v1/v2 仅指令序列）            | 标准 Playwright Test 脚本直录直执行（AI 产出零改造）      | 差异化创新 |
+| 基线行为（MeterSphere v1/v2 UI 测试） | 本项目实现                                                | 口径       |
+| ------------------------------------- | --------------------------------------------------------- | ---------- |
+| UI 用例=步骤指令序列（表单编排）      | 步骤模式保留 + **脚本模式为主形态**（差异化升级）         | 超越基线   |
+| 元素库（定位仓库）                    | 保留（步骤模式引用；脚本模式只读参考复制定位器）          | 完全复刻   |
+| 浏览器驱动执行                        | 官方 `playwright test` 子进程（Selenium→Playwright 冻结） | 简化实现   |
+| 报告截图/失败现场                     | 失败截图 + 错误代码帧 + trace.zip（基线无 trace）         | 超越基线   |
+| 脚本直录（基线无：v1/v2 仅指令序列）  | 标准 Playwright Test 脚本直录直执行（AI 产出零改造）      | 差异化创新 |
 
 ## 2. 业务逻辑
 
@@ -92,19 +92,19 @@ UIT-002 全链（UiElement/UiTestCase 表、ExecTask type=ui_case/ui_batch、事
 
 ## 5. 测试用例
 
-| 编号         | 类型   | 前置                        | 步骤                                                       | 预期                                                                    |
-| ------------ | ------ | --------------------------- | ---------------------------------------------------------- | ----------------------------------------------------------------------- |
-| UIT-003-T1   | Vitest | schema 矩阵                | mode×script/steps/params 合法非法组合                      | 条件校验精确（steps 模式 min(1) 保留；script 空/超限/坏 params 422 语义） |
-| UIT-003-T2   | Vitest | config 生成纯函数           | timeoutMs/trace/screenshot 入参 → 生成 config 文本          | 幂等、字段齐（workers=1/retries=0/reporter=json）                        |
-| UIT-003-T3   | Vitest | report.json 样本（成/败/超时/跳过四 fixture） | 解析→UiStepResult+事件帧                                  | 状态映射齐；error.location→代码帧截取正确；附件分类正确                   |
-| UIT-003-T4   | Vitest | 引擎级：mock /uit/demo      | 真子进程跑 3 test 脚本（2 成 1 败）                        | 报告树 2✓1✗；失败行含代码帧与截图 fileId；trace 帧 fileId 非空            |
-| UIT-003-T5   | Vitest | 引擎级：超时/停止           | 死循环脚本（test 超时）/ 执行中 stop                       | 超时=FAILED（超时分类）；stop=STOPPED；进程树被回收（无孤儿进程）          |
-| UIT-003-T6   | jmx    | admin                      | 脚本用例 CRUD 四类（正常/401·403/422/分页）                | 四项断言全过                                                              |
-| UIT-003-T7   | jmx    | admin                      | validate-script → 轮询终态（合法脚本/语法错误两轮）        | 202+taskId；合法=testCount≥1+t titles；非法=error 含 file:line            |
-| UIT-003-T8   | jmx    | admin                      | run → 轮询任务终态                                         | 终态 SUCCESS/FAILED；data 含测试树行数与 trace fileId                     |
-| UIT-003-T9   | e2e    | admin                      | 粘贴导入→编辑器回显→校验（绿）→执行→报告树+trace 下载       | UI：树 3 行全绿+trace 卡可见；Console：无 error；接口：run 202+帧含 ui-trace |
-| UIT-003-T10  | e2e    | admin                      | 失败脚本执行                                               | 报告失败行展开错误代码帧+失败截图可见                                       |
-| UIT-003-T11  | e2e    | admin                      | 存量 steps 用例回归（UIT-002 T7 链路）                      | 步骤模式执行/报告与 S11 口径一致（零回归）                                 |
+| 编号        | 类型   | 前置                                          | 步骤                                                  | 预期                                                                         |
+| ----------- | ------ | --------------------------------------------- | ----------------------------------------------------- | ---------------------------------------------------------------------------- |
+| UIT-003-T1  | Vitest | schema 矩阵                                   | mode×script/steps/params 合法非法组合                 | 条件校验精确（steps 模式 min(1) 保留；script 空/超限/坏 params 422 语义）    |
+| UIT-003-T2  | Vitest | config 生成纯函数                             | timeoutMs/trace/screenshot 入参 → 生成 config 文本    | 幂等、字段齐（workers=1/retries=0/reporter=json）                            |
+| UIT-003-T3  | Vitest | report.json 样本（成/败/超时/跳过四 fixture） | 解析→UiStepResult+事件帧                              | 状态映射齐；error.location→代码帧截取正确；附件分类正确                      |
+| UIT-003-T4  | Vitest | 引擎级：mock /uit/demo                        | 真子进程跑 3 test 脚本（2 成 1 败）                   | 报告树 2✓1✗；失败行含代码帧与截图 fileId；trace 帧 fileId 非空               |
+| UIT-003-T5  | Vitest | 引擎级：超时/停止                             | 死循环脚本（test 超时）/ 执行中 stop                  | 超时=FAILED（超时分类）；stop=STOPPED；进程树被回收（无孤儿进程）            |
+| UIT-003-T6  | jmx    | admin                                         | 脚本用例 CRUD 四类（正常/401·403/422/分页）           | 四项断言全过                                                                 |
+| UIT-003-T7  | jmx    | admin                                         | validate-script → 轮询终态（合法脚本/语法错误两轮）   | 202+taskId；合法=testCount≥1+t titles；非法=error 含 file:line               |
+| UIT-003-T8  | jmx    | admin                                         | run → 轮询任务终态                                    | 终态 SUCCESS/FAILED；data 含测试树行数与 trace fileId                        |
+| UIT-003-T9  | e2e    | admin                                         | 粘贴导入→编辑器回显→校验（绿）→执行→报告树+trace 下载 | UI：树 3 行全绿+trace 卡可见；Console：无 error；接口：run 202+帧含 ui-trace |
+| UIT-003-T10 | e2e    | admin                                         | 失败脚本执行                                          | 报告失败行展开错误代码帧+失败截图可见                                        |
+| UIT-003-T11 | e2e    | admin                                         | 存量 steps 用例回归（UIT-002 T7 链路）                | 步骤模式执行/报告与 S11 口径一致（零回归）                                   |
 
 四类场景映射：正常路径=T6/T8·T9；权限=T6 的 403 组；校验（422）=T6 的 422 组+T1；分页=T6 的 list 组。
 

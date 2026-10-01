@@ -211,6 +211,7 @@ export const ErrCode = {
   UI_CASE_NOT_FOUND: 90081,
   UI_ELEMENT_IN_USE: 90082, // 元素被用例引用仍可删（悬空语义）——保留位（规格登记不实现 409）
   UI_BATCH_TOO_MANY: 90083, // 批量执行超 20 条（422）
+  UI_SCRIPT_INVALID: 90084, // S13 UIT-003：脚本用例载荷非法（mode 条件/脚本超限等，422）
 } as const;
 
 export const ErrMsg: Record<number, string> = {

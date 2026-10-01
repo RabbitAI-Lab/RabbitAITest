@@ -40,6 +40,7 @@
 1. JavaScript（quickjs-emscripten）：无 IO、CPU/内存/时长限额；暴露上下文对象白名单（vars/assert/log/prev/props），禁止透传宿主对象。
 2. Python（可选，P2）：子进程 + 资源限额 + 超时强杀；stdio 经事件流透传。
 3. 沙箱超时/超限属于「脚本错误」分类码，不得让引擎进程崩溃——任何脚本异常必须收敛为步骤失败事件。
+4. **例外（S13 UIT-003）：UI 测试脚本模式=受信全功能脚本，不走 quickjs**——Playwright Test 需真实 Node 运行时与浏览器绑定，quickjs 不可行（MeterSphere 脚本模块/Groovy 同信任口径）。补偿控制：`PROJECT_UIT:CREATE/UPDATE` 权限门禁 + 脚本入库审计（createdBy/updatedAt）+ **独立子进程执行**（execFile("node", [CLI, 固定旗标]) 无 shell、独立 cwd、可强杀、崩溃不伤引擎）+ 任务总超时 600s 硬顶 + 附件读取限定工作区边界。执行产物（截图/trace.zip）经 internal/files 上传，用户内容绝不进命令行（仅经文件传递）。
 
 ## 7. 本地模式与资源池
 

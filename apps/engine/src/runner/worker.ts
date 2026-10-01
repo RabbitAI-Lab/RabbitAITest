@@ -14,9 +14,10 @@ import { startProtocolSync } from "../kernel/samplers/registry.js";
 import { startDriverSync } from "../kernel/drivers/registry.js";
 import { runStep } from "./step.js";
 import { runUiCase } from "../uit/runner.js";
+import { runUiScriptCase, runUiScriptValidate } from "../uit/script-runner.js";
 
 const NODE_ID = `node-${process.pid}`;
-const VERSION = "0.5.0"; // 契约 v5（+ui_case/ui_batch 命令、ui-screenshot 帧）
+const VERSION = "0.6.0"; // 契约 v6（S13：+ui_validate 命令、ui_case/ui_batch script 模式、ui-trace 帧）
 /** 池当前并发上限（心跳下发动态更新；parallel 模式 p-limit 取此值） */
 let poolConcurrency = 4;
 
@@ -253,10 +254,10 @@ export async function runTask(
     );
   }
 
-  // v5（S11 UIT-002）：ui_case 单用例（playwright-core 驱动；事件帧 step-op + ui-screenshot）
-  if (cmd.type === "ui_case") {
+  // v6（S13 UIT-003）：ui_validate 脚本校验干跑（--list 不启浏览器；结果=step-op 标题行/错误行）
+  if (cmd.type === "ui_validate") {
     await writer.emit({ type: "item-start", itemId: cmd.itemId, name: cmd.name });
-    const r = await runUiCase(
+    const v = await runUiScriptValidate(
       redis,
       writer,
       {
@@ -264,11 +265,59 @@ export async function runTask(
         projectId: cmd.projectId,
         itemId: cmd.itemId,
         name: cmd.name,
-        steps: cmd.steps,
-        timeoutMs: cmd.timeoutMs,
+        script: cmd.script,
       },
       () => isStopped(redis, cmd.taskId),
     );
+    const message = v.ok
+      ? `识别 ${v.titles.length} 个测试`
+      : (v.error ?? "校验失败").slice(0, 2000);
+    await writer.emit({
+      type: "item-final",
+      itemId: cmd.itemId,
+      status: v.ok ? "SUCCESS" : "FAILED",
+      message,
+    });
+    return finish(v.ok ? "success" : "failed", v.ok ? undefined : "CONFIG_ERROR", message, {
+      total: 1,
+      passed: v.ok ? 1 : 0,
+      failed: v.ok ? 0 : 1,
+    });
+  }
+
+  // v5（S11 UIT-002）：ui_case 单用例（playwright-core 驱动；事件帧 step-op + ui-screenshot）
+  // v6（S13 UIT-003）：mode=script 走官方 playwright test 子进程（script-runner）
+  if (cmd.type === "ui_case") {
+    await writer.emit({ type: "item-start", itemId: cmd.itemId, name: cmd.name });
+    const r =
+      cmd.mode === "script"
+        ? await runUiScriptCase(
+            redis,
+            writer,
+            {
+              taskId: cmd.taskId,
+              projectId: cmd.projectId,
+              itemId: cmd.itemId,
+              name: cmd.name,
+              script: cmd.script ?? "",
+              params: cmd.params,
+              timeoutMs: cmd.timeoutMs,
+            },
+            () => isStopped(redis, cmd.taskId),
+          )
+        : await runUiCase(
+            redis,
+            writer,
+            {
+              taskId: cmd.taskId,
+              projectId: cmd.projectId,
+              itemId: cmd.itemId,
+              name: cmd.name,
+              steps: cmd.steps,
+              timeoutMs: cmd.timeoutMs,
+            },
+            () => isStopped(redis, cmd.taskId),
+          );
     await writer.emit({
       type: "item-final",
       itemId: cmd.itemId,
@@ -284,6 +333,7 @@ export async function runTask(
   }
 
   // v5（S11 UIT-002）：ui_batch 批量（item 串行——chromium 实例开销大，并发留 ENTP 深化；停止检查在 item 边界）
+  // v6（S13 UIT-003）：item 级 mode 分支（steps=指令映射 / script=官方 runner 子进程）
   if (cmd.type === "ui_batch") {
     let uiPassed = 0;
     let uiFailed = 0;
@@ -300,19 +350,35 @@ export async function runTask(
         continue;
       }
       await writer.emit({ type: "item-start", itemId: item.itemId, name: item.name });
-      const r = await runUiCase(
-        redis,
-        writer,
-        {
-          taskId: cmd.taskId,
-          projectId: cmd.projectId,
-          itemId: item.itemId,
-          name: item.name,
-          steps: item.steps,
-          timeoutMs: item.timeoutMs,
-        },
-        () => isStopped(redis, cmd.taskId),
-      );
+      const r =
+        item.mode === "script"
+          ? await runUiScriptCase(
+              redis,
+              writer,
+              {
+                taskId: cmd.taskId,
+                projectId: cmd.projectId,
+                itemId: item.itemId,
+                name: item.name,
+                script: item.script ?? "",
+                params: item.params,
+                timeoutMs: item.timeoutMs,
+              },
+              () => isStopped(redis, cmd.taskId),
+            )
+          : await runUiCase(
+              redis,
+              writer,
+              {
+                taskId: cmd.taskId,
+                projectId: cmd.projectId,
+                itemId: item.itemId,
+                name: item.name,
+                steps: item.steps,
+                timeoutMs: item.timeoutMs,
+              },
+              () => isStopped(redis, cmd.taskId),
+            );
       if (r.status === "SUCCESS") uiPassed += 1;
       else if (r.status === "FAILED") uiFailed += 1;
       else uiStopped = true;
@@ -327,7 +393,11 @@ export async function runTask(
     return finish(
       uiStopped && uiFailed === 0 ? "stopped" : uiFailed > 0 ? "failed" : "success",
       uiFailed > 0 ? "ASSERT_FAILED" : undefined,
-      uiFailed > 0 ? `${uiFailed}/${cmd.items.length} 条 UI 用例失败` : uiStopped ? "任务被停止" : "",
+      uiFailed > 0
+        ? `${uiFailed}/${cmd.items.length} 条 UI 用例失败`
+        : uiStopped
+          ? "任务被停止"
+          : "",
       { total: cmd.items.length, passed: uiPassed, failed: uiFailed },
     );
   }

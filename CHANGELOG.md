@@ -2,6 +2,18 @@
 
 本项目的所有显著变更记录于此。格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本遵循语义化版本。
 
+## [Unreleased] — Sprint 13 UI 测试脚本化
+
+### 变更（UIT-003 UI 测试脚本模式，2026-10-01）
+
+- **脚本直录**：UI 用例新增 `mode=script`（新建默认）——标准 Playwright Test 脚本直接粘贴/编写（AI 产出零改造）；编辑器以 CodeMirror 6 为主体（TS 高亮/行号/补全），右侧参数面板（KV→子进程环境变量 `RABBIT_PARAM_*`）+ 元素库只读参考 + 四套模板；列表页「粘贴导入脚本」一键收编（校验并创建）
+- **直执行**：引擎以**官方 `playwright test` 子进程**执行脚本（语义零漂移：fixtures/describe/web-first expect/trace 全支持）——生成临时工作区（spec+config+json reporter+trace=on+失败截图），report.json → 测试树行（每 test 一行）+ 错误代码帧 + 截图/trace.zip 上传（internal/files）；停止=kill 进程树；test 级超时（5s-300s）+ 任务总超时 600s 硬顶；执行契约 v6（+ui_validate 命令、ui_case/ui_batch +mode/script/params、ui-trace 帧，全 additive）
+- **校验干跑**：`POST /ui-cases/validate-script` → `ui_validate` 任务（`playwright test --list` 不启浏览器，秒级）→ 测试标题清单或编译错误（file:line 定位）；校验不阻断保存（可存草稿）
+- **报告升级**：脚本模式=测试树（状态/耗时/通过数）+ 失败行展开错误代码帧 + 失败现场截图 + trace 卡（下载 + `npx playwright show-trace` 回放指引；内嵌 viewer=P2 登记）
+- **存量兼容**：UIT-002 步骤模式全量保留（编辑器/执行/报告零变化，零迁移）；编辑器模式 Segmented 切换（两侧数据独立保留，不做自动互转）
+- **安全口径（rules/engine.md §6 例外登记）**：UI 脚本=受信全功能载荷，不走 quickjs（Playwright 需真实 Node）；补偿控制=PROJECT_UIT:CREATE/UPDATE 权限+入库审计+独立子进程可强杀+附件读取限定工作区边界
+- 依赖登记：engine +@playwright/test（与根 devDep 同源）；web +CodeMirror 6 三件套（tech-stack.md）
+
 ## [Unreleased] — Sprint 12 全局导航改版
 
 ### 变更（SYS-010 全局导航改版，2026-10-01，PR #35）
@@ -19,7 +31,6 @@
 - **项目模块开关缺省改开**：`moduleFlagsSchema` load/uit 缺省 false→true（存量项目显式关闭不受影响，管理员仍可按项目关闭）；LeftNav 兜底同步
 - **授权管理页开源口径**：社区版状态卡显示「开源全功能·所有能力开放」；企业能力矩阵无 License 显示「已开放（开源版）」（有 License 仍显示「已授权」信息）
 - **License 体系全量保留**：签发/验签/状态机/授权管理页/门控函数（assertEntpEnabled/entpFeatureActive/effectiveUserLimit 短路放行）/占位页组件（死代码保留，恢复态复活）——单测双侧锁定两种口径
-
 
 ### 新增（全量交付：三层测试 + CI 全绿）
 

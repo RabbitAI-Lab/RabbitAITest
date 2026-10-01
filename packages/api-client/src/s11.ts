@@ -5,7 +5,9 @@ import type {
   LoadThresholds,
   LoadMetricFrame,
   LoadSummary,
+  UiCaseMode,
   UiLocatorType,
+  UiParam,
   UiStep,
 } from "@rabbit/shared";
 
@@ -92,14 +94,21 @@ export const loadApi = {
     get<{ list: LoadTestRow[]; total: number }>(
       `/api/v1/projects/${projectId}/load-tests?page=${query?.page ?? 1}&pageSize=${query?.pageSize ?? 20}${query?.name ? `&name=${encodeURIComponent(query.name)}` : ""}`,
     ),
-  create: (projectId: string, body: { name: string; target: LoadTarget; pressure: LoadPressure; thresholds?: LoadThresholds }) =>
-    post<LoadTestRow>(`/api/v1/projects/${projectId}/load-tests`, body),
+  create: (
+    projectId: string,
+    body: { name: string; target: LoadTarget; pressure: LoadPressure; thresholds?: LoadThresholds },
+  ) => post<LoadTestRow>(`/api/v1/projects/${projectId}/load-tests`, body),
   detail: (projectId: string, id: string) =>
     get<LoadTestRow>(`/api/v1/projects/${projectId}/load-tests/${id}`),
   update: (
     projectId: string,
     id: string,
-    body: Partial<{ name: string; target: LoadTarget; pressure: LoadPressure; thresholds: LoadThresholds }>,
+    body: Partial<{
+      name: string;
+      target: LoadTarget;
+      pressure: LoadPressure;
+      thresholds: LoadThresholds;
+    }>,
   ) => put<LoadTestRow>(`/api/v1/projects/${projectId}/load-tests/${id}`, body),
   remove: (projectId: string, id: string) =>
     del<{ id: string }>(`/api/v1/projects/${projectId}/load-tests/${id}`),
@@ -121,17 +130,19 @@ export const loadApi = {
   streamUrl: (taskId: string) => `/api/v1/stream/load/${taskId}`,
 };
 
-// ── UIT-002 UI 测试 ──
+// ── UIT-002 UI 测试（S13 UIT-003：+脚本模式/校验干跑/trace） ──
 
-/** UI 任务详情（帧→步骤视图聚合）。 */
+/** UI 任务详情（帧→步骤/测试视图聚合；S13：+mode/traces——脚本模式行 op=script、message 含错误代码帧）。 */
 export interface UiTaskDetail {
   taskId: string;
+  type?: string;
   status: string;
   durationMs: number | null;
   createdAt: string;
   items: {
     itemId: string;
     name: string;
+    mode: UiCaseMode;
     status: string;
     steps: {
       seq: number;
@@ -145,6 +156,7 @@ export interface UiTaskDetail {
       screenshotFileId?: string;
     }[];
     frames: { type: string; fileId: string; name: string; stepSeq: number }[];
+    traces: { fileId: string; name: string }[];
   }[];
 }
 
@@ -169,12 +181,18 @@ export interface UiCaseRow {
   id: string;
   projectId: string;
   name: string;
+  /** S13 UIT-003：steps=指令序列（UIT-002）/script=Playwright 脚本直录 */
+  mode: UiCaseMode;
   steps: UiStep[];
+  script: string;
+  params: UiParam[];
   timeoutMs: number;
   createdBy: string;
   createdAt: string;
   updatedAt: string;
   stepCount?: number;
+  /** 脚本模式列表摘要（首个 describe/test 标题） */
+  summary?: string;
   lastTask?: { taskId: string; status: string } | null;
 }
 
@@ -183,26 +201,58 @@ export const uitApi = {
     get<{ list: UiElementRow[]; total: number }>(
       `/api/v1/projects/${projectId}/ui-elements?page=${query?.page ?? 1}&pageSize=${query?.pageSize ?? 50}${query?.name ? `&name=${encodeURIComponent(query.name)}` : ""}`,
     ),
-  createElement: (projectId: string, body: { name: string; locatorType: UiLocatorType; locator: string; description?: string }) =>
-    post<UiElementRow>(`/api/v1/projects/${projectId}/ui-elements`, body),
-  updateElement: (projectId: string, id: string, body: Partial<{ name: string; locatorType: UiLocatorType; locator: string; description: string }>) =>
-    put<UiElementRow>(`/api/v1/projects/${projectId}/ui-elements/${id}`, body),
+  createElement: (
+    projectId: string,
+    body: { name: string; locatorType: UiLocatorType; locator: string; description?: string },
+  ) => post<UiElementRow>(`/api/v1/projects/${projectId}/ui-elements`, body),
+  updateElement: (
+    projectId: string,
+    id: string,
+    body: Partial<{
+      name: string;
+      locatorType: UiLocatorType;
+      locator: string;
+      description: string;
+    }>,
+  ) => put<UiElementRow>(`/api/v1/projects/${projectId}/ui-elements/${id}`, body),
   removeElement: (projectId: string, id: string) =>
     del<{ id: string }>(`/api/v1/projects/${projectId}/ui-elements/${id}`),
   cases: (projectId: string, query?: { page?: number; pageSize?: number; name?: string }) =>
     get<{ list: UiCaseRow[]; total: number }>(
       `/api/v1/projects/${projectId}/ui-cases?page=${query?.page ?? 1}&pageSize=${query?.pageSize ?? 20}${query?.name ? `&name=${encodeURIComponent(query.name)}` : ""}`,
     ),
-  createCase: (projectId: string, body: { name: string; steps: UiStep[]; timeoutMs?: number }) =>
-    post<UiCaseRow>(`/api/v1/projects/${projectId}/ui-cases`, body),
+  createCase: (
+    projectId: string,
+    body: {
+      name: string;
+      mode?: UiCaseMode;
+      steps?: UiStep[];
+      script?: string;
+      params?: UiParam[];
+      timeoutMs?: number;
+    },
+  ) => post<UiCaseRow>(`/api/v1/projects/${projectId}/ui-cases`, body),
   caseDetail: (projectId: string, id: string) =>
     get<UiCaseRow>(`/api/v1/projects/${projectId}/ui-cases/${id}`),
-  updateCase: (projectId: string, id: string, body: Partial<{ name: string; steps: UiStep[]; timeoutMs: number }>) =>
-    put<UiCaseRow>(`/api/v1/projects/${projectId}/ui-cases/${id}`, body),
+  updateCase: (
+    projectId: string,
+    id: string,
+    body: Partial<{
+      name: string;
+      mode: UiCaseMode;
+      steps: UiStep[];
+      script: string;
+      params: UiParam[];
+      timeoutMs: number;
+    }>,
+  ) => put<UiCaseRow>(`/api/v1/projects/${projectId}/ui-cases/${id}`, body),
   removeCase: (projectId: string, id: string) =>
     del<{ id: string }>(`/api/v1/projects/${projectId}/ui-cases/${id}`),
   runCase: (projectId: string, id: string) =>
     post<{ taskId: string }>(`/api/v1/projects/${projectId}/ui-cases/${id}/run`, {}),
   runBatch: (projectId: string, caseIds: string[]) =>
     post<{ taskId: string }>(`/api/v1/projects/${projectId}/ui-cases/batch-run`, { caseIds }),
+  /** S13 UIT-003：脚本校验干跑（ui_validate 任务；轮询 execTaskDetailApi.uiDetail 取标题清单/错误定位） */
+  validateScript: (projectId: string, body: { name?: string; script: string }) =>
+    post<{ taskId: string }>(`/api/v1/projects/${projectId}/ui-cases/validate-script`, body),
 };

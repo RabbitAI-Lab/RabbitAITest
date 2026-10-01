@@ -25,3 +25,6 @@ dump.rdb
 # mimosa 插件本地扫描状态（会话级运行时数据，不入库）
 .mimosa/
 data/
+
+# S13 UIT-003：引擎 UI 脚本执行临时工作区（spec/config/report/trace，执行后清理）
+apps/engine/.uit-run/
