@@ -11,6 +11,7 @@
 | 编号    | 规格 | 状态         | 交付物                                                                     |
 | ------- | ---- | ------------ | -------------------------------------------------------------------------- |
 | SYS-010 | 同上 | **Verified**（PR #35 已合 main：merge e61f1d2；用户验收 2026-10-01；CI 两轮十作业全绿） | `lib/nav-config.tsx`、`stores/tabs.ts`、`TabBar.tsx`、`LeftNav.tsx` 三域重构、`TopBar.tsx` 域入口、`NavShell.tsx`、layout 接入、Vitest 15 例、e2e SYS-010 7 例 + 6 文件适配 |
+| INFRA-011（收尾后追加） | [INFRA-011-ci-velocity.md](./INFRA-011-ci-velocity.md) | Approved | CI 提速：e2e/api-test 解除 build 串行依赖、e2e×3 分片、`.next/cache` 构建缓存；基线 16m45s |
 
 ## 交付时随批 UI 修复（用户报障，同 PR）
 
