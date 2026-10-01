@@ -612,9 +612,11 @@ export default function CaseListPage() {
             <div className="rabbit-card flex-1 min-w-0 flex flex-col">
               {/* 首行：视图 Tabs + 搜索 + 高级筛选 + 列设置 + 导入导出 */}
               {/* min-h-12（非固定 h-12）：视图 Tab 增多时允许换行增高，避免内容溢出遮挡表格（CASE-002-02 走查暴露） */}
+              {/* 视图 Tab 容器 overflow-y-hidden：tab 的 -mb-px 压线会让容器纵向溢出 1px，
+                  overflow-x-auto 联动 overflow-y:auto 会渲染出多余滚动条 */}
               <div className="flex items-center gap-3 px-3 min-h-12 border-b border-[#F0F1F3] text-[13px] flex-wrap">
                 {!recycled ? (
-                  <div className="flex items-center gap-4 min-w-0 overflow-x-auto">
+                  <div className="flex items-center gap-4 min-w-0 overflow-x-auto overflow-y-hidden">
                     {viewTabs.map((t) => (
                       <span key={t.key} className="flex items-center gap-1 shrink-0">
                         <span

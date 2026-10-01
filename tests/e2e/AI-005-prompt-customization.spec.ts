@@ -1,4 +1,4 @@
-import { test, expect, navFromHome } from "./fixtures";
+import { test, expect, navFromHome, navClick } from "./fixtures";
 
 /**
  * AI-005 提示词自定义（docs/sprint-7-ai/AI-005-prompt-customization.md §5）。
@@ -18,7 +18,7 @@ test("AI-005-01 模板 CRUD 与默认语义（含生成抽屉联动）", async (
 
   // 用户路径：首页 → 项目设置 › AI 提示词（PROJ-002 同款 testid 直点）
   await page.goto("/");
-  await page.getByTestId("nav-settings-ai-prompts").click();
+  await navClick(page, "nav-settings-ai-prompts");
   await expect(page.getByTestId("ai-prompt-table")).toBeVisible();
 
   // 新建模板一（设默认）

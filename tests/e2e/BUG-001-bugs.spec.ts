@@ -1,4 +1,4 @@
-import { test, expect, navFromHome } from "./fixtures";
+import { test, expect, navFromHome, ensureNavVisible } from "./fixtures";
 
 /**
  * BUG-001 本地缺陷管理（规格：docs/sprint-1-mvp-test-mgmt/BUG-001-local-bug-management.md §5 T2/T3）
@@ -296,6 +296,7 @@ test("BUG-001-05 批量删除、标签筛选与导出（P-4）", async ({ authed
 
   // 标签筛选：命中 2 条
   await page.goto("/");
+  await ensureNavVisible(page, "缺陷管理");
   await page.getByTestId("leftnav").getByRole("link", { name: "缺陷管理" }).click();
   await page.getByTestId("input-bug-tags").fill("批量P4");
   await page.keyboard.press("Enter");

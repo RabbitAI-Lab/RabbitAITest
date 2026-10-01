@@ -192,7 +192,7 @@ export default function OrgProjectsPage() {
       <div className="rabbit-card">
         <div className="flex gap-2 p-3 border-b border-[#F0F1F3]">
           <Input
-            className="w-64"
+            style={{ width: 256 }}
             allowClear
             prefix={<Search size={14} className="text-[#A8ABB0]" />}
             placeholder="搜索项目名称"

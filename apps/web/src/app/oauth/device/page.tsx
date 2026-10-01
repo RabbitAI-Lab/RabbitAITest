@@ -67,7 +67,7 @@ export default function OAuthDevicePage() {
 
         {phase === "input" && (
           <div className="space-y-3">
-            <Typography.Text type="secondary" className="text-xs">
+            <Typography.Text type="secondary" className="text-xs block">
               CLI 发起登录后，将终端显示的 8 位代码输入此处
             </Typography.Text>
             <Input

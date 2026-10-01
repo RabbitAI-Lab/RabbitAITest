@@ -1,4 +1,4 @@
-import { test, expect } from "./fixtures";
+import { test, expect, navClick, enterRealm } from "./fixtures";
 import type { APIRequestContext, BrowserContext } from "@playwright/test";
 import { E2E_BASE } from "./env";
 
@@ -33,7 +33,8 @@ test("SYS-005-01 参数保存与测试连接（管理员）", async ({
 
   // 用户路径：首页 → 系统设置 › 参数设置（LeftNav.tsx nav-system-params）
   await page.goto("/");
-  await page.getByTestId("nav-system-params").click();
+  await enterRealm(page, "system");
+  await navClick(page, "nav-system-params");
   // 基础 Tab（默认激活）：表单回显后可见
   await expect(page.getByTestId("input-site-url")).toBeVisible();
 

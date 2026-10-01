@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SYS-010 全局导航改版（三方向对比原型）</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 钉与 apps/web lucide-react ^1.48 同系的 UMD，避免 @latest 图标名漂移 -->
+    <script src="https://unpkg.com/lucide@1.48.0/dist/umd/lucide.min.js"></script>
+    <style>
+      body { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; }
+      ::-webkit-scrollbar { width: 6px; height: 6px; }
+      ::-webkit-scrollbar-thumb { background: #d5d7db; border-radius: 3px; }
+      ::-webkit-scrollbar-track { background: transparent; }
+      .nav-item { transition: background-color .12s, color .12s; }
+      .grp-arrow { transition: transform .15s; }
+      .grp-collapsed .grp-arrow { transform: rotate(-90deg); }
+      .grp-collapsed .grp-items { display: none; }
+      .dark-nav .nav-item:hover { background: rgba(255,255,255,.06); color: #e5e7eb; }
+      .icon-rail .rail-label { display: none; }
+      .icon-rail .nav-item { justify-content: center; padding-left: 0; padding-right: 0; }
+    </style>
+  </head>
+  <body class="bg-[#EEF0F4] text-[#1F2329] text-[13px]">
+    <!-- ══════════ 原型说明条（非产品 UI） ══════════ -->
+    <div class="bg-[#1B1F2A] text-white/90 px-5 py-3 flex items-center gap-4 flex-wrap">
+      <span class="font-semibold">SYS-010 全局导航改版 · 高保真原型</span>
+      <span class="text-white/50 text-xs">解决：菜单平铺无折叠 / 主色滥用 / 观感原始。菜单数据与线上 LeftNav 一致（9 组 40+ 项）</span>
+      <div class="ml-auto flex gap-2">
+        <button data-dir="a" class="dir-btn px-3 py-1.5 rounded-md bg-white/15 text-xs font-medium">A 浅色精修</button>
+        <button data-dir="b" class="dir-btn px-3 py-1.5 rounded-md bg-white/10 hover:bg-white/15 text-xs">B 顶部分域</button>
+        <button data-dir="c" class="dir-btn px-3 py-1.5 rounded-md bg-white/10 hover:bg-white/15 text-xs">C 深色侧栏</button>
+      </div>
+    </div>
+    <div class="px-5 py-2 text-xs text-slate-500 bg-white border-b border-slate-200" id="dir-desc"></div>
+
+    <!-- ══════════ 方向 A：浅色精修 · 可折叠分组 ══════════ -->
+    <section id="dir-a" class="dir-sec">
+      <div class="flex h-[820px] overflow-hidden">
+        <aside id="a-nav" class="w-[208px] bg-white border-r border-[#E5E6EB] shrink-0 flex flex-col transition-all duration-200">
+          <div class="overflow-y-auto flex-1 pb-2" id="a-groups"></div>
+          <!-- 底部：收起侧栏 -->
+          <button onclick="toggleRail('a-nav')" class="flex items-center gap-2.5 mx-2 mb-2 px-3 py-2 rounded-md text-[12px] text-[#646A73] hover:bg-[#F2F3F5] border-t border-[#F0F1F3] pt-2.5">
+            <i data-lucide="panel-left-close" class="w-4 h-4 shrink-0"></i><span class="rail-label">收起侧栏</span>
+          </button>
+        </aside>
+        <main class="flex-1 bg-[#F5F6FA] p-6 min-w-0 demo-main"></main>
+      </div>
+    </section>
+
+    <!-- ══════════ 方向 B：顶部一级导航 + 域内二级侧栏 ══════════ -->
+    <section id="dir-b" class="dir-sec hidden">
+      <div class="flex flex-col h-[820px] overflow-hidden">
+        <header class="h-12 bg-white border-b border-[#E5E6EB] flex items-center px-4 gap-1 shrink-0">
+          <span class="font-semibold mr-4 text-[14px]">RabbitAITest</span>
+          <nav id="b-tabs" class="flex items-center gap-1 h-full"></nav>
+          <div class="ml-auto flex items-center gap-3 text-slate-500">
+            <i data-lucide="help-circle" class="w-4 h-4"></i>
+            <i data-lucide="bell" class="w-4 h-4"></i>
+            <span class="w-6 h-6 rounded-full bg-[#574BFF]/15 text-[#574BFF] text-[11px] grid place-items-center font-medium">徐</span>
+          </div>
+        </header>
+        <div class="flex flex-1 overflow-hidden">
+          <aside class="w-[200px] bg-white border-r border-[#E5E6EB] shrink-0 overflow-y-auto pb-3" id="b-groups"></aside>
+          <main class="flex-1 bg-[#F5F6FA] p-6 min-w-0 demo-main"></main>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════ 方向 C：深色侧栏 · 图标窄条 ══════════ -->
+    <section id="dir-c" class="dir-sec hidden">
+      <div class="flex h-[820px] overflow-hidden">
+        <header class="w-12 bg-[#131722] shrink-0 border-r border-black/40 flex flex-col items-center py-3 gap-4">
+          <span class="w-7 h-7 rounded-lg bg-[#574BFF] grid place-items-center text-white text-xs font-bold">R</span>
+          <div class="mt-2 flex flex-col gap-1.5 text-white/40">
+            <i data-lucide="search" class="w-[18px] h-[18px]"></i>
+            <i data-lucide="bell" class="w-[18px] h-[18px]"></i>
+          </div>
+          <span class="mt-auto w-6 h-6 rounded-full bg-white/15 text-white/80 text-[11px] grid place-items-center">徐</span>
+        </header>
+        <aside id="c-nav" class="w-[232px] bg-[#1B1F2A] shrink-0 flex flex-col dark-nav transition-all duration-200">
+          <div class="overflow-y-auto flex-1 pb-2" id="c-groups"></div>
+          <button onclick="toggleRail('c-nav')" class="flex items-center gap-2.5 mx-2 mb-2 px-3 py-2 rounded-md text-[12px] text-white/40 hover:text-white/80 hover:bg-white/5 border-t border-white/10 pt-2.5">
+            <i data-lucide="panel-left-close" class="w-4 h-4 shrink-0"></i><span class="rail-label">收起侧栏</span>
+          </button>
+        </aside>
+        <main class="flex-1 bg-[#F5F6FA] p-6 min-w-0 demo-main"></main>
+      </div>
+    </section>
+
+    <script>
+      /* ── 菜单数据：与 apps/web/src/components/LeftNav.tsx 线上一致 ── */
+      const NAV = [
+        { id: "work", label: "工作区", items: [
+          { t: "工作台", i: "layout-dashboard", h: "/", act: true },
+        ]},
+        { id: "tm", label: "测试管理", items: [
+          { t: "测试用例", i: "scroll-text", h: "/cases" },
+          { t: "用例评审", i: "clipboard-check", h: "/reviews" },
+          { t: "测试计划", i: "network", h: "/plans" },
+          { t: "缺陷管理", i: "bug", h: "/bugs" },
+        ]},
+        { id: "api", label: "接口测试", items: [
+          { t: "接口定义", i: "network", h: "/apis" },
+          { t: "接口调试", i: "flask-conical", h: "/debug" },
+          { t: "接口场景", i: "workflow", h: "/scenarios" },
+          { t: "接口报告", i: "file-text", h: "/reports" },
+          { t: "文件管理", i: "folder-kanban", h: "/files" },
+        ]},
+        { id: "task", label: "任务中心", items: [
+          { t: "任务中心", i: "clipboard-list", h: "/tasks" },
+        ]},
+        { id: "load", label: "性能测试", items: [
+          { t: "性能测试", i: "gauge", h: "/load" },
+        ]},
+        { id: "uit", label: "UI 测试", items: [
+          { t: "UI 测试", i: "monitor-play", h: "/ui-test" },
+        ]},
+        { id: "org", label: "组织", items: [
+          { t: "项目管理", i: "folder-kanban", h: "/org/projects" },
+          { t: "成员管理", i: "users", h: "/org/members" },
+          { t: "部门管理", i: "network", h: "/org/departments" },
+          { t: "用户组", i: "user-square-2", h: "/org/groups" },
+          { t: "模板管理", i: "clipboard-check", h: "/org/templates" },
+        ]},
+        { id: "pset", label: "项目设置", items: [
+          { t: "基本信息", i: "settings", h: "/settings/info" },
+          { t: "成员管理", i: "users", h: "/settings/members" },
+          { t: "用户组", i: "user-square-2", h: "/settings/groups" },
+          { t: "模板管理", i: "sliders-horizontal", h: "/settings/templates" },
+          { t: "环境管理", i: "flask-conical", h: "/settings/environments" },
+          { t: "公共脚本", i: "file-code-2", h: "/settings/public-scripts" },
+          { t: "消息管理", i: "bell", h: "/settings/messages" },
+          { t: "AI 提示词", i: "sparkles", h: "/settings/ai-prompts" },
+          { t: "服务集成", i: "network", h: "/settings/integrations" },
+          { t: "Swagger 同步", i: "refresh-cw", h: "/settings/swagger-sync" },
+          { t: "个人中心", i: "circle-user-round", h: "/personal" },
+        ]},
+        { id: "sys", label: "系统设置", items: [
+          { t: "用户管理", i: "users", h: "/system/users" },
+          { t: "用户组", i: "user-square-2", h: "/system/groups" },
+          { t: "参数设置", i: "sliders-horizontal", h: "/system/params" },
+          { t: "认证配置", i: "key-round", h: "/system/sso" },
+          { t: "组织管理", i: "building-2", h: "/system/orgs" },
+          { t: "授权管理", i: "shield-check", h: "/system/license" },
+          { t: "资源池", i: "layout-dashboard", h: "/system/pools" },
+          { t: "模型设置", i: "sparkles", h: "/system/ai-models" },
+          { t: "插件管理", i: "puzzle", h: "/system/plugins" },
+          { t: "系统日志", i: "scroll-text", h: "/system/audit-logs" },
+        ]},
+      ];
+
+      const P = "#574BFF";
+
+      /* ── 演示主内容（三个方向共用，示意工作台页） ── */
+      const DEMO = `
+        <div class="flex items-center gap-3 mb-4">
+          <h1 class="text-[18px] font-semibold">工作台</h1>
+          <span class="text-xs text-[#87888D]">演示项目 #1 · 2026-10-01</span>
+        </div>
+        <div class="grid grid-cols-4 gap-4 mb-4">
+          ${[
+            ["接口用例总数", "1,284", "+36 本周", "#574BFF"],
+            ["本周执行", "312", "成功率 94.2%", "#00B42A"],
+            ["待评审", "18", "3 个计划阻塞", "#FF7D00"],
+            ["未关闭缺陷", "27", "P0/P1 共 4", "#F53F3F"],
+          ].map(([t, v, s, c]) => `
+            <div class="bg-white border border-[#ECEEF1] rounded-[10px] p-4">
+              <p class="text-xs text-[#87888D] mb-1.5">${t}</p>
+              <p class="text-[24px] font-semibold leading-none">${v}</p>
+              <p class="text-[11px] mt-1.5" style="color:${c}">${s}</p>
+            </div>`).join("")}
+        </div>
+        <div class="bg-white border border-[#ECEEF1] rounded-[10px]">
+          <p class="px-4 py-3 border-b border-[#F0F1F3] text-[14px] font-semibold">最近执行</p>
+          <table class="w-full text-left">
+            <thead><tr class="text-[12px] text-[#87888D]">
+              <th class="px-4 py-2 font-normal">名称</th><th class="py-2 font-normal">类型</th><th class="py-2 font-normal">结果</th><th class="py-2 font-normal pr-4">时间</th>
+            </tr></thead>
+            <tbody class="text-[13px] text-[#3D4350]">
+              ${[
+                ["冒烟集-订单主链路", "场景", "通过", "#00B42A"],
+                ["用户注册接口回归", "接口", "失败 2", "#F53F3F"],
+                ["Sprint-38 全量回归", "计划", "执行中", "#574BFF"],
+              ].map(([n, ty, r, c]) => `
+                <tr class="border-t border-[#F5F6FA]">
+                  <td class="px-4 py-2.5">${n}</td><td class="py-2.5">${ty}</td>
+                  <td class="py-2.5" style="color:${c}">${r}</td>
+                  <td class="py-2.5 pr-4 text-[#87888D]">10-01 14:0${Math.floor(Math.random() * 9)}</td>
+                </tr>`).join("")}
+            </tbody>
+          </table>
+        </div>`;
+
+      /* 分组头 + 菜单项（浅色） */
+      function groupLight(g, open) {
+        return `
+        <div class="nav-group ${open ? "" : "grp-collapsed"}" data-grp="${g.id}">
+          <button class="w-full flex items-center gap-1.5 px-4 pt-4 pb-1.5 text-[11px] text-[#909399] tracking-wide group" onclick="this.parentElement.classList.toggle('grp-collapsed')">
+            <i data-lucide="chevron-down" class="grp-arrow w-3 h-3 shrink-0"></i><span class="rail-label group-hover:text-[#646A73] font-medium">${g.label}</span>
+            <span class="rail-label text-[10px] text-[#C0C4CC] ml-auto">${g.items.length}</span>
+          </button>
+          <div class="grp-items px-2">
+            ${g.items.map((it) => `
+              <a href="#" onclick="event.preventDefault()" class="nav-item relative flex items-center gap-2.5 px-3 py-[7px] rounded-md ${it.act ? `bg-[${P}]/10 text-[${P}] font-medium` : "text-[#3D4350] hover:bg-[#F2F3F5]"}">
+                ${it.act ? `<span class="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 rounded-r" style="background:${P}"></span>` : ""}
+                <i data-lucide="${it.i}" class="w-4 h-4 shrink-0 ${it.act ? "" : "text-[#87888D]"}"></i>
+                <span class="rail-label truncate">${it.t}</span>
+              </a>`).join("")}
+          </div>
+        </div>`;
+      }
+
+      /* 分组头 + 菜单项（深色） */
+      function groupDark(g, open) {
+        return `
+        <div class="nav-group ${open ? "" : "grp-collapsed"}" data-grp="${g.id}">
+          <button class="w-full flex items-center gap-1.5 px-4 pt-4 pb-1.5 text-[11px] text-white/35 tracking-wide" onclick="this.parentElement.classList.toggle('grp-collapsed')">
+            <i data-lucide="chevron-down" class="grp-arrow w-3 h-3 shrink-0"></i><span class="rail-label font-medium">${g.label}</span>
+          </button>
+          <div class="grp-items px-2">
+            ${g.items.map((it) => `
+              <a href="#" onclick="event.preventDefault()" class="nav-item flex items-center gap-2.5 px-3 py-[7px] rounded-md ${it.act ? `bg-[${P}]/15 text-[#8B84FF] font-medium` : "text-white/55"}">
+                <i data-lucide="${it.i}" class="w-4 h-4 shrink-0"></i>
+                <span class="rail-label truncate">${it.t}</span>
+              </a>`).join("")}
+          </div>
+        </div>`;
+      }
+
+      /* ── 方向 A：默认只展开当前域（工作台）+ 接口测试，其余折叠 ── */
+      const aDefaultOpen = { work: true, api: true };
+      document.getElementById("a-groups").innerHTML = NAV.map((g) => groupLight(g, aDefaultOpen[g.id])).join("");
+
+      /* ── 方向 B：顶部分域 ── */
+      const B_DOMAINS = [
+        { id: "work", label: "工作台", groups: ["work"] },
+        { id: "tm", label: "测试管理", groups: ["tm"] },
+        { id: "api", label: "接口测试", groups: ["api"] },
+        { id: "load", label: "性能测试", groups: ["load"] },
+        { id: "uit", label: "UI 测试", groups: ["uit"] },
+        { id: "task", label: "任务中心", groups: ["task"] },
+        { id: "set", label: "设置", groups: ["org", "pset", "sys"] },
+      ];
+      const bTabs = document.getElementById("b-tabs");
+      const bGroups = document.getElementById("b-groups");
+      function renderB(active) {
+        bTabs.innerHTML = B_DOMAINS.map((d) => `
+          <button data-d="${d.id}" onclick="renderB('${d.id}')" class="relative h-full px-3 text-[13px] ${d.id === active ? "text-[#1F2329] font-medium" : "text-[#646A73] hover:text-[#1F2329]"}">
+            ${d.label}
+            ${d.id === active ? `<span class="absolute left-2 right-2 -bottom-px h-[2px] rounded-t" style="background:${P}"></span>` : ""}
+          </button>`).join("");
+        bGroups.innerHTML = B_DOMAINS.find((d) => d.id === active).groups
+          .map((gid) => {
+            const g = NAV.find((n) => n.id === gid);
+            const open = active === "set" ? gid !== "sys" : true; /* 设置域默认收起「系统设置」演示折叠 */
+            return groupLight(g, open);
+          }).join("");
+        lucide.createIcons();
+      }
+      renderB("api");
+
+      /* ── 方向 C：深色，默认展开 接口测试 + 系统设置 ── */
+      const cDefaultOpen = { api: true, sys: true };
+      document.getElementById("c-groups").innerHTML = NAV.map((g) => groupDark(g, cDefaultOpen[g.id])).join("");
+
+      /* 收起成图标窄条 */
+      function toggleRail(id) {
+        const el = document.getElementById(id);
+        el.classList.toggle("icon-rail");
+        el.style.width = el.classList.contains("icon-rail") ? "56px" : (id === "c-nav" ? "232px" : "208px");
+      }
+
+      /* ── 方向切换 ── */
+      const DESC = {
+        a: "方向 A · 浅色精修：保留现有信息架构，分组可折叠（默认只展开当前域），主色仅出现在激活态，底部可收起成图标窄条。改动最小，e2e 影响面最小。",
+        b: "方向 B · 顶部分域：一级域放顶栏（工作台/测试管理/接口测试/性能/UI/任务/设置），侧栏只显示当前域二级菜单；「设置」域内子分组可折叠。侧栏从 40+ 项降到 ≤11 项。与 MeterSphere v3 官方信息架构一致。",
+        c: "方向 C · 深色侧栏：深色导航 + 浅色内容区对比，支持收起成图标窄条；激活态用亮紫点缀。视觉变化最大，需要新增一批深色 token 与组件状态。",
+      };
+      function showDir(d) {
+        ["a", "b", "c"].forEach((k) => document.getElementById("dir-" + k).classList.toggle("hidden", k !== d));
+        document.getElementById("dir-desc").textContent = DESC[d];
+        document.querySelectorAll(".dir-btn").forEach((b) => {
+          const on = b.dataset.dir === d;
+          b.className = `dir-btn px-3 py-1.5 rounded-md text-xs ${on ? "bg-white/15 font-medium" : "bg-white/10 hover:bg-white/15"}`;
+        });
+      }
+      document.querySelectorAll(".dir-btn").forEach((b) => b.onclick = () => showDir(b.dataset.dir));
+      document.querySelectorAll(".demo-main").forEach((m) => (m.innerHTML = DEMO));
+      showDir("a");
+      lucide.createIcons();
+    </script>
+  </body>
+</html>
