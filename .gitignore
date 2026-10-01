@@ -28,3 +28,6 @@ data/
 
 # S13 UIT-003：引擎 UI 脚本执行临时工作区（spec/config/report/trace，执行后清理）
 apps/engine/.uit-run/
+
+# S14 UIT-004：项目级 runner 安装目录（npm 产物按项目分域，磁盘态不入库）
+apps/engine/.runners/

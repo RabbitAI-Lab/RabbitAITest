@@ -221,6 +221,10 @@ export const ErrCode = {
   UI_ELEMENT_IN_USE: 90082, // 元素被用例引用仍可删（悬空语义）——保留位（规格登记不实现 409）
   UI_BATCH_TOO_MANY: 90083, // 批量执行超 20 条（422）
   UI_SCRIPT_INVALID: 90084, // S13 UIT-003：脚本用例载荷非法（mode 条件/脚本超限等，422）
+  UI_RUNNER_NOT_FOUND: 90085, // S14 UIT-004：runner 不存在或非本项目（404 防枚举）
+  UI_RUNNER_VERSION_INVALID: 90086, // S14 UIT-004：版本非法（须精确 semver，422）
+  UI_RUNNER_INSTALL_FAILED: 90087, // S14 UIT-004：安装失败（异步终态落 status=FAILED+日志尾部；保留段位登记）
+  UI_RUNNER_BUSY: 90088, // S14 UIT-004：安装/检测进行中（422）
 } as const;
 
 export const ErrMsg: Record<number, string> = {

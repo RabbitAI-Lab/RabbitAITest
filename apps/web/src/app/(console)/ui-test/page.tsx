@@ -4,11 +4,18 @@ import { Empty, Input, Modal, Spin, Table, Tag, message } from "antd";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { uitApi, execTaskDetailApi, ApiError, licenseApi, type UiCaseRow } from "@rabbit/api-client";
+import {
+  uitApi,
+  execTaskDetailApi,
+  ApiError,
+  licenseApi,
+  type UiCaseRow,
+} from "@rabbit/api-client";
 import { PageHeader } from "@/components/PageHeader";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useProjectStore } from "@/stores/project";
 import { UitPlaceholder } from "./placeholder";
+import { RunnerPill } from "./RunnerPill";
 
 /** S11 UIT-002：UI 用例列表（三重门控：modules.uit ∧ PROJECT_UIT:READ ∧ License UI_TEST）。
  * S13 UIT-003：+模式列（脚本/步骤）+粘贴导入（AI 产出的标准 Playwright 脚本零改造收编）。 */
@@ -30,7 +37,7 @@ test('示例用例', async ({ page }) => {
   await page.goto(\`\${BASE}/uit/demo\`);
   await page.getByTestId('demo-username').fill('rabbit-e2e');
   await page.getByRole('button', { name: '提交' }).click();
-  await expect(page.locator('.demo-result-text')).toHaveText('提交成功，rabbit-e2e');
+  await expect(page.locator('.demo-result-text')).toContainText('提交成功，rabbit-e2e');
 });
 `;
 
@@ -199,6 +206,8 @@ export default function UiTestPage() {
             >
               新建 UI 用例
             </button>
+            {/* S14 UIT-004：Runner 管理入口胶囊（当前生效 runner 三态 + 管理抽屉） */}
+            <RunnerPill />
           </span>
         }
       />
@@ -243,7 +252,10 @@ export default function UiTestPage() {
                 title: "名称",
                 dataIndex: "name",
                 render: (v: string, r) => (
-                  <a className="text-[#574BFF]" onClick={() => router.push(`/ui-test/cases/${r.id}`)}>
+                  <a
+                    className="text-[#574BFF]"
+                    onClick={() => router.push(`/ui-test/cases/${r.id}`)}
+                  >
                     {v}
                   </a>
                 ),
@@ -280,7 +292,7 @@ export default function UiTestPage() {
                 render: (_, r) => (
                   <span className="text-xs text-slate-500">
                     {r.mode === "script"
-                      ? (r.summary || "脚本用例")
+                      ? r.summary || "脚本用例"
                       : [
                           ...r.steps.slice(0, 4).map((s) => s.op),
                           ...(r.steps.length > 4 ? ["…"] : []),
@@ -372,7 +384,10 @@ export default function UiTestPage() {
             </pre>
           )}
           <div className="flex gap-2 justify-end">
-            <button className="border rounded px-3 py-1.5 text-sm" onClick={() => setPasteOpen(false)}>
+            <button
+              className="border rounded px-3 py-1.5 text-sm"
+              onClick={() => setPasteOpen(false)}
+            >
               取消
             </button>
             <button
@@ -385,7 +400,8 @@ export default function UiTestPage() {
             </button>
           </div>
           <div className="text-xs text-slate-400">
-            「校验并创建」= 干跑收集（识别 N 个测试 / 报编译错误定位）通过后创建并进入列表；失败停留并显示错误。
+            「校验并创建」= 干跑收集（识别 N 个测试 /
+            报编译错误定位）通过后创建并进入列表；失败停留并显示错误。
           </div>
         </div>
       </Modal>

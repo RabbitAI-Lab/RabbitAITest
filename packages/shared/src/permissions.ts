@@ -167,6 +167,7 @@ const PROJECT_UIT = [
   "PROJECT_UIT:UPDATE",
   "PROJECT_UIT:DELETE",
   "PROJECT_UIT:EXECUTE",
+  "PROJECT_UIT:RUNNER_MANAGE", // S14 UIT-004：项目 runner 安装/删除/设默认（检测走 READ）
 ] as const;
 /** 项目代码仓库绑定（S13 SCM-001 随规格入库） */
 const PROJECT_REPO = [

@@ -17,7 +17,7 @@ import { runUiCase } from "../uit/runner.js";
 import { runUiScriptCase, runUiScriptValidate } from "../uit/script-runner.js";
 
 const NODE_ID = `node-${process.pid}`;
-const VERSION = "0.6.0"; // 契约 v6（S13：+ui_validate 命令、ui_case/ui_batch script 模式、ui-trace 帧）
+const VERSION = "0.7.0"; // 契约 v7（S14 UIT-004：ui 命令 +runnerId、+runner-check 帧、runner-jobs 队列）
 /** 池当前并发上限（心跳下发动态更新；parallel 模式 p-limit 取此值） */
 let poolConcurrency = 4;
 
@@ -266,6 +266,7 @@ export async function runTask(
         itemId: cmd.itemId,
         name: cmd.name,
         script: cmd.script,
+        runnerId: cmd.runnerId ?? null,
       },
       () => isStopped(redis, cmd.taskId),
     );
@@ -302,6 +303,7 @@ export async function runTask(
               script: cmd.script ?? "",
               params: cmd.params,
               timeoutMs: cmd.timeoutMs,
+              runnerId: cmd.runnerId ?? null,
             },
             () => isStopped(redis, cmd.taskId),
           )
@@ -363,6 +365,7 @@ export async function runTask(
                 script: item.script ?? "",
                 params: item.params,
                 timeoutMs: item.timeoutMs,
+                runnerId: cmd.runnerId ?? null,
               },
               () => isStopped(redis, cmd.taskId),
             )

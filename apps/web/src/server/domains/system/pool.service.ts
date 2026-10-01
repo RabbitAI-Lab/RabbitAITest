@@ -18,8 +18,8 @@ import type { Prisma } from "@rabbit/db";
 
 const BEAT_INTERVAL_MS = 10_000;
 const OFFLINE_AFTER_BEATS = 3;
-/** 契约 v6 引擎版本（心跳版本协商：不一致节点标 UNMATCHED 仅供展示，不下发新类型任务） */
-const EXPECTED_ENGINE_VERSION = "0.6.0"; // 与 apps/engine runner/worker.ts VERSION 同步（契约 v6：+ui_validate 命令、ui_case/ui_batch script 模式、ui-trace 帧；升版须两端同改——S13 教训：漏改此常量致 CI 全分片节点 UNMATCHED）
+/** 契约 v7 引擎版本（心跳版本协商：不一致节点标 UNMATCHED 仅供展示，不下发新类型任务） */
+const EXPECTED_ENGINE_VERSION = "0.7.0"; // 与 apps/engine runner/worker.ts VERSION 同步（契约 v7：ui 命令 +runnerId、+runner-check 帧、runner-jobs 队列；升版须两端同改——S13 教训：漏改此常量致 CI 全分片节点 UNMATCHED）
 const K8S_TEST_TIMEOUT_MS = 5_000;
 
 interface NodeRow {

@@ -7,6 +7,7 @@ const globalForInfra = globalThis as unknown as {
   __execQueue?: Queue;
   __execQueuesByPool?: Map<string, Queue>;
   __scheduleQueue?: Queue;
+  __runnerQueue?: Queue;
 };
 
 export function redis(): Redis {
@@ -50,4 +51,14 @@ export function scheduleQueue(): Queue {
     });
   }
   return globalForInfra.__scheduleQueue;
+}
+
+/** S14 UIT-004：runner 管理队列（web 编排 → engine 消费；安装/检测/目录清理，契约=runnerJobSchema）。 */
+export function runnerQueue(): Queue {
+  if (!globalForInfra.__runnerQueue) {
+    globalForInfra.__runnerQueue = new Queue(config.runnerQueueName, {
+      connection: new Redis(config.redisUrl, { maxRetriesPerRequest: null }),
+    });
+  }
+  return globalForInfra.__runnerQueue;
 }

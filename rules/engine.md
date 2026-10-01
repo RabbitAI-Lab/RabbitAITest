@@ -41,6 +41,7 @@
 2. Python（可选，P2）：子进程 + 资源限额 + 超时强杀；stdio 经事件流透传。
 3. 沙箱超时/超限属于「脚本错误」分类码，不得让引擎进程崩溃——任何脚本异常必须收敛为步骤失败事件。
 4. **例外（S13 UIT-003）：UI 测试脚本模式=受信全功能脚本，不走 quickjs**——Playwright Test 需真实 Node 运行时与浏览器绑定，quickjs 不可行（MeterSphere 脚本模块/Groovy 同信任口径）。补偿控制：`PROJECT_UIT:CREATE/UPDATE` 权限门禁 + 脚本入库审计（createdBy/updatedAt）+ **独立子进程执行**（execFile("node", [CLI, 固定旗标]) 无 shell、独立 cwd、可强杀、崩溃不伤引擎）+ 任务总超时 600s 硬顶 + 附件读取限定工作区边界。执行产物（截图/trace.zip）经 internal/files 上传，用户内容绝不进命令行（仅经文件传递）。
+5. **例外扩展（S14 UIT-004）：项目级 Runner 安装=引擎子进程 npm**——安装/检测/目录清理走独立 `runner-jobs` 队列（不占执行槽位），npm 子进程同样无 shell、argv 字面量+版本 semver 白名单、registry 仅 https 且拒内网（SSRF 口径）；执行/校验前环境预检（fail 项阻断+runner-check 帧）。跨项目隔离四级：API withProjectScope 404 + 表 projectId + 磁盘 `.runners/{projectId}/{runnerId}/` 分域 + 引擎归属校验。
 
 ## 7. 本地模式与资源池
 

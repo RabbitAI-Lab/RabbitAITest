@@ -18,6 +18,7 @@ import type {
 } from "@rabbit/shared";
 import { prisma } from "@rabbit/db";
 import { execQueueFor } from "@/server/redis";
+import { resolveDefaultRunnerId } from "@/server/domains/exec/ui-runner.service";
 import { recordAudit } from "@/server/domains/system/audit.service";
 
 type UiElementRow = {
@@ -358,6 +359,7 @@ export async function runUiCase(projectId: string, caseId: string, userId: strin
       taskId: item.task.id,
       projectId,
       type: "ui_case",
+      runnerId: await resolveDefaultRunnerId(projectId),
       itemId: item.item.id,
       caseId: c.id,
       name: c.name,
@@ -412,6 +414,7 @@ export async function validateUiScript(
       itemId: item.item.id,
       name,
       script: input.script,
+      runnerId: await resolveDefaultRunnerId(projectId),
     },
     { jobId: item.task.id, attempts: 1 },
   );
@@ -488,6 +491,7 @@ export async function runUiCaseBatch(projectId: string, caseIds: string[], userI
       projectId,
       type: "ui_batch",
       stopOnFail: false,
+      runnerId: await resolveDefaultRunnerId(projectId),
       items,
     },
     { jobId: task.id, attempts: 1 },
@@ -572,6 +576,9 @@ export async function uiTaskDetail(projectId: string, taskId: string) {
           .filter((f) => f.type === "ui-trace")
           .map((f) => (f.type === "ui-trace" ? { fileId: f.fileId, name: f.name } : null))
           .filter((t): t is { fileId: string; name: string } => t !== null),
+        runnerChecks: frames.flatMap((f) =>
+          f.type === "runner-check" ? [{ runner: f.runner, items: f.items }] : [],
+        ),
       };
     }),
   };

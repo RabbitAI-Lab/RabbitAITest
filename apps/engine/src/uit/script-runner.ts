@@ -17,6 +17,13 @@ import { fileURLToPath } from "node:url";
 import { config, UIT_SCRIPT_LIMITS, uiParamEnvKey } from "@rabbit/shared";
 import type { UiParam } from "@rabbit/shared";
 import type { EventWriter } from "../events.js";
+import {
+  linkRunnerNodeModules,
+  precheckRunner,
+  resolveRunner,
+  runnerCheckHasFail,
+  type ResolvedRunner,
+} from "./runner-env.js";
 
 const ENGINE_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const TRACE_UPLOAD_MAX = 5; // trace=on 每 test 一份 zip；上传前 5 份防大用例打爆 files
@@ -210,17 +217,17 @@ interface ProcResult {
 }
 
 /** 子进程执行 playwright CLI（同 plugin.service tarSafe 口径：可执行=字面量 "node"，无 shell；
- * argv=[CLI 路径, 固定旗标]，用户脚本内容只经文件传递）：停止轮询（SIGTERM→3s→SIGKILL）+ 总超时硬顶；输出截 64KB。 */
+ * argv=[CLI 路径, 固定旗标]，用户脚本内容只经文件传递）：停止轮询（SIGTERM→3s→SIGKILL）+ 总超时硬顶；输出截 64KB。
+ * v7（UIT-004）：CLI 路径=所选 runner（内置=engine 包解析；项目=安装目录），经 runKey 工作区 symlink 解析。 */
 function runPlaywrightProc(
   mode: "run" | "list",
-  opts: { cwd: string; env: NodeJS.ProcessEnv; isStopped: () => Promise<boolean> },
+  opts: { cwd: string; env: NodeJS.ProcessEnv; isStopped: () => Promise<boolean>; cli: string },
 ): Promise<ProcResult> {
-  const cli = resolvePlaywrightCli();
   const child: ChildProcess = execFile(
     "node",
     mode === "run"
-      ? [cli, "test", "--config", "playwright.config.ts"]
-      : [cli, "test", "--list", "--config", "playwright.config.ts"],
+      ? [opts.cli, "test", "--config", "playwright.config.ts"]
+      : [opts.cli, "test", "--list", "--config", "playwright.config.ts"],
     { cwd: opts.cwd, env: opts.env, maxBuffer: 1024 * 1024, windowsHide: true },
     () => undefined,
   );
@@ -362,6 +369,50 @@ async function emitValidateError(writer: EventWriter, itemId: string, error: str
 
 // ───────────────────────── 执行主流程 ─────────────────────────
 
+/** v7（UIT-004）：runner 解析+环境预检（fail 项阻断——runner-check 帧承载，不再让用户看裸 stderr 猜环境）。
+ * 返回 null=通过（附解析后的 runner）；否则返回阻断结果（调用方直接返回）。 */
+async function precheckGate(
+  writer: EventWriter,
+  cmd: { projectId: string; itemId: string },
+  runnerId: string | null | undefined,
+): Promise<
+  | { ok: true; runner: ResolvedRunner }
+  | {
+      ok: false;
+      result: { status: "FAILED"; failureKind: "CONFIG_ERROR"; message: string; steps: never[] };
+    }
+> {
+  let runner: ResolvedRunner;
+  try {
+    runner = await resolveRunner(cmd.projectId, runnerId ?? null);
+  } catch (e) {
+    return {
+      ok: false,
+      result: {
+        status: "FAILED",
+        failureKind: "CONFIG_ERROR",
+        message: `Runner 解析失败：${(e as Error).message}`,
+        steps: [],
+      },
+    };
+  }
+  const items = await precheckRunner(runner);
+  if (!runnerCheckHasFail(items)) return { ok: true, runner };
+  await writer.emit({ type: "runner-check", itemId: cmd.itemId, runner: runner.label, items });
+  const fails = items.filter((i) => i.status === "fail");
+  return {
+    ok: false,
+    result: {
+      status: "FAILED",
+      failureKind: "CONFIG_ERROR",
+      message: `Runner 环境预检未通过（${runner.label} · ${fails.length} 项失败：${fails
+        .map((f) => f.label)
+        .join("、")}）——处置指引见 runner-check 清单`,
+      steps: [],
+    },
+  };
+}
+
 /** 脚本用例执行：官方 runner 子进程 → report.json → step-op/ui-screenshot/ui-trace 帧。 */
 export async function runUiScriptCase(
   redis: import("ioredis").Redis,
@@ -374,18 +425,24 @@ export async function runUiScriptCase(
     script: string;
     params: UiParam[];
     timeoutMs: number;
+    runnerId?: string | null;
   },
   isStopped: () => Promise<boolean>,
 ): Promise<ScriptCaseResult> {
   void redis; // 预留（截图上传直连 web，不经 redis）
+  const gate = await precheckGate(writer, cmd, cmd.runnerId);
+  if (!gate.ok) return gate.result;
+  const runner = gate.runner;
   const runKey = sanitizeRunKey(cmd.taskId, cmd.itemId);
   const dir = await prepareWorkspace(runKey, cmd.script, cmd.timeoutMs);
+  await linkRunnerNodeModules(dir, runner);
   let result: ScriptCaseResult;
   try {
     const res = await runPlaywrightProc("run", {
       cwd: dir,
       env: { ...process.env, ...paramsEnv(cmd.params) },
       isStopped,
+      cli: runner.cliPath,
     });
     if (res.stopped) {
       return { status: "STOPPED", message: "任务被停止", steps: [] };
@@ -524,18 +581,32 @@ export async function runUiScriptCase(
 export async function runUiScriptValidate(
   redis: import("ioredis").Redis,
   writer: EventWriter,
-  cmd: { taskId: string; projectId: string; itemId: string; name: string; script: string },
+  cmd: {
+    taskId: string;
+    projectId: string;
+    itemId: string;
+    name: string;
+    script: string;
+    runnerId?: string | null;
+  },
   isStopped: () => Promise<boolean>,
 ): Promise<ScriptValidateResult> {
   void redis;
-  void cmd.projectId; // 干跑无附件上传
+  const gate = await precheckGate(writer, cmd, cmd.runnerId);
+  if (!gate.ok) {
+    await emitValidateError(writer, cmd.itemId, gate.result.message);
+    return { ok: false, titles: [], error: gate.result.message };
+  }
+  const runner = gate.runner;
   const runKey = sanitizeRunKey(cmd.taskId, cmd.itemId);
   const dir = await prepareWorkspace(runKey, cmd.script, 30000);
+  await linkRunnerNodeModules(dir, runner);
   try {
     const res = await runPlaywrightProc("list", {
       cwd: dir,
       env: { ...process.env },
       isStopped,
+      cli: runner.cliPath,
     });
     if (res.stopped) return { ok: false, titles: [], error: "任务被停止" };
     let titles: string[] = [];
