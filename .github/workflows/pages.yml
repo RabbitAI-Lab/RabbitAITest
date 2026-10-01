@@ -26,7 +26,7 @@ concurrency:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.CI_RUNNER || 'ubuntu-latest' }} # INFRA-012：CI_RUNNER=self-hosted 走本地 runner；未设/fork PR 回落托管池
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

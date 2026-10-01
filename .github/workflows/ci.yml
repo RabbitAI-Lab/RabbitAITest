@@ -29,7 +29,7 @@ permissions:
 jobs:
   quality:
     name: lint + typecheck + unit
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.CI_RUNNER || 'ubuntu-latest' }} # INFRA-012：CI_RUNNER=self-hosted 走本地 runner；未设/fork PR 回落托管池
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
@@ -50,7 +50,7 @@ jobs:
 
   cli:
     name: go cli (rabbit)
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.CI_RUNNER || 'ubuntu-latest' }} # INFRA-012：CI_RUNNER=self-hosted 走本地 runner；未设/fork PR 回落托管池
     needs: quality
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
@@ -77,7 +77,7 @@ jobs:
 
   build:
     name: next build
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.CI_RUNNER || 'ubuntu-latest' }} # INFRA-012：CI_RUNNER=self-hosted 走本地 runner；未设/fork PR 回落托管池
     # INFRA-011：build 是并行「构建门禁」——不再是 e2e/api-test 前置（测试分片自带构建，
     # 与本作业同时起跑；等 build 完成会把 2m51s 串进关键路径）
     needs: quality
@@ -95,7 +95,7 @@ jobs:
 
   migrate-replay:
     name: 空库全量迁移重放
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.CI_RUNNER || 'ubuntu-latest' }} # INFRA-012：CI_RUNNER=self-hosted 走本地 runner；未设/fork PR 回落托管池
     needs: quality
     services:
       postgres:
@@ -128,7 +128,7 @@ jobs:
 
   e2e:
     name: Playwright E2E（三类断言）
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.CI_RUNNER || 'ubuntu-latest' }} # INFRA-012：CI_RUNNER=self-hosted 走本地 runner；未设/fork PR 回落托管池
     # INFRA-011：不再 needs build——原 quality→build→e2e 串行链是总墙钟 16m45s 的主因；
     # 分片自带 web 构建（~140s）与 build job 同期并行，t=0 即起。quality/build 红时本作业
     # 照跑至完（公共仓计算免费；PR 正确性不变——仍因上游红而红）。
@@ -199,7 +199,7 @@ jobs:
 
   api-test:
     name: JMeter 接口自动化
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.CI_RUNNER || 'ubuntu-latest' }} # INFRA-012：CI_RUNNER=self-hosted 走本地 runner；未设/fork PR 回落托管池
     # INFRA-011：不再 needs build（与 e2e 同理，分片自带构建从 t=0 并行起跑；本作业
     # ~7.5min 不在关键路径，分片数维持 2 不动——再加分片只添固定开销，墙钟零收益）。
     # 2 分片并行（各分片独立栈/独立 DB）：70 计划串行 ~6min → 各分片 ~3min。
@@ -316,7 +316,7 @@ jobs:
 
   audit:
     name: 依赖审计（high 阻塞）
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.CI_RUNNER || 'ubuntu-latest' }} # INFRA-012：CI_RUNNER=self-hosted 走本地 runner；未设/fork PR 回落托管池
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
