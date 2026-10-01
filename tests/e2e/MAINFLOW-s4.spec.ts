@@ -30,6 +30,9 @@ test("MAINFLOW-s4 计划完整链路", async ({
   expectNoConsoleErrors,
   expectApi,
 }) => {
+  // 重负载链路显式放宽用例级超时（PR#41 main 实证：慢共享 runner 上报告聚合两阶段 >60s，
+  // 默认 60s 用例超时先于断言超时杀测试且重试同样中招；断言超时 120s 与之匹配）
+  test.setTimeout(180_000);
   const { projectId } = authedPage;
   const uniq = `${Date.now() % 1e7}`;
   const planName = `主链路计划-${uniq}`;
@@ -75,11 +78,17 @@ test("MAINFLOW-s4 计划完整链路", async ({
   await page.getByRole("dialog").getByRole("combobox").first().click();
   await page.keyboard.press("ArrowDown");
   await page.keyboard.press("Enter");
+  // 候选列表=弹窗内 react-query 首查+过滤，慢机 10s click 超时不够（PR#42 shard1 实证）——
+  // 先强等待目标行文本出现（containText 即就绪信号），click 必中
+  await expect(page.getByTestId("link-candidates")).toContainText(`主链路用例-${uniq}`, {
+    timeout: 20_000,
+  });
   await page.getByTestId("link-candidates").getByText(`主链路用例-${uniq}`).click();
   await page.getByTestId("btn-confirm-link").click();
 
   // 执行全部 → 状态回写 PASS
   await page.getByTestId("plan-cases-tab").click();
+  const planPageUrl = page.url(); // 计划详情页 URL（yank 竞态根治的显式回归点，见下）
   const execApi = expectApi("**/api/v1/projects/*/plans/*/execute");
   await page.getByTestId("btn-execute-plan").click();
   const exec = await execApi;
@@ -89,15 +98,16 @@ test("MAINFLOW-s4 计划完整链路", async ({
   void taskId;
   // 引擎回写断言见 PLAN-003-01（同链路）；本主链路断言执行受理与报告视图
 
-  // 报告 Tab：阈值横幅 + 点分组（主链路点）+ CSV（S8 加固：Tab 切换动画稳定窗口放宽——
-  // element not stable 在全量并发下偶发超时，等待可见后再点击并放宽至 20s）
-  // 报告 Tab 挂载与视图判定（plan-report-view 在 Tab 挂载时已被 react-query 首查——
-  //  无需 waitForResponse（会误捕自动跳转的报告详情页残留请求：CI trace 实证 wait 常落在错误 200 上）；
-  //  内容断言自带窗口：组件内 isLoading→加载态→view 到达即渲，toBeVisible 轮询兜底）
+  // 报告 Tab：阈值横幅 + 点分组（主链路点）+ CSV。
+  // 自动跳转竞态根治（PR#42 shard1 三重试全灭实证）：PlanExecBar 在 runningTask 轮询命中终态时
+  // router.push('/reports/{taskId}') 把页面 yank 走（plan-report-v2 随之卸载，120s 也等不回）——
+  // 快机断言先完成、慢机 yank 先到，纯竞态双向都可能输。显式 goto 回计划页 = 组件重挂载
+  // runningTask 清空，yank 永不再触发；候选/查询仍在（服务端态）。
+  await page.goto(planPageUrl);
   const reportTab = page.getByTestId("plan-report-tab");
   await expect(reportTab).toBeVisible({ timeout: 20_000 });
   await reportTab.click({ timeout: 20_000, force: true });
-  await expect(page.getByTestId("plan-report-v2")).toBeVisible({ timeout: 60_000 }); // 引擎回写聚合 + react-query 首查两阶段（CI 高压实证 >40s）
+  await expect(page.getByTestId("plan-report-v2")).toBeVisible({ timeout: 120_000 }); // 引擎回写聚合 + react-query 首查两阶段（CI 高压实证 >40s；慢 runner >60s——PR#41 假红实证）
   await expect(page.getByTestId("plan-report-v2")).toContainText(`主链路点-${uniq}`, {
     timeout: 15_000,
   });

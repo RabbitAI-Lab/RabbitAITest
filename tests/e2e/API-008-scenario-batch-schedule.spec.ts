@@ -110,20 +110,27 @@ test("API-008-02 定时任务：cron Tab 新建→列表→启停→立即执行
   expect(bad.status()).toBe(422);
   expect(((await bad.json()) as { code: number }).code).toBe(50005);
 
-  // 启停二态：停用 → 文案「已停用 · 不触发」→ 启用恢复
+  // 启停二态：停用 → 文案「已停用 · 不触发」→ 启用恢复。
+  // 状态翻转必须等 toggle 响应落库（PR#41 main 假红实证：cron 人话文本在停用态下同样命中，
+  // 弱文本断言放行后立即执行撞上 enabled=false → fireSchedule 返回 201+skipped 无 taskId）；
+  // 慢 runner 上 PATCH 落库慢于下一行 fetch 时必现。
   await page.getByTestId(`schedule-toggle-${schId8}`).click();
   await expect(page.getByText("已停用 · 不触发")).toBeVisible();
+  const reEnable = page.waitForResponse("**/api/v1/projects/*/scenario-schedules/*/toggle");
   await page.getByTestId(`schedule-toggle-${schId8}`).click();
+  const reEnableRes = await reEnable;
+  expect(reEnableRes.status()).toBe(200);
+  await expect(page.getByText("已停用 · 不触发")).toBeHidden();
   await expect(page.getByTestId("schedule-panel").getByText("每天 09:00")).toBeVisible();
 
-  // 立即执行（接口断言返回 taskId）
+  // 立即执行（接口断言返回 taskId；skipped 时带原因失败而非 undefined 裸断言）
   const runRes = await request.post(
     `/api/v1/projects/${pid}/scenario-schedules/${createdData.data.id}/run`,
     { data: {} },
   );
   expect(runRes.status()).toBe(201);
-  const runBody = (await runRes.json()) as { data: { taskId?: string } };
-  expect(runBody.data.taskId).toBeTruthy();
+  const runBody = (await runRes.json()) as { data: { taskId?: string; skipped?: string } };
+  expect(runBody.data.taskId, `立即执行被跳过：${runBody.data.skipped ?? "(未知)"}`).toBeTruthy();
 
   // 删除
   await page.getByTestId("schedule-panel").getByRole("button", { name: "删除" }).click();

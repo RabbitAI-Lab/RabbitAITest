@@ -23,6 +23,8 @@ test("MAINFLOW-s3 建场景→编排→CSV→执行→报告树→误报→导�
   request,
   expectNoConsoleErrors,
 }) => {
+  // 重负载链路显式放宽用例级超时（同 MAINFLOW-s2 先例；PR#41 期 s3 两次 retry 内偶发——慢 runner 放大执行+报告树两阶段耗时）
+  test.setTimeout(180_000);
   const pid = authedPage.projectId;
   const uniq = `MF${Date.now() % 1e7}`;
 
