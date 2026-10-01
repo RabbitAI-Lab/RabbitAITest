@@ -79,6 +79,8 @@ jobs:
   build:
     name: next build
     runs-on: ubuntu-latest
+    # INFRA-011：build 是并行「构建门禁」——不再是 e2e/api-test 前置（测试分片自带构建，
+    # 与本作业同时起跑；等 build 完成会把 2m51s 串进关键路径）
     needs: quality
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
@@ -128,14 +130,16 @@ jobs:
   e2e:
     name: Playwright E2E（三类断言）
     runs-on: ubuntu-latest
-    needs: build
-    # 聚合并发 8 = 2 分片 × 4 workers：单 runner 直上 8 workers 两轮实测过载（4 核 runner
-    # 上 UI 响应滞后击穿 10s actionTimeout，flaky 6→8 波动不可稳定）；分片后每 runner 回到
-    # 已验证的 4 并发稳定口径，墙钟约减半（12m → ~6m）
+    # INFRA-011：不再 needs build——原 quality→build→e2e 串行链是总墙钟 16m45s 的主因；
+    # 分片自带 web 构建（~140s）与 build job 同期并行，t=0 即起。quality/build 红时本作业
+    # 照跑至完（公共仓计算免费；PR 正确性不变——仍因上游红而红）。
+    # 聚合并发 12 = 3 分片 × 4 workers：单 runner 直上 8 workers 两轮实测过载（4 核 runner
+    # 上 UI 响应滞后击穿 10s actionTimeout，flaky 6→8 波动不可稳定）；分片让每 runner 保持
+    # 已验证的 4 并发稳定口径，聚合并发靠分片隔离（各自独立栈/独立 DB）线性扩展
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2]
+        shard: [1, 2, 3]
     services:
       postgres:
         image: postgres:16-alpine
@@ -164,11 +168,17 @@ jobs:
       - run: corepack enable
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @rabbit/db generate
+      - name: cache next build（INFRA-011：.next/cache 增量构建；首轮 miss=全量构建不劣化）
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: apps/web/.next/cache
+          key: nextjs-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('apps/web/src/**/*.ts', 'apps/web/src/**/*.tsx', 'apps/web/next.config.ts') }}
+          restore-keys: nextjs-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-
       - run: pnpm --filter web build
       - run: pnpm build:plugins
       - run: pnpm exec playwright install --with-deps chromium
-      - name: run e2e（含每用例截屏；分片 ${{ matrix.shard }}/2 × 4 workers）
-        run: pnpm test:e2e -- --shard=${{ matrix.shard }}/2
+      - name: run e2e（含每用例截屏；分片 ${{ matrix.shard }}/3 × 4 workers）
+        run: pnpm test:e2e -- --shard=${{ matrix.shard }}/3
       - name: 视觉快照 + GLM-5.3-Flash 还原度比对（配置 GLM_API_KEY 时启用并强制阈值）
         if: env.GLM_API_KEY != '' && matrix.shard == 1
         run: |
@@ -191,7 +201,8 @@ jobs:
   api-test:
     name: JMeter 接口自动化
     runs-on: ubuntu-latest
-    needs: build
+    # INFRA-011：不再 needs build（与 e2e 同理，分片自带构建从 t=0 并行起跑；本作业
+    # ~7.5min 不在关键路径，分片数维持 2 不动——再加分片只添固定开销，墙钟零收益）。
     # 2 分片并行（各分片独立栈/独立 DB）：70 计划串行 ~6min → 各分片 ~3min。
     # 禁止同栈共享并发——计划间存在全局单例（license/系统参数/AI 模型默认标记）与共用种子
     # admin@rabbit.test，共享 DB 会互踩（2026-09-29 审计）；分片内仍串行=既有口径不变
@@ -223,6 +234,12 @@ jobs:
       - run: corepack enable
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @rabbit/db generate
+      - name: cache next build（INFRA-011：.next/cache 增量构建；首轮 miss=全量构建不劣化）
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: apps/web/.next/cache
+          key: nextjs-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('apps/web/src/**/*.ts', 'apps/web/src/**/*.tsx', 'apps/web/next.config.ts') }}
+          restore-keys: nextjs-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-
       # S11 SYS-009：web build 静态预渲染阶段 systemParam.findUnique 需 DATABASE_URL
       # （main 上既有缺陷——schema 未变时 generate 不触发；本迭代 oauth 两表触发暴露）
       - run: pnpm --filter web build
