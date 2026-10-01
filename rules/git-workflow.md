@@ -50,6 +50,7 @@ lint(oxlint) → typecheck(tsc) → unit(vitest, 含覆盖率阈值)
 ```
 
 - **测试作业不串行等待 build（INFRA-011，2026-10-01）**：e2e/api-test 分片自带 web 构建（挂 `.next/cache` 增量缓存）从 t=0 并行起跑——build 是并行「构建门禁」而非前置依赖（原 quality→build→e2e 串行链是总墙钟 16m45s 的主因）；quality/build 红时测试作业照跑至完（公共仓计算免费，PR 仍红）。
+- **Runner 路由 vars 开关（INFRA-012，2026-10-02）**：全部 job `runs-on: ${{ vars.CI_RUNNER || 'ubuntu-latest' }}`——设仓库变量 `CI_RUNNER=self-hosted` 即全量路由组织自托管 runner（`xujialiang-docker-arm64`，本地 Docker Desktop + dind 隔离拓扑，运维见 `~/actions-runner-docker/README.md`）；删除变量一步回退托管池（Mac 离线/维护预案；fork PR 不下发 vars 自动回落托管池）。注意：指向 self-hosted 的 job 在 runner 失联时**排队等待而非自动回退**，Mac 长时间离线前先删变量。
 - main 每日：全量 e2e + embedded/外部 PG 双环境迁移重放 + 性能基线冒烟（红灯成批收口到 `fix/nightly-regression-YYYYMMDD` 分支，合并后删分支）。
 - 产物上传：HTML 报告 always；video/trace/截图 on-failure；保留 30 天。
 - **CI 结果以 GitHub Actions 远端为准**（AGENTS.md 门禁 9）：本地全过仍可能因环境差异挂远端，push 后必须跟踪 Actions 结果直至绿。
