@@ -124,11 +124,14 @@ test("SYS-010-04 权限二态：admin 下拉两项可见 + 系统域隔离", asy
   await expectNoConsoleErrors();
 });
 
-test("SYS-010-05 侧栏收起/展开 + 分组折叠", async ({ page, authedPage, expectNoConsoleErrors }) => {
+test("SYS-010-05 侧栏收起/展开 + 分组折叠（含 localStorage 持久化）", async ({ page, authedPage, expectNoConsoleErrors }) => {
   await page.goto("/");
   // 分组折叠（默认接口测试展开、测试管理折叠）：点分组头展开测试管理
   await expect(page.getByTestId("nav-bugs")).toBeHidden();
   await page.getByTestId("leftnav").locator("button", { hasText: "测试管理" }).click();
+  await expect(page.getByTestId("nav-bugs")).toBeVisible();
+  // 折叠状态 localStorage 持久化：刷新后测试管理保持展开（§1.2 能力行 #4）
+  await page.reload();
   await expect(page.getByTestId("nav-bugs")).toBeVisible();
   // 收起：侧栏整体隐藏 + 左缘悬浮展开钮
   await page.getByTestId("rail-toggle").click();
