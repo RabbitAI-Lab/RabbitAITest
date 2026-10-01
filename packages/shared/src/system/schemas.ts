@@ -1,6 +1,7 @@
 /** SYS-004/SYS-005：系统用户、用户组、系统参数契约。 */
 import { z } from "zod";
 import { PERMISSION_POINTS, isValidPermissionPoint } from "../permissions";
+import { scmParamValueSchema } from "../scm/schemas";
 
 // ── 用户管理（SYS-004）──
 
@@ -95,6 +96,8 @@ export const paramGroupSchema = z.discriminatedUnion("group", [
   z.object({ group: z.literal("file"), value: fileParamSchema }),
   z.object({ group: z.literal("cleanup"), value: cleanupParamSchema }),
   z.object({ group: z.literal("theme"), value: themeParamSchema }),
+  // SCM-001：系统级代码平台 OAuth 应用（clientSecret 服务端加密；「******」=不修改）
+  z.object({ group: z.literal("scm"), value: scmParamValueSchema }),
 ]);
 
 /** 兼容导出：实际生效值以 config.userLimit（RABBIT_USER_LIMIT 可配）为准 */

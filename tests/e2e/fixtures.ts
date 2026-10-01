@@ -100,7 +100,16 @@ export const test = base.extend<{
 export { expect };
 
 /** SYS-010 域专属菜单名（项目/组织域侧栏不存在，仅对应域渲染）——navFromHome 按名自动进域。 */
-const SYSTEM_ONLY_NAMES = ["参数设置", "认证配置", "授权管理", "资源池", "模型设置", "插件管理", "系统日志"];
+const SYSTEM_ONLY_NAMES = [
+  "参数设置",
+  "认证配置",
+  "授权管理",
+  "资源池",
+  "模型设置",
+  "插件管理",
+  "代码平台",
+  "系统日志",
+];
 const ORG_ONLY_NAMES = ["部门管理"];
 
 /**
@@ -184,8 +193,6 @@ export async function enterRealm(
   );
   if (inRealm) return;
   await page.getByTestId("user-avatar").click();
-  await page
-    .getByTestId(realm === "org" ? "menu-org-management" : "menu-system-settings")
-    .click();
+  await page.getByTestId(realm === "org" ? "menu-org-management" : "menu-system-settings").click();
   await page.waitForURL(realm === "org" ? /\/org\// : /\/system\//);
 }

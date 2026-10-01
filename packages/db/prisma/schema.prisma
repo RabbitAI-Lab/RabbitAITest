@@ -38,6 +38,8 @@ model User {
   auditLogs          AuditLog[]
   notifications      Notification[]
   departmentMembers  DepartmentMember[]
+  scmAccounts        ScmAccount[]
+  createdScmRepos    ScmRepository[]
 }
 
 model Organization {
@@ -55,6 +57,8 @@ model Organization {
   projects     Project[]
   integrations PlatformIntegration[]
   departments  Department[]
+  scmOrgApps   ScmOrgApp[]
+  scmAccounts  ScmAccount[]
 }
 
 model OrgMember {
@@ -109,6 +113,7 @@ model Project {
   loadTests        LoadTest[]
   uiElements       UiElement[]
   uiCases          UiTestCase[]
+  scmRepositories  ScmRepository[]
 
   @@unique([orgId, num])
   @@index([deletedAt])
@@ -555,6 +560,100 @@ model FileRepo {
   files     FileItem[]
 
   @@map("file_repos")
+}
+
+// ───────────────────────── scm 域（SCM-001 项目代码仓库） ─────────────────────────
+
+/// 组织级代码平台 OAuth App 覆盖（SCM-001 §4.1：未配置时继承 SystemParam group=scm；一组织一平台一条）
+model ScmOrgApp {
+  id            String       @id @default(uuid())
+  orgId         String       @map("org_id")
+  org           Organization @relation(fields: [orgId], references: [id])
+  provider      String       @db.VarChar(32) // github | gitee | gitlab（OAuth 三平台）
+  /// GitLab 实例地址（自建）；github/gitee 为空（官方域）
+  baseUrl       String?      @db.VarChar(512) @map("base_url")
+  clientId      String       @db.VarChar(255) @map("client_id")
+  /// client_secret AES-256-GCM 密文（credential-crypto 命名空间 scm-app:{provider}；永不回显）
+  clientSecret  String       @db.VarChar(512) @map("client_secret")
+  enabled       Boolean      @default(true)
+  createdAt     DateTime     @default(now()) @map("created_at")
+  updatedAt     DateTime     @updatedAt @map("updated_at")
+
+  @@unique([orgId, provider])
+  @@map("scm_org_apps")
+}
+
+/// 组织内成员 OAuth 授权账号（凭据在账号上，项目绑定时引用；撤销后绑定变凭据失效）
+model ScmAccount {
+  id              String       @id @default(uuid())
+  orgId           String       @map("org_id")
+  org             Organization @relation(fields: [orgId], references: [id])
+  /// 授权人（发起 OAuth 的组织成员）
+  userId          String       @map("user_id")
+  user            User         @relation(fields: [userId], references: [id])
+  provider        String       @db.VarChar(32) // github | gitee | gitlab
+  baseUrl         String?      @db.VarChar(512) @map("base_url")
+  /// 平台登录名/昵称/头像（GET /user 拉取，展示用）
+  login           String       @db.VarChar(255)
+  name            String?      @db.VarChar(255)
+  avatarUrl       String?      @db.VarChar(1024) @map("avatar_url")
+  /// access_token AES-256-GCM 密文（命名空间 scm-account:{provider}）
+  tokenEnc        String       @db.VarChar(1024) @map("token_enc")
+  /// refresh_token 密文（GitLab 2h 过期需旋转；github/gitee 为空）
+  refreshTokenEnc String?      @db.VarChar(1024) @map("refresh_token_enc")
+  expiresAt       DateTime?    @map("expires_at")
+  scopes          String?      @db.VarChar(255)
+  status          String       @default("ACTIVE") @db.VarChar(16) // ACTIVE | EXPIRED | REVOKED
+  createdAt       DateTime     @default(now()) @map("created_at")
+  updatedAt       DateTime     @updatedAt @map("updated_at")
+  deletedAt       DateTime?    @map("deleted_at")
+  repositories    ScmRepository[]
+
+  @@unique([orgId, userId, provider])
+  @@index([orgId, deletedAt])
+  @@map("scm_accounts")
+}
+
+/// 项目代码仓库绑定（核心表；defaultBranch/visibility 为元信息列，一次建齐）
+model ScmRepository {
+  id             String       @id @default(uuid())
+  projectId      String       @map("project_id")
+  project        Project      @relation(fields: [projectId], references: [id])
+  /// 展示别名；空=owner/repo
+  name           String?      @db.VarChar(128)
+  provider       String       @db.VarChar(32) // github | gitee | gitlab | gitea | custom
+  /// 原始仓库地址（https 或 ssh）
+  repoUrl        String       @db.VarChar(1024) @map("repo_url")
+  /// ssh 克隆地址（OAuth 选仓时平台返回；直填 https 时为空）
+  sshUrl         String?      @db.VarChar(1024) @map("ssh_url")
+  host           String       @db.VarChar(255)
+  owner          String       @db.VarChar(255)
+  repo           String       @db.VarChar(255)
+  /// 平台 REST API 基址（解析缓存；custom 为空=不验证）
+  apiBase        String?      @db.VarChar(512) @map("api_base")
+  authType       String       @db.VarChar(16) @map("auth_type") // none | oauth | token | password
+  /// authType=oauth 时引用授权账号
+  accountId      String?      @map("account_id")
+  account        ScmAccount?  @relation(fields: [accountId], references: [id])
+  /// authType=password 时用户名
+  username       String?      @db.VarChar(255)
+  /// token/password 的 AES-256-GCM 密文（命名空间 scm-repo:{provider}；永不回显）
+  secretEnc      String?      @db.VarChar(512) @map("secret_enc")
+  /// 元信息（verify 刷新；未启用列一次建齐）
+  defaultBranch  String?      @db.VarChar(255) @map("default_branch")
+  visibility     String?      @db.VarChar(16) // public | private | internal
+  isDefault      Boolean      @default(false) @map("is_default")
+  verifyStatus   String       @default("UNVERIFIED") @db.VarChar(16) @map("verify_status") // UNVERIFIED | OK | INVALID_CRED | FAILED
+  verifyMessage  String?      @db.VarChar(512) @map("verify_message")
+  lastVerifiedAt DateTime?    @map("last_verified_at")
+  createdById    String       @map("created_by_id")
+  createdBy      User         @relation(fields: [createdById], references: [id])
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+  deletedAt      DateTime?    @map("deleted_at")
+
+  @@index([projectId, deletedAt])
+  @@map("scm_repositories")
 }
 
 model PublicScript {

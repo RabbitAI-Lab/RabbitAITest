@@ -26,3 +26,5 @@ export * from "./entp/scan-providers";
 export * from "./tool/schemas";
 export * from "./load/schemas";
 export * from "./uit/schemas";
+export * from "./scm/meta";
+export * from "./scm/schemas";

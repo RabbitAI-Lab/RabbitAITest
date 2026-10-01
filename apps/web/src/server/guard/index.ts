@@ -88,6 +88,9 @@ export function toResponse(err: unknown): NextResponse {
                   ErrCode.ENV_GROUP_NOT_FOUND,
                   ErrCode.FILE_REPO_NOT_FOUND,
                   ErrCode.NOTIFICATION_NOT_FOUND,
+                  // S13 SCM-001
+                  ErrCode.SCM_REPO_NOT_FOUND,
+                  ErrCode.SCM_ACCOUNT_NOT_FOUND,
                   // S9 ENTP
                   ErrCode.SSO_SOURCE_NOT_FOUND,
                   ErrCode.DEPARTMENT_NOT_FOUND,
@@ -178,6 +181,12 @@ export function toResponse(err: unknown): NextResponse {
                       ErrCode.FILE_REPO_CONNECT_FAILED,
                       ErrCode.FILE_REPO_PULL_FAILED,
                       ErrCode.FILE_REPO_URL_BLOCKED,
+                      // S13 SCM-001（422 面：配置缺失/状态无效/验证失败/超上限/SSRF 拦截）
+                      ErrCode.SCM_APP_NOT_CONFIGURED,
+                      ErrCode.SCM_OAUTH_STATE_INVALID,
+                      ErrCode.SCM_VERIFY_FAILED,
+                      ErrCode.SCM_REPO_LIMIT_EXCEEDED,
+                      ErrCode.SCM_REPO_URL_BLOCKED,
                       ErrCode.PERSONAL_PASSWORD_MISMATCH,
                       ErrCode.PERSONAL_LOCAL_RUNNER_INVALID,
                       ErrCode.PERSONAL_AI_MODEL_INVALID,
@@ -217,6 +226,7 @@ export function toResponse(err: unknown): NextResponse {
                   ? 409
                   : err.code === ErrCode.AI_PROVIDER_ERROR ||
                       err.code === ErrCode.SSO_PROVIDER_ERROR || // 供应商上游失败（透出上游状态不泄 key）
+                      err.code === ErrCode.SCM_PROVIDER_ERROR || // SCM-001：代码平台上游失败
                       err.code === ErrCode.POOL_K8S_UNREACHABLE // apiServer 探测失败（透出上游状态不泄 token）
                     ? 502
                     : err.code === ErrCode.OPEN_RATE_LIMITED ||

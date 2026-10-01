@@ -1,0 +1,1272 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SCM-001 项目代码仓库（高保真确认版）</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@1.48.0/dist/umd/lucide.min.js"></script>
+    <style>
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei",
+          sans-serif;
+      }
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #d5d7db;
+        border-radius: 3px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .nav-item {
+        transition:
+          background-color 0.12s,
+          color 0.12s;
+      }
+      .drawer {
+        transition: transform 0.18s ease;
+      }
+      .modal-mask {
+        transition: opacity 0.15s;
+      }
+      .btn {
+        transition: all 0.12s;
+      }
+      .radio-dot {
+        transition: all 0.12s;
+      }
+      .card:hover .row-actions {
+        opacity: 1;
+      }
+      .row-actions {
+        opacity: 0;
+        transition: opacity 0.12s;
+      }
+    </style>
+  </head>
+  <body class="bg-[#EEF0F4] text-[#1F2329] text-[13px]">
+    <!-- ══════════ 原型说明条（非产品 UI） ══════════ -->
+    <div
+      class="bg-[#1B1F2A] text-white/90 px-5 py-3 flex items-center gap-3 flex-wrap sticky top-0 z-50"
+    >
+      <span class="font-semibold">SCM-001 项目代码仓库 · 高保真确认版</span>
+      <span class="text-white/50 text-xs">能力行编号①②…对应规格 §1.2</span>
+      <span class="ml-auto flex gap-1.5" id="screen-switch">
+        <button data-screen="project" class="btn px-3 py-1 rounded bg-white/15 hover:bg-white/25">
+          ① 项目设置·代码仓库
+        </button>
+        <button data-screen="system" class="btn px-3 py-1 rounded bg-white/10 hover:bg-white/25">
+          ② 系统设置·代码平台
+        </button>
+        <button data-screen="org" class="btn px-3 py-1 rounded bg-white/10 hover:bg-white/25">
+          ③ 组织·服务集成·代码平台
+        </button>
+      </span>
+    </div>
+
+    <!-- ══════════ 控制台骨架（多标签条 + 侧栏 + 内容） ══════════ -->
+    <div class="flex flex-col h-[calc(100vh-45px)]">
+      <!-- 顶栏：多标签（SYS-010 后全局形态，示意） -->
+      <div class="bg-white border-b border-[#E5E6EB] flex items-center h-9 shrink-0">
+        <div class="flex items-end h-full px-1 gap-1 overflow-hidden">
+          <div
+            class="tab flex items-center gap-1.5 px-3 h-full bg-[#EEF0F4] border-r border-l border-t border-[#E5E6EB] rounded-t text-[12px] font-medium"
+          >
+            项目设置 · 兔子测试项目 <i data-lucide="x" class="w-3 h-3 text-[#8F959E]"></i>
+          </div>
+          <div class="flex items-center gap-1.5 px-3 h-full text-[12px] text-[#646A73]">
+            功能用例 <i data-lucide="x" class="w-3 h-3 text-[#8F959E]"></i>
+          </div>
+        </div>
+        <div class="ml-auto flex items-center gap-2 pr-3">
+          <i data-lucide="search" class="w-3.5 h-3.5 text-[#646A73]"></i>
+          <div
+            class="w-6 h-6 rounded-full bg-[#574BFF] text-white text-[11px] flex items-center justify-center"
+          >
+            兔
+          </div>
+        </div>
+      </div>
+
+      <div class="flex flex-1 min-h-0">
+        <!-- 侧栏（项目域 · 项目设置分组） -->
+        <div class="w-52 bg-white border-r border-[#E5E6EB] shrink-0 flex flex-col">
+          <div class="px-3 pt-3 pb-1 flex items-center gap-2 text-[12px] text-[#646A73]">
+            <i data-lucide="folder-git-2" class="w-3.5 h-3.5"></i><span>兔子测试项目</span>
+            <i data-lucide="chevrons-up-down" class="w-3 h-3 ml-auto"></i>
+          </div>
+          <div class="px-3 pt-2 pb-1 text-[11px] text-[#8F959E]">项目设置</div>
+          <div class="px-2">
+            <div class="nav-item flex items-center gap-2 px-2.5 py-1.5 rounded text-[#3D4350]">
+              <i data-lucide="info" class="w-3.5 h-3.5"></i>基本信息
+            </div>
+            <div class="nav-item flex items-center gap-2 px-2.5 py-1.5 rounded text-[#3D4350]">
+              <i data-lucide="users" class="w-3.5 h-3.5"></i>成员管理
+            </div>
+            <div class="nav-item flex items-center gap-2 px-2.5 py-1.5 rounded text-[#3D4350]">
+              <i data-lucide="user-square-2" class="w-3.5 h-3.5"></i>用户组
+            </div>
+            <div class="nav-item flex items-center gap-2 px-2.5 py-1.5 rounded text-[#3D4350]">
+              <i data-lucide="layout-template" class="w-3.5 h-3.5"></i>模板管理
+            </div>
+            <div class="nav-item flex items-center gap-2 px-2.5 py-1.5 rounded text-[#3D4350]">
+              <i data-lucide="globe" class="w-3.5 h-3.5"></i>环境管理
+            </div>
+            <div class="nav-item flex items-center gap-2 px-2.5 py-1.5 rounded text-[#3D4350]">
+              <i data-lucide="file-code-2" class="w-3.5 h-3.5"></i>公共脚本
+            </div>
+            <div class="nav-item flex items-center gap-2 px-2.5 py-1.5 rounded text-[#3D4350]">
+              <i data-lucide="settings" class="w-3.5 h-3.5"></i>服务集成
+            </div>
+            <div
+              class="nav-item flex items-center gap-2 px-2.5 py-1.5 rounded bg-[#574BFF]/8 text-[#574BFF] font-medium border-l-2 border-[#574BFF]"
+            >
+              <i data-lucide="git-branch" class="w-3.5 h-3.5"></i>代码仓库<span
+                class="ml-auto text-[10px] bg-[#574BFF]/12 px-1 py-px rounded"
+                >NEW</span
+              >
+            </div>
+          </div>
+          <div class="mt-2 border-t border-[#F0F1F5] pt-2 px-3 pb-1 text-[11px] text-[#8F959E]">
+            测试管理
+          </div>
+          <div class="px-2">
+            <div class="nav-item flex items-center gap-2 px-2.5 py-1.5 rounded text-[#3D4350]">
+              <i data-lucide="list-checks" class="w-3.5 h-3.5"></i>功能用例
+            </div>
+            <div class="nav-item flex items-center gap-2 px-2.5 py-1.5 rounded text-[#3D4350]">
+              <i data-lucide="bug" class="w-3.5 h-3.5"></i>缺陷管理
+            </div>
+          </div>
+        </div>
+
+        <!-- ══════════ 内容区 ══════════ -->
+        <div class="flex-1 overflow-auto" id="content">
+          <!-- ───────── 画面① 项目设置·代码仓库 ───────── -->
+          <div class="screen p-5" id="screen-project">
+            <div class="flex items-start gap-3">
+              <div class="flex-1">
+                <div class="text-[16px] font-semibold">代码仓库</div>
+                <div class="text-[#646A73] mt-1">
+                  绑定项目对应的代码仓库：平台授权直接选择，或填写 https / ssh 地址；支持
+                  Token、账号密码与匿名访问。
+                </div>
+              </div>
+              <div class="flex gap-2">
+                <button
+                  class="btn px-3 h-8 rounded border border-[#DEE0E3] bg-white hover:border-[#574BFF] hover:text-[#574BFF] flex items-center gap-1.5"
+                  onclick="openModal('modal-accounts')"
+                >
+                  <i data-lucide="link-user" class="w-3.5 h-3.5"></i>授权账号
+                </button>
+                <button
+                  class="btn px-3 h-8 rounded bg-[#574BFF] text-white hover:bg-[#4a3fe8] flex items-center gap-1.5"
+                  onclick="openDrawer()"
+                >
+                  <i data-lucide="plus" class="w-3.5 h-3.5"></i>添加仓库
+                </button>
+              </div>
+            </div>
+
+            <!-- 仓库卡片列表（#10 多仓库 + 默认标记；#9 验证状态四态） -->
+            <div
+              class="mt-4 grid gap-3"
+              style="grid-template-columns: repeat(auto-fill, minmax(420px, 1fr))"
+            >
+              <!-- 卡片 1：GitHub OAuth · 默认 · 已连接 -->
+              <div class="card bg-white border border-[#E5E6EB] rounded-lg p-4">
+                <div class="flex items-center gap-2">
+                  <span
+                    class="w-6 h-6 rounded bg-[#1F2329] text-white text-[10px] font-bold flex items-center justify-center"
+                    >GH</span
+                  >
+                  <span class="font-medium">rabbit-web</span>
+                  <span class="text-[#8F959E]">RabbitAI-Lab/rabbit-web</span>
+                  <span
+                    class="ml-auto text-[10px] px-1.5 py-0.5 rounded bg-[#574BFF]/10 text-[#574BFF] font-medium border border-[#574BFF]/25"
+                    >默认</span
+                  >
+                </div>
+                <div class="mt-2 text-[12px] text-[#646A73] flex items-center gap-1.5 truncate">
+                  <i data-lucide="lock" class="w-3 h-3"></i
+                  >https://github.com/RabbitAI-Lab/rabbit-web.git
+                </div>
+                <div class="mt-2 flex items-center gap-2 text-[12px]">
+                  <span class="px-1.5 py-0.5 rounded bg-[#F2F3F5] text-[#3D4350]"
+                    >OAuth · xujialiang</span
+                  >
+                  <span class="px-1.5 py-0.5 rounded bg-[#F2F3F5] text-[#3D4350]">私有</span>
+                  <span class="px-1.5 py-0.5 rounded bg-[#F2F3F5] text-[#3D4350]"
+                    >默认分支 main</span
+                  >
+                  <span class="ml-auto inline-flex items-center gap-1 text-[#34C724]"
+                    ><span class="w-1.5 h-1.5 rounded-full bg-[#34C724]"></span>已连接</span
+                  >
+                </div>
+                <div
+                  class="mt-2 pt-2 border-t border-[#F0F1F5] flex items-center text-[12px] text-[#8F959E]"
+                >
+                  <span>最近提交 feat: nav refresh · 2 小时前</span>
+                  <span class="ml-2">验证于 10-01 14:32</span>
+                  <div class="row-actions ml-auto flex gap-1">
+                    <button class="btn px-2 py-0.5 rounded hover:bg-[#F2F3F5] text-[#3D4350]">
+                      验证
+                    </button>
+                    <button
+                      class="btn px-2 py-0.5 rounded hover:bg-[#F2F3F5] text-[#3D4350]"
+                      onclick="toast('已设为默认仓库')"
+                    >
+                      设为默认
+                    </button>
+                    <button class="btn px-2 py-0.5 rounded hover:bg-[#F2F3F5] text-[#3D4350]">
+                      编辑
+                    </button>
+                    <button class="btn px-2 py-0.5 rounded hover:bg-[#FDE2E2] text-[#F54A45]">
+                      删除
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 卡片 2：Gitee Token · 凭据失效（红） -->
+              <div class="card bg-white border border-[#E5E6EB] rounded-lg p-4">
+                <div class="flex items-center gap-2">
+                  <span
+                    class="w-6 h-6 rounded bg-[#C71D23] text-white text-[10px] font-bold flex items-center justify-center"
+                    >G</span
+                  >
+                  <span class="font-medium">testdata</span>
+                  <span class="text-[#8F959E]">rabbit-lab/testdata</span>
+                </div>
+                <div class="mt-2 text-[12px] text-[#646A73] flex items-center gap-1.5 truncate">
+                  <i data-lucide="lock" class="w-3 h-3"></i
+                  >https://gitee.com/rabbit-lab/testdata.git
+                </div>
+                <div class="mt-2 flex items-center gap-2 text-[12px]">
+                  <span class="px-1.5 py-0.5 rounded bg-[#F2F3F5] text-[#3D4350]"
+                    >Token · 已配置 ••••3f9a</span
+                  >
+                  <span class="px-1.5 py-0.5 rounded bg-[#F2F3F5] text-[#3D4350]">私有</span>
+                  <span class="ml-auto inline-flex items-center gap-1 text-[#F54A45]"
+                    ><span class="w-1.5 h-1.5 rounded-full bg-[#F54A45]"></span>凭据失效</span
+                  >
+                </div>
+                <div
+                  class="mt-2 pt-2 border-t border-[#F0F1F5] flex items-center text-[12px] text-[#8F959E]"
+                >
+                  <span>凭据失效或无权限（401/403），请更新 Token</span>
+                  <div class="row-actions ml-auto flex gap-1">
+                    <button class="btn px-2 py-0.5 rounded hover:bg-[#F2F3F5] text-[#3D4350]">
+                      验证
+                    </button>
+                    <button
+                      class="btn px-2 py-0.5 rounded hover:bg-[#F2F3F5] text-[#3D4350]"
+                      onclick="toast('已设为默认仓库')"
+                    >
+                      设为默认
+                    </button>
+                    <button class="btn px-2 py-0.5 rounded hover:bg-[#F2F3F5] text-[#3D4350]">
+                      编辑
+                    </button>
+                    <button class="btn px-2 py-0.5 rounded hover:bg-[#FDE2E2] text-[#F54A45]">
+                      删除
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 卡片 3：GitLab 自建 · ssh 地址 · 未验证（灰） -->
+              <div class="card bg-white border border-[#E5E6EB] rounded-lg p-4">
+                <div class="flex items-center gap-2">
+                  <span
+                    class="w-6 h-6 rounded bg-[#FC6D26] text-white text-[10px] font-bold flex items-center justify-center"
+                    >GL</span
+                  >
+                  <span class="font-medium">order-service</span>
+                  <span class="text-[#8F959E]">backend/order-service</span>
+                </div>
+                <div class="mt-2 text-[12px] text-[#646A73] flex items-center gap-1.5 truncate">
+                  <i data-lucide="terminal" class="w-3 h-3"></i
+                  >git@git.rabbit.inner:backend/order-service.git
+                </div>
+                <div class="mt-2 flex items-center gap-2 text-[12px]">
+                  <span class="px-1.5 py-0.5 rounded bg-[#F2F3F5] text-[#3D4350]"
+                    >Token · 已配置 ••••8c21</span
+                  >
+                  <span class="px-1.5 py-0.5 rounded bg-[#F2F3F5] text-[#3D4350]"
+                    >内部 internal</span
+                  >
+                  <span class="ml-auto inline-flex items-center gap-1 text-[#8F959E]"
+                    ><span class="w-1.5 h-1.5 rounded-full bg-[#8F959E]"></span>未验证</span
+                  >
+                </div>
+                <div
+                  class="mt-2 pt-2 border-t border-[#F0F1F5] flex items-center text-[12px] text-[#8F959E]"
+                >
+                  <span>ssh 地址保存后经平台 API 验证（不出站 ssh）</span>
+                  <div class="row-actions ml-auto flex gap-1">
+                    <button class="btn px-2 py-0.5 rounded hover:bg-[#F2F3F5] text-[#3D4350]">
+                      验证
+                    </button>
+                    <button
+                      class="btn px-2 py-0.5 rounded hover:bg-[#F2F3F5] text-[#3D4350]"
+                      onclick="toast('已设为默认仓库')"
+                    >
+                      设为默认
+                    </button>
+                    <button class="btn px-2 py-0.5 rounded hover:bg-[#F2F3F5] text-[#3D4350]">
+                      编辑
+                    </button>
+                    <button class="btn px-2 py-0.5 rounded hover:bg-[#FDE2E2] text-[#F54A45]">
+                      删除
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 卡片 4：Gitea 账密 · 已连接 -->
+              <div class="card bg-white border border-[#E5E6EB] rounded-lg p-4">
+                <div class="flex items-center gap-2">
+                  <span
+                    class="w-6 h-6 rounded bg-[#609926] text-white text-[10px] font-bold flex items-center justify-center"
+                    >GT</span
+                  >
+                  <span class="font-medium">sdk-demo</span>
+                  <span class="text-[#8F959E]">qa/sdk-demo</span>
+                </div>
+                <div class="mt-2 text-[12px] text-[#646A73] flex items-center gap-1.5 truncate">
+                  <i data-lucide="lock" class="w-3 h-3"></i>https://git.rabbit.inner/qa/sdk-demo.git
+                </div>
+                <div class="mt-2 flex items-center gap-2 text-[12px]">
+                  <span class="px-1.5 py-0.5 rounded bg-[#F2F3F5] text-[#3D4350]"
+                    >账密 · qa-bot</span
+                  >
+                  <span class="px-1.5 py-0.5 rounded bg-[#F2F3F5] text-[#3D4350]"
+                    >默认分支 master</span
+                  >
+                  <span class="ml-auto inline-flex items-center gap-1 text-[#34C724]"
+                    ><span class="w-1.5 h-1.5 rounded-full bg-[#34C724]"></span>已连接</span
+                  >
+                </div>
+                <div
+                  class="mt-2 pt-2 border-t border-[#F0F1F5] flex items-center text-[12px] text-[#8F959E]"
+                >
+                  <span>验证于 10-01 09:12</span>
+                  <div class="row-actions ml-auto flex gap-1">
+                    <button class="btn px-2 py-0.5 rounded hover:bg-[#F2F3F5] text-[#3D4350]">
+                      验证
+                    </button>
+                    <button
+                      class="btn px-2 py-0.5 rounded hover:bg-[#F2F3F5] text-[#3D4350]"
+                      onclick="toast('已设为默认仓库')"
+                    >
+                      设为默认
+                    </button>
+                    <button class="btn px-2 py-0.5 rounded hover:bg-[#F2F3F5] text-[#3D4350]">
+                      编辑
+                    </button>
+                    <button class="btn px-2 py-0.5 rounded hover:bg-[#FDE2E2] text-[#F54A45]">
+                      删除
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 卡片 5：custom · 验证失败（红） -->
+              <div class="card bg-white border border-[#E5E6EB] rounded-lg p-4">
+                <div class="flex items-center gap-2">
+                  <span
+                    class="w-6 h-6 rounded bg-[#8F959E] text-white text-[10px] font-bold flex items-center justify-center"
+                    >其</span
+                  >
+                  <span class="font-medium">legacy-v1</span>
+                  <span class="text-[#8F959E]">svn-mirror/legacy-v1</span>
+                </div>
+                <div class="mt-2 text-[12px] text-[#646A73] flex items-center gap-1.5 truncate">
+                  <i data-lucide="lock" class="w-3 h-3"></i
+                  >https://scm.example.cn/svn-mirror/legacy-v1.git
+                </div>
+                <div class="mt-2 flex items-center gap-2 text-[12px]">
+                  <span class="px-1.5 py-0.5 rounded bg-[#F2F3F5] text-[#3D4350]">自建/其他</span>
+                  <span class="ml-auto inline-flex items-center gap-1 text-[#F54A45]"
+                    ><span class="w-1.5 h-1.5 rounded-full bg-[#F54A45]"></span>验证失败</span
+                  >
+                </div>
+                <div
+                  class="mt-2 pt-2 border-t border-[#F0F1F5] flex items-center text-[12px] text-[#8F959E]"
+                >
+                  <span class="truncate">平台响应 502（custom 地址仅保存，不参与平台验证）</span>
+                  <div class="row-actions ml-auto flex gap-1">
+                    <button class="btn px-2 py-0.5 rounded hover:bg-[#F2F3F5] text-[#3D4350]">
+                      验证
+                    </button>
+                    <button
+                      class="btn px-2 py-0.5 rounded hover:bg-[#F2F3F5] text-[#3D4350]"
+                      onclick="toast('已设为默认仓库')"
+                    >
+                      设为默认
+                    </button>
+                    <button class="btn px-2 py-0.5 rounded hover:bg-[#F2F3F5] text-[#3D4350]">
+                      编辑
+                    </button>
+                    <button class="btn px-2 py-0.5 rounded hover:bg-[#FDE2E2] text-[#F54A45]">
+                      删除
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 空态（二态切换示意；能力 #10） -->
+            <div
+              class="mt-4 border border-dashed border-[#DEE0E3] rounded-lg bg-white/60 p-8 text-center hidden"
+              id="empty-state"
+            >
+              <i data-lucide="git-branch" class="w-10 h-10 mx-auto text-[#BBBFC4]"></i>
+              <div class="mt-3 font-medium">还没有绑定代码仓库</div>
+              <div class="mt-1 text-[#8F959E]">
+                通过平台授权直接选择仓库，或填写 https / ssh 地址绑定
+              </div>
+              <div class="mt-4 flex justify-center gap-2">
+                <button
+                  class="btn px-3 h-8 rounded border border-[#DEE0E3] bg-white hover:border-[#574BFF] hover:text-[#574BFF]"
+                  onclick="openModal('modal-accounts')"
+                >
+                  先去授权账号
+                </button>
+                <button
+                  class="btn px-3 h-8 rounded bg-[#574BFF] text-white hover:bg-[#4a3fe8]"
+                  onclick="openDrawer()"
+                >
+                  添加仓库
+                </button>
+              </div>
+            </div>
+            <div class="mt-3 text-center">
+              <button
+                class="btn text-[12px] text-[#8F959E] underline underline-offset-2"
+                onclick="document.getElementById('empty-state').classList.toggle('hidden')"
+              >
+                切换：空态 / 有数据（走查二态）
+              </button>
+            </div>
+          </div>
+
+          <!-- ───────── 画面② 系统设置·代码平台 ───────── -->
+          <div class="screen p-5 hidden" id="screen-system">
+            <div class="text-[16px] font-semibold">代码平台</div>
+            <div class="text-[#646A73] mt-1">
+              配置 GitHub / Gitee（码云）/ GitLab 的 OAuth 应用（client_id /
+              client_secret），用于组织成员授权后直接选择仓库。系统级为默认配置；组织可在「服务集成」中用自己的应用覆盖。
+            </div>
+            <div
+              class="mt-4 grid gap-3"
+              style="grid-template-columns: repeat(auto-fill, minmax(360px, 1fr))"
+            >
+              <!-- GitHub -->
+              <div class="bg-white border border-[#E5E6EB] rounded-lg p-4">
+                <div class="flex items-center gap-2">
+                  <span
+                    class="w-6 h-6 rounded bg-[#1F2329] text-white text-[10px] font-bold flex items-center justify-center"
+                    >GH</span
+                  >
+                  <span class="font-medium">GitHub</span>
+                  <span class="text-[12px] text-[#8F959E]">github.com</span>
+                  <label
+                    class="ml-auto flex items-center gap-1.5 text-[12px] text-[#646A73] cursor-pointer"
+                    ><input type="checkbox" checked class="accent-[#574BFF]" />启用</label
+                  >
+                </div>
+                <div class="mt-3 space-y-2.5">
+                  <div>
+                    <div class="text-[12px] text-[#646A73] mb-1">Client ID</div>
+                    <div
+                      class="h-8 px-2.5 rounded border border-[#DEE0E3] flex items-center text-[#3D4350]"
+                    >
+                      Iv1.a1b2c3d4e5f6g7h8
+                    </div>
+                  </div>
+                  <div>
+                    <div class="text-[12px] text-[#646A73] mb-1">Client Secret</div>
+                    <div
+                      class="h-8 px-2.5 rounded border border-[#DEE0E3] flex items-center text-[#3D4350]"
+                    >
+                      ••••••••••••••••<span class="ml-auto text-[#8F959E] text-[11px]"
+                        >已配置（留空＝不修改）</span
+                      >
+                    </div>
+                  </div>
+                </div>
+                <div class="mt-3 pt-3 border-t border-[#F0F1F5] flex items-center justify-between">
+                  <span class="text-[11px] text-[#8F959E]"
+                    >回调地址（在平台 OAuth 应用中登记）：<span class="text-[#3D4350]"
+                      >{站点地址}/api/v1/orgs/{orgId}/scm/oauth/github/callback</span
+                    ></span
+                  >
+                  <button class="btn px-3 h-7 rounded bg-[#574BFF] text-white hover:bg-[#4a3fe8]">
+                    保存
+                  </button>
+                </div>
+              </div>
+              <!-- Gitee -->
+              <div class="bg-white border border-[#E5E6EB] rounded-lg p-4">
+                <div class="flex items-center gap-2">
+                  <span
+                    class="w-6 h-6 rounded bg-[#C71D23] text-white text-[10px] font-bold flex items-center justify-center"
+                    >G</span
+                  >
+                  <span class="font-medium">Gitee（码云）</span>
+                  <span class="text-[12px] text-[#8F959E]">gitee.com</span>
+                  <label
+                    class="ml-auto flex items-center gap-1.5 text-[12px] text-[#646A73] cursor-pointer"
+                    ><input type="checkbox" checked class="accent-[#574BFF]" />启用</label
+                  >
+                </div>
+                <div class="mt-3 space-y-2.5">
+                  <div>
+                    <div class="text-[12px] text-[#646A73] mb-1">Client ID</div>
+                    <div
+                      class="h-8 px-2.5 rounded border border-[#DEE0E3] flex items-center text-[#3D4350]"
+                    >
+                      9f8e7d6c5b4a3f2e1d0c
+                    </div>
+                  </div>
+                  <div>
+                    <div class="text-[12px] text-[#646A73] mb-1">Client Secret</div>
+                    <div
+                      class="h-8 px-2.5 rounded border border-[#DEE0E3] flex items-center text-[#3D4350]"
+                    >
+                      ••••••••••••••••<span class="ml-auto text-[#8F959E] text-[11px]"
+                        >已配置（留空＝不修改）</span
+                      >
+                    </div>
+                  </div>
+                </div>
+                <div class="mt-3 pt-3 border-t border-[#F0F1F5] flex items-center justify-end">
+                  <button class="btn px-3 h-7 rounded bg-[#574BFF] text-white hover:bg-[#4a3fe8]">
+                    保存
+                  </button>
+                </div>
+              </div>
+              <!-- GitLab（带实例地址） -->
+              <div class="bg-white border border-[#E5E6EB] rounded-lg p-4">
+                <div class="flex items-center gap-2">
+                  <span
+                    class="w-6 h-6 rounded bg-[#FC6D26] text-white text-[10px] font-bold flex items-center justify-center"
+                    >GL</span
+                  >
+                  <span class="font-medium">GitLab</span>
+                  <span class="text-[12px] text-[#8F959E]">默认 gitlab.com，可填自建实例</span>
+                  <label
+                    class="ml-auto flex items-center gap-1.5 text-[12px] text-[#646A73] cursor-pointer"
+                    ><input type="checkbox" class="accent-[#574BFF]" />启用</label
+                  >
+                </div>
+                <div class="mt-3 space-y-2.5">
+                  <div>
+                    <div class="text-[12px] text-[#646A73] mb-1">实例地址</div>
+                    <div
+                      class="h-8 px-2.5 rounded border border-[#DEE0E3] flex items-center text-[#3D4350]"
+                    >
+                      https://gitlab.com
+                    </div>
+                  </div>
+                  <div>
+                    <div class="text-[12px] text-[#646A73] mb-1">Client ID</div>
+                    <div
+                      class="h-8 px-2.5 rounded border border-[#DEE0E3] flex items-center text-[#BBBFC4]"
+                    >
+                      未配置
+                    </div>
+                  </div>
+                  <div>
+                    <div class="text-[12px] text-[#646A73] mb-1">Client Secret</div>
+                    <div
+                      class="h-8 px-2.5 rounded border border-[#DEE0E3] flex items-center text-[#BBBFC4]"
+                    >
+                      未配置
+                    </div>
+                  </div>
+                </div>
+                <div class="mt-3 pt-3 border-t border-[#F0F1F5] flex items-center justify-end">
+                  <button class="btn px-3 h-7 rounded bg-[#574BFF] text-white hover:bg-[#4a3fe8]">
+                    保存
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ───────── 画面③ 组织·服务集成·代码平台 ───────── -->
+          <div class="screen p-5 hidden" id="screen-org">
+            <div class="text-[16px] font-semibold">服务集成</div>
+            <div class="text-[#646A73] mt-1">
+              组织级第三方平台对接。代码平台的 OAuth
+              应用在未覆盖时自动继承系统配置（组织不可修改系统级配置）。
+            </div>
+
+            <!-- 既有：Jira/禅道/TAPD（示意，非本规格范围） -->
+            <div class="mt-4 bg-white border border-[#E5E6EB] rounded-lg p-4">
+              <div class="font-medium">项目管理平台（既有）</div>
+              <div class="mt-2 grid grid-cols-3 gap-3 text-[12px]">
+                <div class="rounded border border-[#F0F1F5] p-3">
+                  Jira <span class="text-[#8F959E]">未配置</span>
+                </div>
+                <div class="rounded border border-[#F0F1F5] p-3">
+                  禅道 <span class="text-[#34C724]">已连接</span>
+                </div>
+                <div class="rounded border border-[#F0F1F5] p-3">
+                  TAPD <span class="text-[#8F959E]">未配置</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 新增：代码平台（OAuth 应用）区块 -->
+            <div class="mt-3 bg-white border border-[#E5E6EB] rounded-lg p-4">
+              <div class="flex items-center gap-2">
+                <span class="font-medium">代码平台（OAuth 应用）</span>
+                <span
+                  class="text-[10px] px-1.5 py-0.5 rounded bg-[#574BFF]/10 text-[#574BFF] font-medium border border-[#574BFF]/25"
+                  >NEW</span
+                >
+                <span class="text-[12px] text-[#8F959E]"
+                  >覆盖后使用组织自己的 OAuth 应用；撤销覆盖回落继承系统级</span
+                >
+              </div>
+              <table class="w-full mt-3 text-[12px]">
+                <thead>
+                  <tr class="text-left text-[#8F959E] border-b border-[#F0F1F5]">
+                    <th class="py-2 font-normal">平台</th>
+                    <th class="font-normal">配置来源</th>
+                    <th class="font-normal">Client ID</th>
+                    <th class="font-normal">实例</th>
+                    <th class="font-normal text-right">操作</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr class="border-b border-[#F0F1F5]">
+                    <td class="py-2.5">
+                      <span class="inline-flex items-center gap-1.5"
+                        ><span
+                          class="w-4 h-4 rounded bg-[#1F2329] text-white text-[8px] font-bold flex items-center justify-center"
+                          >GH</span
+                        >GitHub</span
+                      >
+                    </td>
+                    <td>
+                      <span class="inline-flex items-center gap-1 text-[#574BFF]"
+                        ><span class="w-1.5 h-1.5 rounded-full bg-[#574BFF]"></span>组织自定义</span
+                      >
+                    </td>
+                    <td class="text-[#646A73]">Iv1.org…9c2d</td>
+                    <td class="text-[#646A73]">—</td>
+                    <td class="text-right">
+                      <button class="btn px-2 py-0.5 rounded hover:bg-[#F2F3F5]">编辑</button>
+                      <button class="btn px-2 py-0.5 rounded hover:bg-[#F2F3F5] text-[#3D4350]">
+                        撤销覆盖
+                      </button>
+                    </td>
+                  </tr>
+                  <tr class="border-b border-[#F0F1F5]">
+                    <td class="py-2.5">
+                      <span class="inline-flex items-center gap-1.5"
+                        ><span
+                          class="w-4 h-4 rounded bg-[#C71D23] text-white text-[8px] font-bold flex items-center justify-center"
+                          >G</span
+                        >Gitee（码云）</span
+                      >
+                    </td>
+                    <td>
+                      <span class="inline-flex items-center gap-1 text-[#646A73]"
+                        ><i data-lucide="corner-up-left" class="w-3 h-3"></i>继承系统级</span
+                      >
+                    </td>
+                    <td class="text-[#646A73]">Iv1.sys…1d0c</td>
+                    <td class="text-[#646A73]">—</td>
+                    <td class="text-right">
+                      <button class="btn px-2 py-0.5 rounded hover:bg-[#F2F3F5]">配置覆盖</button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="py-2.5">
+                      <span class="inline-flex items-center gap-1.5"
+                        ><span
+                          class="w-4 h-4 rounded bg-[#FC6D26] text-white text-[8px] font-bold flex items-center justify-center"
+                          >GL</span
+                        >GitLab</span
+                      >
+                    </td>
+                    <td>
+                      <span class="inline-flex items-center gap-1 text-[#BBBFC4]"
+                        ><span class="w-1.5 h-1.5 rounded-full bg-[#BBBFC4]"></span>未配置</span
+                      >
+                    </td>
+                    <td class="text-[#BBBFC4]">—</td>
+                    <td class="text-[#BBBFC4]">—</td>
+                    <td class="text-right">
+                      <button class="btn px-2 py-0.5 rounded hover:bg-[#F2F3F5]">配置覆盖</button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- 覆盖弹窗（示意打开） -->
+            <div class="mt-3 text-center">
+              <button
+                class="btn text-[12px] text-[#8F959E] underline underline-offset-2"
+                onclick="openModal('modal-orgapp')"
+              >
+                打开：配置覆盖弹窗（走查）
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════ 抽屉：添加仓库（双方式） ══════════ -->
+    <div class="fixed inset-0 z-40 hidden" id="drawer-mask">
+      <div class="absolute inset-0 bg-black/30 modal-mask" onclick="closeDrawer()"></div>
+      <div
+        class="drawer absolute right-0 top-0 bottom-0 w-[560px] bg-white shadow-2xl flex flex-col translate-x-full"
+        id="drawer-body"
+      >
+        <div class="flex items-center gap-2 px-5 h-14 border-b border-[#F0F1F5] shrink-0">
+          <span class="text-[15px] font-semibold">添加仓库</span>
+          <span class="text-[12px] text-[#8F959E]">上限 10 个 / 项目</span>
+          <button
+            class="ml-auto w-7 h-7 rounded hover:bg-[#F2F3F5] flex items-center justify-center"
+            onclick="closeDrawer()"
+          >
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+        <!-- 方式 tabs（能力 #5 平台授权 / #6 URL 直填） -->
+        <div class="px-5 pt-3 flex gap-1 border-b border-[#F0F1F5]">
+          <button
+            class="add-tab px-3 py-2 font-medium border-b-2 border-[#574BFF] text-[#574BFF]"
+            data-tab="oauth"
+          >
+            平台授权
+          </button>
+          <button
+            class="add-tab px-3 py-2 text-[#646A73] border-b-2 border-transparent hover:text-[#3D4350]"
+            data-tab="url"
+          >
+            仓库地址
+          </button>
+        </div>
+        <div class="flex-1 overflow-auto p-5">
+          <!-- tab 1：平台授权 -->
+          <div class="add-pane" data-pane="oauth">
+            <div class="text-[12px] text-[#646A73] mb-1.5">授权账号</div>
+            <div class="flex gap-2">
+              <div
+                class="flex-1 h-8 px-2.5 rounded border border-[#DEE0E3] flex items-center gap-2"
+              >
+                <img
+                  class="w-4 h-4 rounded-full"
+                  src="https://avatars.githubusercontent.com/u/9919?s=32"
+                  alt=""
+                  onerror="this.style.display = 'none'"
+                />
+                <span>xujialiang</span><span class="text-[#8F959E]">GitHub · 由 我 授权</span>
+                <i data-lucide="chevron-down" class="w-3.5 h-3.5 ml-auto text-[#8F959E]"></i>
+              </div>
+              <button
+                class="btn px-3 h-8 rounded border border-[#DEE0E3] hover:border-[#574BFF] hover:text-[#574BFF] text-[12px]"
+              >
+                去授权新账号
+              </button>
+            </div>
+            <div class="flex mt-4 mb-2 gap-2">
+              <div
+                class="flex-1 h-8 px-2.5 rounded border border-[#DEE0E3] flex items-center gap-2 text-[#646A73]"
+              >
+                <i data-lucide="search" class="w-3.5 h-3.5"></i>搜索仓库（owner / 名称）
+              </div>
+              <span class="text-[11px] text-[#8F959E] self-center">共 86 个可访问仓库</span>
+            </div>
+            <div class="border border-[#E5E6EB] rounded overflow-hidden">
+              <table class="w-full text-[12px]">
+                <thead>
+                  <tr class="text-left text-[#8F959E] bg-[#F7F8FA]">
+                    <th class="w-8"></th>
+                    <th class="py-2 font-normal">仓库</th>
+                    <th class="font-normal">可见性</th>
+                    <th class="font-normal">默认分支</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr class="border-t border-[#F0F1F5] cursor-pointer hover:bg-[#F7F8FA]">
+                    <td class="pl-3">
+                      <span
+                        class="radio-dot inline-block w-3.5 h-3.5 rounded-full border border-[#BBBFC4]"
+                      ></span>
+                    </td>
+                    <td class="py-2">RabbitAI-Lab/rabbit-web</td>
+                    <td><span class="text-[#8F959E]">私有</span></td>
+                    <td>main</td>
+                  </tr>
+                  <tr class="border-t border-[#F0F1F5] cursor-pointer bg-[#574BFF]/[0.04]">
+                    <td class="pl-3">
+                      <span
+                        class="radio-dot inline-block w-3.5 h-3.5 rounded-full border border-[#574BFF] flex items-center justify-center"
+                        ><span class="w-1.5 h-1.5 rounded-full bg-[#574BFF]"></span
+                      ></span>
+                    </td>
+                    <td class="py-2 font-medium">RabbitAI-Lab/rabbit-portal</td>
+                    <td><span class="text-[#8F959E]">私有</span></td>
+                    <td>main</td>
+                  </tr>
+                  <tr class="border-t border-[#F0F1F5] cursor-pointer hover:bg-[#F7F8FA]">
+                    <td class="pl-3">
+                      <span
+                        class="radio-dot inline-block w-3.5 h-3.5 rounded-full border border-[#BBBFC4]"
+                      ></span>
+                    </td>
+                    <td class="py-2">xujialiang/tutorials</td>
+                    <td><span class="text-[#34C724]">公开</span></td>
+                    <td>master</td>
+                  </tr>
+                  <tr class="border-t border-[#F0F1F5] cursor-pointer hover:bg-[#F7F8FA]">
+                    <td class="pl-3">
+                      <span
+                        class="radio-dot inline-block w-3.5 h-3.5 rounded-full border border-[#BBBFC4]"
+                      ></span>
+                    </td>
+                    <td class="py-2">RabbitAI-Lab/docs-site</td>
+                    <td><span class="text-[#8F959E]">私有</span></td>
+                    <td>main</td>
+                  </tr>
+                </tbody>
+              </table>
+              <div
+                class="py-2 text-center text-[12px] text-[#8F959E] border-t border-[#F0F1F5] cursor-pointer hover:text-[#574BFF]"
+              >
+                加载更多（2 / 5 页）
+              </div>
+            </div>
+            <div class="mt-4">
+              <div class="text-[12px] text-[#646A73] mb-1.5">备注名（可选）</div>
+              <div
+                class="h-8 px-2.5 rounded border border-[#DEE0E3] flex items-center text-[#BBBFC4]"
+              >
+                展示在仓库卡片，默认 owner/repo
+              </div>
+            </div>
+          </div>
+          <!-- tab 2：仓库地址 -->
+          <div class="add-pane hidden" data-pane="url">
+            <div class="text-[12px] text-[#646A73] mb-1.5">仓库地址（https 或 ssh）</div>
+            <div class="flex gap-2">
+              <div
+                class="flex-1 h-8 px-2.5 rounded border border-[#DEE0E3] flex items-center text-[#3D4350]"
+              >
+                https://github.com/RabbitAI-Lab/rabbit-web.git
+              </div>
+              <button
+                class="btn px-3 h-8 rounded border border-[#DEE0E3] hover:border-[#574BFF] hover:text-[#574BFF] text-[12px]"
+              >
+                识别
+              </button>
+            </div>
+            <div class="mt-2 flex items-center gap-2 text-[12px]">
+              <span class="text-[#8F959E]">识别结果：</span>
+              <span
+                class="px-1.5 py-0.5 rounded bg-[#F2F3F5] text-[#3D4350] inline-flex items-center gap-1"
+                ><span
+                  class="w-3 h-3 rounded bg-[#1F2329] text-white text-[7px] font-bold flex items-center justify-center"
+                  >GH</span
+                >GitHub · RabbitAI-Lab/rabbit-web</span
+              >
+              <span class="text-[#8F959E]"
+                >识别不出时请在下方手动选择平台（自建/其他＝仅保存）</span
+              >
+            </div>
+            <div class="mt-4">
+              <div class="text-[12px] text-[#646A73] mb-1.5">平台</div>
+              <div class="flex gap-1.5">
+                <span
+                  class="btn px-2.5 h-7 rounded border border-[#574BFF] text-[#574BFF] bg-[#574BFF]/[0.06] text-[12px]"
+                  >GitHub</span
+                >
+                <span
+                  class="btn px-2.5 h-7 rounded border border-[#DEE0E3] text-[#3D4350] text-[12px]"
+                  >Gitee（码云）</span
+                >
+                <span
+                  class="btn px-2.5 h-7 rounded border border-[#DEE0E3] text-[#3D4350] text-[12px]"
+                  >GitLab</span
+                >
+                <span
+                  class="btn px-2.5 h-7 rounded border border-[#DEE0E3] text-[#3D4350] text-[12px]"
+                  >Gitea</span
+                >
+                <span
+                  class="btn px-2.5 h-7 rounded border border-[#DEE0E3] text-[#3D4350] text-[12px]"
+                  >自建/其他</span
+                >
+              </div>
+            </div>
+            <div class="mt-4">
+              <div class="text-[12px] text-[#646A73] mb-1.5">认证方式</div>
+              <div class="flex gap-4 text-[12px]" id="auth-radios">
+                <label class="flex items-center gap-1.5 cursor-pointer" onclick="switchAuth('none')"
+                  ><span
+                    class="radio-dot auth-radio inline-block w-3.5 h-3.5 rounded-full border border-[#BBBFC4]"
+                    data-k="none"
+                  ></span
+                  >无凭据（公开仓库）</label
+                >
+                <label
+                  class="flex items-center gap-1.5 cursor-pointer"
+                  onclick="switchAuth('token')"
+                  ><span
+                    class="radio-dot auth-radio inline-block w-3.5 h-3.5 rounded-full border border-[#574BFF] flex items-center justify-center"
+                    data-k="token"
+                    ><span class="w-1.5 h-1.5 rounded-full bg-[#574BFF]"></span></span
+                  >Token</label
+                >
+                <label
+                  class="flex items-center gap-1.5 cursor-pointer"
+                  onclick="switchAuth('password')"
+                  ><span
+                    class="radio-dot auth-radio inline-block w-3.5 h-3.5 rounded-full border border-[#BBBFC4]"
+                    data-k="password"
+                  ></span
+                  >账号密码</label
+                >
+              </div>
+              <!-- token 字段 -->
+              <div class="mt-2.5 auth-field" data-k="token">
+                <div class="text-[12px] text-[#646A73] mb-1.5">访问令牌（PAT）</div>
+                <div
+                  class="h-8 px-2.5 rounded border border-[#DEE0E3] flex items-center text-[#3D4350]"
+                >
+                  ghp••••••••••••••••••<span class="ml-auto text-[11px] text-[#8F959E]"
+                    >加密存储 · 永不回显</span
+                  >
+                </div>
+              </div>
+              <!-- 账密字段 -->
+              <div class="mt-2.5 grid grid-cols-2 gap-2 auth-field hidden" data-k="password">
+                <div>
+                  <div class="text-[12px] text-[#646A73] mb-1.5">用户名</div>
+                  <div
+                    class="h-8 px-2.5 rounded border border-[#DEE0E3] flex items-center text-[#3D4350]"
+                  >
+                    qa-bot
+                  </div>
+                </div>
+                <div>
+                  <div class="text-[12px] text-[#646A73] mb-1.5">密码</div>
+                  <div
+                    class="h-8 px-2.5 rounded border border-[#DEE0E3] flex items-center text-[#3D4350]"
+                  >
+                    ••••••••<span class="ml-auto text-[11px] text-[#8F959E]">加密存储</span>
+                  </div>
+                </div>
+              </div>
+              <div class="mt-2 text-[11px] text-[#8F959E]">
+                账密验证支持：Gitea、Gitee；GitHub / GitLab 的 API
+                不支持账密——可保存，验证时将提示改用 Token。
+              </div>
+            </div>
+            <div class="mt-4">
+              <div class="text-[12px] text-[#646A73] mb-1.5">备注名（可选）</div>
+              <div
+                class="h-8 px-2.5 rounded border border-[#DEE0E3] flex items-center text-[#BBBFC4]"
+              >
+                展示在仓库卡片，默认 owner/repo
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="px-5 py-3 border-t border-[#F0F1F5] flex justify-end gap-2 shrink-0">
+          <button
+            class="btn px-4 h-8 rounded border border-[#DEE0E3] hover:border-[#574BFF] hover:text-[#574BFF]"
+            onclick="closeDrawer()"
+          >
+            取消
+          </button>
+          <button
+            class="btn px-4 h-8 rounded bg-[#574BFF] text-white hover:bg-[#4a3fe8]"
+            onclick="
+              closeDrawer();
+              toast('已绑定仓库（原型示意）');
+            "
+          >
+            确定
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════ 弹窗：授权账号（能力 #4） ══════════ -->
+    <div
+      class="fixed inset-0 z-50 hidden items-center justify-center"
+      id="modal-accounts"
+      style="display: none"
+    >
+      <div
+        class="absolute inset-0 bg-black/30 modal-mask"
+        onclick="closeModal('modal-accounts')"
+      ></div>
+      <div class="relative bg-white rounded-lg shadow-2xl w-[640px] max-h-[80vh] flex flex-col">
+        <div class="flex items-center px-5 h-14 border-b border-[#F0F1F5]">
+          <span class="text-[15px] font-semibold">授权账号</span>
+          <span class="text-[12px] text-[#8F959E] ml-2">组织内共享 · 项目绑定时可选用</span>
+          <button
+            class="ml-auto w-7 h-7 rounded hover:bg-[#F2F3F5] flex items-center justify-center"
+            onclick="closeModal('modal-accounts')"
+          >
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+        <div class="p-5 overflow-auto">
+          <div class="flex gap-2 mb-3">
+            <span class="text-[12px] text-[#646A73] self-center">授权新账号：</span>
+            <button
+              class="btn px-3 h-7 rounded border border-[#DEE0E3] hover:border-[#574BFF] hover:text-[#574BFF] text-[12px] inline-flex items-center gap-1"
+            >
+              <span
+                class="w-3.5 h-3.5 rounded bg-[#1F2329] text-white text-[8px] font-bold flex items-center justify-center"
+                >GH</span
+              >GitHub
+            </button>
+            <button
+              class="btn px-3 h-7 rounded border border-[#DEE0E3] hover:border-[#574BFF] hover:text-[#574BFF] text-[12px] inline-flex items-center gap-1"
+            >
+              <span
+                class="w-3.5 h-3.5 rounded bg-[#C71D23] text-white text-[8px] font-bold flex items-center justify-center"
+                >G</span
+              >Gitee（码云）
+            </button>
+            <button
+              class="btn px-3 h-7 rounded border border-[#DEE0E3] hover:border-[#574BFF] hover:text-[#574BFF] text-[12px] inline-flex items-center gap-1"
+            >
+              <span
+                class="w-3.5 h-3.5 rounded bg-[#FC6D26] text-white text-[8px] font-bold flex items-center justify-center"
+                >GL</span
+              >GitLab
+            </button>
+          </div>
+          <table class="w-full text-[12px] border border-[#E5E6EB] rounded overflow-hidden">
+            <thead>
+              <tr class="text-left text-[#8F959E] bg-[#F7F8FA]">
+                <th class="py-2 px-3 font-normal">平台</th>
+                <th class="font-normal">账号</th>
+                <th class="font-normal">授权人</th>
+                <th class="font-normal">授权时间</th>
+                <th class="font-normal">状态</th>
+                <th class="text-right font-normal">操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="border-t border-[#F0F1F5]">
+                <td class="py-2.5 px-3">GitHub</td>
+                <td>xujialiang（许良）</td>
+                <td>我</td>
+                <td class="text-[#8F959E]">2026-10-01 10:22</td>
+                <td>
+                  <span class="inline-flex items-center gap-1 text-[#34C724]"
+                    ><span class="w-1.5 h-1.5 rounded-full bg-[#34C724]"></span>有效</span
+                  >
+                </td>
+                <td class="text-right">
+                  <button class="btn px-2 py-0.5 rounded hover:bg-[#FDE2E2] text-[#F54A45]">
+                    撤销
+                  </button>
+                </td>
+              </tr>
+              <tr class="border-t border-[#F0F1F5]">
+                <td class="py-2.5 px-3">Gitee（码云）</td>
+                <td>rabbit-qa（测试组）</td>
+                <td>张三</td>
+                <td class="text-[#8F959E]">2026-09-28 16:40</td>
+                <td>
+                  <span class="inline-flex items-center gap-1 text-[#8F959E]"
+                    ><span class="w-1.5 h-1.5 rounded-full bg-[#8F959E]"></span>已过期</span
+                  >
+                </td>
+                <td class="text-right">
+                  <button class="btn px-2 py-0.5 rounded hover:bg-[#F2F3F5] text-[#3D4350]">
+                    重新授权
+                  </button>
+                  <button class="btn px-2 py-0.5 rounded hover:bg-[#FDE2E2] text-[#F54A45]">
+                    撤销
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="mt-3 text-[11px] text-[#8F959E]">
+            撤销权限：授权人本人或组织管理员（ORG_INTEGRATION:UPDATE）；撤销后引用该账号的仓库绑定变为「凭据失效」。
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════ 弹窗：组织覆盖配置 ══════════ -->
+    <div
+      class="fixed inset-0 z-50 hidden items-center justify-center"
+      id="modal-orgapp"
+      style="display: none"
+    >
+      <div
+        class="absolute inset-0 bg-black/30 modal-mask"
+        onclick="closeModal('modal-orgapp')"
+      ></div>
+      <div class="relative bg-white rounded-lg shadow-2xl w-[460px]">
+        <div class="flex items-center px-5 h-14 border-b border-[#F0F1F5]">
+          <span class="text-[15px] font-semibold">配置覆盖 · GitHub</span>
+          <button
+            class="ml-auto w-7 h-7 rounded hover:bg-[#F2F3F5] flex items-center justify-center"
+            onclick="closeModal('modal-orgapp')"
+          >
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+        <div class="p-5 space-y-3">
+          <div>
+            <div class="text-[12px] text-[#646A73] mb-1.5">Client ID</div>
+            <div
+              class="h-8 px-2.5 rounded border border-[#DEE0E3] flex items-center text-[#3D4350]"
+            >
+              Iv1.org…9c2d
+            </div>
+          </div>
+          <div>
+            <div class="text-[12px] text-[#646A73] mb-1.5">Client Secret</div>
+            <div
+              class="h-8 px-2.5 rounded border border-[#DEE0E3] flex items-center text-[#3D4350]"
+            >
+              ••••••••••••••••<span class="ml-auto text-[11px] text-[#8F959E]">留空＝不修改</span>
+            </div>
+          </div>
+          <div class="text-[11px] text-[#8F959E]">
+            覆盖后本组织授权走该应用；「撤销覆盖」恢复继承系统级配置。
+          </div>
+        </div>
+        <div class="px-5 py-3 border-t border-[#F0F1F5] flex justify-end gap-2">
+          <button
+            class="btn px-4 h-8 rounded border border-[#DEE0E3]"
+            onclick="closeModal('modal-orgapp')"
+          >
+            取消
+          </button>
+          <button
+            class="btn px-4 h-8 rounded bg-[#574BFF] text-white hover:bg-[#4a3fe8]"
+            onclick="
+              closeModal('modal-orgapp');
+              toast('已保存组织覆盖（原型示意）');
+            "
+          >
+            保存
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- toast（示意） -->
+    <div
+      id="toast"
+      class="fixed left-1/2 -translate-x-1/2 bottom-10 z-[60] bg-[#1F2329] text-white text-[13px] px-4 py-2 rounded shadow-lg opacity-0 pointer-events-none transition-opacity"
+    >
+      已设为默认仓库
+    </div>
+
+    <script>
+      const lucide$ = () => window.lucide && lucide.createIcons();
+      // 画面切换
+      document.querySelectorAll("#screen-switch button").forEach((b) =>
+        b.addEventListener("click", () => {
+          document
+            .querySelectorAll("#screen-switch button")
+            .forEach((x) => (x.className = "btn px-3 py-1 rounded bg-white/10 hover:bg-white/25"));
+          b.className = "btn px-3 py-1 rounded bg-white/30";
+          ["project", "system", "org"].forEach((s) =>
+            document
+              .getElementById("screen-" + s)
+              .classList.toggle("hidden", s !== b.dataset.screen),
+          );
+        }),
+      );
+      // 添加抽屉 tabs
+      document.querySelectorAll(".add-tab").forEach((t) =>
+        t.addEventListener("click", () => {
+          document.querySelectorAll(".add-tab").forEach((x) => {
+            x.className =
+              "add-tab px-3 py-2 text-[#646A73] border-b-2 border-transparent hover:text-[#3D4350]";
+          });
+          t.className = "add-tab px-3 py-2 font-medium border-b-2 border-[#574BFF] text-[#574BFF]";
+          document
+            .querySelectorAll(".add-pane")
+            .forEach((p) => p.classList.toggle("hidden", p.dataset.pane !== t.dataset.tab));
+        }),
+      );
+      // 认证方式 Radio 切换
+      function switchAuth(k) {
+        document.querySelectorAll(".auth-radio").forEach((r) => {
+          const on = r.dataset.k === k;
+          r.className =
+            "radio-dot auth-radio inline-block w-3.5 h-3.5 rounded-full border " +
+            (on ? "border-[#574BFF] flex items-center justify-center" : "border-[#BBBFC4]");
+          r.innerHTML = on ? '<span class="w-1.5 h-1.5 rounded-full bg-[#574BFF]"></span>' : "";
+        });
+        document
+          .querySelectorAll(".auth-field")
+          .forEach((f) => f.classList.toggle("hidden", f.dataset.k !== k));
+      }
+      // 选仓行单选
+      document.querySelectorAll("[data-pane='oauth'] tbody tr").forEach((tr) =>
+        tr.addEventListener("click", () => {
+          document.querySelectorAll("[data-pane='oauth'] tbody tr").forEach((x) => {
+            x.classList.remove("bg-[#574BFF]/[0.04]");
+            x.querySelector(".radio-dot").className =
+              "radio-dot inline-block w-3.5 h-3.5 rounded-full border border-[#BBBFC4]";
+            x.querySelector("td:nth-child(2)").classList.remove("font-medium");
+          });
+          tr.classList.add("bg-[#574BFF]/[0.04]");
+          tr.querySelector(".radio-dot").className =
+            "radio-dot inline-block w-3.5 h-3.5 rounded-full border border-[#574BFF] flex items-center justify-center";
+          tr.querySelector(".radio-dot").innerHTML =
+            '<span class="w-1.5 h-1.5 rounded-full bg-[#574BFF]"></span>';
+          tr.querySelector("td:nth-child(2)").classList.add("font-medium");
+        }),
+      );
+      function openDrawer() {
+        const m = document.getElementById("drawer-mask");
+        m.classList.remove("hidden");
+        requestAnimationFrame(() =>
+          document.getElementById("drawer-body").classList.remove("translate-x-full"),
+        );
+      }
+      function closeDrawer() {
+        document.getElementById("drawer-body").classList.add("translate-x-full");
+        setTimeout(() => document.getElementById("drawer-mask").classList.add("hidden"), 180);
+      }
+      function openModal(id) {
+        const m = document.getElementById(id);
+        m.style.display = "flex";
+      }
+      function closeModal(id) {
+        document.getElementById(id).style.display = "none";
+      }
+      function toast(msg) {
+        const t = document.getElementById("toast");
+        t.textContent = msg;
+        t.style.opacity = 1;
+        setTimeout(() => (t.style.opacity = 0), 1400);
+      }
+      lucide$();
+    </script>
+  </body>
+</html>

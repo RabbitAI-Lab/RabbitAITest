@@ -168,6 +168,13 @@ const PROJECT_UIT = [
   "PROJECT_UIT:DELETE",
   "PROJECT_UIT:EXECUTE",
 ] as const;
+/** 项目代码仓库绑定（S13 SCM-001 随规格入库） */
+const PROJECT_REPO = [
+  "PROJECT_REPO:READ",
+  "PROJECT_REPO:CREATE",
+  "PROJECT_REPO:UPDATE",
+  "PROJECT_REPO:DELETE",
+] as const;
 
 export const PERMISSION_POINTS = [
   ...SYSTEM_USER,
@@ -208,6 +215,7 @@ export const PERMISSION_POINTS = [
   ...ORG_DEPARTMENT,
   ...PROJECT_LOAD,
   ...PROJECT_UIT,
+  ...PROJECT_REPO,
 ] as const;
 
 export type PermissionPoint = (typeof PERMISSION_POINTS)[number];
@@ -250,6 +258,7 @@ export const PRESET_GROUP_PERMISSIONS = {
     "PROJECT_AI:READ",
     "PROJECT_LOAD:READ",
     "PROJECT_UIT:READ",
+    "PROJECT_REPO:READ",
     ...PROJECT_EXEC_TASK,
   ],
   ORG_MEMBER: ["ORG_PROJECT:READ"],
@@ -273,6 +282,7 @@ export const PRESET_GROUP_PERMISSIONS = {
     ...PROJECT_AI,
     ...PROJECT_LOAD,
     ...PROJECT_UIT,
+    ...PROJECT_REPO,
   ],
   PROJECT_MEMBER: [
     "PROJECT_MEMBER:READ",
@@ -301,6 +311,8 @@ export const PRESET_GROUP_PERMISSIONS = {
     "PROJECT_AI:READ",
     "PROJECT_LOAD:READ",
     "PROJECT_UIT:READ",
+    "PROJECT_REPO:READ",
+    "PROJECT_REPO:CREATE",
     ...PROJECT_EXEC_TASK,
   ],
 } as const;

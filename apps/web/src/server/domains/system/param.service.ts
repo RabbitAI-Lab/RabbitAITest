@@ -30,6 +30,12 @@ const DEFAULTS = {
     platformLogo: "",
     helpUrl: "",
   },
+  /** S13 SCM-001 系统级代码平台 OAuth 应用（clientSecret 存 enc: 密文；GET 视图转 hasSecret） */
+  scm: {
+    github: { clientId: "", clientSecret: "", baseUrl: "", enabled: false },
+    gitee: { clientId: "", clientSecret: "", baseUrl: "", enabled: false },
+    gitlab: { clientId: "", clientSecret: "", baseUrl: "https://gitlab.com", enabled: false },
+  },
 } as const;
 
 /** SMTP 密码 AES-256-GCM 加密（rules/security：密钥不出现在源码/日志）。 */
@@ -77,14 +83,15 @@ export async function readParam<K extends keyof typeof DEFAULTS>(
   return merged;
 }
 
-/** 全量读取（SMTP 密码脱敏为 ******）。 */
+/** 全量读取（SMTP 密码脱敏为 ******；SCM clientSecret 转 hasSecret 布尔）。 */
 export async function getParams() {
-  const [base, smtp, file, cleanup, theme] = await Promise.all([
+  const [base, smtp, file, cleanup, theme, scm] = await Promise.all([
     readParam("base"),
     readParam("smtp"),
     readParam("file"),
     readParam("cleanup"),
     readParam("theme"),
+    readParam("scm"),
   ]);
   return {
     base,
@@ -92,11 +99,30 @@ export async function getParams() {
     file,
     cleanup,
     theme,
+    scm: scmParamsView(scm),
   };
 }
 
+/** SCM-001：存储视图（clientSecret=enc: 密文或空）→ 回显视图（hasSecret 布尔，永不回显明文/密文）。 */
+function scmParamsView(scm: Record<string, unknown>) {
+  const out: Record<
+    string,
+    { clientId: string; hasSecret: boolean; baseUrl: string; enabled: boolean }
+  > = {};
+  for (const p of ["github", "gitee", "gitlab"] as const) {
+    const v = (scm[p] ?? {}) as Record<string, unknown>;
+    out[p] = {
+      clientId: String(v.clientId ?? ""),
+      hasSecret: typeof v.clientSecret === "string" && v.clientSecret.startsWith("enc:"),
+      baseUrl: String(v.baseUrl ?? ""),
+      enabled: v.enabled === true,
+    };
+  }
+  return out;
+}
+
 export async function updateParam(
-  group: "basic" | "smtp" | "file" | "cleanup" | "theme",
+  group: "basic" | "smtp" | "file" | "cleanup" | "theme" | "scm",
   value: Record<string, unknown>,
 ): Promise<void> {
   let stored: Record<string, unknown> = { ...value };
@@ -112,6 +138,37 @@ export async function updateParam(
       stored.pass = encryptSecret(String(pass));
     }
     void prev;
+  }
+  if (group === "scm") {
+    // SCM-001：三平台逐个处理——clientId 空=整组重置（清 secret）；
+    // clientSecret 空/******=保留原密文；否则 enc: 加密（沿 SMTP pass 语义）
+    const prevRow = await prisma.systemParam.findUnique({ where: { key: "scm" } });
+    const prevRaw = ((prevRow?.value ?? {}) as Record<string, unknown>) ?? {};
+    stored = {};
+    for (const p of ["github", "gitee", "gitlab"] as const) {
+      const v = (value[p] ?? {}) as Record<string, unknown>;
+      const prevV = (prevRaw[p] ?? {}) as Record<string, unknown>;
+      const clientId = String(v.clientId ?? "");
+      const secretInput = v.clientSecret;
+      const prevSecret = typeof prevV.clientSecret === "string" ? prevV.clientSecret : "";
+      if (!clientId) {
+        stored[p] = {
+          clientId: "",
+          clientSecret: "",
+          baseUrl: p === "gitlab" ? "https://gitlab.com" : "",
+          enabled: false,
+        };
+        continue;
+      }
+      const secret =
+        secretInput && secretInput !== "******" ? encryptSecret(String(secretInput)) : prevSecret;
+      stored[p] = {
+        clientId,
+        clientSecret: secret,
+        baseUrl: String(v.baseUrl ?? "") || (p === "gitlab" ? "https://gitlab.com" : ""),
+        enabled: v.enabled === true,
+      };
+    }
   }
   if (group === "cleanup") {
     const days = Number(value.logRetentionDays);
