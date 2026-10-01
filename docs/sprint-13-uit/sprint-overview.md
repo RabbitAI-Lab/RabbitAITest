@@ -1,0 +1,20 @@
+# Sprint 13 — UI 测试脚本化（AI 时代工作流）
+
+| 项     | 值                                                            |
+| ------ | ------------------------------------------------------------- |
+| 主题   | UI 测试直录 Playwright 脚本 + 引擎官方 runner 直执行          |
+| 规格   | [UIT-003-playwright-script.md](./UIT-003-playwright-script.md)（Prototyped，高保真已确认 2026-10-01） |
+| 背景   | 用户直提（2026-10-01）：AI 时代表单式步骤编排不满足要求；AI 助手直接产出标准 Playwright 脚本，平台须零改造收编并直执行 |
+
+## 交付表
+
+| 编号    | 规格 | 状态  | 交付物 |
+| ------- | ---- | ----- | ------ |
+| UIT-003 | 同上 | Prototyped | 脚本模式 CRUD/校验干跑/子进程执行/测试树报告/trace；存量步骤模式零回归（开发中，worktree RabbitAITest-s13 / 分支 UIT-003-playwright-script） |
+
+## Backlog（非本 Sprint）
+
+- API 自动补全/格式化（CodeMirror 扩展）——P2
+- 内嵌 trace viewer 网页回放——P2
+- AI 生成 UI 脚本（对接 AI-004）——P2
+- 文件上传 .spec.ts / zip 批量导入——P2
