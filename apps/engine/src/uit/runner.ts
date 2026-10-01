@@ -7,6 +7,7 @@
 import { config } from "@rabbit/shared";
 import type { UiStep } from "@rabbit/shared";
 import type { EventWriter } from "../events.js";
+import { precheckRunner, resolveRunner, runnerCheckHasFail } from "./runner-env.js";
 
 export interface UiStepOutcome {
   seq: number;
@@ -43,7 +44,10 @@ export function parseRoleLocator(locator: string): { role: string; name?: string
 }
 
 /** 定位器构造（css/xpath/testid/text/role 五种）。 */
-export function buildLocator(page: PwPage, ref: { locatorType: string; locator: string }): PwLocator {
+export function buildLocator(
+  page: PwPage,
+  ref: { locatorType: string; locator: string },
+): PwLocator {
   switch (ref.locatorType) {
     case "css":
       return page.locator(ref.locator);
@@ -132,6 +136,30 @@ export async function runUiCase(
   isStopped: () => Promise<boolean>,
 ): Promise<UiCaseResult> {
   const steps: UiStepOutcome[] = [];
+  // v7（UIT-004）：步骤模式=内置 runner 预检（chromium/node/磁盘 fail 项阻断，runner-check 帧承载）
+  try {
+    const builtin = await resolveRunner(cmd.projectId, null);
+    const items = await precheckRunner(builtin);
+    if (runnerCheckHasFail(items)) {
+      await writer.emit({ type: "runner-check", itemId: cmd.itemId, runner: builtin.label, items });
+      const fails = items.filter((i) => i.status === "fail");
+      return {
+        status: "FAILED",
+        failureKind: "CONFIG_ERROR",
+        message: `Runner 环境预检未通过（${builtin.label} · ${fails.length} 项失败：${fails
+          .map((f) => f.label)
+          .join("、")}）——处置指引见 runner-check 清单`,
+        steps,
+      };
+    }
+  } catch (e) {
+    return {
+      status: "FAILED",
+      failureKind: "CONFIG_ERROR",
+      message: `Runner 解析失败：${(e as Error).message}`,
+      steps,
+    };
+  }
   let chromiumApi: typeof import("playwright-core");
   try {
     chromiumApi = await import("playwright-core");
@@ -167,11 +195,25 @@ export async function runUiCase(
       const seq = i + 1;
       const name = stepName(step);
       if (failed) {
-        steps.push({ seq, op: step.op, name, status: "SKIPPED", durationMs: 0, message: "前序失败终止" });
+        steps.push({
+          seq,
+          op: step.op,
+          name,
+          status: "SKIPPED",
+          durationMs: 0,
+          message: "前序失败终止",
+        });
         continue;
       }
       if (await isStopped()) {
-        steps.push({ seq, op: step.op, name, status: "SKIPPED", durationMs: 0, message: "任务被停止" });
+        steps.push({
+          seq,
+          op: step.op,
+          name,
+          status: "SKIPPED",
+          durationMs: 0,
+          message: "任务被停止",
+        });
         for (let j = i + 1; j < cmd.steps.length; j++) {
           const s2 = cmd.steps[j];
           if (!s2) continue;
@@ -304,7 +346,9 @@ async function execStep(
     }
     case "assert-visible": {
       const loc = requireLocator();
-      const visible = await loc.isVisible({ timeout: Math.min(timeoutMs, 5000) }).catch(() => false);
+      const visible = await loc
+        .isVisible({ timeout: Math.min(timeoutMs, 5000) })
+        .catch(() => false);
       return visible ? done("SUCCESS") : done("FAILED", "元素不可见");
     }
     case "wait":

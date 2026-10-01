@@ -24,6 +24,10 @@ export const config = {
   execQueueName: "exec",
   /** S11 LOAD-003：施压任务独立队列（长任务不占功能执行槽位；契约=loadCommandSchema） */
   loadQueueName: "load",
+  /** S14 UIT-004：runner 管理（安装/检测/目录清理）独立队列——不占执行槽位，与 exec 心跳并发记账隔离 */
+  runnerQueueName: "runner-jobs",
+  /** S14 UIT-004：内置 runner 最近一次检测缓存（engine 回调写 / 列表读；TTL 内置恒展示） */
+  builtinRunnerCheckKey: "uit:runner-check:builtin",
   /** S11 LOAD-003：施压秒级度量 Stream（engine XADD / web SSE 读/报告 XRANGE 回放） */
   loadStreamKey(taskId: string): string {
     return `load:stream:${taskId}`;

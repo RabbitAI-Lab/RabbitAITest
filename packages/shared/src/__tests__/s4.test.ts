@@ -176,7 +176,7 @@ describe("S4 契约 schema 校验", () => {
   });
 
   it("执行契约 v4→v6：plan 命令解析（additive；旧分支不受影响；v5=S11 ui_case/ui_batch+ui-screenshot 帧；v6=S13 ui_validate+script 模式+ui-trace 帧）", () => {
-    expect(EXEC_CONTRACT_VERSION).toBe(6);
+    expect(EXEC_CONTRACT_VERSION).toBe(7);
     const UUID = "00000000-0000-4000-8000-000000000001";
     const cmd = execCommandSchema.safeParse({
       taskId: UUID,

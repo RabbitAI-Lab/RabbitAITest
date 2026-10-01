@@ -67,7 +67,7 @@ test('表单提交', async ({ page }) => {
   await page.goto(\`\${BASE}/uit/demo\`);
   await page.getByTestId('demo-username').fill('rabbit-e2e');
   await page.getByRole('button', { name: '提交' }).click();
-  await expect(page.locator('.demo-result-text')).toHaveText('提交成功，rabbit-e2e');
+  await expect(page.locator('.demo-result-text')).toContainText('提交成功，rabbit-e2e');
 });
 `,
   },
@@ -223,11 +223,18 @@ export function UiCaseForm({ projectId, initial }: { projectId: string; initial?
       <div className="flex gap-3 items-end flex-wrap border rounded p-3 bg-white">
         <label className="text-sm space-y-1 flex-1 min-w-60">
           <span className="text-xs text-slate-500 block">用例名称</span>
-          <Input value={name} onChange={(e) => setName(e.target.value)} data-testid="uit-case-name" />
+          <Input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            data-testid="uit-case-name"
+          />
         </label>
         <div className="text-sm space-y-1">
           <span className="text-xs text-slate-500 block">模式</span>
-          <div className="border rounded-md p-0.5 flex bg-slate-50" data-testid="uit3-mode-segmented">
+          <div
+            className="border rounded-md p-0.5 flex bg-slate-50"
+            data-testid="uit3-mode-segmented"
+          >
             <button
               className={`rounded px-4 py-1 text-sm ${mode === "script" ? "bg-[#574BFF] text-white" : "text-slate-500"}`}
               onClick={() => switchMode("script")}
@@ -324,14 +331,18 @@ export function UiCaseForm({ projectId, initial }: { projectId: string; initial?
                       className="font-mono text-xs flex-1"
                       value={p.key}
                       onChange={(e) =>
-                        setParams(params.map((x, j) => (j === i ? { ...x, key: e.target.value } : x)))
+                        setParams(
+                          params.map((x, j) => (j === i ? { ...x, key: e.target.value } : x)),
+                        )
                       }
                     />
                     <Input
                       className="font-mono text-xs flex-1"
                       value={p.value}
                       onChange={(e) =>
-                        setParams(params.map((x, j) => (j === i ? { ...x, value: e.target.value } : x)))
+                        setParams(
+                          params.map((x, j) => (j === i ? { ...x, value: e.target.value } : x)),
+                        )
                       }
                     />
                     <a
@@ -350,7 +361,8 @@ export function UiCaseForm({ projectId, initial }: { projectId: string; initial?
                   + 添加参数（≤20 组）
                 </button>
                 <div className="text-xs text-slate-400">
-                  脚本内以 <code className="font-mono">process.env.RABBIT_PARAM_键大写</code> 读取；值 ≤2048
+                  脚本内以 <code className="font-mono">process.env.RABBIT_PARAM_键大写</code>{" "}
+                  读取；值 ≤2048
                 </div>
               </div>
             </div>
@@ -376,7 +388,9 @@ export function UiCaseForm({ projectId, initial }: { projectId: string; initial?
                   </div>
                 ))}
                 {(elements?.list ?? []).length === 0 && (
-                  <div className="px-3 py-2 text-xs text-slate-400">暂无元素（脚本模式不依赖元素库）</div>
+                  <div className="px-3 py-2 text-xs text-slate-400">
+                    暂无元素（脚本模式不依赖元素库）
+                  </div>
                 )}
               </div>
             </div>
@@ -397,7 +411,10 @@ export function UiCaseForm({ projectId, initial }: { projectId: string; initial?
             const ref = s as UiStep & { elementId?: string };
             const needsElement = ELEMENT_OPS.includes(s.op);
             return (
-              <div key={i} className="flex items-center gap-2 px-3 py-2 border-b last:border-b-0 text-sm">
+              <div
+                key={i}
+                className="flex items-center gap-2 px-3 py-2 border-b last:border-b-0 text-sm"
+              >
                 <span className="text-slate-400 w-5">{i + 1}</span>
                 <span data-testid={`uit-step-op-${i}`} className="inline-block">
                   <Select

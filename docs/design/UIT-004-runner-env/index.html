@@ -1,0 +1,503 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>UIT-004 Runner 环境自检与项目级 Runner · 高保真原型</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-slate-50 text-slate-800">
+    <header class="h-12 bg-white border-b flex items-center px-4 gap-3 sticky top-0 z-40">
+      <span class="font-bold text-[#574BFF]">RabbitAITest</span>
+      <span class="text-slate-300">/</span>
+      <span>演示项目 #1</span>
+      <span class="text-slate-300">/</span>
+      <span class="font-medium">UI 测试 · Runner</span>
+      <span class="ml-auto text-xs text-slate-400"
+        >S14 · UIT-004 · 环境检测 checklist + 项目级 Runner 安装隔离（Draft 待确认）</span
+      >
+    </header>
+    <main class="p-4 space-y-4 max-w-[1280px]">
+      <!-- ═══════════ 画板一 · UI 测试列表页 · Runner 入口胶囊（常态/异常态） ═══════════ -->
+      <section class="bg-white border rounded-md" data-testid="uit4-entry-board">
+        <div class="px-4 py-3 border-b flex items-center gap-2">
+          <span class="font-medium">画板一 · 列表页 Runner 入口（/ui-test header）</span>
+          <span class="text-xs text-slate-400"
+            >当前生效 runner 胶囊：内置/项目·版本·环境三态；点击开管理抽屉</span
+          >
+        </div>
+        <div class="p-4 space-y-3">
+          <div class="flex items-center gap-2">
+            <input class="border rounded px-2 py-1 text-sm w-56" placeholder="搜索用例名" />
+            <button class="bg-[#574BFF] text-white rounded px-3 py-1.5 text-sm">
+              新建 UI 用例
+            </button>
+            <button class="border rounded px-3 py-1.5 text-sm text-[#574BFF] border-[#574BFF]/40">
+              粘贴导入脚本
+            </button>
+            <button class="border rounded px-3 py-1.5 text-sm">元素库</button>
+            <!-- Runner 胶囊 · 常态（项目 runner 生效·环境正常） -->
+            <button
+              class="ml-auto flex items-center gap-1.5 border rounded-full pl-2 pr-3 py-1 text-sm border-[#574BFF]/40 bg-[#574BFF]/[0.04]"
+              data-testid="uit4-pill-ok"
+            >
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+              <span class="text-[#574BFF] font-medium">Runner</span>
+              <span class="text-slate-500">pw-1.63.0（项目）</span>
+              <span class="text-emerald-600 text-xs">环境正常 ✓</span>
+            </button>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-slate-400"
+              >异常态变体（chromium 缺失 → 执行将被预检阻断）：</span
+            >
+            <!-- Runner 胶囊 · 异常态 -->
+            <button
+              class="flex items-center gap-1.5 border rounded-full pl-2 pr-3 py-1 text-sm border-red-300 bg-red-50"
+              data-testid="uit4-pill-bad"
+            >
+              <span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>
+              <span class="text-[#574BFF] font-medium">Runner</span>
+              <span class="text-slate-500">内置 1.63.0</span>
+              <span class="text-red-600 text-xs">环境缺失 ✗（1 项）</span>
+            </button>
+            <span class="text-xs text-slate-400">安装中变体：</span>
+            <button
+              class="flex items-center gap-1.5 border rounded-full pl-2 pr-3 py-1 text-sm border-amber-300 bg-amber-50"
+            >
+              <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+              <span class="text-[#574BFF] font-medium">Runner</span>
+              <span class="text-slate-500">pw-1.62.0</span>
+              <span class="text-amber-600 text-xs">安装中…</span>
+            </button>
+          </div>
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="text-left text-slate-500 border-b">
+                <th class="py-2">名称</th>
+                <th>模式</th>
+                <th>规模</th>
+                <th>摘要</th>
+                <th>最近结果</th>
+                <th class="text-right">操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="border-b">
+                <td class="py-2.5 font-medium">演示页 · 提交表单</td>
+                <td>
+                  <span
+                    class="border rounded px-1.5 py-0.5 text-xs text-violet-600 border-violet-200 bg-violet-50"
+                    >脚本</span
+                  >
+                </td>
+                <td>1 test</td>
+                <td class="text-slate-500 font-mono text-xs">
+                  toContainText('提交成功，rabbit-e2e')
+                </td>
+                <td>
+                  <span
+                    class="border rounded px-1.5 py-0.5 text-xs text-emerald-600 border-emerald-200 bg-emerald-50"
+                    >SUCCESS · 1/1</span
+                  >
+                </td>
+                <td class="text-right space-x-2">
+                  <button class="text-[#574BFF]">执行</button
+                  ><button class="text-slate-500">编辑</button
+                  ><button class="text-red-400">删除</button>
+                </td>
+              </tr>
+              <tr>
+                <td class="py-2.5 font-medium">下单主链路回归</td>
+                <td>
+                  <span
+                    class="border rounded px-1.5 py-0.5 text-xs text-violet-600 border-violet-200 bg-violet-50"
+                    >脚本</span
+                  >
+                </td>
+                <td>3 tests</td>
+                <td class="text-slate-500 font-mono text-xs">
+                  describe「下单主链路」：登录 / 下单 / 取消
+                </td>
+                <!-- 预检阻断后的「最近结果」新形态 -->
+                <td>
+                  <span
+                    class="border rounded px-1.5 py-0.5 text-xs text-orange-600 border-orange-200 bg-orange-50"
+                    >环境缺失 · 未执行</span
+                  >
+                </td>
+                <td class="text-right space-x-2">
+                  <button class="text-[#574BFF]">执行</button
+                  ><button class="text-slate-500">编辑</button
+                  ><button class="text-red-400">删除</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ═══════════ 画板二 · Runner 管理抽屉（内置 + 项目列表 + 隔离说明） ═══════════ -->
+      <section class="bg-white border rounded-md" data-testid="uit4-manage-board">
+        <div class="px-4 py-3 border-b flex items-center gap-2">
+          <span class="font-medium">画板二 · Runner 管理（右侧抽屉 Drawer，宽 560）</span>
+          <span class="text-xs text-slate-400"
+            >内置只读卡 + 本项目 runner 列表；删除/设默认/检测；「仅显示当前项目的 Runner」</span
+          >
+        </div>
+        <div class="p-4">
+          <div
+            class="rounded border bg-slate-50 p-4 space-y-4 max-w-[560px] ml-auto"
+            data-testid="uit4-manage-drawer"
+          >
+            <div class="flex items-center justify-between">
+              <span class="font-medium">Runner 管理</span>
+              <div class="flex items-center gap-2">
+                <button class="text-xs text-slate-500">重新检测全部</button>
+                <button
+                  class="bg-[#574BFF] text-white rounded px-3 py-1.5 text-sm"
+                  data-testid="uit4-install-btn"
+                >
+                  安装 Runner
+                </button>
+                <button class="text-slate-400">✕</button>
+              </div>
+            </div>
+            <div class="text-xs text-slate-400 border-l-2 border-slate-200 pl-2">
+              Runner 安装在<b>引擎主机</b>的项目隔离目录，<b>仅当前项目可见可用</b>；未设置项目
+              Runner 时自动使用内置 Runner。
+            </div>
+
+            <!-- 内置 runner 卡（只读） -->
+            <div class="border rounded p-3 space-y-2" data-testid="uit4-builtin-card">
+              <div class="flex items-center gap-2">
+                <span
+                  class="border rounded px-1.5 py-0.5 text-xs text-slate-500 border-slate-200 bg-slate-50"
+                  >内置</span
+                >
+                <span class="font-medium">系统 Runner</span>
+                <span class="text-slate-500 font-mono text-xs">v1.63.0</span>
+                <span class="ml-auto text-xs text-slate-400">随平台版本发布 · 不可删除</span>
+              </div>
+              <div
+                class="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-slate-500"
+                data-testid="uit4-builtin-check"
+              >
+                <div>✅ node v24.12.0</div>
+                <div>✅ runner 包 @playwright/test 1.63.0</div>
+                <div>✅ chromium-1243</div>
+                <div>✅ 磁盘 86GB 可用</div>
+              </div>
+              <div class="flex items-center gap-2 text-xs">
+                <span class="text-slate-400">最近检测 2026-10-01 21:40</span>
+                <button class="text-[#574BFF]">展开 6 项</button>
+                <button class="text-[#574BFF] ml-auto">重新检测</button>
+              </div>
+            </div>
+
+            <!-- 项目 runner 列表 -->
+            <div class="space-y-2" data-testid="uit4-project-list">
+              <div class="text-xs text-slate-400">本项目 Runner（2）</div>
+              <div class="border rounded p-3 space-y-2 border-[#574BFF]/30 bg-[#574BFF]/[0.03]">
+                <div class="flex items-center gap-2">
+                  <span
+                    class="border rounded px-1.5 py-0.5 text-xs text-[#574BFF] border-[#574BFF]/30 bg-white"
+                    >项目 · 默认</span
+                  >
+                  <span class="font-medium">pw-1.63.0</span>
+                  <span class="text-slate-500 font-mono text-xs">@playwright/test 1.63.0</span>
+                  <span
+                    class="ml-auto border rounded px-1.5 py-0.5 text-xs text-emerald-600 border-emerald-200 bg-emerald-50"
+                    >READY</span
+                  >
+                </div>
+                <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-slate-500">
+                  <div>✅ runner 包可解析</div>
+                  <div>✅ chromium-1243</div>
+                </div>
+                <div class="flex items-center gap-3 text-xs">
+                  <button class="text-[#574BFF]">环境检测</button>
+                  <button class="text-slate-500">取消默认</button>
+                  <button class="text-red-400">删除</button>
+                  <span class="ml-auto text-slate-400">检测于 21:38</span>
+                </div>
+              </div>
+              <div class="border rounded p-3 space-y-2">
+                <div class="flex items-center gap-2">
+                  <span
+                    class="border rounded px-1.5 py-0.5 text-xs text-slate-500 border-slate-200 bg-slate-50"
+                    >项目</span
+                  >
+                  <span class="font-medium">pw-1.58.0</span>
+                  <span class="text-slate-500 font-mono text-xs">@playwright/test 1.58.0</span>
+                  <span
+                    class="ml-auto border rounded px-1.5 py-0.5 text-xs text-red-500 border-red-200 bg-red-50"
+                    >FAILED</span
+                  >
+                </div>
+                <div
+                  class="text-xs text-red-500 bg-red-50 border border-red-200 rounded p-2 font-mono leading-relaxed break-all"
+                  data-testid="uit4-install-fail-log"
+                >
+                  npm ERR! network request failed
+                  https://registry.npmjs.org/@playwright/test/-/test-1.58.0.tgz<br />
+                  npm ERR! A complete log of this run can be found in:
+                  /Users/…/.npm/_logs/2026-10-01T13_38_11_490Z-debug-0.log
+                </div>
+                <div class="flex items-center gap-3 text-xs">
+                  <button class="text-[#574BFF]">重试安装</button>
+                  <button class="text-red-400">删除</button>
+                  <span class="ml-auto text-slate-400">失败于 21:38 · 引擎主机</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 隔离对照：项目 #2 视角（模拟切换项目后的抽屉） -->
+            <div class="border-t pt-3 space-y-2">
+              <div class="text-xs text-slate-400">
+                ▾ 隔离示意 · 切到「演示项目 #2」后本抽屉显示（对照走查）：
+              </div>
+              <div
+                class="border rounded p-3 text-xs text-slate-500 bg-slate-50"
+                data-testid="uit4-isolation-demo"
+              >
+                内置 系统 Runner v1.63.0（同上，全局唯一）<br />
+                本项目 Runner（0）——
+                <span class="text-slate-400"
+                  >看不到 #1 的 pw-1.63.0 / pw-1.58.0；未安装时执行自动用内置</span
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══════════ 画板三 · 环境检测 checklist（三态全矩阵） ═══════════ -->
+      <section class="bg-white border rounded-md" data-testid="uit4-checklist-board">
+        <div class="px-4 py-3 border-b flex items-center gap-2">
+          <span class="font-medium">画板三 · 环境检测 checklist（检测详情展开）</span>
+          <span class="text-xs text-slate-400"
+            >六项三态全矩阵；fail/warn 带处置指引（复制命令）；warn 不阻断执行</span
+          >
+        </div>
+        <div class="p-4 max-w-[720px] space-y-3">
+          <div class="border rounded divide-y" data-testid="uit4-checklist-table">
+            <div class="flex items-center gap-3 px-3 py-2 text-sm">
+              <span class="text-emerald-500">✓</span
+              ><span class="w-24 text-slate-500">node 运行时</span>
+              <span>v24.12.0 ≥ 18（引擎子进程）</span>
+            </div>
+            <div class="flex items-center gap-3 px-3 py-2 text-sm">
+              <span class="text-emerald-500">✓</span
+              ><span class="w-24 text-slate-500">runner 包</span>
+              <span class="font-mono text-xs"
+                >…/.runners/prj-1/pw-1.63.0/node_modules/@playwright/test 1.63.0</span
+              >
+            </div>
+            <div class="px-3 py-2 text-sm bg-red-50/60" data-testid="uit4-checklist-fail">
+              <div class="flex items-center gap-3">
+                <span class="text-red-500">✗</span
+                ><span class="w-24 text-slate-500">chromium 二进制</span>
+                <span class="text-red-600"
+                  >未找到 chromium-1208（@playwright/test 1.58.0 需要）</span
+                >
+              </div>
+              <div class="mt-1 ml-9 flex items-center gap-2 text-xs">
+                <span class="text-slate-500">处置：引擎主机执行</span>
+                <code class="bg-white border rounded px-1.5 py-0.5 font-mono"
+                  >node cli.js install chromium</code
+                >
+                <button class="text-[#574BFF]">复制</button>
+                <span class="text-slate-400">（重新安装该 Runner 也会自动补装）</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-3 px-3 py-2 text-sm">
+              <span class="text-emerald-500">✓</span
+              ><span class="w-24 text-slate-500">磁盘空间</span>
+              <span>86GB 可用 ≥ 1GB（工作区 + 浏览器缓存）</span>
+            </div>
+            <div class="px-3 py-2 text-sm bg-amber-50/60" data-testid="uit4-checklist-warn">
+              <div class="flex items-center gap-3">
+                <span class="text-amber-500">⚠</span><span class="w-24 text-slate-500">ffmpeg</span>
+                <span class="text-amber-600">未安装（仅影响视频录制，P2 功能；不阻断执行）</span>
+              </div>
+            </div>
+            <div class="px-3 py-2 text-sm bg-amber-50/60">
+              <div class="flex items-center gap-3">
+                <span class="text-amber-500">⚠</span
+                ><span class="w-24 text-slate-500">npm / registry</span>
+                <span class="text-amber-600"
+                  >registry.npmjs.org 不可达（仅影响「安装新 Runner」，不影响执行）</span
+                >
+              </div>
+              <div class="mt-1 ml-9 flex items-center gap-2 text-xs">
+                <span class="text-slate-500"
+                  >离线环境可：引擎主机手工安装后由管理员登记（P2 离线导入）</span
+                >
+              </div>
+            </div>
+          </div>
+          <div class="flex items-center gap-3">
+            <button class="bg-[#574BFF] text-white rounded px-3 py-1.5 text-sm">重新检测</button>
+            <span class="text-xs text-slate-400"
+              >检测于 2026-10-01 21:40 · 耗时 1.2s · 执行预检复用 ≤5min 内结果</span
+            >
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══════════ 画板四 · 安装 Runner 弹窗（表单/进度/失败三态） ═══════════ -->
+      <section class="bg-white border rounded-md" data-testid="uit4-install-board">
+        <div class="px-4 py-3 border-b flex items-center gap-2">
+          <span class="font-medium">画板四 · 安装 Runner（弹窗三态）</span>
+          <span class="text-xs text-slate-400"
+            >精确 semver + 官方 registry；三段进度（npm 安装 → chromium →
+            自动检测）；失败留日志尾部可重试</span
+          >
+        </div>
+        <div class="p-4 grid grid-cols-3 gap-4">
+          <!-- 态1 表单 -->
+          <div class="border rounded p-4 space-y-3" data-testid="uit4-install-form">
+            <div class="font-medium">安装 Runner</div>
+            <div class="space-y-1">
+              <div class="text-xs text-slate-500">版本（精确 semver）</div>
+              <input
+                class="border rounded px-2 py-1 text-sm w-full font-mono"
+                value="1.63.0"
+                data-testid="uit4-install-version"
+              />
+              <div class="text-xs text-[#574BFF]">推荐：与内置一致 1.63.0 · 已装的最新 1.62.0</div>
+            </div>
+            <div class="space-y-1">
+              <div class="text-xs text-slate-500">安装包</div>
+              <div class="border rounded px-2 py-1 text-sm font-mono bg-slate-50">
+                @playwright/test@1.63.0
+              </div>
+            </div>
+            <div class="text-xs text-slate-400">
+              来源 registry.npmjs.org（官方，不可改）· 安装到引擎主机项目隔离目录 · 完成后自动装
+              chromium 并检测
+            </div>
+            <div class="flex justify-end gap-2">
+              <button class="border rounded px-3 py-1.5 text-sm">取消</button>
+              <button
+                class="bg-[#574BFF] text-white rounded px-3 py-1.5 text-sm"
+                data-testid="uit4-install-submit"
+              >
+                安装
+              </button>
+            </div>
+          </div>
+          <!-- 态2 进度 -->
+          <div class="border rounded p-4 space-y-3">
+            <div class="font-medium flex items-center gap-2">
+              安装中 <span class="text-xs text-slate-400 font-normal">pw-1.63.0</span>
+            </div>
+            <div class="space-y-2 text-sm">
+              <div class="flex items-center gap-2">
+                <span class="text-emerald-500">✓</span> npm install @playwright/test@1.63.0
+                <span class="ml-auto text-xs text-slate-400">18s</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span
+                  class="animate-spin inline-block w-3 h-3 border-2 border-[#574BFF] border-t-transparent rounded-full"
+                ></span>
+                chromium-1243 下载 62% <span class="ml-auto text-xs text-slate-400">~130MB</span>
+              </div>
+              <div class="flex items-center gap-2 text-slate-300">
+                <span>○</span> 环境检测 <span class="ml-auto text-xs">待执行</span>
+              </div>
+            </div>
+            <div class="h-1 bg-slate-100 rounded overflow-hidden">
+              <div class="h-full bg-[#574BFF] w-[62%]"></div>
+            </div>
+            <div class="flex justify-between text-xs">
+              <span class="text-slate-400">预计 40s · 引擎主机</span>
+              <button class="text-red-400">取消安装</button>
+            </div>
+          </div>
+          <!-- 态3 失败 -->
+          <div class="border rounded p-4 space-y-3 border-red-200">
+            <div class="font-medium flex items-center gap-2 text-red-600">
+              安装失败 <span class="text-xs text-slate-400 font-normal">pw-1.58.0</span>
+            </div>
+            <div
+              class="text-xs text-red-500 bg-red-50 border border-red-200 rounded p-2 font-mono leading-relaxed break-all"
+            >
+              npm ERR! code ENOTFOUND<br />npm ERR! syscall getaddrinfo<br />npm ERR! errno -3008<br />npm
+              ERR! network getaddrinfo ENOTFOUND registry.npmjs.org
+            </div>
+            <div class="text-xs text-slate-500">
+              提示：检查引擎主机网络/代理（checklist「npm / registry」项）
+            </div>
+            <div class="flex justify-end gap-2">
+              <button class="border rounded px-3 py-1.5 text-sm">关闭</button>
+              <button class="bg-[#574BFF] text-white rounded px-3 py-1.5 text-sm">重试安装</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══════════ 画板五 · 执行预检阻断（报告页 runner-check 帧） ═══════════ -->
+      <section class="bg-white border rounded-md" data-testid="uit4-report-board">
+        <div class="px-4 py-3 border-b flex items-center gap-2">
+          <span class="font-medium">画板五 · 执行预检阻断（/ui-test/tasks/{taskId}）</span>
+          <span class="text-xs text-slate-400"
+            >fail 项 → 任务直接 FAILED（CONFIG_ERROR），首帧=runner-check；不再让用户从 stderr
+            猜环境</span
+          >
+        </div>
+        <div class="p-4 max-w-[860px] space-y-3">
+          <div class="flex items-center gap-3">
+            <span class="text-lg font-semibold text-red-500">FAILED</span>
+            <span class="text-sm text-slate-500"
+              >任务 ba32f5c3 · 1 条用例 · 环境预检未通过（未启动浏览器）</span
+            >
+          </div>
+          <div
+            class="border rounded p-3 space-y-2 border-orange-200 bg-orange-50/50"
+            data-testid="uit4-report-frame"
+          >
+            <div class="flex items-center gap-2 text-sm font-medium text-orange-700">
+              ⛔ Runner 环境预检未通过 · 1 项失败
+              <span class="text-xs font-normal text-slate-500"
+                >runner = 内置 1.63.0 · 检测于 21:41</span
+              >
+              <button class="ml-auto text-xs text-[#574BFF]">去处理（Runner 管理）</button>
+            </div>
+            <div class="border rounded divide-y bg-white text-sm">
+              <div class="flex items-center gap-3 px-3 py-1.5">
+                <span class="text-emerald-500">✓</span> node v24.12.0
+              </div>
+              <div class="flex items-center gap-3 px-3 py-1.5">
+                <span class="text-emerald-500">✓</span> runner 包 @playwright/test 1.63.0
+              </div>
+              <div class="px-3 py-1.5 flex items-center gap-3 text-red-600">
+                <span>✗</span> chromium 二进制缺失
+                <span class="ml-auto font-mono text-xs"
+                  >处置：node cli.js install chromium
+                  <button class="text-[#574BFF] not-italic">复制</button></span
+                >
+              </div>
+              <div class="flex items-center gap-3 px-3 py-1.5 text-slate-500">
+                <span class="text-amber-500">⚠</span> ffmpeg 未装（warn，不阻断）
+              </div>
+            </div>
+            <div class="text-xs text-slate-500">
+              环境恢复后可直接重跑本任务；warn 项不阻断执行。
+            </div>
+          </div>
+          <div class="text-xs text-slate-400">
+            对照：环境正常时报告页与 UIT-003 现状一致（本画板仅新增 runner-check 帧一种形态）。
+          </div>
+        </div>
+      </section>
+
+      <footer class="text-xs text-slate-400 py-2">
+        原型走查顺序：一（入口三态）→ 二（管理抽屉 + 隔离对照）→ 三（checklist 三态）→
+        四（安装三态）→
+        五（预检阻断帧）。规格：docs/sprint-14-uit/UIT-004-runner-env-check-and-project-scoped-install.md
+      </footer>
+    </main>
+  </body>
+</html>

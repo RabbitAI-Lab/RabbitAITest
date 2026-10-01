@@ -23,6 +23,12 @@ const STEP_COLOR: Record<string, string> = {
   FAILED: "text-red-500",
   SKIPPED: "text-slate-300",
 };
+const CHECK_ICON: Record<string, string> = { ok: "✓", warn: "⚠", fail: "✗" };
+const CHECK_COLOR: Record<string, string> = {
+  ok: "text-emerald-500",
+  warn: "text-amber-500",
+  fail: "text-red-500",
+};
 
 export default function UiTaskReportPage() {
   const router = useRouter();
@@ -92,18 +98,70 @@ export default function UiTaskReportPage() {
         {data?.items.map((item) => {
           const isScript = item.mode === "script";
           const passed = item.steps.filter((s) => s.status === "SUCCESS").length;
+          const runnerCheck = item.runnerChecks?.[0];
           return (
             <div
               key={item.itemId}
               className="border rounded bg-white mb-3"
               data-testid={`uit-report-item-${item.itemId}`}
             >
+              {/* S14 UIT-004：环境预检阻断帧（fail 项 checklist；正常执行无此卡） */}
+              {runnerCheck && (
+                <div
+                  className="m-3 border rounded p-3 space-y-2 border-orange-200 bg-orange-50/50"
+                  data-testid={`uit4-report-frame-${item.itemId}`}
+                >
+                  <div className="flex items-center gap-2 text-sm font-medium text-orange-700 flex-wrap">
+                    ⛔ Runner 环境预检未通过 ·{" "}
+                    {runnerCheck.items.filter((i) => i.status === "fail").length} 项失败
+                    <span className="text-xs font-normal text-slate-500">
+                      runner = {runnerCheck.runner}
+                    </span>
+                    <a
+                      className="ml-auto text-xs text-[#574BFF]"
+                      onClick={() => router.push("/ui-test")}
+                      data-testid={`uit4-report-goto-${item.itemId}`}
+                    >
+                      去处理（Runner 管理）
+                    </a>
+                  </div>
+                  <div className="border rounded divide-y bg-white text-sm">
+                    {runnerCheck.items.map((c) => (
+                      <div key={c.key} className="flex items-center gap-3 px-3 py-1.5 flex-wrap">
+                        <span className={`font-bold ${CHECK_COLOR[c.status]}`}>
+                          {CHECK_ICON[c.status]}
+                        </span>
+                        <span className="text-slate-600">{c.label}</span>
+                        <span
+                          className={`text-xs ${
+                            c.status === "fail"
+                              ? "text-red-600"
+                              : c.status === "warn"
+                                ? "text-amber-600"
+                                : "text-slate-500"
+                          }`}
+                        >
+                          {c.detail}
+                        </span>
+                        {c.hint && <span className="ml-auto text-xs text-slate-400">{c.hint}</span>}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="text-xs text-slate-500">
+                    环境恢复后可直接重跑本任务；warn 项不阻断执行。
+                  </div>
+                </div>
+              )}
               <div className="px-3 py-2 border-b flex items-center gap-2 flex-wrap">
                 <span className="font-medium text-sm">{item.name}</span>
                 {isScript && <Tag color="purple">脚本</Tag>}
                 <Tag
                   color={
-                    item.status === "SUCCESS" ? "success" : item.status === "FAILED" ? "error" : "default"
+                    item.status === "SUCCESS"
+                      ? "success"
+                      : item.status === "FAILED"
+                        ? "error"
+                        : "default"
                   }
                   data-testid={`uit-report-item-status-${item.itemId}`}
                 >
@@ -114,7 +172,9 @@ export default function UiTaskReportPage() {
                     {passed}/{item.steps.length} 测试通过
                   </span>
                 )}
-                {!isScript && <span className="text-xs text-slate-400">{item.steps.length} 步</span>}
+                {!isScript && (
+                  <span className="text-xs text-slate-400">{item.steps.length} 步</span>
+                )}
               </div>
               <div className="divide-y text-sm">
                 {item.steps.map((s) => {
@@ -130,7 +190,9 @@ export default function UiTaskReportPage() {
                           {STEP_ICON[s.status]}
                         </span>
                         {!isScript && <span className="w-24 text-slate-500">{s.op}</span>}
-                        <span className={`flex-1 ${isScript ? "" : "font-mono text-xs"}`}>{s.name}</span>
+                        <span className={`flex-1 ${isScript ? "" : "font-mono text-xs"}`}>
+                          {s.name}
+                        </span>
                         {!isScript && s.status === "FAILED" && s.expected !== undefined && (
                           <span className="text-xs text-red-400">
                             期望「{s.expected}」实际「{s.actual}」
@@ -162,7 +224,9 @@ export default function UiTaskReportPage() {
                 })}
                 {item.steps.length === 0 && (
                   <div className="px-3 py-2 text-xs text-slate-400">
-                    {item.status === "PENDING" || item.status === "RUNNING" ? "执行中…" : "无测试行"}
+                    {item.status === "PENDING" || item.status === "RUNNING"
+                      ? "执行中…"
+                      : "无测试行"}
                   </div>
                 )}
               </div>

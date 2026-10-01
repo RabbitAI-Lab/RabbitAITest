@@ -98,6 +98,8 @@ export function toResponse(err: unknown): NextResponse {
                   ErrCode.LOAD_TEST_NOT_FOUND,
                   ErrCode.UI_ELEMENT_NOT_FOUND,
                   ErrCode.UI_CASE_NOT_FOUND,
+                  // S14 UIT-004
+                  ErrCode.UI_RUNNER_NOT_FOUND,
                   // S11 SYS-009（授权会话 404 防枚举）
                   ErrCode.OAUTH_GRANT_NOT_FOUND,
                 ] as number[]
@@ -209,6 +211,9 @@ export function toResponse(err: unknown): NextResponse {
                       ErrCode.DEPARTMENT_MEMBER_NOT_IN_ORG,
                       ErrCode.TEMPLATE_EVENT_INVALID,
                       ErrCode.THEME_IMAGE_TOO_LARGE,
+                      // S14 UIT-004（runner 版本/忙 422）
+                      ErrCode.UI_RUNNER_VERSION_INVALID,
+                      ErrCode.UI_RUNNER_BUSY,
                       // S-future（PLUG-003/TOOL-001/002/EXEC-004/RPT-004）
                       ErrCode.PROTOCOL_PLUGIN_LOAD_FAILED,
                       ErrCode.OPEN_SYNC_VALIDATION_FAILED,

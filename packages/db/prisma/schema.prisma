@@ -113,6 +113,7 @@ model Project {
   loadTests        LoadTest[]
   uiElements       UiElement[]
   uiCases          UiTestCase[]
+  uiRunners        UiRunner[]
   scmRepositories  ScmRepository[]
 
   @@unique([orgId, num])
@@ -1362,4 +1363,38 @@ model UiTestCase {
 
   @@index([projectId, deletedAt])
   @@map("ui_test_cases")
+}
+
+/// S14 UIT-004：项目级 UI Runner（内置 runner 不入表，运行时从引擎常量推导）。
+/// 隔离：projectId 必填（API 层 withProjectScope 404 防枚举 + 磁盘 .runners/{projectId}/{runnerId}/ 分域 + 引擎归属校验）。
+model UiRunner {
+  id             String    @id @default(uuid())
+  projectId      String    @map("project_id")
+  project        Project   @relation(fields: [projectId], references: [id])
+  name           String    @db.VarChar(64)
+  /// 恒 project（内置=builtin 不入表；预留组织共享 P2）
+  kind           String    @default("project") @db.VarChar(16)
+  /// 精确 semver（安装时锁定；RUNNER_VERSION_RE 白名单）
+  version        String    @db.VarChar(32)
+  /// INSTALLING | READY | FAILED | INSTALL_CANCELLED
+  status         String    @default("INSTALLING") @db.VarChar(32)
+  /// 项目内至多一个默认（事务内先清后置）
+  isDefault      Boolean   @default(false) @map("is_default")
+  /// npm/浏览器安装输出尾部（失败定位；≤2000 字）
+  installLogTail String?   @map("install_log_tail")
+  /// 最近检测完成时间（引擎实测回调回写）
+  lastCheckAt    DateTime? @map("last_check_at")
+  /// 检测快照 runnerCheckResultSchema {items,checkedAt,version}
+  checkItems     Json?     @map("check_items")
+  /// P2 预留：多浏览器矩阵 {chromium,firefox,webkit,revision}
+  browsers       Json?     @map("browsers")
+  /// 默认 https://registry.npmjs.org（P2 离线导入=local）
+  installSource  String    @default("https://registry.npmjs.org") @map("install_source") @db.VarChar(255)
+  createdById    String    @map("created_by")
+  deletedAt      DateTime? @map("deleted_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  @@index([projectId, deletedAt])
+  @@map("ui_runners")
 }

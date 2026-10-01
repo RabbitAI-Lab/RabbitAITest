@@ -1,5 +1,6 @@
 import { get, post, put, del } from "./client";
 import type {
+  RunnerEnvCheckItem,
   LoadTarget,
   LoadPressure,
   LoadThresholds,
@@ -157,6 +158,8 @@ export interface UiTaskDetail {
     }[];
     frames: { type: string; fileId: string; name: string; stepSeq: number }[];
     traces: { fileId: string; name: string }[];
+    /** S14 UIT-004：环境预检阻断帧（fail 项 checklist；正常执行恒空） */
+    runnerChecks: { runner: string; items: RunnerEnvCheckItem[] }[];
   }[];
 }
 

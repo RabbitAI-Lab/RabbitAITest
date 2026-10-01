@@ -229,7 +229,8 @@ export const uiCaseItemCommandSchema = z
   });
 export type UiCaseItemCommand = z.infer<typeof uiCaseItemCommandSchema>;
 
-/** 脚本校验干跑命令（type=ui_validate：playwright test --list，不起浏览器，秒级）。 */
+/** 脚本校验干跑命令（type=ui_validate：playwright test --list，不起浏览器，秒级）。
+ * v7（S14 UIT-004）：+runnerId（项目 runner 解析；缺省=内置）。 */
 export const uiValidateCommandSchema = z.object({
   taskId: z.string().uuid(),
   projectId: z.string().uuid(),
@@ -237,6 +238,7 @@ export const uiValidateCommandSchema = z.object({
   itemId: z.string().uuid(),
   name: z.string().min(1).max(512),
   script: z.string().min(1).max(UIT_SCRIPT_LIMITS.scriptMaxChars),
+  runnerId: z.string().uuid().nullable().optional(),
 });
 export type UiValidateCommand = z.infer<typeof uiValidateCommandSchema>;
 
