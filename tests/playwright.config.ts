@@ -40,7 +40,7 @@ export default defineConfig({
     command: [
       "bash -c '",
       `if [ -f ${E.e2e.tmpWebRoot}/apps/web/.next/BUILD_ID ]; then `,
-      `cd ${E.e2e.tmpWebRoot}/apps/web && exec env MOCK_PUBLIC_URL=${E.e2e.mockUrl} AI_ALLOW_PRIVATE_BASEURL=1 DATABASE_URL="\${E2E_DATABASE_URL:-\${DATABASE_URL:-postgresql://postgres:postgres@127.0.0.1:${E.e2e.pgPort}/${E.e2e.database}}}" REDIS_URL="\${E2E_REDIS_URL:-\${REDIS_URL:-${E.e2e.redisUrl}}}" WEB_URL=${E.e2e.webUrl} SESSION_SECRET=e2e-session-secret-32chars-ok!!!!! INTERNAL_TOKEN=e2e-internal-token SESSION_COOKIE_SECURE=false RABBIT_USER_LIMIT=1000 RABBIT_INTEGRATION_SECRET=\${RABBIT_INTEGRATION_SECRET:-e2e-integration-secret-32chars-ok!!} OUTBOUND_ALLOW_PRIVATE=1 PORT=${E.e2e.webPort} pnpm exec next start -p ${E.e2e.webPort};`,
+      `cd ${E.e2e.tmpWebRoot}/apps/web && exec env MOCK_PUBLIC_URL=${E.e2e.mockUrl} AI_ALLOW_PRIVATE_BASEURL=1 DATABASE_URL="\${E2E_DATABASE_URL:-\${DATABASE_URL:-postgresql://postgres:postgres@127.0.0.1:${E.e2e.pgPort}/${E.e2e.database}}}" REDIS_URL="\${E2E_REDIS_URL:-\${REDIS_URL:-${E.e2e.redisUrl}}}" WEB_URL=${E.e2e.webUrl} SESSION_SECRET=e2e-session-secret-32chars-ok!!!!! INTERNAL_TOKEN=e2e-internal-token SESSION_COOKIE_SECURE=false RABBIT_USER_LIMIT=1000 RABBIT_INTEGRATION_SECRET=\${RABBIT_INTEGRATION_SECRET:-e2e-integration-secret-32chars-ok!!} OUTBOUND_ALLOW_PRIVATE=1 SCM_GITHUB_BASE_URL=${E.e2e.mockUrl}/mock-scm/github SCM_GITEE_BASE_URL=${E.e2e.mockUrl}/mock-scm/gitee SCM_GITLAB_BASE_URL=${E.e2e.mockUrl}/mock-scm/gitlab PORT=${E.e2e.webPort} pnpm exec next start -p ${E.e2e.webPort};`,
       "else ",
       `export DATABASE_URL="\${E2E_DATABASE_URL:-\${DATABASE_URL:-postgresql://postgres:postgres@127.0.0.1:${E.e2e.pgPort}/${E.e2e.database}}}"`,
       `REDIS_URL="\${E2E_REDIS_URL:-\${REDIS_URL:-${E.e2e.redisUrl}}}"`,
@@ -53,6 +53,9 @@ export default defineConfig({
       "AI_ALLOW_PRIVATE_BASEURL=1",
       "RABBIT_INTEGRATION_SECRET=${RABBIT_INTEGRATION_SECRET:-e2e-integration-secret-32chars-ok!!}",
       "OUTBOUND_ALLOW_PRIVATE=1",
+      `SCM_GITHUB_BASE_URL=${E.e2e.mockUrl}/mock-scm/github`,
+      `SCM_GITEE_BASE_URL=${E.e2e.mockUrl}/mock-scm/gitee`,
+      `SCM_GITLAB_BASE_URL=${E.e2e.mockUrl}/mock-scm/gitlab`,
       "E2E_PLATFORM_USER=${E2E_PLATFORM_USER:-platform-e2e-user}",
       "E2E_PLATFORM_PASS=${E2E_PLATFORM_PASS:-platform-e2e-pass}",
       `PORT=${E.e2e.webPort};`,
@@ -79,6 +82,10 @@ export default defineConfig({
       MOCK_PUBLIC_URL: E.e2e.mockUrl,
       // S7 AI-001：mock 供应商在环回——SSRF 守卫仅豁免环回（私网/元数据仍拦）
       AI_ALLOW_PRIVATE_BASEURL: "1",
+      // S13 SCM-001：OAuth 平台指向 e2e mock（/mock-scm/{provider}）
+      SCM_GITHUB_BASE_URL: `${E.e2e.mockUrl}/mock-scm/github`,
+      SCM_GITEE_BASE_URL: `${E.e2e.mockUrl}/mock-scm/gitee`,
+      SCM_GITLAB_BASE_URL: `${E.e2e.mockUrl}/mock-scm/gitlab`,
       PORT: String(E.e2e.webPort),
       ...process.env,
     },

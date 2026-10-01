@@ -96,12 +96,40 @@ export function buildGitMocks(): Hono {
   };
 
   // ── gitea(/api/v1) / github-enterprise(/api/v3) / gitee(/api/v5)：contents 族同形 ──
-  // repo 元信息（连接测试探活端点：{apiBase}/repos/{owner}/{repo}）
-  app.get("/api/v1/repos/:owner/:repo", (c) =>
-    c.json({ id: 1, full_name: `${c.req.param("owner")}/${c.req.param("repo")}` }),
+  // repo 元信息（连接测试探活端点：{apiBase}/repos/{owner}/{repo}；default_branch/private 供 SCM-001 元信息刷新）
+  // SCM-001 e2e 凭据失效路径：owner=secure 时校验 Basic token（正确测试值→200；缺失/错误→401）
+  const SECURE_TOKEN_BASIC = `Basic ${Buffer.from("token:e2e-scm-token").toString("base64")}`;
+  const secureGuard = (c: import("hono").Context): boolean =>
+    c.req.param("owner") === "secure" && c.req.header("authorization") !== SECURE_TOKEN_BASIC;
+  app.get("/api/v1/repos/:owner/:repo", (c) => {
+    if (secureGuard(c)) return c.json({ message: "Bad credentials" }, 401);
+    return c.json({
+      id: 1,
+      full_name: `${c.req.param("owner")}/${c.req.param("repo")}`,
+      default_branch: "main",
+      private: true,
+    });
+  });
+  app.get("/api/v3/repos/:owner/:repo", (c) =>
+    c.json({ id: 1, full_name: "qa/testdata", default_branch: "main", private: true }),
   );
-  app.get("/api/v3/repos/:owner/:repo", (c) => c.json({ id: 1, full_name: "qa/testdata" }));
-  app.get("/api/v5/repos/:owner/:repo", (c) => c.json({ id: 1, full_name: "qa/testdata" }));
+  app.get("/api/v5/repos/:owner/:repo", (c) =>
+    c.json({ id: 1, full_name: "qa/testdata", default_branch: "master", private: true }),
+  );
+  // S13 SCM-001：最近提交（getScmRepoDetail 第二探——gitea limit=1 / github·gitee per_page=1 同形）
+  const commitEntry = (provider: string) => ({
+    sha: `mock-sha-${provider}`,
+    commit: {
+      message: `chore: ${provider} mock commit`,
+      author: { date: "2026-10-01T00:00:00Z" },
+    },
+  });
+  app.get("/api/v1/repos/:owner/:repo/commits", (c) => {
+    if (secureGuard(c)) return c.json({ message: "Bad credentials" }, 401);
+    return c.json([commitEntry("gitea")]);
+  });
+  app.get("/api/v3/repos/:owner/:repo/commits", (c) => c.json([commitEntry("ghe")]));
+  app.get("/api/v5/repos/:owner/:repo/commits", (c) => c.json([commitEntry("gitee")]));
   const contentsHandler = (c: {
     req: { path: string };
     json: (b: unknown, s?: number) => Response;
@@ -130,7 +158,24 @@ export function buildGitMocks(): Hono {
   app.get("/api/v5/repos/*", (c) => contentsHandler(c));
 
   // ── gitlab(/api/v4)：tree + raw ──
-  app.get("/api/v4/projects/:pid", (c) => c.json({ id: 1, path_with_namespace: "qa/testdata" }));
+  app.get("/api/v4/projects/:pid", (c) =>
+    c.json({
+      id: 1,
+      path_with_namespace: "qa/testdata",
+      default_branch: "main",
+      visibility: "private",
+    }),
+  );
+  // S13 SCM-001：最近提交（gitlab 形态 id/message/committed_date）
+  app.get("/api/v4/projects/:pid/repository/commits", (c) =>
+    c.json([
+      {
+        id: "mock-sha-gitlab",
+        message: "chore: gitlab mock commit",
+        committed_date: "2026-10-01T00:00:00Z",
+      },
+    ]),
+  );
   app.get("/api/v4/projects/:pid/repository/tree", (c) => {
     const path = c.req.query("path") ?? "";
     const entries = dirEntries(path).map((e) => ({

@@ -157,6 +157,9 @@
       "name": "项目·scenarios"
     },
     {
+      "name": "项目·scm-repos"
+    },
+    {
       "name": "项目·settings"
     },
     {
@@ -1512,6 +1515,179 @@
       },
       "patch": {
         "summary": "PATCH /api/v1/orgs/{orgId}",
+        "tags": [
+          "组织"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orgs/{orgId}/scm/oauth/{provider}/start": {
+      "get": {
+        "summary": "GET /api/v1/orgs/{orgId}/scm/oauth/{provider}/start",
+        "tags": [
+          "组织"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orgs/{orgId}/scm-accounts/{accountId}/repos": {
+      "get": {
+        "summary": "GET /api/v1/orgs/{orgId}/scm-accounts/{accountId}/repos",
+        "tags": [
+          "组织"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orgs/{orgId}/scm-accounts/{accountId}": {
+      "delete": {
+        "summary": "DELETE /api/v1/orgs/{orgId}/scm-accounts/{accountId}",
+        "tags": [
+          "组织"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orgs/{orgId}/scm-accounts": {
+      "get": {
+        "summary": "GET /api/v1/orgs/{orgId}/scm-accounts",
+        "tags": [
+          "组织"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orgs/{orgId}/scm-apps/{provider}": {
+      "put": {
+        "summary": "PUT /api/v1/orgs/{orgId}/scm-apps/{provider}",
+        "tags": [
+          "组织"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "DELETE /api/v1/orgs/{orgId}/scm-apps/{provider}",
+        "tags": [
+          "组织"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orgs/{orgId}/scm-apps": {
+      "get": {
+        "summary": "GET /api/v1/orgs/{orgId}/scm-apps",
         "tags": [
           "组织"
         ],
@@ -9042,6 +9218,127 @@
         "summary": "POST /api/v1/projects/{projectId}/scenarios",
         "tags": [
           "项目·scenarios"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{projectId}/scm-repos/{repoId}": {
+      "delete": {
+        "summary": "DELETE /api/v1/projects/{projectId}/scm-repos/{repoId}",
+        "tags": [
+          "项目·scm-repos"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "PATCH /api/v1/projects/{projectId}/scm-repos/{repoId}",
+        "tags": [
+          "项目·scm-repos"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{projectId}/scm-repos/{repoId}/verify": {
+      "post": {
+        "summary": "POST /api/v1/projects/{projectId}/scm-repos/{repoId}/verify",
+        "tags": [
+          "项目·scm-repos"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{projectId}/scm-repos": {
+      "get": {
+        "summary": "GET /api/v1/projects/{projectId}/scm-repos",
+        "tags": [
+          "项目·scm-repos"
+        ],
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统一信封 {code:0, message, data}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "POST /api/v1/projects/{projectId}/scm-repos",
+        "tags": [
+          "项目·scm-repos"
         ],
         "security": [
           {

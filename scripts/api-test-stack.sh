@@ -28,6 +28,12 @@ export PLUGIN_RUNNER_PORT="${PLUGIN_RUNNER_PORT:-$RABBIT_JM_RUNNER_PORT}"
 export POOL_K8S_ALLOW_LOOPBACK="${POOL_K8S_ALLOW_LOOPBACK:-1}"
 # S7：种子内置一台指向 jmeter 栈 mock 的模型（baseUrl 须含 /ai 前缀——mock 路由 /ai/chat/completions）
 export RABBIT_SEED_AI_MOCK_BASE="${RABBIT_SEED_AI_MOCK_BASE:-http://127.0.0.1:${JM_MOCK_PORT}/ai}"
+# S13 SCM-001：OAuth 平台指向 jm mock；集成加密/私网出站与 CI jmeter 作业同口径（本地缺省放开可覆盖）
+export SCM_GITHUB_BASE_URL="${SCM_GITHUB_BASE_URL:-http://127.0.0.1:${JM_MOCK_PORT}/mock-scm/github}"
+export SCM_GITEE_BASE_URL="${SCM_GITEE_BASE_URL:-http://127.0.0.1:${JM_MOCK_PORT}/mock-scm/gitee}"
+export SCM_GITLAB_BASE_URL="${SCM_GITLAB_BASE_URL:-http://127.0.0.1:${JM_MOCK_PORT}/mock-scm/gitlab}"
+export RABBIT_INTEGRATION_SECRET="${RABBIT_INTEGRATION_SECRET:-local-jm-integration-secret-32ch!!}"
+export OUTBOUND_ALLOW_PRIVATE="${OUTBOUND_ALLOW_PRIVATE:-1}"
 
 # redis 实例(:6381) 已可达则直接复用（键空间按逻辑库号=slot 隔离——多 worktree 并行不串台；
 # docker daemon 冷启动可绕行——本地 redis-server 同语义；AGENTS §4.1 环境复用）

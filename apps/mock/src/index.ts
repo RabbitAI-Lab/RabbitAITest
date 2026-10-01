@@ -265,6 +265,10 @@ if (process.env.VITEST === undefined) {
   // S9 ENTP-002/003 e2e/jmx：SSO+扫码 mock IdP（/sso/{provider}/{authId}/authorize|token|userinfo + serviceValidate + _test 控面）
   const { buildSsoMocks } = await import("./s9-sso-mocks.js");
   app.route("/sso", buildSsoMocks());
+  // S13 SCM-001 e2e/jmx：代码平台 mock（/mock-scm/{github|gitee|gitlab} OAuth 全链 + _test 控面；
+  // web 侧 SCM_{PROVIDER}_BASE_URL 指向）
+  const { buildScmMocks } = await import("./scm-mocks.js");
+  app.route("/mock-scm", buildScmMocks());
   app.route("/", buildGitMocks());
   mountSwaggerDoc(app);
   // S11 UIT-002：/uit/demo UI 测试演示页（输入框+按钮+动态文案，无鉴权）

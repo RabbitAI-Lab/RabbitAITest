@@ -75,7 +75,6 @@ jobs:
         working-directory: apps/cli
         run: ./bin/rabbit --help > /dev/null && ./bin/rabbit schema > /dev/null && file bin/rabbit
 
-
   build:
     name: next build
     runs-on: ubuntu-latest
@@ -267,6 +266,10 @@ jobs:
             # S7 AI：mock 供应商(环回 4200+slot)——SSRF 守卫仅豁免环回；种子内置 mock 模型（baseUrl 含 /ai 前缀）
             export AI_ALLOW_PRIVATE_BASEURL=1
             export RABBIT_SEED_AI_MOCK_BASE=http://127.0.0.1:$RABBIT_JM_MOCK_PORT/ai
+            # S13 SCM-001：代码平台 mock（/mock-scm/{provider} OAuth 全链）
+            export SCM_GITHUB_BASE_URL=http://127.0.0.1:$RABBIT_JM_MOCK_PORT/mock-scm/github
+            export SCM_GITEE_BASE_URL=http://127.0.0.1:$RABBIT_JM_MOCK_PORT/mock-scm/gitee
+            export SCM_GITLAB_BASE_URL=http://127.0.0.1:$RABBIT_JM_MOCK_PORT/mock-scm/gitlab
             pnpm --filter @rabbit/db migrate-deploy
             pnpm --filter @rabbit/db seed
             pnpm --filter web start > /tmp/web.log 2>&1 &

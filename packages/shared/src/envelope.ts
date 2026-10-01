@@ -117,6 +117,15 @@ export const ErrCode = {
   FILE_REPO_CONNECT_FAILED: 40461,
   FILE_REPO_PULL_FAILED: 40462,
   FILE_REPO_URL_BLOCKED: 40463, // 仓库地址命中 SSRF 守卫
+  // 40xxx 项目代码仓库（S13 SCM-001，file 族顺延空档；40474/40476/40484 为既有 SCENARIO 占用）
+  SCM_REPO_NOT_FOUND: 40470,
+  SCM_APP_NOT_CONFIGURED: 40471, // OAuth 应用未配置（系统级与组织级均无）
+  SCM_OAUTH_STATE_INVALID: 40472, // 授权 state 无效/过期/重复消费
+  SCM_VERIFY_FAILED: 40473, // 连通性验证失败（网络/平台错/仓库不存在）
+  SCM_REPO_LIMIT_EXCEEDED: 40475, // 仓库上限 10/项目
+  SCM_REPO_URL_BLOCKED: 40477, // 仓库地址命中 SSRF 守卫
+  SCM_ACCOUNT_NOT_FOUND: 40478, // 授权账号不存在或已撤销
+  SCM_PROVIDER_ERROR: 40479, // 平台上游失败（OAuth 换 token/用户信息/仓库列表）
   // 50xxx 执行引擎
   ENGINE_CALLBACK_INVALID: 50001,
   TASK_NOT_RUNNING: 50003,
@@ -335,6 +344,15 @@ export const ErrMsg: Record<number, string> = {
   [ErrCode.FILE_REPO_CONNECT_FAILED]: "存储库连接失败",
   [ErrCode.FILE_REPO_PULL_FAILED]: "存储库文件拉取失败",
   [ErrCode.FILE_REPO_URL_BLOCKED]: "仓库地址不允许（内网/元数据地址被守卫拦截）",
+  [ErrCode.SCM_REPO_NOT_FOUND]: "代码仓库绑定不存在或已删除",
+  [ErrCode.SCM_APP_NOT_CONFIGURED]:
+    "该平台 OAuth 应用未配置（请联系管理员在系统或组织服务集成中配置）",
+  [ErrCode.SCM_OAUTH_STATE_INVALID]: "授权状态无效或已过期，请重新发起授权",
+  [ErrCode.SCM_VERIFY_FAILED]: "仓库连通性验证失败",
+  [ErrCode.SCM_REPO_LIMIT_EXCEEDED]: "代码仓库数量超出上限（10/项目）",
+  [ErrCode.SCM_REPO_URL_BLOCKED]: "仓库地址不允许（内网/元数据地址被守卫拦截）",
+  [ErrCode.SCM_ACCOUNT_NOT_FOUND]: "授权账号不存在或已撤销",
+  [ErrCode.SCM_PROVIDER_ERROR]: "代码平台响应异常",
   // 90xxx 企业版（S9）
   [ErrCode.LICENSE_REQUIRED]: "该功能需企业版授权（License）",
   [ErrCode.LICENSE_FORMAT_INVALID]: "License 内容不合法（格式/字段缺失）",

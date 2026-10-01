@@ -128,11 +128,21 @@ export interface SystemParams {
   };
   /** S9 ENTP-004 界面设置（社区版=默认值） */
   theme?: ThemeParamValue;
+  /** S13 SCM-001 系统级代码平台 OAuth 应用（回显视图：clientSecret 只回 hasSecret） */
+  scm?: Record<
+    "github" | "gitee" | "gitlab",
+    {
+      clientId: string;
+      hasSecret: boolean;
+      baseUrl: string;
+      enabled: boolean;
+    }
+  >;
 }
 export const paramApi = {
   get: () => get<SystemParams>("/api/v1/system/params"),
   update: (
-    group: "basic" | "smtp" | "file" | "cleanup" | "theme",
+    group: "basic" | "smtp" | "file" | "cleanup" | "theme" | "scm",
     value: Record<string, unknown>,
   ) => put<{ ok: boolean }>(`/api/v1/system/params/${group}`, { group, value }),
   testSmtp: (body: SystemParams["smtp"]) =>
