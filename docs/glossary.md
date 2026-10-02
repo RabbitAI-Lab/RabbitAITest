@@ -39,3 +39,4 @@
 | Provider 接口 | CaseRefProvider                      | 跨域读取用例摘要的解耦接口（计划/缺陷/执行/报告消费）                                             |
 | 采样器        | Sampler                              | engine 内协议采样抽象（HttpSampler 起步，协议插件扩展）                                           |
 | 对标基线      | Baseline                             | [MeterSphere功能清单.md](./MeterSphere功能清单.md)，全部规格文档的对标依据                        |
+- 保护规则冒烟：2026-10-02
