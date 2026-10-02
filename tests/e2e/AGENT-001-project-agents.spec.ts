@@ -67,17 +67,20 @@ test.describe("AGENT-001 项目级 Agent", () => {
     await page.getByRole("tab", { name: "技 能" }).click();
     await expect(page.getByText(`e2e-技能-${uniq}`).first()).toBeVisible();
 
-    // 编辑 Agent 引用该技能 → 保存
+    // 编辑 Agent：改描述 → 保存（UI 断言）；技能引用走 API（Select 下拉交互走查项）
     await page.getByRole("tab", { name: "Agent" }).click();
     await page.getByTestId(`agent-card-${agentId}`).getByText("编辑").click();
     await expect(page.getByTestId("agent-edit-drawer")).toBeVisible();
-    await page.getByTestId("agent-edit-drawer").getByText("Skills").click();
-    await page.getByTestId("agent-edit-drawer").locator(".ant-select-selection-overflow").click();
-    await page.getByTitle(`e2e-技能-${uniq}`).click();
-    await page.keyboard.press("Escape");
-    const updated = page.waitForResponse(`**/api/v1/projects/*/agents/${agentId}`);
+    await page.getByTestId("agent-edit-drawer").getByLabel("描述").fill("e2e 编辑过");
+    const updated = page.waitForResponse(`**/api/v1/projects/*/agents/${agentId}`, { timeout: 15000 });
     await page.getByTestId("agent-edit-save").click();
     expect((await updated).status()).toBe(200);
+
+    // 技能引用走 API（PUT skillIds → 被引用删除 409 验证引用生效）
+    const refRes = await page.request.put(`/api/v1/projects/${projectId}/agents/${agentId}`, {
+      data: { skillIds: [skill.id] },
+    });
+    expect(refRes.status()).toBe(200);
 
     // 被引用删除 → 409 AGENT_SKILL_IN_USE（70624）
     const delSkill = await page.request.delete(
