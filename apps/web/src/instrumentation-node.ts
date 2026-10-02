@@ -103,6 +103,30 @@ export async function register(): Promise<void> {
       logFor("scheduler").warn({ err }, "audit consumer failed"),
     );
 
+    // Agent 运行 consumer（AGENT-001；并发 2；同 Agent 串行=处理器内 Redis 锁+Delayed 重排）
+    const { processAgentRun } = await import("@/server/domains/agent/run.service");
+    const { DelayedError } = await import("bullmq");
+    const agentWorker = new Worker(
+      "agent-run",
+      async (job) => {
+        const data = job.data as { runId?: string };
+        if (job.name === "chat" && data.runId) {
+          await processAgentRun(data.runId);
+        }
+      },
+      { connection, concurrency: 2 },
+    );
+    agentWorker.on("failed", async (job, err) => {
+      // 锁竞争：3s 后重排（释放 worker 槽；bullmq DelayedError 标准模式）
+      if (err instanceof DelayedError && job) {
+        const token = (job as unknown as { token?: string }).token;
+        if (token) await job.moveToDelayed(Date.now() + 3000, token).catch(() => {});
+        return;
+      }
+      logFor("agent").warn({ jobId: job?.id, err: String(err) }, "agent run failed");
+    });
+    logFor("agent").info("started (queue=agent-run: chat)");
+
     // 审计保留清理 repeatable（每日 03:00；jobId 幂等去重）
     const { scheduleQueue } = await import("@/server/redis");
     await scheduleQueue()

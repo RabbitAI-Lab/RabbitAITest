@@ -35,7 +35,6 @@ const caseCreateInput = z.object({
     .array(
       z.object({
         name: z.string().min(1).max(512),
-        moduleId: z.string().uuid(),
         precondition: z.string().max(4000).default(""),
         steps: z.array(z.object({ desc: z.string().max(2000), expect: z.string().max(2000) })).max(50).default([]),
         level: z.enum(["P0", "P1", "P2", "P3"]).default("P2"),
@@ -55,7 +54,6 @@ const bugSearchInput = z.object({ keyword, ...pageArgs });
 const bugCreateInput = z.object({
   title: z.string().min(1).max(255),
   description: z.string().max(8000),
-  level: z.enum(["P0", "P1", "P2", "P3"]).default("P2"),
 });
 const repoListFilesInput = z.object({
   repoId: z.string().uuid(),
@@ -92,7 +90,7 @@ export const AGENT_TOOLS: readonly AgentToolDef[] = [
   {
     key: "case.create",
     title: "创建功能用例",
-    description: "批量创建功能用例草稿（单次 ≤20 条，落库为 PREPARING 未评审态）",
+    description: "批量创建功能用例草稿（单次 ≤20 条，落默认模块、PREPARING 未评审态，人工评审后生效）",
     group: "case",
     requiredPermission: "PROJECT_CASE:CREATE",
     write: true,

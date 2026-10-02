@@ -40,6 +40,8 @@ model User {
   departmentMembers  DepartmentMember[]
   scmAccounts        ScmAccount[]
   createdScmRepos    ScmRepository[]
+  createdAgents      ProjectAgent[]
+  agentRunAs         ProjectAgent[] @relation("AgentRunAs")
 }
 
 model Organization {
@@ -115,6 +117,10 @@ model Project {
   uiCases          UiTestCase[]
   uiRunners        UiRunner[]
   scmRepositories  ScmRepository[]
+  agents           ProjectAgent[]
+  agentSkills      AgentSkill[]
+  agentRuns        AgentRun[]
+  agentGenDrafts   AgentGenDraft[]
 
   @@unique([orgId, num])
   @@index([deletedAt])
@@ -655,6 +661,168 @@ model ScmRepository {
 
   @@index([projectId, deletedAt])
   @@map("scm_repositories")
+}
+
+// ───────────────────────── agent 域（S14 AGENT-001/002） ─────────────────────────
+
+/// 项目 Agent 定义（AGENT-001；六要素一次建齐；mode=chat|pipeline，pipelineConfig 为 AGENT-002 预建列）
+model ProjectAgent {
+  id             String    @id @default(uuid())
+  projectId      String    @map("project_id")
+  project        Project   @relation(fields: [projectId], references: [id])
+  name           String    @db.VarChar(64)
+  description    String?   @db.VarChar(512)
+  /// 展示分类：CASE_GENERATOR | CASE_RUNNER | ANALYST | CUSTOM
+  role           String    @default("CUSTOM") @db.VarChar(32)
+  /// 运行模式：chat=pi 会话循环（AGENT-001）；pipeline=资产生成管线（AGENT-002）
+  mode           String    @default("chat") @db.VarChar(16)
+  /// pipeline 模式配置（stages/repos[{repoId,branch}]/limits/contextBudgetTokens 等；chat 恒 null）
+  pipelineConfig Json?
+  /// → AiModel.id（应用层校验存在且启用）
+  modelId        String    @map("model_id") @db.VarChar(64)
+  systemPrompt   String    @map("system_prompt") @db.Text
+  modelParams    Json      @default("{\"temperature\":0.3,\"maxTokens\":4096}") @map("model_params")
+  maxIterations  Int       @default(12) @map("max_iterations")
+  timeoutMs      Int       @default(300000) @map("timeout_ms")
+  /// ScmRepository.id 数组（应用层校验 ⊆ 项目绑定仓库）
+  repoIds        Json      @default("[]")
+  /// 工具目录 key 数组（shared 单一来源）
+  toolKeys       Json      @default("[]") @map("tool_keys")
+  /// AgentSkill.id 数组（≤5）
+  skillIds       Json      @default("[]") @map("skill_ids")
+  /// A2A 调用时的工具执行身份（默认创建人）
+  runAsUserId    String    @map("run_as_user_id")
+  runAsUser      User      @relation("AgentRunAs", fields: [runAsUserId], references: [id])
+  a2aEnabled     Boolean   @default(false) @map("a2a_enabled")
+  /// rag_ 前 8 位（展示）
+  apiKeyPrefix   String?   @map("api_key_prefix") @db.VarChar(16)
+  /// SHA-256 hex
+  apiKeyHash     String?   @map("api_key_hash") @db.VarChar(128)
+  keyGeneratedAt DateTime? @map("key_generated_at")
+  lastCalledAt   DateTime? @map("last_called_at")
+  enabled        Boolean   @default(true)
+  version        Int       @default(1)
+  createdById    String    @map("created_by_id")
+  createdBy      User      @relation(fields: [createdById], references: [id])
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+  deletedAt      DateTime? @map("deleted_at")
+
+  runs AgentRun[]
+
+  @@unique([projectId, name])
+  @@index([projectId, deletedAt])
+  @@map("project_agents")
+}
+
+/// 项目级 Agent 技能库（markdown 指令包；跨 Agent 复用）
+model AgentSkill {
+  id          String    @id @default(uuid())
+  projectId   String    @map("project_id")
+  project     Project   @relation(fields: [projectId], references: [id])
+  name        String    @db.VarChar(64)
+  description String    @db.VarChar(512)
+  /// markdown 指令 ≤16KB（zod）
+  content     String    @db.Text
+  enabled     Boolean   @default(true)
+  createdById String    @map("created_by_id")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+
+  @@unique([projectId, name])
+  @@index([projectId, deletedAt])
+  @@map("agent_skills")
+}
+
+/// Agent 运行（= A2A Task；id 即 taskId；snapshot 留痕可复现）
+model AgentRun {
+  id               String      @id @default(uuid())
+  projectId        String      @map("project_id")
+  project          Project     @relation(fields: [projectId], references: [id])
+  agentId          String      @map("agent_id")
+  agent            ProjectAgent @relation(fields: [agentId], references: [id])
+  /// UI | A2A
+  source           String      @db.VarChar(16)
+  /// A2A 多轮上下文（UI 单轮=自 id）
+  contextId        String      @map("context_id") @db.VarChar(64)
+  /// 实际执行身份（UI=调用者；A2A=runAsUser）
+  asUserId         String      @map("as_user_id")
+  /// PENDING|RUNNING|COMPLETED|FAILED|CANCELED|REJECTED
+  status           String      @default("PENDING") @db.VarChar(32)
+  input            Json
+  /// 启动时 agent 配置快照（model/prompt/tools/skills/params/pipeline）
+  snapshot         Json
+  output           Json?
+  error            String?     @db.VarChar(1024)
+  promptTokens     Int         @default(0) @map("prompt_tokens")
+  completionTokens Int         @default(0) @map("completion_tokens")
+  durationMs       Int?        @map("duration_ms")
+  /// UI 调用者
+  triggerUserId    String?     @map("trigger_user_id")
+  a2aKeyPrefix     String?     @map("a2a_key_prefix") @db.VarChar(16)
+  startedAt        DateTime?   @map("started_at")
+  finishedAt       DateTime?   @map("finished_at")
+  createdAt        DateTime    @default(now()) @map("created_at")
+
+  messages  AgentRunMessage[]
+  genDrafts AgentGenDraft[]
+
+  @@index([projectId, agentId, createdAt])
+  @@index([projectId, contextId, createdAt])
+  @@map("agent_runs")
+}
+
+/// Agent 运行轨迹（LLM 步/工具调用入出参/产物——调试台与详情回放双消费）
+model AgentRunMessage {
+  id        String   @id @default(uuid())
+  runId     String   @map("run_id")
+  run       AgentRun @relation(fields: [runId], references: [id])
+  /// 运行内自增
+  seq       Int
+  /// user | assistant | tool
+  role      String   @db.VarChar(16)
+  /// role=tool 时工具 key
+  name      String?  @db.VarChar(64)
+  /// {text} | {toolCalls,text?} | {input,output,error?}（截断后）
+  content   Json
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([runId, seq])
+  @@index([runId, seq])
+  @@map("agent_run_messages")
+}
+
+/// 生成管线产物草稿（AGENT-002；行级——部分导入与逐项状态；30 天清理；列随 AGENT-001 一次建齐）
+model AgentGenDraft {
+  id             String   @id @default(uuid())
+  runId          String   @map("run_id")
+  run            AgentRun @relation(fields: [runId], references: [id])
+  projectId      String   @map("project_id")
+  project        Project  @relation(fields: [projectId], references: [id])
+  /// A | B | C
+  stage          String   @db.VarChar(16)
+  /// test_point|functional_case|api_definition|api_case|scenario|ui_case|playwright_script
+  assetType      String   @map("asset_type") @db.VarChar(32)
+  name           String   @db.VarChar(255)
+  payload        Json
+  /// 置信度/来源文件/INVALID_REMOVED 原因等
+  meta           Json?
+  /// NEW | CONFLICT | INVALID
+  conflictStatus String   @default("NEW") @map("conflict_status") @db.VarChar(16)
+  conflictRef    Json?    @map("conflict_ref")
+  /// 预览页勾选态（持久化）
+  selected       Boolean  @default(false)
+  /// PENDING|IMPORTED|FAILED|SKIPPED|DISCARDED
+  importStatus   String   @default("PENDING") @map("import_status") @db.VarChar(16)
+  importedRef    Json?    @map("imported_ref")
+  error          String?  @db.VarChar(512)
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  @@index([runId, assetType])
+  @@index([projectId, createdAt])
+  @@map("agent_gen_drafts")
 }
 
 model PublicScript {
