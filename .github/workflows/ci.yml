@@ -1,22 +1,19 @@
 name: ci
 
+# 触发面（2026-10-02 优化：PR-only——merge 后 main 不再重跑）：
+# 仅 pull_request 触发 + workflow_dispatch 手动兜底。合并前验证不可省；同代码 merge 到 main
+# 再跑一轮 ~11min 属纯重复（实测每 PR 双轮）。main 兜底口径：分支保护建议开启
+# 「Require branches to be up to date before merging」（PR 落后 main 时强制 rebase 重验，
+# 覆盖合并提交与基线漂移）；直接 push main 被保护拦截，docs-only 变更本就被 paths-ignore 跳过。
+# （perf.yml 保留 main push=full 口径属有意设计：PR quick / main full 双档，非重复。）
 on:
-  # 文档-only 变更（docs/规则/CHANGELOG/原型）不触发全量 CI——纯文档不可能破坏代码，
-  # 避免收尾补记证据这类提交浪费 ~7 分钟（2026-09-26 S1 收尾教训）。
-  # 代码/配置任何变更仍全量执行；main 保护语义不变。
-  push:
-    branches: [main]
-    paths-ignore:
-      - "docs/**"
-      - "**/*.md"
-      - "CHANGELOG.md"
-      - ".oxfmtignore"
   pull_request:
     paths-ignore:
       - "docs/**"
       - "**/*.md"
       - "CHANGELOG.md"
       - ".oxfmtignore"
+  workflow_dispatch:
 
 concurrency:
   group: ci-${{ github.ref }}
