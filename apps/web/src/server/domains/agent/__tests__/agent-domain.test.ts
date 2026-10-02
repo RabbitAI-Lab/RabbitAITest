@@ -221,6 +221,16 @@ describe("六要素校验", () => {
     ).rejects.toMatchObject({ code: ErrCode.AGENT_NAME_EXISTS });
   });
 
+  it("列表返回分页信封 {total, items}", async () => {
+    (prisma.projectAgent.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([agentRow()]);
+    (prisma.aiModel.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({ name: "GLM" });
+    (prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({ name: "许某" });
+    const r = await agentSvc.listAgents("p1");
+    expect(r.total).toBe(1);
+    expect(r.items[0]!.name).toBe("用例生成助手");
+    expect(r.items[0]!.modelName).toBe("GLM");
+  });
+
   it("删除前置：RUNNING 拒 70639", async () => {
     (prisma.projectAgent.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(agentRow());
     (prisma.agentRun.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue({ id: "r1" });

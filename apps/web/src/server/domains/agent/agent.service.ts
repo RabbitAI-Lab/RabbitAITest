@@ -106,12 +106,13 @@ export async function serializeAgent(r: AgentRow): Promise<AgentView> {
   };
 }
 
-export async function listAgents(projectId: string): Promise<AgentView[]> {
+export async function listAgents(projectId: string): Promise<{ total: number; items: AgentView[] }> {
   const rows = await prisma.projectAgent.findMany({
     where: { projectId, deletedAt: null },
     orderBy: { createdAt: "asc" },
   });
-  return Promise.all(rows.map(serializeAgent));
+  const items = await Promise.all(rows.map(serializeAgent));
+  return { total: items.length, items };
 }
 
 export async function getAgentView(projectId: string, agentId: string): Promise<AgentView> {
