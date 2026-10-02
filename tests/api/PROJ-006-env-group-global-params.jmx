@@ -526,7 +526,7 @@
             <collectionProp name="Arguments.arguments">
               <elementProp name="" elementType="HTTPArgument">
                 <boolProp name="HTTPArgument.always_encode">false</boolProp>
-                <stringProp name="Argument.value">{&quot;name&quot;:&quot;jm-gx-${__time(yyyyMMddHHmmss)}&quot;,&quot;environmentIds&quot;:[&quot;${ENV3}&quot;]}</stringProp>
+                <stringProp name="Argument.value">{&quot;name&quot;:&quot;jm-gx-${TS}&quot;,&quot;environmentIds&quot;:[&quot;${ENV3}&quot;]}</stringProp>
                 <stringProp name="Argument.metadata">=</stringProp>
               </elementProp>
             </collectionProp>
@@ -568,7 +568,7 @@
             <collectionProp name="Arguments.arguments">
               <elementProp name="" elementType="HTTPArgument">
                 <boolProp name="HTTPArgument.always_encode">false</boolProp>
-                <stringProp name="Argument.value">{&quot;name&quot;:&quot;jm-gx-${__time(yyyyMMddHHmmss)}&quot;,&quot;environmentIds&quot;:[&quot;${ENV3}&quot;]}</stringProp>
+                <stringProp name="Argument.value">{&quot;name&quot;:&quot;jm-gx-${TS}&quot;,&quot;environmentIds&quot;:[&quot;${ENV3}&quot;]}</stringProp>
                 <stringProp name="Argument.metadata">=</stringProp>
               </elementProp>
             </collectionProp>
