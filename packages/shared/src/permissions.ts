@@ -176,6 +176,14 @@ const PROJECT_REPO = [
   "PROJECT_REPO:UPDATE",
   "PROJECT_REPO:DELETE",
 ] as const;
+/** 项目 Agent（S14 AGENT-001 随规格入库） */
+const PROJECT_AGENT = [
+  "PROJECT_AGENT:READ",
+  "PROJECT_AGENT:CREATE",
+  "PROJECT_AGENT:UPDATE",
+  "PROJECT_AGENT:DELETE",
+  "PROJECT_AGENT:RUN",
+] as const;
 
 export const PERMISSION_POINTS = [
   ...SYSTEM_USER,
@@ -217,6 +225,7 @@ export const PERMISSION_POINTS = [
   ...PROJECT_LOAD,
   ...PROJECT_UIT,
   ...PROJECT_REPO,
+  ...PROJECT_AGENT,
 ] as const;
 
 export type PermissionPoint = (typeof PERMISSION_POINTS)[number];
@@ -260,6 +269,7 @@ export const PRESET_GROUP_PERMISSIONS = {
     "PROJECT_LOAD:READ",
     "PROJECT_UIT:READ",
     "PROJECT_REPO:READ",
+    "PROJECT_AGENT:READ",
     ...PROJECT_EXEC_TASK,
   ],
   ORG_MEMBER: ["ORG_PROJECT:READ"],
@@ -284,6 +294,7 @@ export const PRESET_GROUP_PERMISSIONS = {
     ...PROJECT_LOAD,
     ...PROJECT_UIT,
     ...PROJECT_REPO,
+    ...PROJECT_AGENT,
   ],
   PROJECT_MEMBER: [
     "PROJECT_MEMBER:READ",
@@ -314,6 +325,8 @@ export const PRESET_GROUP_PERMISSIONS = {
     "PROJECT_UIT:READ",
     "PROJECT_REPO:READ",
     "PROJECT_REPO:CREATE",
+    "PROJECT_AGENT:READ",
+    "PROJECT_AGENT:RUN",
     ...PROJECT_EXEC_TASK,
   ],
 } as const;
