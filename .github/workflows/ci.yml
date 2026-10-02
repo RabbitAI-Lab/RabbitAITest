@@ -353,3 +353,19 @@ jobs:
       - run: corepack enable
       - run: pnpm install --frozen-lockfile
       - run: pnpm audit --prod --audit-level high || echo "audit findings — 收口清单见 rules/git-workflow §5.1"
+
+  # 门禁锚点（分支保护必需检查的恒定名锚）：聚合全部上游结果——failure/cancelled 即红，
+  # skipped（docs-only 直通）视为通过。矩阵作业（e2e/jmeter 分片）在被跳过时只报单个
+  # 无后缀名、与带分片后缀的必需上下文永不匹配（PR#46 实证）——必需检查改认本锚点即兼容
+  # 「代码 PR 全量跑 / docs PR 直通」两态。
+  ci-gate:
+    name: ci 门禁（必需检查锚点）
+    needs: [changes, quality, cli, build, migrate-replay, e2e, api-test, audit]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: 汇聚判定（failure/cancelled 即红；skipped 直通）
+        run: |
+          echo '${{ toJSON(needs) }}' | jq -e 'to_entries | map(select(.value.result == "failure" or .value.result == "cancelled")) | length == 0' \
+            || { echo "上游作业存在 failure/cancelled"; exit 1; }
+          echo "ci 门禁通过（全部上游 success/skipped）"

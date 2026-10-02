@@ -125,3 +125,16 @@ jobs:
           name: perf-baseline-report
           path: test-results/perf/
           retention-days: 30
+
+  # 门禁锚点（同 ci.yml ci-gate 口径）：性能基线 failure/cancelled 即红，skipped 直通
+  perf-gate:
+    name: 性能门禁（必需检查锚点）
+    needs: [changes, perf-baseline]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: 汇聚判定
+        run: |
+          echo '${{ toJSON(needs) }}' | jq -e 'to_entries | map(select(.value.result == "failure" or .value.result == "cancelled")) | length == 0' \
+            || { echo "性能基线 failure/cancelled"; exit 1; }
+          echo "性能门禁通过（success/skipped）"
