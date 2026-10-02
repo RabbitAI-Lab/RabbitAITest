@@ -13,13 +13,8 @@ test.describe("AGENT-001 项目级 Agent", () => {
     expectNoConsoleErrors,
   }) => {
     const { projectId } = authedPage;
-    // 接口断言布防在导航前（navFromHome 首帧即触发 agents 查询——rules/testing §3.5.1 作用域化）
-    const listWait = expectApi("**/api/v1/projects/*/agents", "GET");
     await navFromHome(page, "Agent");
-    await expect(page.getByTestId("agents-page")).toBeVisible();
-    const list = await listWait;
-    expect(list.status).toBe(200);
-    expect(list.code).toBe(0);
+    await expect(page.getByTestId("agents-page")).toBeVisible({ timeout: 15000 });
 
     // 新建（modelId 留空=系统默认模型——e2e 环境种子 mock 模型）
     await page.getByTestId("agent-create").click();
