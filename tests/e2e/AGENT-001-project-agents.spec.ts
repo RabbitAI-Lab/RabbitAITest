@@ -13,12 +13,10 @@ test.describe("AGENT-001 项目级 Agent", () => {
     expectNoConsoleErrors,
   }) => {
     const { projectId } = authedPage;
+    // 接口断言布防在导航前（navFromHome 首帧即触发 agents 查询——rules/testing §3.5.1 作用域化）
+    const listWait = expectApi("**/api/v1/projects/*/agents", "GET");
     await navFromHome(page, "Agent");
     await expect(page.getByTestId("agents-page")).toBeVisible();
-
-    // 列表接口断言（信封）
-    const listWait = expectApi("**/api/v1/projects/*/agents", "GET");
-    await page.goto("/settings/agents");
     const list = await listWait;
     expect(list.status).toBe(200);
     expect(list.code).toBe(0);
@@ -150,8 +148,10 @@ test.describe("AGENT-001 项目级 Agent", () => {
       )
       .toBeTruthy();
 
-    // 运行记录 tab 有行
+    // 运行记录 tab 有行（goto 后等 agents 列表加载完成再切 tab——antd Tabs 重渲染卸载竞态）
     await page.goto("/settings/agents");
+    await page.getByTestId("agents-page").waitFor({ state: "visible" });
+    await page.waitForTimeout(500);
     await page.getByRole("tab", { name: "运行记录" }).click();
     await expect(page.getByText(`e2e-调试-${uniq}`).first()).toBeVisible();
 
