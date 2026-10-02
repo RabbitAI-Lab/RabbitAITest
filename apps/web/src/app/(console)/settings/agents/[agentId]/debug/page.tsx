@@ -1,10 +1,11 @@
 "use client";
 
-import { Alert, App, Button, Input, Spin, Tag, Typography } from "antd";
+import { Alert, Button, Input, Spin, Tag, Typography } from "antd";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter, useParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { agentApi, agentRunStreamUrl } from "@rabbit/api-client";
+import { useApp } from "@/hooks/useApp";
 
 import { useProjectStore } from "@/stores/project";
 
@@ -16,7 +17,7 @@ interface TraceItem {
 
 /** AGENT-001 调试台：左对话（最终答复）+ 右轨迹（ws 步/工具入出参/SSE 帧实时）。 */
 export default function AgentDebugPage() {
-  const { message } = App.useApp();
+  const { message } = useApp();
   const router = useRouter();
   const params = useParams<{ agentId: string }>();
   const agentId = params.agentId;

@@ -33,7 +33,7 @@ import {
   type AgentView,
 } from "@rabbit/api-client";
 import { AGENT_ROLE_LABELS, AGENT_ROLES, AGENT_TOOLS } from "@rabbit/shared";
-import { App } from "antd";
+import { useApp } from "@/hooks/useApp";
 import { useProjectStore } from "@/stores/project";
 
 const TOOL_GROUPS = ["case", "api", "plan", "report", "repo"] as const;
@@ -62,7 +62,7 @@ interface AgentFormValue {
 }
 
 export default function AgentsPage() {
-  const { message } = App.useApp();
+  const { message } = useApp();
   const router = useRouter();
   const qc = useQueryClient();
   const { currentProjectId: projectId } = useProjectStore();
