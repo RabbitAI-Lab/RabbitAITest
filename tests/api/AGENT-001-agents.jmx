@@ -619,7 +619,11 @@
           </DurationAssertion>
           <hashTree/>
         </hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="T10 删除 Agent">
+                <ConstantTimer guiclass="ConstantTimerGui" testclass="ConstantTimer" testname="等运行终态 8s（CI 共享 runner pi 管线）">
+          <stringProp name="ConstantTimer.delay">8000</stringProp>
+        </ConstantTimer>
+        <hashTree/>
+<HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="T10 删除 Agent">
           <stringProp name="HTTPSampler.domain">${__P(HOST,localhost)}</stringProp>
           <stringProp name="HTTPSampler.port">${__P(PORT,3200)}</stringProp>
           <stringProp name="HTTPSampler.path">/api/v1/projects/${PROJECT_ID}/agents/${AGENT_ID}</stringProp>
