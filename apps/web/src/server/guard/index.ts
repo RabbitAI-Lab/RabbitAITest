@@ -224,6 +224,9 @@ export function toResponse(err: unknown): NextResponse {
                       // S14 UIT-004（runner 版本/忙 422）
                       ErrCode.UI_RUNNER_VERSION_INVALID,
                       ErrCode.UI_RUNNER_BUSY,
+                      // S14 AGENT-001（模型无效/六要素配置校验 422）
+                      ErrCode.AGENT_MODEL_INVALID,
+                      ErrCode.AGENT_CONFIG_INVALID,
                       // S-future（PLUG-003/TOOL-001/002/EXEC-004/RPT-004）
                       ErrCode.PROTOCOL_PLUGIN_LOAD_FAILED,
                       ErrCode.OPEN_SYNC_VALIDATION_FAILED,

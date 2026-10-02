@@ -462,6 +462,10 @@
           </DurationAssertion>
           <hashTree/>
         </hashTree>
+        <ConstantTimer guiclass="ConstantTimerGui" testclass="ConstantTimer" testname="等 cancel 落盘 3s">
+          <stringProp name="ConstantTimer.delay">3000</stringProp>
+        </ConstantTimer>
+        <hashTree/>
         <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="T7 运行详情">
           <stringProp name="HTTPSampler.domain">${__P(HOST,localhost)}</stringProp>
           <stringProp name="HTTPSampler.port">${__P(PORT,3200)}</stringProp>
