@@ -155,7 +155,11 @@ export default function AiPromptsPage() {
           dataIndex: "isDefault",
           width: 70,
           render: (v: boolean) =>
-            v ? <span className="text-amber-500">★</span> : <span className="text-slate-300">—</span>,
+            v ? (
+              <span className="text-amber-500">★</span>
+            ) : (
+              <span className="text-slate-300">—</span>
+            ),
         },
         {
           title: "启用",
@@ -197,7 +201,10 @@ export default function AiPromptsPage() {
                 <>
                   <a onClick={() => openEdit(r)}>编辑</a>
                   {!r.isDefault && r.enabled && (
-                    <a onClick={() => setDefault.mutate(r)} data-testid={`ai-prompt-default-${r.name}`}>
+                    <a
+                      onClick={() => setDefault.mutate(r)}
+                      data-testid={`ai-prompt-default-${r.name}`}
+                    >
                       设为默认
                     </a>
                   )}
@@ -242,7 +249,11 @@ export default function AiPromptsPage() {
                 <div className="pb-2 text-xs text-slate-400">
                   合法占位符：
                   {PROMPT_PLACEHOLDERS[s].map((p) => (
-                    <Tag key={p} className="font-mono !text-[10px]" color="purple">{`{{${p}}}`}</Tag>
+                    <Tag
+                      key={p}
+                      className="font-mono !text-[10px]"
+                      color="purple"
+                    >{`{{${p}}}`}</Tag>
                   ))}
                   ；无模板时生成抽屉回退「内置默认」；停用模板不出现在生成抽屉且不可为默认
                 </div>

@@ -20,7 +20,10 @@ export const loadTargetSchema = z.object({
       message: "目标必须为 http(s) 绝对 URL",
     }),
   headers: z.array(kvSchema).max(50).default([]),
-  body: z.string().max(256 * 1024).default(""),
+  body: z
+    .string()
+    .max(256 * 1024)
+    .default(""),
 });
 export type LoadTarget = z.infer<typeof loadTargetSchema>;
 

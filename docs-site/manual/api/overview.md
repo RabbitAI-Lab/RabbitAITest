@@ -6,25 +6,25 @@
 
 ### 功能地图
 
-| 页面 | 定位 |
-| ---- | ---- |
-| [接口调试](manual/api/debug.md) | 单请求快速验证：改参数、加断言、立即执行看报告 |
-| [接口定义](manual/api/definition.md) | 接口资产沉淀：模块树管理定义，派生用例与 Mock 规则 |
-| [自动化场景](manual/api/scenario.md) | 多步骤业务流编排：引用接口/用例，循环、条件、CSV 参数化 |
-| [参数化与内置函数](manual/api/functions.md) | 变量、提取器、内置函数与 CSV 数据驱动 |
-| [Mock 服务](manual/api/mock.md) | 按规则返回模拟响应，保存即热更新 |
-| [报告与统计](manual/api/report.md) | 执行结果的事件流报告、分享与趋势统计 |
+| 页面                                        | 定位                                                    |
+| ------------------------------------------- | ------------------------------------------------------- |
+| [接口调试](manual/api/debug.md)             | 单请求快速验证：改参数、加断言、立即执行看报告          |
+| [接口定义](manual/api/definition.md)        | 接口资产沉淀：模块树管理定义，派生用例与 Mock 规则      |
+| [自动化场景](manual/api/scenario.md)        | 多步骤业务流编排：引用接口/用例，循环、条件、CSV 参数化 |
+| [参数化与内置函数](manual/api/functions.md) | 变量、提取器、内置函数与 CSV 数据驱动                   |
+| [Mock 服务](manual/api/mock.md)             | 按规则返回模拟响应，保存即热更新                        |
+| [报告与统计](manual/api/report.md)          | 执行结果的事件流报告、分享与趋势统计                    |
 
 ### 请求模型
 
-| 项 | 取值 |
-| -- | ---- |
-| 协议 protocol | `http` / `https` 走内置引擎管线；其余为协议插件标识（tcp-conn / websocket / mqtt，插件启用后可选） |
-| HTTP 方法 | GET / POST / PUT / DELETE / PATCH / OPTIONS / HEAD / CONNECT（8 种） |
-| 请求体 | none / form_data / form_urlencoded / raw_json / raw_xml / raw_text / binary（7 类，form 行可引用文件 fileId） |
-| 认证 | basic / digest / none |
-| 超时 timeoutMs | 1s-120s，默认 60s |
-| 其他开关 | followRedirects（跟随重定向）、skipPre / skipPost（跳过前后置处理器） |
+| 项             | 取值                                                                                                          |
+| -------------- | ------------------------------------------------------------------------------------------------------------- |
+| 协议 protocol  | `http` / `https` 走内置引擎管线；其余为协议插件标识（tcp-conn / websocket / mqtt，插件启用后可选）            |
+| HTTP 方法      | GET / POST / PUT / DELETE / PATCH / OPTIONS / HEAD / CONNECT（8 种）                                          |
+| 请求体         | none / form_data / form_urlencoded / raw_json / raw_xml / raw_text / binary（7 类，form 行可引用文件 fileId） |
+| 认证           | basic / digest / none                                                                                         |
+| 超时 timeoutMs | 1s-120s，默认 60s                                                                                             |
+| 其他开关       | followRedirects（跟随重定向）、skipPre / skipPost（跳过前后置处理器）                                         |
 
 ?> 非 http 协议时，HTTP 参数 / 认证 / 请求体等面板不适用，改为「协议配置」JSON 编辑（protocolConfig），采样由协议插件完成。
 
@@ -32,32 +32,32 @@
 
 断言 **6 种类型 × 7 种操作符**：
 
-| 断言类型 | 说明 |
-| -------- | ---- |
-| status_code | HTTP 状态码 |
-| response_header | 响应头 |
-| body_jsonpath | 响应体 JSONPath（如 `$.url`） |
-| body_regex | 响应体正则 |
-| response_time | 响应时间（ms） |
-| variable | 变量值 |
+| 断言类型        | 说明                          |
+| --------------- | ----------------------------- |
+| status_code     | HTTP 状态码                   |
+| response_header | 响应头                        |
+| body_jsonpath   | 响应体 JSONPath（如 `$.url`） |
+| body_regex      | 响应体正则                    |
+| response_time   | 响应时间（ms）                |
+| variable        | 变量值                        |
 
-| 操作符 | 含义 |
-| ------ | ---- |
-| eq | 等于 |
-| contains | 包含 |
-| lt / le | 小于 / 小于等于 |
-| gt / ge | 大于 / 大于等于 |
-| regex | 正则匹配 |
+| 操作符   | 含义            |
+| -------- | --------------- |
+| eq       | 等于            |
+| contains | 包含            |
+| lt / le  | 小于 / 小于等于 |
+| gt / ge  | 大于 / 大于等于 |
+| regex    | 正则匹配        |
 
 任一断言不通过，该项即失败（语义码 ASSERT_FAILED）。
 
 ### 前后置处理器
 
-| 类型 | 说明 |
-| ---- | ---- |
+| 类型   | 说明                                                                                                                                                                   |
+| ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | script | quickjs 沙箱脚本：64KB 上限；同步执行超 5s 中断强杀；API 白名单 log / getVar / setVar / envGet / randomInt / now，无 IO；可引用公共脚本（scriptRef）；条件表达式同沙箱 |
-| sql | SQL 处理器（当前版本未启用，选择会被静态安全门禁拦截并显式报 CONFIG_ERROR，非 Bug） |
-| wait | 固定等待 1-30000ms |
+| sql    | SQL 处理器（当前版本未启用，选择会被静态安全门禁拦截并显式报 CONFIG_ERROR，非 Bug）                                                                                    |
+| wait   | 固定等待 1-30000ms                                                                                                                                                     |
 
 ### 执行模型
 

@@ -1,20 +1,20 @@
 # SSH/Redis/MongoDB/gRPC/AMQP 协议插件（PLUG-005 · 多协议扩展第二批）
 
-| 元信息项     | 内容                                                                                                                                                                                                                   |
-| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 文档编号     | PLUG-005                                                                                                                                                                                                               |
-| 所属迭代     | Sprint future — 远期 P4                                                                                                                                                                                                 |
-| 优先级       | P4（远期增强级；MeterSphere 企业版协议插件对标清偿的第二批）                                                                                                                                                           |
-| 所属模块     | PLUG 插件体系（协议插件）/ API 接口测试（协议选择器）/ EXEC 引擎（采样器，零改动消费）                                                                                                                                 |
-| 文档状态     | Implemented（2026-09-30 交付：单测 105 家族全绿 + jmx/e2e 随 CI；configSchema 契约评审替代高保真——门禁 2 纯后端/引擎类条款）                                                                                          |
-| 最后更新日期 | 2026-09-30                                                                                                                                                                                                             |
-| 上游依赖     | PLUG-001（上传/启停管线）、PLUG-002（SamplerPlugin SPI）、PLUG-003（单 run 探活语义/协议选择器数据驱动/40511）、PLUG-004（CJS 打包/类型/来源铁律/冒烟方法先例）                                                          |
-| 下游消费     | API-002（协议字段消费方）、后续协议插件（按本规格模式复制）                                                                                                                                                             |
-| 上游依据     | 需求文档 P4「其余协议经系统插件上传后启用」；MeterSphere 商店协议扩展六条（TCP/SSH/Redis/MongoDB/gRPC/AMQP **全部企业版闭源**——TCP 已有 tcp-conn，本规格清偿其余五家）                                                     |
-| 对标基线     | 清单 §11 协议插件；apps.fit2cloud.com/metersphere 协议扩展类目（2026-09-30 核实：6 插件全企业版、GitHub 组织无源码仓库）                                                                                                 |
-| 关联架构文档 | plugin-architecture.md（SPI 冻结面）、engine-execution-architecture.md（协议插件热加载）                                                                                                                               |
-| 高保真确认   | 豁免（纯后端/引擎类：五家 configSchema JSON 契约评审替代——门禁 2 条款；UI 零改动，协议选择器/JSON 编辑区为 PLUG-003 交付物）                                                                                             |
-| 工作量估算   | 插件 5×1 人日 + 内嵌测试目标 2 人日 + jmx/e2e 2 人日                                                                                                                                                                    |
+| 元信息项     | 内容                                                                                                                                                                   |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 文档编号     | PLUG-005                                                                                                                                                               |
+| 所属迭代     | Sprint future — 远期 P4                                                                                                                                                |
+| 优先级       | P4（远期增强级；MeterSphere 企业版协议插件对标清偿的第二批）                                                                                                           |
+| 所属模块     | PLUG 插件体系（协议插件）/ API 接口测试（协议选择器）/ EXEC 引擎（采样器，零改动消费）                                                                                 |
+| 文档状态     | Implemented（2026-09-30 交付：单测 105 家族全绿 + jmx/e2e 随 CI；configSchema 契约评审替代高保真——门禁 2 纯后端/引擎类条款）                                           |
+| 最后更新日期 | 2026-09-30                                                                                                                                                             |
+| 上游依赖     | PLUG-001（上传/启停管线）、PLUG-002（SamplerPlugin SPI）、PLUG-003（单 run 探活语义/协议选择器数据驱动/40511）、PLUG-004（CJS 打包/类型/来源铁律/冒烟方法先例）        |
+| 下游消费     | API-002（协议字段消费方）、后续协议插件（按本规格模式复制）                                                                                                            |
+| 上游依据     | 需求文档 P4「其余协议经系统插件上传后启用」；MeterSphere 商店协议扩展六条（TCP/SSH/Redis/MongoDB/gRPC/AMQP **全部企业版闭源**——TCP 已有 tcp-conn，本规格清偿其余五家） |
+| 对标基线     | 清单 §11 协议插件；apps.fit2cloud.com/metersphere 协议扩展类目（2026-09-30 核实：6 插件全企业版、GitHub 组织无源码仓库）                                               |
+| 关联架构文档 | plugin-architecture.md（SPI 冻结面）、engine-execution-architecture.md（协议插件热加载）                                                                               |
+| 高保真确认   | 豁免（纯后端/引擎类：五家 configSchema JSON 契约评审替代——门禁 2 条款；UI 零改动，协议选择器/JSON 编辑区为 PLUG-003 交付物）                                           |
+| 工作量估算   | 插件 5×1 人日 + 内嵌测试目标 2 人日 + jmx/e2e 2 人日                                                                                                                   |
 
 ## 0. 目标授权与关键决策（2026-09-30）
 
@@ -36,17 +36,17 @@
 
 ### 1.2 范围边界（能力行 → §5 用例映射）
 
-| 能力                                                                          | P1 ✅ | 后续                                                                  |
-| ----------------------------------------------------------------------------- | ----- | --------------------------------------------------------------------- |
-| `ssh` 插件（connect→exec 单命令→收 stdout/stderr→close）                        | ✅    | 交互式会话/多命令/SFTP（登记：单 run 语义内不做）                      |
-| `redis` 插件（connect→单命令→quit；危险命令黑名单）                              | ✅    | 集群/sentinel/EVAL 脚本（登记）                                        |
-| `mongodb` 插件（connect→ping/count/find(只读,limit≤100)→close）                  | ✅    | 写操作/聚合管线（登记）                                                |
-| `grpc` 插件（proto 动态加载→unary 调用→响应）                                   | ✅    | 流式四类（client/server/bidi streaming）、TLS 凭据上传（登记）         |
-| `amqp` 插件（connect→临时队列→publish→consume 首条自收→ack→close）               | ✅    | 交换机拓扑断言/批量消费（登记）                                        |
-| protocol-kit 共享层（raceTimeout/truncateBody/parseHostPort/friendlyNetError）   | ✅    | —                                                                     |
-| cpu-features 空桩（esbuild alias，ssh2 纯 JS 回退）                              | ✅    | —                                                                     |
-| 协议配置表单化（按 configSchema 动态渲染）                                       | ❌    | 后续迭代（PLUG-003 已登记，JSON 编辑区 v1 不变）                        |
-| 协议断言/提取器（响应匹配）                                                      | ❌    | 后续迭代（SamplerResult 扩展前不做）                                    |
+| 能力                                                                           | P1 ✅ | 后续                                                           |
+| ------------------------------------------------------------------------------ | ----- | -------------------------------------------------------------- |
+| `ssh` 插件（connect→exec 单命令→收 stdout/stderr→close）                       | ✅    | 交互式会话/多命令/SFTP（登记：单 run 语义内不做）              |
+| `redis` 插件（connect→单命令→quit；危险命令黑名单）                            | ✅    | 集群/sentinel/EVAL 脚本（登记）                                |
+| `mongodb` 插件（connect→ping/count/find(只读,limit≤100)→close）                | ✅    | 写操作/聚合管线（登记）                                        |
+| `grpc` 插件（proto 动态加载→unary 调用→响应）                                  | ✅    | 流式四类（client/server/bidi streaming）、TLS 凭据上传（登记） |
+| `amqp` 插件（connect→临时队列→publish→consume 首条自收→ack→close）             | ✅    | 交换机拓扑断言/批量消费（登记）                                |
+| protocol-kit 共享层（raceTimeout/truncateBody/parseHostPort/friendlyNetError） | ✅    | —                                                              |
+| cpu-features 空桩（esbuild alias，ssh2 纯 JS 回退）                            | ✅    | —                                                              |
+| 协议配置表单化（按 configSchema 动态渲染）                                     | ❌    | 后续迭代（PLUG-003 已登记，JSON 编辑区 v1 不变）               |
+| 协议断言/提取器（响应匹配）                                                    | ❌    | 后续迭代（SamplerResult 扩展前不做）                           |
 
 ### 1.3 前置依赖
 
@@ -54,12 +54,12 @@ PLUG-001 上传管线（tar 白名单/版本递增/启停/runner 热加载）；
 
 ### 1.4 对标基线核对
 
-| 基线行为（商店协议扩展六条）                  | 本项目实现                                                       | 口径                 |
-| --------------------------------------------- | ---------------------------------------------------------------- | -------------------- |
-| SSH/Redis/MongoDB/gRPC/AMQP 全部企业版闭源     | 标准版随插件源码交付（官方 npm 生态驱动，CJS 内联 tarball）        | 差异化决策（见 §6）   |
-| 插件表单（各插件自定义 UI）                    | JSON 编辑区（configSchema 校验+注释提示）                         | 简化实现（登记）      |
-| AMQP=「基于 RabbitMQ 实现 AMQP 协议」           | amqplib 客户端（RabbitMQ 兼容），e2e 加 rabbitmq service 真连     | 完全复刻             |
-| 下载渠道=应用商店 jar                          | 仓库 release 附件 tgz（来源=npm 官方 registry+lockfile）          | 渠道自建（PLUG-003 同）|
+| 基线行为（商店协议扩展六条）               | 本项目实现                                                    | 口径                    |
+| ------------------------------------------ | ------------------------------------------------------------- | ----------------------- |
+| SSH/Redis/MongoDB/gRPC/AMQP 全部企业版闭源 | 标准版随插件源码交付（官方 npm 生态驱动，CJS 内联 tarball）   | 差异化决策（见 §6）     |
+| 插件表单（各插件自定义 UI）                | JSON 编辑区（configSchema 校验+注释提示）                     | 简化实现（登记）        |
+| AMQP=「基于 RabbitMQ 实现 AMQP 协议」      | amqplib 客户端（RabbitMQ 兼容），e2e 加 rabbitmq service 真连 | 完全复刻                |
+| 下载渠道=应用商店 jar                      | 仓库 release 附件 tgz（来源=npm 官方 registry+lockfile）      | 渠道自建（PLUG-003 同） |
 
 ## 2. 业务逻辑
 
@@ -127,29 +127,29 @@ PLUG-001 上传管线（tar 白名单/版本递增/启停/runner 热加载）；
 
 ## 5. 测试用例
 
-| 编号          | 类型   | 前置                              | 步骤                                                                     | 预期                                                                                     |
-| ------------- | ------ | --------------------------------- | ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------- |
-| PLUG-005-T1   | Vitest | 内嵌 ssh2 Server（临时 RSA key）   | ssh 插件 run：echo 命令回显；exit≠0 命令；认证拒绝；连接拒绝             | 回显 ok code=0；exit≠0→4；认证拒绝→3；拒绝→2                                             |
-| PLUG-005-T2   | Vitest | 内嵌 mini RESP server              | redis 插件 run：PING/GET 成功；FLUSHALL 黑名单拦截（不触达 server）；超时 | 成功 code=0；黑名单→4 且 server 未收到；超时→1                                           |
-| PLUG-005-T3   | Vitest | mongodb 契约/错误映射              | uri 缺 db+count；$where 拦截；契约 safeParse；不可达连接映射             | 各分支 code/错误语义正确                                                                 |
-| PLUG-005-T4   | Vitest | 内嵌 gRPC echo server              | grpc 插件 run：unary Say 往返；服务端错误 status；超时；service 不存在   | 往返 code=0 bodyText 含响应；错误→4；超时→1；不存在→4 含可用列表                          |
-| PLUG-005-T5   | Vitest | amqp 契约/错误映射                 | url 非法/缺 message safeParse；不可达连接映射                             | 契约失败/连接失败→2                                                                      |
-| PLUG-005-T6   | Vitest | 五插件契约                          | name=protocol 标识 + configSchema.safeParse 合法/非法样本                | 全部通过（防 tcp-conn 漂移）                                                              |
-| PLUG-005-T7   | jmx    | api-test 栈 + plugins/dist tar     | 五插件循环：上传 201 → 重复 409·70005 → 启用 → 列表 kind=protocol 含五项  | 四断言（201/409/200/code=0/耗时）                                                        |
-| PLUG-005-T8   | jmx    | 同上                               | 未启用 grpc 定义保存 422·40511；已启用 redis 定义保存 201；401/403       | 四断言（40511/201/401/403）                                                               |
-| PLUG-005-T9   | e2e    | e2e 栈（rabbitmq service）          | 调试页协议下拉含五项 → 选 redis → config PING → 对 e2e redis 执行         | UI：成功回显 PONG；Console：无 error；接口：执行负载含 protocol=redis                     |
-| PLUG-005-T10  | e2e    | 同上                               | 选 amqp → 对 rabbitmq service 执行 publish/consume 往返                    | UI：成功回显消息体；Console；接口：负载含 protocol=amqp                                   |
+| 编号         | 类型   | 前置                             | 步骤                                                                      | 预期                                                                  |
+| ------------ | ------ | -------------------------------- | ------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| PLUG-005-T1  | Vitest | 内嵌 ssh2 Server（临时 RSA key） | ssh 插件 run：echo 命令回显；exit≠0 命令；认证拒绝；连接拒绝              | 回显 ok code=0；exit≠0→4；认证拒绝→3；拒绝→2                          |
+| PLUG-005-T2  | Vitest | 内嵌 mini RESP server            | redis 插件 run：PING/GET 成功；FLUSHALL 黑名单拦截（不触达 server）；超时 | 成功 code=0；黑名单→4 且 server 未收到；超时→1                        |
+| PLUG-005-T3  | Vitest | mongodb 契约/错误映射            | uri 缺 db+count；$where 拦截；契约 safeParse；不可达连接映射              | 各分支 code/错误语义正确                                              |
+| PLUG-005-T4  | Vitest | 内嵌 gRPC echo server            | grpc 插件 run：unary Say 往返；服务端错误 status；超时；service 不存在    | 往返 code=0 bodyText 含响应；错误→4；超时→1；不存在→4 含可用列表      |
+| PLUG-005-T5  | Vitest | amqp 契约/错误映射               | url 非法/缺 message safeParse；不可达连接映射                             | 契约失败/连接失败→2                                                   |
+| PLUG-005-T6  | Vitest | 五插件契约                       | name=protocol 标识 + configSchema.safeParse 合法/非法样本                 | 全部通过（防 tcp-conn 漂移）                                          |
+| PLUG-005-T7  | jmx    | api-test 栈 + plugins/dist tar   | 五插件循环：上传 201 → 重复 409·70005 → 启用 → 列表 kind=protocol 含五项  | 四断言（201/409/200/code=0/耗时）                                     |
+| PLUG-005-T8  | jmx    | 同上                             | 未启用 grpc 定义保存 422·40511；已启用 redis 定义保存 201；401/403        | 四断言（40511/201/401/403）                                           |
+| PLUG-005-T9  | e2e    | e2e 栈（rabbitmq service）       | 调试页协议下拉含五项 → 选 redis → config PING → 对 e2e redis 执行         | UI：成功回显 PONG；Console：无 error；接口：执行负载含 protocol=redis |
+| PLUG-005-T10 | e2e    | 同上                             | 选 amqp → 对 rabbitmq service 执行 publish/consume 往返                   | UI：成功回显消息体；Console；接口：负载含 protocol=amqp               |
 
 四类场景映射（jmx）：正常=T7/T8（201 保存）；权限=T8 401/403；校验=T8 40511；分页=T7 信封。mongodb 真连豁免登记（CI 无 mongod）；ssh/redis/grpc 以单测内嵌目标覆盖执行正确性（jmx 不起真服务，PLUG-003 先例）。
 
 ## 6. 竞品深度对标
 
-| 维度     | MeterSphere                       | 本项目                                           | 决策理由                                                                              |
-| -------- | --------------------------------- | ------------------------------------------------ | ------------------------------------------------------------------------------------- |
-| 版本归属 | 六协议插件全部企业版闭源           | 标准版交付五家插件源码+上传启用                   | 需求文档 P4 行明确列入本项目远期范围；开源版提供扩展能力，与基线企业版口径差异显式登记 |
-| 驱动来源 | 商店再分发 jar                     | npm 官方生态标准（ioredis/mongodb 官方/amqplib/ssh2/grpc-js）+lockfile | PLUG-004 §0 来源铁律延续                                                             |
-| gRPC 面  | 插件表单+流式支持（企业版）        | unary 单 run（JSON 编辑区 v1；流式登记后续）       | 单 run 探活语义冻结（PLUG-003）；表单化登记                                            |
-| SSH 边界 | 无防护（任意命令，企业版口径）      | 审计日志+凭据不落库；诚实登记不做假白名单           | shell 语义过宽，假防护比无防护更糟——与 SQL（白名单可行）差异显式化                     |
+| 维度     | MeterSphere                    | 本项目                                                                 | 决策理由                                                                               |
+| -------- | ------------------------------ | ---------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| 版本归属 | 六协议插件全部企业版闭源       | 标准版交付五家插件源码+上传启用                                        | 需求文档 P4 行明确列入本项目远期范围；开源版提供扩展能力，与基线企业版口径差异显式登记 |
+| 驱动来源 | 商店再分发 jar                 | npm 官方生态标准（ioredis/mongodb 官方/amqplib/ssh2/grpc-js）+lockfile | PLUG-004 §0 来源铁律延续                                                               |
+| gRPC 面  | 插件表单+流式支持（企业版）    | unary 单 run（JSON 编辑区 v1；流式登记后续）                           | 单 run 探活语义冻结（PLUG-003）；表单化登记                                            |
+| SSH 边界 | 无防护（任意命令，企业版口径） | 审计日志+凭据不落库；诚实登记不做假白名单                              | shell 语义过宽，假防护比无防护更糟——与 SQL（白名单可行）差异显式化                     |
 
 ## 7. 里程碑与验收
 

@@ -24,7 +24,9 @@ export default function UiCaseEditPage() {
     <div className="p-4 md:p-6 space-y-4 max-w-[1100px]">
       <PageHeader title={`编辑 UI 用例${data ? ` · ${data.name}` : ""}`} sub="UI 测试" />
       <Spin spinning={isLoading}>
-        {data && currentProjectId ? <UiCaseForm projectId={currentProjectId} initial={data} /> : null}
+        {data && currentProjectId ? (
+          <UiCaseForm projectId={currentProjectId} initial={data} />
+        ) : null}
       </Spin>
     </div>
   );

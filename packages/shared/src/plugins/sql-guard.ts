@@ -40,7 +40,12 @@ export function assertReadOnlySelect(sql: string): void {
   const stripped = stripForGuard(raw);
   if (stripped.includes("/*")) throw new SqlGuardError("存在未闭合的块注释");
   const head = stripped.trimStart().toUpperCase();
-  if (!/^SELECT[\s(]/.test(head) && !/^WITH[\s(]/.test(head) && head !== "SELECT" && head !== "WITH") {
+  if (
+    !/^SELECT[\s(]/.test(head) &&
+    !/^WITH[\s(]/.test(head) &&
+    head !== "SELECT" &&
+    head !== "WITH"
+  ) {
     throw new SqlGuardError("SQL 语句必须以 SELECT/WITH 开头（只读白名单）");
   }
   for (const token of FORBIDDEN_TOKENS) {

@@ -98,13 +98,14 @@ lint(oxlint) → typecheck(tsc) → unit(vitest, 含覆盖率阈值)
 1. **槽位推导**（优先级）：`RABBIT_SLOT` 环境变量（0-9） > worktree 目录名 `RabbitAITest-s{N}` → N > 主仓/CI checkout → 0。CI 恒为 slot 0。
 2. **端口表**（base + slot；s = 槽位号 0-9）：
 
-   | 栈 | web | mock | plugin-runner | PostgreSQL | Redis（逻辑库号=s） | 临时路径 |
-   | -- | --- | ---- | ------------- | ---------- | ------------------ | -------- |
-   | dev（pnpm dev） | 3000+s | 4000+s | 4300+s | 5440+s | 6379/s | .pgdata（worktree 本地） |
-   | e2e（pnpm test:e2e） | 3100+s | 4100+s | 4310+s | 5450+s | 6381/s | /tmp/rabbit-e2e-root-s{s} |
-   | JMeter（api-test-stack） | 3200+s | 4200+s | 4320+s | 5460+s | 6381/s | /tmp/rabbit-s{s}-jm/ |
+   | 栈                       | web    | mock   | plugin-runner | PostgreSQL | Redis（逻辑库号=s） | 临时路径                  |
+   | ------------------------ | ------ | ------ | ------------- | ---------- | ------------------- | ------------------------- |
+   | dev（pnpm dev）          | 3000+s | 4000+s | 4300+s        | 5440+s     | 6379/s              | .pgdata（worktree 本地）  |
+   | e2e（pnpm test:e2e）     | 3100+s | 4100+s | 4310+s        | 5450+s     | 6381/s              | /tmp/rabbit-e2e-root-s{s} |
+   | JMeter（api-test-stack） | 3200+s | 4200+s | 4320+s        | 5460+s     | 6381/s              | /tmp/rabbit-s{s}-jm/      |
 
    Redis 实例共享（dev 6379 / e2e+jm 6381），**键空间按逻辑库号 = slot 隔离**（BullMQ 队列、SSE Stream 不串台）。速查示例：worktree `RabbitAITest-s3` → dev 栈 web **3003** / mock **4003** / runner **4303** / PG **5443** / redis 6379·db3；e2e 栈 3103 / 4103 / 4313 / 5453 / 6381·db3；JMeter 栈 3203 / 4203 / 4323 / 5463 / 6381·db3。
+
 3. **硬性禁令**：新增服务/脚本/测试**禁止硬编码端口与共享 /tmp 路径**，一律从 `scripts/rabbit-env.mjs` 取值（Node 侧 `import { rabbitEnv }`；bash 侧 `eval "$(node scripts/rabbit-env.mjs --shell)"`，RABBIT_* 仅作默认值、显式 env 可覆盖）；e2e 用例侧统一走 `tests/e2e/env.ts`。CI 用 `pnpm test`（含 `node --test scripts/`）守住端口表唯一性。
 4. **清场纪律与归属检测**：栈脚本/teardown 只清**本槽位**端口与本 worktree 绝对路径下的进程（`pkill -f "<worktree>/apps/..."`）；占用者的 cwd 属于**其他 worktree** 时必须 fail fast 指名冲突（global-setup 已内置 `lsof -d cwd` 归属检测），禁止裸 `apps/mock` 模式、跨槽 lsof 互杀或静默抢占。
 5. **诊断口径**：联调自测异常先查串台——`node scripts/rabbit-env.mjs`（确认本目录槽位）+ `lsof -nP -iTCP -sTCP:LISTEN | grep -E '30[0-9]{2}|4[012][0-9]{2}|54[0-9]{2}'` + `redis-cli -p 6381 -n <slot> keys 'bull*'`。

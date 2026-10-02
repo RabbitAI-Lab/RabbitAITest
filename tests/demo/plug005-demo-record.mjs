@@ -73,7 +73,9 @@ async function execProtocol(page, label, protocol, config, expectText, overlayTa
   const bodyText = (await body.textContent().catch(() => "")) ?? "";
   await step(page, overlayTail.replace("__BODY__", bodyText.slice(0, 60)), 3600);
   if (!bodyText.includes(expectText)) {
-    throw new Error(`${protocol} 响应体不含期望「${expectText}」（实际 ${bodyText.slice(0, 120)}）`);
+    throw new Error(
+      `${protocol} 响应体不含期望「${expectText}」（实际 ${bodyText.slice(0, 120)}）`,
+    );
   }
 }
 
@@ -87,9 +89,15 @@ const run = async () => {
 
   // ── 0 管理员登录 ──
   await page.goto(`${BASE}/login`);
-  await step(page, "PLUG-005 验收演示 · SSH / Redis / MongoDB / gRPC / AMQP 协议插件（全部真实目标）", 2600);
+  await step(
+    page,
+    "PLUG-005 验收演示 · SSH / Redis / MongoDB / gRPC / AMQP 协议插件（全部真实目标）",
+    2600,
+  );
   await page.getByTestId("login-email").fill("admin@rabbit.test");
-  await page.getByTestId("login-password").fill(process.env.DEMO_ADMIN_PASSWORD ?? "rabbit-admin-123");
+  await page
+    .getByTestId("login-password")
+    .fill(process.env.DEMO_ADMIN_PASSWORD ?? "rabbit-admin-123");
   await page.getByTestId("login-submit").click();
   await page.waitForURL(`${BASE}/`, { timeout: 15000 });
   await sleep(1000);
@@ -98,10 +106,16 @@ const run = async () => {
   const FIVE = ["ssh", "redis", "mongodb", "grpc", "amqp"];
   await page.goto(`${BASE}/system/plugins`);
   await sleep(1200);
-  await step(page, "① 系统设置 → 插件管理：上传五家协议插件 tarball（清单+SPI 校验→MinIO→Plugin 登记）", 2200);
+  await step(
+    page,
+    "① 系统设置 → 插件管理：上传五家协议插件 tarball（清单+SPI 校验→MinIO→Plugin 登记）",
+    2200,
+  );
   for (const name of FIVE) {
     await page.getByTestId("plugin-upload-btn").click();
-    await page.locator(".ant-modal input[type=file]").setInputFiles(`${TARBALL_DIR}/${name}-1.0.0.tgz`);
+    await page
+      .locator(".ant-modal input[type=file]")
+      .setInputFiles(`${TARBALL_DIR}/${name}-1.0.0.tgz`);
     await page.getByText(`${name}-1.0.0.tgz`).waitFor({ state: "visible", timeout: 8000 });
     await sleep(400);
     await page.getByRole("button", { name: "确认上传" }).click();
@@ -110,7 +124,11 @@ const run = async () => {
   }
 
   // ── ② 启用五家（runner 热加载）──
-  await step(page, "② 逐个启用：plugin-runner worker_threads 隔离热加载（每插件独立 worker）", 2000);
+  await step(
+    page,
+    "② 逐个启用：plugin-runner worker_threads 隔离热加载（每插件独立 worker）",
+    2000,
+  );
   for (const name of FIVE) {
     const sw = page.getByTestId(`plugin-toggle-${name}`);
     await sw.waitFor({ state: "visible", timeout: 15000 });
@@ -160,7 +178,11 @@ const run = async () => {
     page,
     "⑤ AMQP：对 docker RabbitMQ（:5672）临时队列 publish→consume 自发自收",
     "amqp",
-    { url: "amqp://rabbitmq:rabbitmq@127.0.0.1:5672", message: "hello-plug005-amqp", timeoutMs: 5000 },
+    {
+      url: "amqp://rabbitmq:rabbitmq@127.0.0.1:5672",
+      message: "hello-plug005-amqp",
+      timeoutMs: 5000,
+    },
     "hello-plug005-amqp",
     "报告 SUCCESS · 收到自发自收消息 __BODY__（真实 broker 路由+消费）",
   );
@@ -170,7 +192,12 @@ const run = async () => {
     page,
     "⑥ MongoDB：对 docker mongod（:27017）count 查询（预置 plug005.items 3 条文档）",
     "mongodb",
-    { uri: "mongodb://127.0.0.1:27017/plug005", operation: "count", collection: "items", timeoutMs: 5000 },
+    {
+      uri: "mongodb://127.0.0.1:27017/plug005",
+      operation: "count",
+      collection: "items",
+      timeoutMs: 5000,
+    },
     "count=3",
     "报告 SUCCESS · __BODY__（只读三操作之一，$where 拒绝）",
   );

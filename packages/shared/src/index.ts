@@ -28,4 +28,5 @@ export * from "./load/schemas";
 export * from "./uit/schemas";
 export * from "./uit/runner";
 export * from "./scm/meta";
+export * from "./agent";
 export * from "./scm/schemas";

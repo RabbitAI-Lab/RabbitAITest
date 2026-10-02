@@ -32,17 +32,17 @@
 
 ## 2. 交付范围（8 规格）
 
-| #   | 交付项           | 内容                                                                                                    | 文档       |
-| --- | ---------------- | ------------------------------------------------------------------------------------------------------- | ---------- |
-| 1   | 性能测试占位     | modules.load 开关+PROJECT_LOAD:READ+占位页+池 DTO loadTest 字段（企业版方向，清单 §12.10 口径）         | `LOAD-001` |
-| 2   | 分布式压测架构稿 | 企业版方向拓扑/契约冻结（纯规格，无代码——红线重申）                                                     | `LOAD-002` |
-| 3   | UI 测试占位      | modules.uit 开关+PROJECT_UIT:READ+占位页+池 DTO uiTest 字段                                             | `UIT-001`  |
-| 4   | WebSocket/MQTT   | 两协议插件包（零新增依赖）+RequestEditor 协议选择器+保存校验 40511+mock /ws/echo                        | `PLUG-003` |
-| 5   | IDEA 插件契约    | open/api-sync 批量 upsert（幂等键 method+path）+open/api-definitions 回读                               | `TOOL-001` |
-| 6   | 浏览器插件契约   | open/api-capture 抓包导入（敏感头脱敏+重复跳过）                                                        | `TOOL-002` |
-| 7   | 报告高级分析     | reports/stats 趋势/分布/TOP5 聚合端点+统计页（SVG 自绘）                                                | `RPT-004`  |
-| 8   | K8S 型资源池     | 池 type 切换+k8s 四项配置+token 掩码+试连+task-runner 清单模板（ResourcePool.config 新列，门禁 3 登记） | `EXEC-004` |
-| 9   | 数据库驱动五家   | 五家厂商官方 Node 驱动插件包+引擎驱动注册表+SQL 前后置处理器解禁（白名单+READ ONLY+参数绑定）+环境数据源 driver 泛化+连接测试泛化 | `PLUG-004` |
+| #   | 交付项           | 内容                                                                                                                                     | 文档       |
+| --- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| 1   | 性能测试占位     | modules.load 开关+PROJECT_LOAD:READ+占位页+池 DTO loadTest 字段（企业版方向，清单 §12.10 口径）                                          | `LOAD-001` |
+| 2   | 分布式压测架构稿 | 企业版方向拓扑/契约冻结（纯规格，无代码——红线重申）                                                                                      | `LOAD-002` |
+| 3   | UI 测试占位      | modules.uit 开关+PROJECT_UIT:READ+占位页+池 DTO uiTest 字段                                                                              | `UIT-001`  |
+| 4   | WebSocket/MQTT   | 两协议插件包（零新增依赖）+RequestEditor 协议选择器+保存校验 40511+mock /ws/echo                                                         | `PLUG-003` |
+| 5   | IDEA 插件契约    | open/api-sync 批量 upsert（幂等键 method+path）+open/api-definitions 回读                                                                | `TOOL-001` |
+| 6   | 浏览器插件契约   | open/api-capture 抓包导入（敏感头脱敏+重复跳过）                                                                                         | `TOOL-002` |
+| 7   | 报告高级分析     | reports/stats 趋势/分布/TOP5 聚合端点+统计页（SVG 自绘）                                                                                 | `RPT-004`  |
+| 8   | K8S 型资源池     | 池 type 切换+k8s 四项配置+token 掩码+试连+task-runner 清单模板（ResourcePool.config 新列，门禁 3 登记）                                  | `EXEC-004` |
+| 9   | 数据库驱动五家   | 五家厂商官方 Node 驱动插件包+引擎驱动注册表+SQL 前后置处理器解禁（白名单+READ ONLY+参数绑定）+环境数据源 driver 泛化+连接测试泛化        | `PLUG-004` |
 | 10  | 协议插件第二批   | ssh/redis/mongodb/grpc/amqp 五协议插件包+protocol-kit+cpu-features 空桩+内嵌测试目标（ssh2 server/mini RESP/gRPC echo）+e2e redis 真执行 | `PLUG-005` |
 
 ## 3. 范围排除（防蔓延红线）
@@ -64,18 +64,18 @@
 
 ## 5. 规格清单与状态
 
-| 编号     | 名称                | 状态                                    | 原型/契约                                               |
-| -------- | ------------------- | --------------------------------------- | ------------------------------------------------------- |
-| LOAD-001 | 性能测试模块占位    | Implemented（2026-09-28）               | 原型 docs/design/LOAD-001-load-placeholder/（三态）     |
-| LOAD-002 | 分布式压测架构稿    | Implemented（架构稿交付；无代码面豁免） | 纯架构规格（拓扑+契约冻结，评审替代原型）               |
-| UIT-001  | UI 测试模块占位     | Implemented（2026-09-28）               | 原型 docs/design/UIT-001-uit-placeholder/（三态）       |
-| PLUG-003 | WebSocket/MQTT 协议 | Implemented（2026-09-28）               | 原型 docs/design/PLUG-003-websocket-mqtt/（选择器四态） |
-| TOOL-001 | IDEA 插件同步契约   | Implemented（2026-09-28）               | 接口契约评审（纯后端类替代高保真）                      |
-| TOOL-002 | 浏览器插件采集契约  | Implemented（2026-09-28）               | 接口契约评审（纯后端类替代高保真）                      |
-| RPT-004  | 报告高级分析        | Implemented（2026-09-28）               | 原型 docs/design/RPT-004-report-analytics/（三态）      |
-| EXEC-004 | K8S 型资源池        | Implemented（2026-09-28）               | 原型 docs/design/EXEC-004-k8s-resource-pool/（四态）    |
-| PLUG-004 | 数据库驱动五家+SQL 解禁 | Implemented（2026-09-30）           | 原型 docs/design/PLUG-004-database-drivers/（三画板）   |
-| PLUG-005 | 协议插件第二批（五家）   | Implemented（2026-09-30）           | 豁免（纯后端：configSchema 契约评审替代高保真）         |
+| 编号     | 名称                    | 状态                                    | 原型/契约                                               |
+| -------- | ----------------------- | --------------------------------------- | ------------------------------------------------------- |
+| LOAD-001 | 性能测试模块占位        | Implemented（2026-09-28）               | 原型 docs/design/LOAD-001-load-placeholder/（三态）     |
+| LOAD-002 | 分布式压测架构稿        | Implemented（架构稿交付；无代码面豁免） | 纯架构规格（拓扑+契约冻结，评审替代原型）               |
+| UIT-001  | UI 测试模块占位         | Implemented（2026-09-28）               | 原型 docs/design/UIT-001-uit-placeholder/（三态）       |
+| PLUG-003 | WebSocket/MQTT 协议     | Implemented（2026-09-28）               | 原型 docs/design/PLUG-003-websocket-mqtt/（选择器四态） |
+| TOOL-001 | IDEA 插件同步契约       | Implemented（2026-09-28）               | 接口契约评审（纯后端类替代高保真）                      |
+| TOOL-002 | 浏览器插件采集契约      | Implemented（2026-09-28）               | 接口契约评审（纯后端类替代高保真）                      |
+| RPT-004  | 报告高级分析            | Implemented（2026-09-28）               | 原型 docs/design/RPT-004-report-analytics/（三态）      |
+| EXEC-004 | K8S 型资源池            | Implemented（2026-09-28）               | 原型 docs/design/EXEC-004-k8s-resource-pool/（四态）    |
+| PLUG-004 | 数据库驱动五家+SQL 解禁 | Implemented（2026-09-30）               | 原型 docs/design/PLUG-004-database-drivers/（三画板）   |
+| PLUG-005 | 协议插件第二批（五家）  | Implemented（2026-09-30）               | 豁免（纯后端：configSchema 契约评审替代高保真）         |
 
 ## 6. 迭代主线（浏览器可演示端到端）
 
@@ -112,18 +112,18 @@
 
 ## 8. 测试资产映射
 
-| 规格     | 单测（Vitest）                 | JMeter                        | Playwright                   |
-| -------- | ------------------------------ | ----------------------------- | ---------------------------- |
-| LOAD-001 | 权限点常量                     | LOAD-001-modules.jmx          | LOAD-001-placeholder.spec.ts |
-| LOAD-002 | 豁免（无代码面）               | 豁免                          | 豁免                         |
-| UIT-001  | 权限点常量                     | UIT-001-modules.jmx           | UIT-001-placeholder.spec.ts  |
-| PLUG-003 | ws/mqtt 采样器+编解码+保存校验 | PLUG-003-protocol-plugins.jmx | PLUG-003-protocol-ui.spec.ts |
-| TOOL-001 | upsert 幂等/边界               | TOOL-001-open-sync.jmx        | 豁免（登记）                 |
-| TOOL-002 | 脱敏/跳过/边界                 | TOOL-002-open-capture.jmx     | 豁免（登记）                 |
-| RPT-004  | 聚合+SVG 路径                  | RPT-004-stats.jmx             | RPT-004-stats.spec.ts        |
-| EXEC-004 | zod 矩阵+服务+守卫             | EXEC-004-k8s-pool.jmx         | EXEC-004-k8s-pool.spec.ts    |
+| 规格     | 单测（Vitest）                 | JMeter                        | Playwright                        |
+| -------- | ------------------------------ | ----------------------------- | --------------------------------- |
+| LOAD-001 | 权限点常量                     | LOAD-001-modules.jmx          | LOAD-001-placeholder.spec.ts      |
+| LOAD-002 | 豁免（无代码面）               | 豁免                          | 豁免                              |
+| UIT-001  | 权限点常量                     | UIT-001-modules.jmx           | UIT-001-placeholder.spec.ts       |
+| PLUG-003 | ws/mqtt 采样器+编解码+保存校验 | PLUG-003-protocol-plugins.jmx | PLUG-003-protocol-ui.spec.ts      |
+| TOOL-001 | upsert 幂等/边界               | TOOL-001-open-sync.jmx        | 豁免（登记）                      |
+| TOOL-002 | 脱敏/跳过/边界                 | TOOL-002-open-capture.jmx     | 豁免（登记）                      |
+| RPT-004  | 聚合+SVG 路径                  | RPT-004-stats.jmx             | RPT-004-stats.spec.ts             |
+| EXEC-004 | zod 矩阵+服务+守卫             | EXEC-004-k8s-pool.jmx         | EXEC-004-k8s-pool.spec.ts         |
 | PLUG-004 | sql-guard/driver-kit/处理器    | PLUG-004-database-drivers.jmx | PLUG-004-database-drivers.spec.ts |
-| PLUG-005 | 内嵌目标/契约/错误映射          | PLUG-005-protocol-plugins.jmx | PLUG-005-protocol-plugins.spec.ts |
+| PLUG-005 | 内嵌目标/契约/错误映射         | PLUG-005-protocol-plugins.jmx | PLUG-005-protocol-plugins.spec.ts |
 
 ## 9. 收尾清单
 

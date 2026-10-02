@@ -28,7 +28,9 @@ export function realmOf(path: string): TabRealm {
 export function matchTabKey(pathname: string, tabs: TabItem[]): string | null {
   if (tabs.some((t) => t.key === pathname)) return pathname;
   const prefix = tabs
-    .filter((t) => t.key !== HOME_TAB_KEY && (pathname === t.key || pathname.startsWith(t.key + "/")))
+    .filter(
+      (t) => t.key !== HOME_TAB_KEY && (pathname === t.key || pathname.startsWith(t.key + "/")),
+    )
     .sort((a, b) => b.key.length - a.key.length)[0];
   return prefix?.key ?? null;
 }
@@ -79,7 +81,8 @@ export const useTabsStore = create<TabsStore>()((set, get) => ({
     const next = tabs.filter((t) => t.key !== key);
     // 关激活标签 → 激活相邻（右侧优先，其次左侧；next 恒含 pinned 工作台故非空）
     const neighbor = next[idx] ?? next[Math.max(0, idx - 1)] ?? next[0];
-    const nextActive = key === activeKey && neighbor ? neighbor.key : activeKey;    set({ tabs: next, activeKey: clampActive(next, nextActive) });
+    const nextActive = key === activeKey && neighbor ? neighbor.key : activeKey;
+    set({ tabs: next, activeKey: clampActive(next, nextActive) });
   },
 
   closeOthers: () =>

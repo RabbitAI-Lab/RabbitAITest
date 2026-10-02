@@ -39,7 +39,10 @@ describe("PLUG-004 占位符计数一致性（建连前校验）", () => {
   it("postgresql：占位符数≠参数数 → 显式失败", async () => {
     const p = createPostgresql();
     await expect(
-      p.query({ url: "postgresql://u:p@127.0.0.1:1/db" }, { sqlText: "SELECT ?, ?", params: [{ value: "1" }] }),
+      p.query(
+        { url: "postgresql://u:p@127.0.0.1:1/db" },
+        { sqlText: "SELECT ?, ?", params: [{ value: "1" }] },
+      ),
     ).rejects.toThrow("占位符数量（2）与绑定参数数量（1）不一致");
   });
   it("oracle/dm/sqlserver/mysql：同规则", async () => {

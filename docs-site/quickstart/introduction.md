@@ -6,12 +6,12 @@ RabbitAITest 是一个**开源一站式测试工作台**，把测试管理（用
 
 RabbitAITest 由四个服务组成，一条 `pnpm dev` 即可全部启动：
 
-| 组成 | 说明 |
-| --- | --- |
-| **Web 控制台**（`apps/web`） | 全栈 Next.js 应用：UI 与 REST API（`/api/v1`）同仓同应用 |
-| **执行引擎**（`apps/engine`） | Node.js worker：HTTP 采样（undici）、并发槽、quickjs 脚本沙箱，事件流经 SSE 实时回传 |
-| **Mock 服务**（`apps/mock`） | 独立无状态 Mock：规则快照直读、保存即热更新 |
-| **插件运行时**（`apps/plugin-runner`） | worker_threads 隔离的插件宿主：协议插件、三方平台插件 |
+| 组成                                   | 说明                                                                                 |
+| -------------------------------------- | ------------------------------------------------------------------------------------ |
+| **Web 控制台**（`apps/web`）           | 全栈 Next.js 应用：UI 与 REST API（`/api/v1`）同仓同应用                             |
+| **执行引擎**（`apps/engine`）          | Node.js worker：HTTP 采样（undici）、并发槽、quickjs 脚本沙箱，事件流经 SSE 实时回传 |
+| **Mock 服务**（`apps/mock`）           | 独立无状态 Mock：规则快照直读、保存即热更新                                          |
+| **插件运行时**（`apps/plugin-runner`） | worker_threads 隔离的插件宿主：协议插件、三方平台插件                                |
 
 数据库使用 **embedded-postgres** 内嵌 PostgreSQL（开发与单机部署免外部 DB），也可通过 `DATABASE_URL` 切换外部 PostgreSQL 16。异步任务基于 BullMQ + Redis。
 
@@ -19,13 +19,13 @@ RabbitAITest 由四个服务组成，一条 `pnpm dev` 即可全部启动：
 
 ## 核心能力
 
-| 能力域 | 提供什么 |
-| --- | --- |
-| 测试管理 | 功能用例（列表 / 脑图双模式）、用例评审（单人 / 多人）、测试计划（测试点、用例清单、脑图执行、计划组、报告导出 PDF/CSV 与分享）、缺陷管理（评论、@提及、回收站） |
-| 接口测试 | 接口调试、接口定义与接口用例（八区 diff、变更历史、Mock 规则三合一详情页）、自动化场景（六类步骤、循环/条件/CSV、串行/并行、失败停止、定时任务）、误报规则、报告与多维统计 |
-| Mock | 规则与接口定义同源维护、多规则按匹配条件最多者优先、延迟模拟、规则在线调试 |
-| AI | 系统级模型网关（智谱 / DeepSeek / OpenAI，密钥加密落库、连接测试）、AI 生成功能用例 / 接口用例、顶栏流式智能助手、项目级提示词模板 |
-| 协作 | 站内消息中心（未读徽标、90 天留存）、通知机器人五渠道（站内信/邮件/企微/钉钉/飞书）、11 类事件、全对象关注 |
+| 能力域   | 提供什么                                                                                                                                                                               |
+| -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 测试管理 | 功能用例（列表 / 脑图双模式）、用例评审（单人 / 多人）、测试计划（测试点、用例清单、脑图执行、计划组、报告导出 PDF/CSV 与分享）、缺陷管理（评论、@提及、回收站）                       |
+| 接口测试 | 接口调试、接口定义与接口用例（八区 diff、变更历史、Mock 规则三合一详情页）、自动化场景（六类步骤、循环/条件/CSV、串行/并行、失败停止、定时任务）、误报规则、报告与多维统计             |
+| Mock     | 规则与接口定义同源维护、多规则按匹配条件最多者优先、延迟模拟、规则在线调试                                                                                                             |
+| AI       | 系统级模型网关（智谱 / DeepSeek / OpenAI，密钥加密落库、连接测试）、AI 生成功能用例 / 接口用例、顶栏流式智能助手、项目级提示词模板                                                     |
+| 协作     | 站内消息中心（未读徽标、90 天留存）、通知机器人五渠道（站内信/邮件/企微/钉钉/飞书）、11 类事件、全对象关注                                                                             |
 | 平台管理 | 多组织多项目、RBAC（109 权限点，菜单 = 权限 ∧ 模块开关双门控）、环境与全局参数、公共脚本、文件管理、Jira/禅道/TAPD 缺陷同步、Swagger 定时同步、插件管理、资源池、三级审计日志、API Key |
 
 ## 数据兼容与迁移
@@ -40,29 +40,29 @@ RabbitAITest 由四个服务组成，一条 `pnpm dev` 即可全部启动：
 
 RabbitAITest 以开源口径发行：**所有功能不设 License 门控，无 License 即全功能**——下表能力默认全部开放，用户数不限：
 
-| 特性 | 说明 |
-| --- | --- |
-| MULTI_ORG 多组织 | 系统级多组织管理、部门树 |
-| SSO 单点认证 | 企业微信 / 钉钉 / 飞书 / CAS / OIDC / OAuth2.0 / LDAP 等 8 类认证源 |
-| MULTI_POOL 多资源池 | 多执行资源池与组织分配 |
-| THEME 主题品牌 | 登录横幅、界面品牌定制 |
-| MSG_TEMPLATE 消息模板 | 11 类事件的自定义消息模板 |
-| USER_SCALE 用户扩容 | 用户数不限 |
-| LOAD_TEST 性能测试 | 施压计划/监控曲线/阈值报告 |
-| UI_TEST UI 测试 | 元素库/步骤编排/截图报告 |
+| 特性                  | 说明                                                                |
+| --------------------- | ------------------------------------------------------------------- |
+| MULTI_ORG 多组织      | 系统级多组织管理、部门树                                            |
+| SSO 单点认证          | 企业微信 / 钉钉 / 飞书 / CAS / OIDC / OAuth2.0 / LDAP 等 8 类认证源 |
+| MULTI_POOL 多资源池   | 多执行资源池与组织分配                                              |
+| THEME 主题品牌        | 登录横幅、界面品牌定制                                              |
+| MSG_TEMPLATE 消息模板 | 11 类事件的自定义消息模板                                           |
+| USER_SCALE 用户扩容   | 用户数不限                                                          |
+| LOAD_TEST 性能测试    | 施压计划/监控曲线/阈值报告                                          |
+| UI_TEST UI 测试       | 元素库/步骤编排/截图报告                                            |
 
 ?> License 体系保留（系统 › 授权管理可登记授权信息），但不再门控任何功能；企业发行版可设 `RABBIT_FEATURE_GATE=1` 恢复门控口径。UI 测试/性能测试入口由**项目设置 › 模块开关**控制（缺省开启，管理员可关）。SQL 前后置处理器因安全策略暂未启用，界面上会显式报 `CONFIG_ERROR`，这不是 Bug。
 
 ## 技术栈速览
 
-| 项 | 选型 |
-| --- | --- |
-| 工程结构 | pnpm workspace + Turborepo，纯 TypeScript Monorepo |
-| 应用框架 | 全栈 Next.js（App Router + React 19），API 走 Route Handlers（REST `/api/v1`） |
-| 前端 | React + Ant Design + Tailwind CSS + TanStack Query + Zustand |
-| 数据库 | embedded-postgres（可切外部 PostgreSQL 16），ORM 为 Prisma |
-| 异步 / 实时 | BullMQ + Redis；执行事件流经 Redis Stream + SSE 断线续传 |
-| 执行引擎 | 自研 Node.js worker（undici 采样、p-limit 并发槽、quickjs 沙箱） |
+| 项          | 选型                                                                           |
+| ----------- | ------------------------------------------------------------------------------ |
+| 工程结构    | pnpm workspace + Turborepo，纯 TypeScript Monorepo                             |
+| 应用框架    | 全栈 Next.js（App Router + React 19），API 走 Route Handlers（REST `/api/v1`） |
+| 前端        | React + Ant Design + Tailwind CSS + TanStack Query + Zustand                   |
+| 数据库      | embedded-postgres（可切外部 PostgreSQL 16），ORM 为 Prisma                     |
+| 异步 / 实时 | BullMQ + Redis；执行事件流经 Redis Stream + SSE 断线续传                       |
+| 执行引擎    | 自研 Node.js worker（undici 采样、p-limit 并发槽、quickjs 沙箱）               |
 
 ## 相关链接
 

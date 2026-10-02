@@ -1,45 +1,45 @@
-* 快速开始
-  * [产品介绍](quickstart/introduction.md)
-  * [安装部署](quickstart/installation.md)
-  * [快速体验](quickstart/quick-tour.md)
-  * [CLI 快速上手（rabbit）](quickstart/cli.md)
+- 快速开始
+  - [产品介绍](quickstart/introduction.md)
+  - [安装部署](quickstart/installation.md)
+  - [快速体验](quickstart/quick-tour.md)
+  - [CLI 快速上手（rabbit）](quickstart/cli.md)
 
-* 功能手册
-  * [通用功能](manual/common/overview.md)
-  * [工作台](manual/workbench.md)
-  * 测试管理
-    * [功能用例](manual/test-track/case.md)
-    * [用例评审](manual/test-track/review.md)
-    * [测试计划](manual/test-track/plan.md)
-    * [缺陷管理](manual/test-track/bug.md)
-  * 接口测试
-    * [概述](manual/api/overview.md)
-    * [接口调试](manual/api/debug.md)
-    * [接口定义](manual/api/definition.md)
-    * [自动化场景](manual/api/scenario.md)
-    * [参数化与内置函数](manual/api/functions.md)
-    * [Mock 服务](manual/api/mock.md)
-    * [报告与统计](manual/api/report.md)
-  * 项目管理
-    * [项目与模板](manual/project/overview.md)
-    * [环境管理](manual/project/environment.md)
-    * [文件管理](manual/project/file.md)
-    * [公共脚本](manual/project/script.md)
-    * [消息管理](manual/project/message.md)
-    * [任务中心](manual/project/task-center.md)
-    * [服务集成与同步](manual/project/integration.md)
-  * [AI 能力](manual/ai.md)
-  * 系统设置
-    * [用户与用户组](manual/system/users.md)
-    * [参数设置](manual/system/params.md)
-    * [资源池](manual/system/pools.md)
-    * [插件管理](manual/system/plugins.md)
-    * [认证与授权（企业版）](manual/system/enterprise.md)
-  * [个人中心](manual/common/profile.md)
+- 功能手册
+  - [通用功能](manual/common/overview.md)
+  - [工作台](manual/workbench.md)
+  - 测试管理
+    - [功能用例](manual/test-track/case.md)
+    - [用例评审](manual/test-track/review.md)
+    - [测试计划](manual/test-track/plan.md)
+    - [缺陷管理](manual/test-track/bug.md)
+  - 接口测试
+    - [概述](manual/api/overview.md)
+    - [接口调试](manual/api/debug.md)
+    - [接口定义](manual/api/definition.md)
+    - [自动化场景](manual/api/scenario.md)
+    - [参数化与内置函数](manual/api/functions.md)
+    - [Mock 服务](manual/api/mock.md)
+    - [报告与统计](manual/api/report.md)
+  - 项目管理
+    - [项目与模板](manual/project/overview.md)
+    - [环境管理](manual/project/environment.md)
+    - [文件管理](manual/project/file.md)
+    - [公共脚本](manual/project/script.md)
+    - [消息管理](manual/project/message.md)
+    - [任务中心](manual/project/task-center.md)
+    - [服务集成与同步](manual/project/integration.md)
+  - [AI 能力](manual/ai.md)
+  - 系统设置
+    - [用户与用户组](manual/system/users.md)
+    - [参数设置](manual/system/params.md)
+    - [资源池](manual/system/pools.md)
+    - [插件管理](manual/system/plugins.md)
+    - [认证与授权（企业版）](manual/system/enterprise.md)
+  - [个人中心](manual/common/profile.md)
 
-* 开发文档
-  * [架构概览](developer/architecture.md)
-  * [二次开发指南](developer/contributing.md)
+- 开发文档
+  - [架构概览](developer/architecture.md)
+  - [二次开发指南](developer/contributing.md)
 
-* [常见问题](faq.md)
-* [关于与版本](about.md)
+- [常见问题](faq.md)
+- [关于与版本](about.md)

@@ -1,20 +1,20 @@
 # 数据库驱动五家 + SQL 处理器解禁（PLUG-004 · 驱动插件）
 
-| 元信息项     | 内容                                                                                                                                                                                              |
-| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 文档编号     | PLUG-004                                                                                                                                                                                          |
-| 所属迭代     | Sprint future — 远期 P4                                                                                                                                                                           |
-| 优先级       | P4（PROJ-003/API-006 既定归口「驱动插件化后」承接项）                                                                                                                                             |
-| 所属模块     | PLUG 插件体系（driver kind）/ PROJ 项目环境（数据源）/ API 接口测试（SQL 前后置处理器）/ EXEC 引擎（驱动注册表）                                                                                    |
-| 文档状态     | Implemented（2026-09-30 交付：单测全绿 + jmx 15 采样 0 失败 + e2e 三用例；走查随验收）                                                                                                             |
-| 最后更新日期 | 2026-09-30                                                                                                                                                                                        |
-| 上游依赖     | PLUG-001（插件上传/启停/管理页）、PLUG-002（引擎热加载模式）、plugin-architecture（DriverPlugin SPI 冻结面）、PROJ-003（环境数据源区）、API-004/006（SQL 处理器冻结方案与错误码 50031）            |
-| 下游消费     | PROJ-003（数据源 driver 枚举扩展）、API-004/API-006（SQL 前后置解禁，勘误清偿）、后续驱动（按本规格模式复制）                                                                                      |
-| 上游依据     | 需求文档 §插件「数据库驱动插件化」；清单 §11「数据库驱动：MySQL、Oracle、SQL Server、PostgreSQL、达梦 DM（社区版）」；§9.1「数据库驱动上传」                                                        |
-| 对标基线     | MeterSphere 功能清单 §11（驱动=厂商 JDBC jar 上传，应用商店分发）；apps.fit2cloud.com/metersphere 数据库驱动类 5 条（2026-09-30 核实：全部为厂商官方 JDBC jar 原样再分发）                          |
-| 关联架构文档 | plugin-architecture.md（§1 三类插件、§2 隔离模型——本规格勘误 3 修订驱动条目）                                                                                                                      |
-| 高保真确认   | 待确认（原型：docs/design/PLUG-004-database-drivers/；确认人/日期后补——目标授权下人工确认可后置，原型产出先于编码）                                                                                |
-| 工作量估算   | 插件 5×0.5 人日（骨架同构）+ 引擎/接线 1.5 人日 + UI 1 人日 + 校验/测试 3 人日                                                                                                                      |
+| 元信息项     | 内容                                                                                                                                                                                    |
+| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 文档编号     | PLUG-004                                                                                                                                                                                |
+| 所属迭代     | Sprint future — 远期 P4                                                                                                                                                                 |
+| 优先级       | P4（PROJ-003/API-006 既定归口「驱动插件化后」承接项）                                                                                                                                   |
+| 所属模块     | PLUG 插件体系（driver kind）/ PROJ 项目环境（数据源）/ API 接口测试（SQL 前后置处理器）/ EXEC 引擎（驱动注册表）                                                                        |
+| 文档状态     | Implemented（2026-09-30 交付：单测全绿 + jmx 15 采样 0 失败 + e2e 三用例；走查随验收）                                                                                                  |
+| 最后更新日期 | 2026-09-30                                                                                                                                                                              |
+| 上游依赖     | PLUG-001（插件上传/启停/管理页）、PLUG-002（引擎热加载模式）、plugin-architecture（DriverPlugin SPI 冻结面）、PROJ-003（环境数据源区）、API-004/006（SQL 处理器冻结方案与错误码 50031） |
+| 下游消费     | PROJ-003（数据源 driver 枚举扩展）、API-004/API-006（SQL 前后置解禁，勘误清偿）、后续驱动（按本规格模式复制）                                                                           |
+| 上游依据     | 需求文档 §插件「数据库驱动插件化」；清单 §11「数据库驱动：MySQL、Oracle、SQL Server、PostgreSQL、达梦 DM（社区版）」；§9.1「数据库驱动上传」                                            |
+| 对标基线     | MeterSphere 功能清单 §11（驱动=厂商 JDBC jar 上传，应用商店分发）；apps.fit2cloud.com/metersphere 数据库驱动类 5 条（2026-09-30 核实：全部为厂商官方 JDBC jar 原样再分发）              |
+| 关联架构文档 | plugin-architecture.md（§1 三类插件、§2 隔离模型——本规格勘误 3 修订驱动条目）                                                                                                           |
+| 高保真确认   | 待确认（原型：docs/design/PLUG-004-database-drivers/；确认人/日期后补——目标授权下人工确认可后置，原型产出先于编码）                                                                     |
+| 工作量估算   | 插件 5×0.5 人日（骨架同构）+ 引擎/接线 1.5 人日 + UI 1 人日 + 校验/测试 3 人日                                                                                                          |
 
 ## 0. 目标授权与驱动来源铁律（2026-09-30 用户指令）
 
@@ -24,13 +24,13 @@
 
 ### 驱动来源对照表（本规格单一来源，plugins/README.md 同步引用）
 
-| 数据库    | 厂商官方 JDBC 坐标（对照，本项目不装载）        | 本项目运行时（厂商官方 Node 驱动）      | 许可                     | 发布方核实（2026-09-30）                                                          |
-| --------- | ----------------------------------------------- | ---------------------------------------- | ------------------------ | --------------------------------------------------------------------------------- |
-| PostgreSQL | org.postgresql:postgresql（pgjdbc）             | `pg` 8.x                                 | MIT                      | node-postgres（PostgreSQL 官网驱动列表收录，生态事实标准）                          |
-| MySQL     | com.mysql:mysql-connector-j                     | `mysql2` 3.x                             | MIT                      | 社区事实标准（**登记**：Oracle 官方仅发行 JDBC/Connector 生态，无官方 Node 驱动） |
-| Oracle    | com.oracle.database.jdbc:ojdbc11               | `oracledb` 7.x（thin 模式，纯 JS）        | Apache-2.0 OR UPL-1.0    | Oracle 官方（oracle/node-oracledb）                                                |
-| SQL Server | com.microsoft.sqlserver:mssql-jdbc              | `mssql` 12.x（tedious TDS，纯 JS）        | MIT                      | Microsoft 官方文档指定的 Node 驱动                                                  |
-| 达梦 DM   | 达梦官方发行 DmJdbcDriver18.jar（eco.dameng.com） | `dmdb` 1.0.52xxx（纯 JS，无 .node 二进制） | 达梦软件许可（包内 LICENSE） | 达梦官方（npm maintainers=dameng_database \<ztn@dameng.com\>；API 与 oracledb 同构） |
+| 数据库     | 厂商官方 JDBC 坐标（对照，本项目不装载）          | 本项目运行时（厂商官方 Node 驱动）         | 许可                         | 发布方核实（2026-09-30）                                                             |
+| ---------- | ------------------------------------------------- | ------------------------------------------ | ---------------------------- | ------------------------------------------------------------------------------------ |
+| PostgreSQL | org.postgresql:postgresql（pgjdbc）               | `pg` 8.x                                   | MIT                          | node-postgres（PostgreSQL 官网驱动列表收录，生态事实标准）                           |
+| MySQL      | com.mysql:mysql-connector-j                       | `mysql2` 3.x                               | MIT                          | 社区事实标准（**登记**：Oracle 官方仅发行 JDBC/Connector 生态，无官方 Node 驱动）    |
+| Oracle     | com.oracle.database.jdbc:ojdbc11                  | `oracledb` 7.x（thin 模式，纯 JS）         | Apache-2.0 OR UPL-1.0        | Oracle 官方（oracle/node-oracledb）                                                  |
+| SQL Server | com.microsoft.sqlserver:mssql-jdbc                | `mssql` 12.x（tedious TDS，纯 JS）         | MIT                          | Microsoft 官方文档指定的 Node 驱动                                                   |
+| 达梦 DM    | 达梦官方发行 DmJdbcDriver18.jar（eco.dameng.com） | `dmdb` 1.0.52xxx（纯 JS，无 .node 二进制） | 达梦软件许可（包内 LICENSE） | 达梦官方（npm maintainers=dameng_database \<ztn@dameng.com\>；API 与 oracledb 同构） |
 
 四个协议插件（TCP/SSH/Redis/MongoDB/gRPC/AMQP）不在本规格范围（P4 后续）。
 
@@ -42,19 +42,19 @@
 
 ### 1.2 范围边界（能力行 → §5 用例映射）
 
-| 能力                                                                                 | P1 ✅ | 后续                                                             |
-| ------------------------------------------------------------------------------------ | ----- | ---------------------------------------------------------------- |
-| SPI 扩展：`DriverPlugin.query(config, req)` 参数绑定通道（sqlText+params+readOnly）    | ✅    | —（spiVersion 维持 1.0，见 §2.1）                                |
-| 5 个驱动插件包（testConnection/query/只读事务/占位符归一化/行归一化/错误友好化）      | ✅    | 连接池化（登记：v1 连接即关，SQL 前后置频次下可接受）             |
+| 能力                                                                                         | P1 ✅ | 后续                                                             |
+| -------------------------------------------------------------------------------------------- | ----- | ---------------------------------------------------------------- |
+| SPI 扩展：`DriverPlugin.query(config, req)` 参数绑定通道（sqlText+params+readOnly）          | ✅    | —（spiVersion 维持 1.0，见 §2.1）                                |
+| 5 个驱动插件包（testConnection/query/只读事务/占位符归一化/行归一化/错误友好化）             | ✅    | 连接池化（登记：v1 连接即关，SQL 前后置频次下可接受）            |
 | 词法白名单 `assertReadOnlySelect`（单条语句/SELECT·WITH 起始/禁 INTO·FOR UPDATE·注释藏分号） | ✅    | —（API-006 §2 冻结方案落地 + WITH 扩展，见 §2.3）                |
-| 引擎驱动注册表（30s 轮询 internal/plugins/drivers，与协议注册表同模式）               | ✅    | —                                                                |
-| SQL 前后置解禁：datasourceId 解析→白名单→参数绑定执行→varMapping 首行提取            | ✅    | SQL 断言/多行提取（登记）                                        |
-| 处理器 params 通道（{var\|value} → 绑定参数值）                                        | ✅    | —（**不提供**变量→SQL 文本的插值能力，安全设计 §3）              |
-| 环境数据源 driver 枚举 5 家 + 每驱动 URL 约定与校验                                    | ✅    | 数据源凭据加密存储（PROJ-003 既有登记口径不变）                  |
-| 连接测试泛化：PG 内置直连保留 + 其余 4 家走已启用驱动插件（runner call）              | ✅    | PG 直连也切插件（登记：双路径收敛待后续）                         |
-| RequestEditor SQL 表单启用（数据源选择/SQL/参数绑定/varMapping）                      | ✅    | —                                                                |
-| 插件管理 UI                                                                           | 既有  | kind=驱动徽标 PLUG-001 已交付，零改动                             |
-| JDBC jar 直接装载 / 驱动上传按 jar 形态                                                | ❌    | 永不（纯 TS 技术栈，plugin-architecture「不兼容 jar 生态」既定） |
+| 引擎驱动注册表（30s 轮询 internal/plugins/drivers，与协议注册表同模式）                      | ✅    | —                                                                |
+| SQL 前后置解禁：datasourceId 解析→白名单→参数绑定执行→varMapping 首行提取                    | ✅    | SQL 断言/多行提取（登记）                                        |
+| 处理器 params 通道（{var\|value} → 绑定参数值）                                              | ✅    | —（**不提供**变量→SQL 文本的插值能力，安全设计 §3）              |
+| 环境数据源 driver 枚举 5 家 + 每驱动 URL 约定与校验                                          | ✅    | 数据源凭据加密存储（PROJ-003 既有登记口径不变）                  |
+| 连接测试泛化：PG 内置直连保留 + 其余 4 家走已启用驱动插件（runner call）                     | ✅    | PG 直连也切插件（登记：双路径收敛待后续）                        |
+| RequestEditor SQL 表单启用（数据源选择/SQL/参数绑定/varMapping）                             | ✅    | —                                                                |
+| 插件管理 UI                                                                                  | 既有  | kind=驱动徽标 PLUG-001 已交付，零改动                            |
+| JDBC jar 直接装载 / 驱动上传按 jar 形态                                                      | ❌    | 永不（纯 TS 技术栈，plugin-architecture「不兼容 jar 生态」既定） |
 
 ### 1.3 前置依赖
 
@@ -62,30 +62,35 @@ PLUG-001 上传管线（tar 白名单 {package.json, index.js}、版本递增、
 
 ### 1.4 对标基线核对
 
-| 基线行为（清单 §11/§9.1）                            | 本项目实现                                                     | 口径                 |
-| ---------------------------------------------------- | -------------------------------------------------------------- | -------------------- |
-| 数据库驱动=厂商 JDBC jar 上传（MySQL 内置，可上传 Oracle 等） | 5 家官方 Node 驱动内联进 TS tarball，上传启用（无「内置 MySQL」特权） | 简化实现（见 §6）    |
-| 应用商店分发驱动                                      | 驱动 tarball=仓库 release 附件（build-plugins 构建，来源=npm 官方 registry） | 完全复刻（渠道自建） |
-| SQL 步骤选环境数据库配置执行                          | 同构：环境数据源 + SQL 前后置处理器（datasourceId 引用）         | 完全复刻             |
-| SQL 步骤可执行任意语句（含写）                        | **收紧**：单条 SELECT/WITH 白名单 + READ ONLY 事务 + 参数绑定    | 差异化决策（见 §3）  |
+| 基线行为（清单 §11/§9.1）                                     | 本项目实现                                                                   | 口径                 |
+| ------------------------------------------------------------- | ---------------------------------------------------------------------------- | -------------------- |
+| 数据库驱动=厂商 JDBC jar 上传（MySQL 内置，可上传 Oracle 等） | 5 家官方 Node 驱动内联进 TS tarball，上传启用（无「内置 MySQL」特权）        | 简化实现（见 §6）    |
+| 应用商店分发驱动                                              | 驱动 tarball=仓库 release 附件（build-plugins 构建，来源=npm 官方 registry） | 完全复刻（渠道自建） |
+| SQL 步骤选环境数据库配置执行                                  | 同构：环境数据源 + SQL 前后置处理器（datasourceId 引用）                     | 完全复刻             |
+| SQL 步骤可执行任意语句（含写）                                | **收紧**：单条 SELECT/WITH 白名单 + READ ONLY 事务 + 参数绑定                | 差异化决策（见 §3）  |
 
 ## 2. 业务逻辑
 
 ### 2.1 SPI 扩展（packages/shared/src/plugins/spi.ts）
 
 ```ts
-export interface DriverQueryParam {          // 绑定参数值（引擎完成 var→值解析后传入）
+export interface DriverQueryParam {
+  // 绑定参数值（引擎完成 var→值解析后传入）
   value?: string | number | boolean | null;
 }
 export interface DriverQueryRequest {
-  sqlText: string;                            // 测试人员编写的语句原文（白名单校验后透传，仓库代码不做任何拼装）
-  params: DriverQueryParam[];                 // 与占位符 ? 一一对应，仅经驱动绑定通道传入
-  readOnly?: boolean;                         // 处理器路径恒 true
-  timeoutMs?: number;                         // 默认 10_000
+  sqlText: string; // 测试人员编写的语句原文（白名单校验后透传，仓库代码不做任何拼装）
+  params: DriverQueryParam[]; // 与占位符 ? 一一对应，仅经驱动绑定通道传入
+  readOnly?: boolean; // 处理器路径恒 true
+  timeoutMs?: number; // 默认 10_000
 }
-export interface DriverQueryResult { rows: Array<Record<string, string | number | boolean | null>>; rowCount: number; ms: number }
+export interface DriverQueryResult {
+  rows: Array<Record<string, string | number | boolean | null>>;
+  rowCount: number;
+  ms: number;
+}
 export interface DriverPlugin {
-  driver: string;                             // "postgresql" | "mysql" | "oracle" | "sqlserver" | "dm"（name 必须等于 driver，PLUG-002 勘误口径）
+  driver: string; // "postgresql" | "mysql" | "oracle" | "sqlserver" | "dm"（name 必须等于 driver，PLUG-002 勘误口径）
   testConnection(config: { url: string }): Promise<void>;
   query(config: { url: string }, req: DriverQueryRequest): Promise<DriverQueryResult>;
 }
@@ -97,13 +102,13 @@ spiVersion 维持 `"1.0"`：driver kind 此前零存量实现、零上传包，�
 
 - **URL 形态**（DRIVER_META 单一来源，web 校验/UI 占位/插件解析共用）：
 
-| driver      | URL 形态                                            | 默认端口 | 占位符（书写统一 `?`）       |
-| ----------- | --------------------------------------------------- | -------- | ----------------------------- |
-| postgresql  | `postgresql://user:pass@host:5432/db`               | 5432     | `$1`（插件归一化）            |
-| mysql       | `mysql://user:pass@host:3306/db`                    | 3306     | `?`（原生）                   |
-| oracle      | `oracle://user:pass@host:1521/service`（path=服务名） | 1521     | `:1`（插件归一化）            |
-| sqlserver   | `sqlserver://user:pass@host:1433/db?encrypt=…`      | 1433     | `@p0`（插件归一化）           |
-| dm          | `dm://user:pass@host:5236`                          | 5236     | `?`（**原生**，d.ts 示例实证） |
+| driver     | URL 形态                                              | 默认端口 | 占位符（书写统一 `?`）         |
+| ---------- | ----------------------------------------------------- | -------- | ------------------------------ |
+| postgresql | `postgresql://user:pass@host:5432/db`                 | 5432     | `$1`（插件归一化）             |
+| mysql      | `mysql://user:pass@host:3306/db`                      | 3306     | `?`（原生）                    |
+| oracle     | `oracle://user:pass@host:1521/service`（path=服务名） | 1521     | `:1`（插件归一化）             |
+| sqlserver  | `sqlserver://user:pass@host:1433/db?encrypt=…`        | 1433     | `@p0`（插件归一化）            |
+| dm         | `dm://user:pass@host:5236`                            | 5236     | `?`（**原生**，d.ts 示例实证） |
 
 - **占位符归一化**：处理器/调用方书写统一用 `?`（MySQL 风格，与基线习惯一致）；各插件在执行前将 `?` 逐个替换为原生绑定 token（`$1`/`:1`/`@p0`）——替换器跳过字符串字面量与注释、只消费 `?` 字符、产物不含任何外部值（§3）。
 - **只读三层防线**：①`assertReadOnlySelect` 词法白名单（引擎执行前、独立于插件）；②READ ONLY 事务（PG `BEGIN READ ONLY`、MySQL `START TRANSACTION READ ONLY`、Oracle/DM `SET TRANSACTION READ ONLY`；SQL Server 无只读事务形态——词法白名单+连接即关兜底，登记）；③连接即关（不池化、不留会话）。
@@ -130,12 +135,12 @@ spiVersion 维持 `"1.0"`：driver kind 此前零存量实现、零上传包，�
 
 ## 3. 安全设计（逐条对标生成前安全约束）
 
-| 约束条款                                             | 本规格落地                                                                                                                                                                                                                                                                              |
-| ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 数据库查询所有外部输入必须参数绑定                    | ①处理器 params 通道：变量值只能经绑定参数传入；②仓库**不提供**任何「变量→SQL 文本」插值/替换能力（脚本 API 与 SQL 文本互不注入）；③测试人员编写的语句原文经词法白名单+只读事务后**原文透传**（非本仓代码拼装的产物）——语句文本与值两类输入分别由白名单/绑定通道各自收口 |
-| 不得用拼接、format、f-string 组装 SQL                 | 仓库代码送往驱动的文本仅两类：语句原文透传、代码内常量（`SELECT 1`/READ ONLY 事务语句/占位符归一化 token）；`replaceQuestionPlaceholders` 只做 `?`→绑定 token 的字符替换且跳过字面量，**替换产物不含外部输入**；仓内禁止出现 SQL 字符串拼接的 lint 语义由单测矩阵锚定 |
-| 凭据只从环境变量/密钥服务读取；源码/示例/测试不写真实凭据 | 数据源 URL 由测试人员在环境配置录入（产品功能语义；加密存储延后=PROJ-003 既有登记口径）；本仓源码/规格示例/测试仅出现本地 e2e 库种子口令与不可达地址（`oracle.invalid.host:1521` 等），零可用真实凭据字面量 |
-| 服务端 URL 请求仅 http/https 且拒绝内网地址           | 本规格不新增任何服务端 HTTP fetch；驱动连接为数据库协议 TCP 直连（用户环境配置目标，与引擎采样器目标同口径），非 URL fetch 路径 |
+| 约束条款                                                  | 本规格落地                                                                                                                                                                                                                                                              |
+| --------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 数据库查询所有外部输入必须参数绑定                        | ①处理器 params 通道：变量值只能经绑定参数传入；②仓库**不提供**任何「变量→SQL 文本」插值/替换能力（脚本 API 与 SQL 文本互不注入）；③测试人员编写的语句原文经词法白名单+只读事务后**原文透传**（非本仓代码拼装的产物）——语句文本与值两类输入分别由白名单/绑定通道各自收口 |
+| 不得用拼接、format、f-string 组装 SQL                     | 仓库代码送往驱动的文本仅两类：语句原文透传、代码内常量（`SELECT 1`/READ ONLY 事务语句/占位符归一化 token）；`replaceQuestionPlaceholders` 只做 `?`→绑定 token 的字符替换且跳过字面量，**替换产物不含外部输入**；仓内禁止出现 SQL 字符串拼接的 lint 语义由单测矩阵锚定   |
+| 凭据只从环境变量/密钥服务读取；源码/示例/测试不写真实凭据 | 数据源 URL 由测试人员在环境配置录入（产品功能语义；加密存储延后=PROJ-003 既有登记口径）；本仓源码/规格示例/测试仅出现本地 e2e 库种子口令与不可达地址（`oracle.invalid.host:1521` 等），零可用真实凭据字面量                                                             |
+| 服务端 URL 请求仅 http/https 且拒绝内网地址               | 本规格不新增任何服务端 HTTP fetch；驱动连接为数据库协议 TCP 直连（用户环境配置目标，与引擎采样器目标同口径），非 URL fetch 路径                                                                                                                                         |
 
 ## 4. 技术架构
 
@@ -150,29 +155,29 @@ spiVersion 维持 `"1.0"`：driver kind 此前零存量实现、零上传包，�
 
 ## 5. 测试用例
 
-| 编号          | 类型   | 前置                                  | 步骤                                                                                     | 预期                                                                                                    |
-| ------------- | ------ | ------------------------------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| PLUG-004-T1   | Vitest | sql-guard                             | 白名单矩阵：SELECT/WITH/大小写/注释/多语句/INTO/FOR UPDATE/纯注释/空                     | 合法过；全部非法样本抛 SQL_NOT_SELECT 语义                                                              |
-| PLUG-004-T2   | Vitest | driver-kit                            | URL 解析五家、占位符替换（字面量内 `?` 不替换/注释内不替换/越界占位符）、行归一化、错误友好化 | 各分支断言（含 oracledb 数组行→对象、Date→ISO）                                                           |
-| PLUG-004-T3   | Vitest | 引擎 kernel/sql（伪驱动注入注册表）    | 成功+varMapping 提取；数据源缺失；非白名单；驱动缺失 50032；params {var}/{value} 解析；驱动抛错映射 | 全分支 CONFIG_ERROR 语义正确；成功路径 ctx.vars 写入正确                                                  |
-| PLUG-004-T4   | Vitest | datasourceTestSchema/DRIVER_META       | driver×url 合法/非法 scheme 组合                                                          | superRefine 拒非法 scheme；枚举外 driver 422                                                              |
-| PLUG-004-T5   | jmx    | api-test 栈 + plugins/dist tar        | 上传 postgresql 驱动 tarball（multipart）→ 409 幂等 → 启用 → 列表 kind=driver 过滤+分页信封 | 四断言（201/409/200/code=0/信封字段/耗时）                                                                |
-| PLUG-004-T6   | jmx    | 同上                                  | test-datasource：PG 直连本地栈库成功；mysql/oracle/sqlserver/dm 非法 URL 422；不可达 ok:false | 四断言×4 家（HTTP 200/422、code、$.data.ok、耗时）                                                        |
-| PLUG-004-T7   | jmx    | 无会话/低权限成员                     | 401/403/404（错误项目）                                                                   | 三类权限场景四断言                                                                                        |
-| PLUG-004-T8   | e2e    | e2e 栈                                | 插件管理 UI 直传 dm tarball（multipart 浏览器出口）→ 驱动徽标 → 启用 → 列表状态            | UI 断言（行文本/徽标/状态 tag）+ Console 无 error + 网络断言（POST 201/负载 multipart）                    |
-| PLUG-004-T9   | e2e    | 同上 + 已上传启用 postgresql 驱动     | 环境数据源：driver 下拉 5 项 → PG 连接测试成功 → dm 不可达失败提示                          | UI（成功/失败 message 展示、非假成功）+ Console + 接口（POST test-datasource 负载 driver/url）              |
-| PLUG-004-T10  | e2e    | 同上 + 场景执行链路                    | 场景 SQL 前置（PG、`SELECT ? AS v`、params={var}、varMapping）→ 执行 → 变量断言；非 SELECT → 失败项 | UI（报告成功/失败项 message 含 50031 语义）+ Console + 接口（执行请求负载含 processor.params）              |
+| 编号         | 类型   | 前置                                | 步骤                                                                                                | 预期                                                                                           |
+| ------------ | ------ | ----------------------------------- | --------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| PLUG-004-T1  | Vitest | sql-guard                           | 白名单矩阵：SELECT/WITH/大小写/注释/多语句/INTO/FOR UPDATE/纯注释/空                                | 合法过；全部非法样本抛 SQL_NOT_SELECT 语义                                                     |
+| PLUG-004-T2  | Vitest | driver-kit                          | URL 解析五家、占位符替换（字面量内 `?` 不替换/注释内不替换/越界占位符）、行归一化、错误友好化       | 各分支断言（含 oracledb 数组行→对象、Date→ISO）                                                |
+| PLUG-004-T3  | Vitest | 引擎 kernel/sql（伪驱动注入注册表） | 成功+varMapping 提取；数据源缺失；非白名单；驱动缺失 50032；params {var}/{value} 解析；驱动抛错映射 | 全分支 CONFIG_ERROR 语义正确；成功路径 ctx.vars 写入正确                                       |
+| PLUG-004-T4  | Vitest | datasourceTestSchema/DRIVER_META    | driver×url 合法/非法 scheme 组合                                                                    | superRefine 拒非法 scheme；枚举外 driver 422                                                   |
+| PLUG-004-T5  | jmx    | api-test 栈 + plugins/dist tar      | 上传 postgresql 驱动 tarball（multipart）→ 409 幂等 → 启用 → 列表 kind=driver 过滤+分页信封         | 四断言（201/409/200/code=0/信封字段/耗时）                                                     |
+| PLUG-004-T6  | jmx    | 同上                                | test-datasource：PG 直连本地栈库成功；mysql/oracle/sqlserver/dm 非法 URL 422；不可达 ok:false       | 四断言×4 家（HTTP 200/422、code、$.data.ok、耗时）                                             |
+| PLUG-004-T7  | jmx    | 无会话/低权限成员                   | 401/403/404（错误项目）                                                                             | 三类权限场景四断言                                                                             |
+| PLUG-004-T8  | e2e    | e2e 栈                              | 插件管理 UI 直传 dm tarball（multipart 浏览器出口）→ 驱动徽标 → 启用 → 列表状态                     | UI 断言（行文本/徽标/状态 tag）+ Console 无 error + 网络断言（POST 201/负载 multipart）        |
+| PLUG-004-T9  | e2e    | 同上 + 已上传启用 postgresql 驱动   | 环境数据源：driver 下拉 5 项 → PG 连接测试成功 → dm 不可达失败提示                                  | UI（成功/失败 message 展示、非假成功）+ Console + 接口（POST test-datasource 负载 driver/url） |
+| PLUG-004-T10 | e2e    | 同上 + 场景执行链路                 | 场景 SQL 前置（PG、`SELECT ? AS v`、params={var}、varMapping）→ 执行 → 变量断言；非 SELECT → 失败项 | UI（报告成功/失败项 message 含 50031 语义）+ Console + 接口（执行请求负载含 processor.params） |
 
 四类场景映射（jmx）：正常=T5/T6；权限=T7；校验=T6 非法 URL 422；分页=T5 信封。四家非 PG 驱动的真实连通（需真库）不进 CI——以 driver-kit 单测（协议配置/归一化）+ 不可达错误映射（T6）覆盖，登记豁免；PG 真连路径由 T6/T9/T10 全链路覆盖。
 
 ## 6. 竞品深度对标
 
-| 维度         | MeterSphere                                  | 本项目                                             | 决策理由                                                                                                  |
-| ------------ | -------------------------------------------- | -------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| 驱动形态     | 厂商 JDBC jar 上传（MySQL 内置）             | 厂商官方 Node 驱动内联 TS tarball（五家平权上传）   | 纯 TS 技术栈无 JVM（架构既定不兼容 jar）；MySQL 无官方 Node 驱动故不设「内置特权」，五家统一上传语义        |
-| 分发渠道     | 飞致云应用商店再分发                         | 仓库 release 附件（来源=npm 官方 registry+lockfile） | 用户指令铁律：不用飞致云包；npm 官方渠道=厂商第一发行渠道或官方收录                                         |
-| SQL 步域能力 | 任意 SQL（含 DML/DDL）                       | SELECT/WITH 白名单+READ ONLY+参数绑定               | 安全约束（参数绑定/零拼接）+最小权限；写操作场景不属于「查询/提取」用例，登记差异                          |
-| 加载机制     | pf4j classloader                             | runner（管理面）/engine in-process（执行面）        | 与协议插件同构；采样与 SQL 执行均在 engine 热路径侧，管理面连接测试经 runner（plugin-architecture §2 修订） |
+| 维度         | MeterSphere                      | 本项目                                               | 决策理由                                                                                                    |
+| ------------ | -------------------------------- | ---------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| 驱动形态     | 厂商 JDBC jar 上传（MySQL 内置） | 厂商官方 Node 驱动内联 TS tarball（五家平权上传）    | 纯 TS 技术栈无 JVM（架构既定不兼容 jar）；MySQL 无官方 Node 驱动故不设「内置特权」，五家统一上传语义        |
+| 分发渠道     | 飞致云应用商店再分发             | 仓库 release 附件（来源=npm 官方 registry+lockfile） | 用户指令铁律：不用飞致云包；npm 官方渠道=厂商第一发行渠道或官方收录                                         |
+| SQL 步域能力 | 任意 SQL（含 DML/DDL）           | SELECT/WITH 白名单+READ ONLY+参数绑定                | 安全约束（参数绑定/零拼接）+最小权限；写操作场景不属于「查询/提取」用例，登记差异                           |
+| 加载机制     | pf4j classloader                 | runner（管理面）/engine in-process（执行面）         | 与协议插件同构；采样与 SQL 执行均在 engine 热路径侧，管理面连接测试经 runner（plugin-architecture §2 修订） |
 
 ## 7. 里程碑与验收
 

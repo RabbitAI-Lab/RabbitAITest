@@ -17,7 +17,16 @@ function arg(name, fallback) {
 }
 
 const secret = process.env.LICENSE_SIGNING_SECRET ?? "rabbit-dev-license-secret";
-const ALL = ["MULTI_ORG", "SSO", "MULTI_POOL", "THEME", "MSG_TEMPLATE", "USER_SCALE", "LOAD_TEST", "UI_TEST"];
+const ALL = [
+  "MULTI_ORG",
+  "SSO",
+  "MULTI_POOL",
+  "THEME",
+  "MSG_TEMPLATE",
+  "USER_SCALE",
+  "LOAD_TEST",
+  "UI_TEST",
+];
 
 const lic = String(
   arg("lic", `RAB-${new Date().getFullYear()}-ENT-${randomUUID().slice(0, 8).toUpperCase()}`),

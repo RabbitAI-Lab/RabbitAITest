@@ -9,7 +9,10 @@ import createSshPlugin from "../../../../plugins/ssh/index";
 // ssh2 无自带类型（@types/ssh2 引入会牵动服务端回调签名矩阵——测试内嵌目标用结构化形态）
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const ssh2 = (await import("ssh2")) as unknown as {
-  Server: new (opts: unknown, cb: (client: unknown) => void) => {
+  Server: new (
+    opts: unknown,
+    cb: (client: unknown) => void,
+  ) => {
     listen: (port: number, host: string, cb: () => void) => void;
     address: () => { port: number };
     close: () => void;
@@ -111,19 +114,28 @@ describe("PLUG-005-T1 ssh 插件（内嵌 Server）", () => {
     expect(plugin.configSchema.safeParse({ ...base, port, command: "true" }).success).toBe(true);
     expect(plugin.configSchema.safeParse({ ...base, port, command: "" }).success).toBe(false);
     expect(
-      plugin.configSchema.safeParse({ host: "h", username: "u", authType: "password", command: "x" }).success,
+      plugin.configSchema.safeParse({
+        host: "h",
+        username: "u",
+        authType: "password",
+        command: "x",
+      }).success,
     ).toBe(false); // 缺 password
   });
 
   it("exec 成功：回显命令输出，code=0", async () => {
-    const r = await plugin.buildSampler({ ...base, port, command: "whoami", timeoutMs: 5000 }).run();
+    const r = await plugin
+      .buildSampler({ ...base, port, command: "whoami", timeoutMs: 5000 })
+      .run();
     expect(r.ok).toBe(true);
     expect(r.code).toBe(0);
     expect(r.bodyText).toBe("echo:whoami");
   });
 
   it("exit≠0：code=4 且 bodyText 带 exit 码与 stderr", async () => {
-    const r = await plugin.buildSampler({ ...base, port, command: "fail-now", timeoutMs: 5000 }).run();
+    const r = await plugin
+      .buildSampler({ ...base, port, command: "fail-now", timeoutMs: 5000 })
+      .run();
     expect(r.ok).toBe(false);
     expect(r.code).toBe(4);
     expect(r.bodyText).toContain("exit 3");
@@ -139,7 +151,9 @@ describe("PLUG-005-T1 ssh 插件（内嵌 Server）", () => {
   });
 
   it("连接拒绝：code=2", async () => {
-    const r = await plugin.buildSampler({ ...base, port: 1, command: "true", timeoutMs: 1000 }).run();
+    const r = await plugin
+      .buildSampler({ ...base, port: 1, command: "true", timeoutMs: 1000 })
+      .run();
     expect(r.ok).toBe(false);
     expect(r.code).toBe(2);
   });

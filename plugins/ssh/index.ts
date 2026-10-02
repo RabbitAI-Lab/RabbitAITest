@@ -26,18 +26,24 @@ export interface SshConfig {
 
 function firstError(v: unknown): string | null {
   const c = v as Partial<SshConfig>;
-  if (typeof c?.host !== "string" || c.host.trim().length === 0 || c.host.length > 256) return "host 必填";
+  if (typeof c?.host !== "string" || c.host.trim().length === 0 || c.host.length > 256)
+    return "host 必填";
   if (c.port !== undefined && (!Number.isInteger(c.port) || c.port < 1 || c.port > 65535))
     return "port 须为 1-65535 整数";
   if (typeof c.username !== "string" || c.username.length === 0 || c.username.length > 128)
     return "username 必填";
   if (c.authType !== "password" && c.authType !== "privateKey")
     return "authType 须为 password 或 privateKey";
-  if (c.authType === "password" && typeof c.password !== "string") return "password 必填（authType=password）";
-  if (c.authType === "privateKey" && typeof c.privateKey !== "string") return "privateKey 必填（authType=privateKey）";
+  if (c.authType === "password" && typeof c.password !== "string")
+    return "password 必填（authType=password）";
+  if (c.authType === "privateKey" && typeof c.privateKey !== "string")
+    return "privateKey 必填（authType=privateKey）";
   if (typeof c.command !== "string" || c.command.length === 0 || c.command.length > 2048)
     return "command 必填（≤2048 字符）";
-  if (c.timeoutMs !== undefined && (!Number.isInteger(c.timeoutMs) || c.timeoutMs < 100 || c.timeoutMs > 30_000))
+  if (
+    c.timeoutMs !== undefined &&
+    (!Number.isInteger(c.timeoutMs) || c.timeoutMs < 100 || c.timeoutMs > 30_000)
+  )
     return "timeoutMs 须为 100-30000 整数";
   return null;
 }
@@ -106,7 +112,10 @@ export function createPlugin(): SamplerPlugin {
                     // data 帧与 exit-status 同 tick 竞争——延迟一拍让 stdout 先收（勘误 4 配套）
                     setImmediate(() => {
                       const body = chunks.join("");
-                      finishClear(code === 0 ? 0 : 4, code === 0 ? body : `exit ${code ?? "?"}\n${body}`);
+                      finishClear(
+                        code === 0 ? 0 : 4,
+                        code === 0 ? body : `exit ${code ?? "?"}\n${body}`,
+                      );
                     });
                   });
                   stream.on("data", (d: Buffer) => chunks.push(d.toString("utf8")));
@@ -120,7 +129,9 @@ export function createPlugin(): SamplerPlugin {
               .on("error", (err: Error) => {
                 const msg = err.message;
                 finishClear(
-                  /authentication|access denied|permission denied|handshake.*rejected/i.test(msg) ? 3 : 2,
+                  /authentication|access denied|permission denied|handshake.*rejected/i.test(msg)
+                    ? 3
+                    : 2,
                   msg,
                 );
               })

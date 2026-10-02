@@ -23,10 +23,7 @@ export function LoadTimelineChart({
   const W = 640;
   const H = height;
   const padB = 18;
-  const maxY = Math.max(
-    1,
-    ...frames.flatMap((f) => series.map((s) => s.pick(f))),
-  );
+  const maxY = Math.max(1, ...frames.flatMap((f) => series.map((s) => s.pick(f))));
   const x = (i: number) => (frames.length > 1 ? (i / (frames.length - 1)) * W : W / 2);
   const y = (v: number) => H - padB - (v / maxY) * (H - padB - 8);
   return (

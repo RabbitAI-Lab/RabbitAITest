@@ -2,13 +2,13 @@
 
 ## 0. 元信息
 
-| 项       | 值                                                                                                                                                              |
-| -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 状态     | Draft → Implemented（分支 `INFRA-009-metrics-completeness`，基线 main fbc8f7f（含 INFRA-006/007/008/PLUG-004），worktree RabbitAITest-s10b，2026-09-30）          |
-| 模块     | INFRA（可观测性收尾；engine 侧仅心跳字段 additive，无产品面 UI 变更）                                                                                            |
+| 项       | 值                                                                                                                                                                                                        |
+| -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 状态     | Draft → Implemented（分支 `INFRA-009-metrics-completeness`，基线 main fbc8f7f（含 INFRA-006/007/008/PLUG-004），worktree RabbitAITest-s10b，2026-09-30）                                                  |
+| 模块     | INFRA（可观测性收尾；engine 侧仅心跳字段 additive，无产品面 UI 变更）                                                                                                                                     |
 | 评审方式 | 纯后端规格，依 AGENTS 门禁 2 以**接口契约评审**替代高保真原型——契约面 = §2.1 心跳 proc 字段契约 + §2.2 指标目录增量；经用户目标式授权「未做的再检查下是否可以做了」实施（确认人：用户；原型：不适用 N/A） |
-| 关联规则 | rules/observability.md §6（Backlog 三项处理）· rules/engine.md（engine 无 web/db 依赖红线——本规格不引入）                                                         |
-| 前置     | S10 INFRA-006（RLS 租户通道，#15）+ INFRA-007（指标面 v2）+ INFRA-008（v2.1 采样器错误码/进程指标）                                                               |
+| 关联规则 | rules/observability.md §6（Backlog 三项处理）· rules/engine.md（engine 无 web/db 依赖红线——本规格不引入）                                                                                                 |
+| 前置     | S10 INFRA-006（RLS 租户通道，#15）+ INFRA-007（指标面 v2）+ INFRA-008（v2.1 采样器错误码/进程指标）                                                                                                       |
 
 ## 1. 问题
 
@@ -41,14 +41,14 @@ proc: { uptimeSeconds: number, cpuSeconds: number, rssBytes: number, heapUsedByt
 
 ### 2.3 指标目录增量（INFRA-007 §2.1 目录只增不改）
 
-| 指标                                     | 变更   | 口径                                                                                          |
-| ---------------------------------------- | ------ | --------------------------------------------------------------------------------------------- |
-| `rabbit_db_slow_queries_total`           | HELP 改 | 口径=admin+tenant 双通道（实现不变；文档/HELP 措辞对齐）                                       |
-| `rabbit_process_uptime_seconds{process}` | +label | web=自采；engine-*=池心跳 proc 快照（10s 粒度）                                                |
-| `rabbit_process_cpu_seconds_total{process}` | +label | 同上                                                                                           |
-| `rabbit_process_resident_memory_bytes{process}` | +label | 同上                                                                                        |
-| `rabbit_process_heap_used_bytes{process}` | +label | 同上                                                                                           |
-| `rabbit_process_eventloop_lag_ms{process}` | +label | **仅 web**（engine 不上报直方图；HELP 注明）                                                   |
+| 指标                                            | 变更    | 口径                                                     |
+| ----------------------------------------------- | ------- | -------------------------------------------------------- |
+| `rabbit_db_slow_queries_total`                  | HELP 改 | 口径=admin+tenant 双通道（实现不变；文档/HELP 措辞对齐） |
+| `rabbit_process_uptime_seconds{process}`        | +label  | web=自采；engine-*=池心跳 proc 快照（10s 粒度）          |
+| `rabbit_process_cpu_seconds_total{process}`     | +label  | 同上                                                     |
+| `rabbit_process_resident_memory_bytes{process}` | +label  | 同上                                                     |
+| `rabbit_process_heap_used_bytes{process}`       | +label  | 同上                                                     |
+| `rabbit_process_eventloop_lag_ms{process}`      | +label  | **仅 web**（engine 不上报直方图；HELP 注明）             |
 
 既有查询表达式兼容性：无 label 的 selector（`rabbit_process_rss_bytes`）在 Prometheus 中匹配全部 label 集——看板与告警零回归（INFRA-007 看板不引用 process 指标，INFRA-008 看板引用的是无 label 形态，selector 语义兼容）。
 
@@ -75,16 +75,16 @@ web guard 请求 ── tenant 上下文 ──> prismaFacade.$on(query)（=pris
 
 文件清单：
 
-| 文件                                                        | 变更 | 内容                                         |
-| ----------------------------------------------------------- | ---- | -------------------------------------------- |
-| `packages/db/src/tenant.ts`                                 | +选项 | tenant 客户端启用 query 事件                  |
-| `packages/shared/src/execution/schemas.ts`                  | +字段 | heartbeatSchema.proc 可选                     |
-| `apps/engine/src/runner/worker.ts`                          | +几行 | beat 携带 proc 快照                           |
-| `apps/web/src/server/metrics-runtime.ts`                    | 扩展 | process label 展开逻辑（engine 节点行构造）    |
-| `apps/web/src/app/api/v1/system/metrics/route.ts`           | 小改 | engine 节点 proc 行（pools 数据源已在手）      |
-| `docs/sprint-10-hardening/sprint-overview.md`               | 重建 | INFRA-006/007/008 交付行（含 #15 分支版内容）  |
-| `docs/deployment/monitoring.md` §2/§6                       | 增补 | label 说明 + histogram 触发条件 + Backlog 对齐 |
-| `rules/observability.md` §6、CHANGELOG、docs/README         | 增补 | 交付面同步                                    |
+| 文件                                                | 变更  | 内容                                           |
+| --------------------------------------------------- | ----- | ---------------------------------------------- |
+| `packages/db/src/tenant.ts`                         | +选项 | tenant 客户端启用 query 事件                   |
+| `packages/shared/src/execution/schemas.ts`          | +字段 | heartbeatSchema.proc 可选                      |
+| `apps/engine/src/runner/worker.ts`                  | +几行 | beat 携带 proc 快照                            |
+| `apps/web/src/server/metrics-runtime.ts`            | 扩展  | process label 展开逻辑（engine 节点行构造）    |
+| `apps/web/src/app/api/v1/system/metrics/route.ts`   | 小改  | engine 节点 proc 行（pools 数据源已在手）      |
+| `docs/sprint-10-hardening/sprint-overview.md`       | 重建  | INFRA-006/007/008 交付行（含 #15 分支版内容）  |
+| `docs/deployment/monitoring.md` §2/§6               | 增补  | label 说明 + histogram 触发条件 + Backlog 对齐 |
+| `rules/observability.md` §6、CHANGELOG、docs/README | 增补  | 交付面同步                                     |
 
 零 DDL；OpenAPI 无 diff（心跳 schema additive；/metrics 同 path）。
 
@@ -98,12 +98,12 @@ web guard 请求 ── tenant 上下文 ──> prismaFacade.$on(query)（=pris
 
 ## 5. 测试用例
 
-| 编号          | 类型                                                    | 内容                                                                                                                              |
-| ------------- | ------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| INFRA-009-T1  | Vitest（web，s10-metrics-runtime 增补）                 | runtimeBlock 带 process label（web 行 + engine 节点行构造）；engine proc 行缺失字段跳过；labels 转义                               |
-| INFRA-009-T2  | Vitest（engine）                                        | procSnapshot()（worker.ts 导出纯函数）：字段齐全/数值有限（NaN 归 0）/cpuUsage user+system 折算秒                                   |
-| INFRA-009-T3  | JMeter `tests/api/INFRA-009-process-metrics.jmx`        | 四类×四断言：正常路径（管理员 200 断言 `rabbit_process_uptime_seconds{process="web"}` 与 `process="engine-` 前缀行 + 慢查询 HELP 含双通道措辞）；401（未登录）；403（普通用户）；422/分页不适用（同口径登记） |
-| e2e           | 豁免登记                                                | 无 UI 能力行；全量 e2e 回归为心跳链路零回归证据                                                                                    |
+| 编号         | 类型                                             | 内容                                                                                                                                                                                                          |
+| ------------ | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| INFRA-009-T1 | Vitest（web，s10-metrics-runtime 增补）          | runtimeBlock 带 process label（web 行 + engine 节点行构造）；engine proc 行缺失字段跳过；labels 转义                                                                                                          |
+| INFRA-009-T2 | Vitest（engine）                                 | procSnapshot()（worker.ts 导出纯函数）：字段齐全/数值有限（NaN 归 0）/cpuUsage user+system 折算秒                                                                                                             |
+| INFRA-009-T3 | JMeter `tests/api/INFRA-009-process-metrics.jmx` | 四类×四断言：正常路径（管理员 200 断言 `rabbit_process_uptime_seconds{process="web"}` 与 `process="engine-` 前缀行 + 慢查询 HELP 含双通道措辞）；401（未登录）；403（普通用户）；422/分页不适用（同口径登记） |
+| e2e          | 豁免登记                                         | 无 UI 能力行；全量 e2e 回归为心跳链路零回归证据                                                                                                                                                               |
 
 ## 6. 里程碑与验收
 

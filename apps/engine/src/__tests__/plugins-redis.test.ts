@@ -36,7 +36,9 @@ beforeAll(async () => {
         if (end === -1) return;
         const argc = Number(str.slice(1, end));
         // 简单按 \r\n 分割提取参数（内嵌目标无嵌套 bulk）
-        const parts = str.split("\r\n").filter((p) => !p.startsWith("$") && p !== "" && !p.startsWith("*"));
+        const parts = str
+          .split("\r\n")
+          .filter((p) => !p.startsWith("$") && p !== "" && !p.startsWith("*"));
         if (parts.length < argc) return;
         const args = parts.slice(0, argc);
         buf = Buffer.from(str.slice(str.indexOf(args[argc - 1]!) + args[argc - 1]!.length + 2));
@@ -83,9 +85,13 @@ const plugin = createRedisPlugin();
 describe("PLUG-005-T2 redis 插件（内嵌 mini RESP server）", () => {
   it("契约：name=protocol + configSchema 合法/非法样本", () => {
     expect(plugin.protocol).toBe("redis");
-    expect(plugin.configSchema.safeParse({ host: "h", port: 6379, command: "PING" }).success).toBe(true);
+    expect(plugin.configSchema.safeParse({ host: "h", port: 6379, command: "PING" }).success).toBe(
+      true,
+    );
     expect(plugin.configSchema.safeParse({ host: "h", command: "PING" }).success).toBe(false); // 缺 port
-    expect(plugin.configSchema.safeParse({ url: "not-redis://h", command: "PING" }).success).toBe(false);
+    expect(plugin.configSchema.safeParse({ url: "not-redis://h", command: "PING" }).success).toBe(
+      false,
+    );
   });
 
   it("PING：成功回 PONG（url 形态）", async () => {
@@ -121,7 +127,13 @@ describe("PLUG-005-T2 redis 插件（内嵌 mini RESP server）", () => {
   it("EVAL 同样在黑名单（沙箱外 Lua）", async () => {
     receivedCommands = [];
     const r = await plugin
-      .buildSampler({ host: "127.0.0.1", port, command: "EVAL", args: ["return 1", "0"], timeoutMs: 1000 })
+      .buildSampler({
+        host: "127.0.0.1",
+        port,
+        command: "EVAL",
+        args: ["return 1", "0"],
+        timeoutMs: 1000,
+      })
       .run();
     expect(r.ok).toBe(false);
     expect(r.code).toBe(4);

@@ -108,7 +108,13 @@ describe("批量关闭", () => {
 
 describe("restore", () => {
   it("恢复标签与激活态；缺失工作台自动补、超上限截断", () => {
-    state().restore([{ key: "/a", realm: "project" }, { key: "/b", realm: "project" }], "/b");
+    state().restore(
+      [
+        { key: "/a", realm: "project" },
+        { key: "/b", realm: "project" },
+      ],
+      "/b",
+    );
     expect(state().tabs.map((x) => x.key)).toEqual([HOME_TAB_KEY, "/a", "/b"]);
     expect(state().activeKey).toBe("/b");
 
@@ -116,7 +122,10 @@ describe("restore", () => {
     state().restore([{ key: "/x", realm: "project" }], "/不存在");
     expect(state().activeKey).toBe(HOME_TAB_KEY); // 兜底回落
 
-    const many = Array.from({ length: 30 }, (_, k) => ({ key: `/m${k}`, realm: "project" as const }));
+    const many = Array.from({ length: 30 }, (_, k) => ({
+      key: `/m${k}`,
+      realm: "project" as const,
+    }));
     state().restore(many, "/m0");
     expect(state().tabs.length).toBeLessThanOrEqual(TAB_CAP);
   });

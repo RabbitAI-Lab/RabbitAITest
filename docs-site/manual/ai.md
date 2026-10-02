@@ -16,11 +16,11 @@ AI 能力分四层：**系统模型设置**（管理员配什么模型）→ **�
 
 支持的供应商三家（协议统一为 OpenAI 兼容 chat/completions）：
 
-| 供应商   | 默认 baseUrl                            |
-| -------- | --------------------------------------- |
+| 供应商   | 默认 baseUrl                                         |
+| -------- | ---------------------------------------------------- |
 | 智谱 AI  | `https://open.bigmodel.cn/api/paas/v4`（默认供应商） |
-| DeepSeek | `https://api.deepseek.com`              |
-| OpenAI   | `https://api.openai.com`                |
+| DeepSeek | `https://api.deepseek.com`                           |
+| OpenAI   | `https://api.openai.com`                             |
 
 操作流程：
 
@@ -46,12 +46,12 @@ AI 能力分四层：**系统模型设置**（管理员配什么模型）→ **�
 
 AI 输出的用例等级与平台等级的映射固定为：
 
-| AI 等级    | 平台用例等级 |
-| ---------- | ------------ |
-| critical   | P0           |
-| high       | P1           |
-| medium     | P2           |
-| low        | P3           |
+| AI 等级  | 平台用例等级 |
+| -------- | ------------ |
+| critical | P0           |
+| high     | P1           |
+| medium   | P2           |
+| low      | P3           |
 
 ## AI 生成接口用例
 

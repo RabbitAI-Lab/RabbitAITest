@@ -89,7 +89,11 @@ export default function LicensePage() {
                     更换
                   </Button>
                   <Popconfirm
-                    title={gate ? "移除后回退社区版（多组织/SSO/多资源池等将锁定）" : "移除授权信息（开源全功能模式下所有功能不受影响）"}
+                    title={
+                      gate
+                        ? "移除后回退社区版（多组织/SSO/多资源池等将锁定）"
+                        : "移除授权信息（开源全功能模式下所有功能不受影响）"
+                    }
                     onConfirm={() => removeMut.mutate()}
                   >
                     <Button danger data-testid="btn-remove-license">

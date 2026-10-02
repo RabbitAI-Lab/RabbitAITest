@@ -6,7 +6,7 @@
 | 所属迭代     | Sprint 13 — 代码仓库                                                                                                                                                          |
 | 优先级       | P1                                                                                                                                                                            |
 | 所属模块     | project 域（scm 子域：OAuth 应用配置/授权账号/仓库绑定）+ system 域（params 扩展）                                                                                            |
-| 文档状态     | Implemented（2026-10-01 PR #39 合入 main：c6a6062，CI run 36836913725 十一作业全绿——Vitest 47 / JMeter 30 采样器 / Playwright 5；走查随验收→Verified） |
+| 文档状态     | Implemented（2026-10-01 PR #39 合入 main：c6a6062，CI run 36836913725 十一作业全绿——Vitest 47 / JMeter 30 采样器 / Playwright 5；走查随验收→Verified）                        |
 | 最后更新日期 | 2026-10-01                                                                                                                                                                    |
 | 上游依赖     | INTG-001（组织级服务集成与凭据加密先例）、FILE-001（git-adapters 四平台 REST 适配器与 SSRF/加密先例）、SYS-005（SystemParam 分组存储）、ENTP-002（浏览器 OAuth 授权码流先例） |
 | 下游消费     | Backlog：webhook 推送触发、代码克隆/文件浏览、AI 代码分析联动、GHE/Gitea OAuth                                                                                                |
@@ -125,7 +125,7 @@ Project 增反向关联 `scmRepositories ScmRepository[]`；webhook/克隆类列
 | 用例                                                                                                                                                                                | 文件                                                                    |
 | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
 | 单测：URL 解析矩阵（https/ssh/custom/端口/GHE）+ getRepoDetail 请求形态（fetch mock）                                                                                               | `apps/web/src/server/domains/scm/__tests__/scm-url.test.ts`             |
-| 单测：SSRF 真实守卫链路（169.254/环回 → 40477 映射；jm/e2e 栈开 OUTBOUND_ALLOW_PRIVATE 故栈上不可测） | `apps/web/src/server/domains/scm/__tests__/scm-url-blocked.test.ts` |
+| 单测：SSRF 真实守卫链路（169.254/环回 → 40477 映射；jm/e2e 栈开 OUTBOUND_ALLOW_PRIVATE 故栈上不可测）                                                                               | `apps/web/src/server/domains/scm/__tests__/scm-url-blocked.test.ts`     |
 | 单测：App 双层继承解析（org 覆盖/继承 system/均无）+ secret 保留语义                                                                                                                | `apps/web/src/server/domains/scm/__tests__/scm-app.test.ts`             |
 | 单测：state 一次性消费/过期、token 交换错误映射、gitlab 401 刷新一次                                                                                                                | `apps/web/src/server/domains/scm/__tests__/scm-oauth.test.ts`           |
 | 单测：绑定 CRUD/上限 10/默认互斥与删除补位/verify 状态机/凭据加密不回显（含 password 平台矩阵提示）                                                                                 | `apps/web/src/server/domains/scm/__tests__/scm-repo.test.ts`            |

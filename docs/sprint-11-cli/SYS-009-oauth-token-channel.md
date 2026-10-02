@@ -1,20 +1,20 @@
 # OAuth Token 通道（Device Flow · 第三认证通道 · scope 收窄）
 
-| 元信息项     | 内容                                                                                                                                                    |
-| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 文档编号     | SYS-009                                                                                                                                                  |
-| 所属迭代     | Sprint 11 — AI CLI 与 Token 通道                                                                                                                          |
-| 优先级       | P1（迭代内）                                                                                                                                              |
-| 所属模块     | 认证（auth）+ 个人中心（personal）+ 守卫（guard）                                                                                                         |
-| 文档状态     | Implemented（2026-09-30 交付：代码+单测（shared 147/web 204）+JMeter 27 采样器 0 错误+e2e 4 用例全绿；生产构建链路验证 27/27；高保真已产出，确认与走查随验收）|
-| 最后更新日期 | 2026-09-30                                                                                                                                                |
-| 上游依赖     | SYS-002 认证守卫、SYS-004 RBAC 权限集、INTG-003（APIKEY 通道先例：session 优先协商/Bearer 解析/哈希库存/审计口径）、S10 INFRA-006（RLS 租户上下文）           |
-| 下游消费     | CLI-001（rabbit CLI——auth login/refresh/revoke 的服务端对端）                                                                                             |
-| 上游依据     | 需求文档 §八安全行「认证（Session+Token+APIKEY）」三通道预留；RFC 8628（OAuth 2.0 Device Authorization Grant）                                             |
+| 元信息项     | 内容                                                                                                                                                           |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 文档编号     | SYS-009                                                                                                                                                        |
+| 所属迭代     | Sprint 11 — AI CLI 与 Token 通道                                                                                                                               |
+| 优先级       | P1（迭代内）                                                                                                                                                   |
+| 所属模块     | 认证（auth）+ 个人中心（personal）+ 守卫（guard）                                                                                                              |
+| 文档状态     | Implemented（2026-09-30 交付：代码+单测（shared 147/web 204）+JMeter 27 采样器 0 错误+e2e 4 用例全绿；生产构建链路验证 27/27；高保真已产出，确认与走查随验收） |
+| 最后更新日期 | 2026-09-30                                                                                                                                                     |
+| 上游依赖     | SYS-002 认证守卫、SYS-004 RBAC 权限集、INTG-003（APIKEY 通道先例：session 优先协商/Bearer 解析/哈希库存/审计口径）、S10 INFRA-006（RLS 租户上下文）            |
+| 下游消费     | CLI-001（rabbit CLI——auth login/refresh/revoke 的服务端对端）                                                                                                  |
+| 上游依据     | 需求文档 §八安全行「认证（Session+Token+APIKEY）」三通道预留；RFC 8628（OAuth 2.0 Device Authorization Grant）                                                 |
 | 对标基线     | 功能清单 §9.3 仅含 APIKEY（第三方 API 调用）；Token 通道+Device Flow 为平台自有增强（超基线，sprint-overview §1 登记）——对标 GitHub PAT/OAuth Device Flow 形态 |
-| 关联架构文档 | api-conventions.md §2/§3/§4（信封与错误码；本规格 §4.6 登记两处 RFC 例外）；rbac-permission-model.md；security.md §认证                                  |
-| 高保真确认   | 待确认（原型已产出：docs/design/SYS-009-oauth-token-channel/——`/oauth/device` 授权确认页 + `/personal/authorizations` 授权会话页）                          |
-| 工作量估算   | 后端 5 人日 / 前端 2 人日                                                                                                                                 |
+| 关联架构文档 | api-conventions.md §2/§3/§4（信封与错误码；本规格 §4.6 登记两处 RFC 例外）；rbac-permission-model.md；security.md §认证                                        |
+| 高保真确认   | 待确认（原型已产出：docs/design/SYS-009-oauth-token-channel/——`/oauth/device` 授权确认页 + `/personal/authorizations` 授权会话页）                             |
+| 工作量估算   | 后端 5 人日 / 前端 2 人日                                                                                                                                      |
 
 ## 1. 概述
 
@@ -26,20 +26,20 @@
 
 ### 1.2 范围边界（能力行 → §5 用例映射）
 
-| 能力                                                                                                     | P1 ✅ | 后续                                                               |
-| -------------------------------------------------------------------------------------------------------- | ----- | ------------------------------------------------------------------ |
-| Device Flow 发码：`POST /oauth/device/code`（client_id+scope，form 编码）→ RFC 原生 JSON                  | ✅    | 第三方客户端注册表（OAuthClient 表，登记不交付）                   |
-| 浏览器批准：`/oauth/device` 确认页（输码→回显 scope/来源→批准/拒绝）+ `POST /oauth/device/approve`       | ✅    | 批准页二维码（verification_uri_complete 已可贴）                   |
-| 轮换取 token：`POST /oauth/token`（device_code grant；authorization_pending/slow_down/access_denied/expired_token RFC 错误形状） | ✅    | —                                                                  |
-| refresh 旋转：refresh_token 一次性换新；旧值重放=检测即吊销整个授权会话（token family）                  | ✅    | —                                                                  |
-| Token 生命周期：access 2h / refresh 30d / device_code 10min / user_code 8 位去混淆字符集 XXXX-XXXX     | ✅    | TTL 进 SystemParam 组配置                                          |
-| 统一认证协商：session → Bearer `rat_*`（全守卫自动生效）；open 面 session→token→APIKEY 三序              | ✅    | —                                                                  |
-| scope 收窄：read/write/exec 三类；deny-by-default；登录时声明；RBAC 点照常校验（权限=RBAC∩scope）      | ✅    | 细粒度到权限点的 scope（登记）；scope 审批页动态展示（已展示）      |
-| scope 分类：HTTP 方法缺省（GET→read，非 GET→write）+ exec 路由注册表（13 条显式登记）                    | ✅    | —                                                                  |
-| 授权会话管理：个人中心列表（设备/scope/IP/最近使用/过期）+ 单条吊销 + `POST /oauth/revoke`（CLI 登出）   | ✅    | 改密吊销全部会话（登记 CLI-001 联动）                              |
-| 审计：oauth.code.request/approve/deny、oauth.token.issue/refresh/revoke、oauth.grant.revoke             | ✅    | Token 通道写操作审计带 grantId 归因（access log 已含 reqId/userId） |
-| 限流：发码 10/min/IP；token 轮询按 device 键控（超发 429 slow_down）；批准 10/min/用户                   | ✅    | 逐 Token QPS 限流（决策：不做，登记理由 §4.7）                      |
-| 安全存储：token 仅存 sha256；user_code 批准页错 5 次锁；禁用/软删用户 token 立即失效                      | ✅    | —                                                                  |
+| 能力                                                                                                                             | P1 ✅ | 后续                                                                |
+| -------------------------------------------------------------------------------------------------------------------------------- | ----- | ------------------------------------------------------------------- |
+| Device Flow 发码：`POST /oauth/device/code`（client_id+scope，form 编码）→ RFC 原生 JSON                                         | ✅    | 第三方客户端注册表（OAuthClient 表，登记不交付）                    |
+| 浏览器批准：`/oauth/device` 确认页（输码→回显 scope/来源→批准/拒绝）+ `POST /oauth/device/approve`                               | ✅    | 批准页二维码（verification_uri_complete 已可贴）                    |
+| 轮换取 token：`POST /oauth/token`（device_code grant；authorization_pending/slow_down/access_denied/expired_token RFC 错误形状） | ✅    | —                                                                   |
+| refresh 旋转：refresh_token 一次性换新；旧值重放=检测即吊销整个授权会话（token family）                                          | ✅    | —                                                                   |
+| Token 生命周期：access 2h / refresh 30d / device_code 10min / user_code 8 位去混淆字符集 XXXX-XXXX                               | ✅    | TTL 进 SystemParam 组配置                                           |
+| 统一认证协商：session → Bearer `rat_*`（全守卫自动生效）；open 面 session→token→APIKEY 三序                                      | ✅    | —                                                                   |
+| scope 收窄：read/write/exec 三类；deny-by-default；登录时声明；RBAC 点照常校验（权限=RBAC∩scope）                                | ✅    | 细粒度到权限点的 scope（登记）；scope 审批页动态展示（已展示）      |
+| scope 分类：HTTP 方法缺省（GET→read，非 GET→write）+ exec 路由注册表（13 条显式登记）                                            | ✅    | —                                                                   |
+| 授权会话管理：个人中心列表（设备/scope/IP/最近使用/过期）+ 单条吊销 + `POST /oauth/revoke`（CLI 登出）                           | ✅    | 改密吊销全部会话（登记 CLI-001 联动）                               |
+| 审计：oauth.code.request/approve/deny、oauth.token.issue/refresh/revoke、oauth.grant.revoke                                      | ✅    | Token 通道写操作审计带 grantId 归因（access log 已含 reqId/userId） |
+| 限流：发码 10/min/IP；token 轮询按 device 键控（超发 429 slow_down）；批准 10/min/用户                                           | ✅    | 逐 Token QPS 限流（决策：不做，登记理由 §4.7）                      |
+| 安全存储：token 仅存 sha256；user_code 批准页错 5 次锁；禁用/软删用户 token 立即失效                                             | ✅    | —                                                                   |
 
 ### 1.3 前置依赖
 
@@ -120,14 +120,14 @@ CLI                                    平台(/api/v1)                         �
 
 ### 4.1 端点
 
-| 端点                                    | 方法 | 认证        | 形状                                |
-| --------------------------------------- | ---- | ----------- | ----------------------------------- |
-| `/api/v1/oauth/device/code`             | POST | 公开+IP 限流 | **RFC 原生 JSON**（信封例外）        |
-| `/api/v1/oauth/token`                   | POST | 公开+键控限流 | **RFC 原生 JSON/错误**（信封例外）   |
-| `/api/v1/oauth/device/approve`          | POST | session     | 平台信封（zod：userCode+approve）    |
-| `/api/v1/oauth/revoke`                  | POST | Bearer      | 平台信封（自会话吊销）               |
-| `/api/v1/personal/authorizations`       | GET  | session     | 平台信封（列表）                     |
-| `/api/v1/personal/authorizations/[id]`  | DELETE | session   | 平台信封                             |
+| 端点                                   | 方法   | 认证          | 形状                               |
+| -------------------------------------- | ------ | ------------- | ---------------------------------- |
+| `/api/v1/oauth/device/code`            | POST   | 公开+IP 限流  | **RFC 原生 JSON**（信封例外）      |
+| `/api/v1/oauth/token`                  | POST   | 公开+键控限流 | **RFC 原生 JSON/错误**（信封例外） |
+| `/api/v1/oauth/device/approve`         | POST   | session       | 平台信封（zod：userCode+approve）  |
+| `/api/v1/oauth/revoke`                 | POST   | Bearer        | 平台信封（自会话吊销）             |
+| `/api/v1/personal/authorizations`      | GET    | session       | 平台信封（列表）                   |
+| `/api/v1/personal/authorizations/[id]` | DELETE | session       | 平台信封                           |
 
 ### 4.2 模型（门禁 3：一次建齐；用户级全局表，不进 RLS 策略）
 

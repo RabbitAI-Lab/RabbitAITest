@@ -248,21 +248,34 @@ const run = async () => {
 
   // ── ⑤ 回归证据 ──
   await section("⑤ 回归证据 —— 门面单测实跑 + JMeter/CI 汇总");
-  await execReal("pnpm --filter @rabbit/db test（Vitest 门面单测）", "pnpm --filter @rabbit/db test 2>&1 | tail -3", {
-    maxLines: 5,
-  });
+  await execReal(
+    "pnpm --filter @rabbit/db test（Vitest 门面单测）",
+    "pnpm --filter @rabbit/db test 2>&1 | tail -3",
+    {
+      maxLines: 5,
+    },
+  );
   await execReal(
     "JMeter INFRA-006 最近一次实跑汇总（test-results/api-infra6）",
     `awk -F, 'NR>1{s++; c+=($8=="true")?1:0} END{printf "INFRA-006-tenant-isolation.jmx → %d/%d samplers passed（401 / 404 防枚举 / 422 / 分页信封）\\n", c, s}' test-results/api-infra6/INFRA-006-tenant-isolation.jtl`,
     { maxLines: 3 },
   );
-  await term("CI run 36611028399（PR #15）：九作业全绿（迁移重放含 rls-verify / e2e 双分片 / JMeter 双分片）", "c");
+  await term(
+    "CI run 36611028399（PR #15）：九作业全绿（迁移重放含 rls-verify / e2e 双分片 / JMeter 双分片）",
+    "c",
+  );
   await sleep(T.key);
 
   // ── ⑥ 结束 ──
   await section("验收演示结束");
-  await term("规格：docs/sprint-10-hardening/INFRA-006-rls-tenant-isolation.md（Implemented，待走查 Verified）", "m");
-  await term("纪律：新表必须同步 RLS 策略（rules/database §6.6）；fire-and-forget 须 runAsAdmin（§7.5）", "m");
+  await term(
+    "规格：docs/sprint-10-hardening/INFRA-006-rls-tenant-isolation.md（Implemented，待走查 Verified）",
+    "m",
+  );
+  await term(
+    "纪律：新表必须同步 RLS 策略（rules/database §6.6）；fire-and-forget 须 runAsAdmin（§7.5）",
+    "m",
+  );
   await sleep(3200);
 
   await ctx.close();

@@ -12,20 +12,20 @@
 
 ## 常用命令
 
-| 命令 | 作用 |
-| --- | --- |
-| `pnpm dev` | 启动 web（含内嵌 PG 自动初始化）+ engine + mock + plugin-runner |
-| `pnpm build` | 构建全部应用 |
-| `pnpm test` | Vitest 单元测试 |
-| `pnpm test:api` | JMeter 接口自动化（对本地服务执行） |
-| `pnpm test:e2e` | Playwright UI 自动化（自动起全套服务） |
-| `pnpm test:visual` | 视觉快照采集 |
-| `pnpm lint` / `pnpm format` | oxlint 检查 / oxfmt 格式化 |
-| `pnpm typecheck` | TypeScript 类型检查 |
-| `pnpm db:generate` / `db:migrate` / `db:seed` | Prisma 生成 / 迁移 / 种子 |
-| `pnpm build:plugins` | 构建仓库自带插件 |
-| `pnpm lint:boundaries` | 模块边界检查（如 engine 不得依赖 web/db） |
-| `pnpm backup` / `pnpm restore` | 数据备份 / 恢复 |
+| 命令                                          | 作用                                                            |
+| --------------------------------------------- | --------------------------------------------------------------- |
+| `pnpm dev`                                    | 启动 web（含内嵌 PG 自动初始化）+ engine + mock + plugin-runner |
+| `pnpm build`                                  | 构建全部应用                                                    |
+| `pnpm test`                                   | Vitest 单元测试                                                 |
+| `pnpm test:api`                               | JMeter 接口自动化（对本地服务执行）                             |
+| `pnpm test:e2e`                               | Playwright UI 自动化（自动起全套服务）                          |
+| `pnpm test:visual`                            | 视觉快照采集                                                    |
+| `pnpm lint` / `pnpm format`                   | oxlint 检查 / oxfmt 格式化                                      |
+| `pnpm typecheck`                              | TypeScript 类型检查                                             |
+| `pnpm db:generate` / `db:migrate` / `db:seed` | Prisma 生成 / 迁移 / 种子                                       |
+| `pnpm build:plugins`                          | 构建仓库自带插件                                                |
+| `pnpm lint:boundaries`                        | 模块边界检查（如 engine 不得依赖 web/db）                       |
+| `pnpm backup` / `pnpm restore`                | 数据备份 / 恢复                                                 |
 
 ## 工程门禁（摘要）
 

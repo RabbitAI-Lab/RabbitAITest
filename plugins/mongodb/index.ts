@@ -18,7 +18,9 @@ export interface MongoConfig {
 }
 
 function validUri(uri: unknown): uri is string {
-  return typeof uri === "string" && (uri.startsWith("mongodb://") || uri.startsWith("mongodb+srv://"));
+  return (
+    typeof uri === "string" && (uri.startsWith("mongodb://") || uri.startsWith("mongodb+srv://"))
+  );
 }
 
 function rejectsServerSideJs(q: Record<string, unknown>): boolean {
@@ -30,11 +32,16 @@ function isMongoConfig(v: unknown): v is MongoConfig {
   if (!validUri(c?.uri)) return false;
   const op = c.operation ?? "ping";
   if (!["ping", "count", "find"].includes(op)) return false;
-  if (op !== "ping" && (typeof c.collection !== "string" || c.collection.length === 0)) return false;
-  if (c.query !== undefined && (typeof c.query !== "object" || c.query === null || Array.isArray(c.query)))
+  if (op !== "ping" && (typeof c.collection !== "string" || c.collection.length === 0))
+    return false;
+  if (
+    c.query !== undefined &&
+    (typeof c.query !== "object" || c.query === null || Array.isArray(c.query))
+  )
     return false;
   if (c.query !== undefined && rejectsServerSideJs(c.query)) return false;
-  if (c.limit !== undefined && (!Number.isInteger(c.limit) || c.limit < 1 || c.limit > 100)) return false;
+  if (c.limit !== undefined && (!Number.isInteger(c.limit) || c.limit < 1 || c.limit > 100))
+    return false;
   if (
     c.timeoutMs !== undefined &&
     (!Number.isInteger(c.timeoutMs) || c.timeoutMs < 100 || c.timeoutMs > 30_000)

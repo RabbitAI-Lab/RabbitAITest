@@ -30,7 +30,10 @@ describe("UIT-002-T1 步骤 schema（discriminatedUnion 精确报错）", () => 
     expect(uiStepsSchema.safeParse([{ op: "nope" }]).success).toBe(false);
     expect(uiStepsSchema.safeParse([{ op: "goto", url: "/relative" }]).success).toBe(false);
     expect(uiStepsSchema.safeParse([{ op: "click" }]).success).toBe(false); // 无 elementId 无 locator
-    expect(uiStepsSchema.safeParse([{ op: "click", locator: { locatorType: "css", locator: "#b" } }]).success).toBe(true); // 内联 locator 兜底
+    expect(
+      uiStepsSchema.safeParse([{ op: "click", locator: { locatorType: "css", locator: "#b" } }])
+        .success,
+    ).toBe(true); // 内联 locator 兜底
     expect(
       uiStepsSchema.safeParse(Array.from({ length: 51 }, () => ({ op: "wait", ms: 1 }))).success,
     ).toBe(false);
@@ -39,9 +42,20 @@ describe("UIT-002-T1 步骤 schema（discriminatedUnion 精确报错）", () => 
   it("用例/元素 create schema：timeoutMs 默认与边界", () => {
     const c = uiCaseCreateSchema.parse({ name: "x", steps: [{ op: "wait", ms: 1 }] });
     expect(c.timeoutMs).toBe(15000);
-    expect(uiCaseCreateSchema.safeParse({ name: "x", steps: [{ op: "wait", ms: 1 }], timeoutMs: 4999 }).success).toBe(false);
-    expect(uiElementCreateSchema.safeParse({ name: "e", locatorType: "bogus", locator: "#x" }).success).toBe(false);
-    expect(uiElementCreateSchema.safeParse({ name: "e", locatorType: "testid", locator: "demo-username" }).success).toBe(true);
+    expect(
+      uiCaseCreateSchema.safeParse({ name: "x", steps: [{ op: "wait", ms: 1 }], timeoutMs: 4999 })
+        .success,
+    ).toBe(false);
+    expect(
+      uiElementCreateSchema.safeParse({ name: "e", locatorType: "bogus", locator: "#x" }).success,
+    ).toBe(false);
+    expect(
+      uiElementCreateSchema.safeParse({
+        name: "e",
+        locatorType: "testid",
+        locator: "demo-username",
+      }).success,
+    ).toBe(true);
   });
 });
 
@@ -107,16 +121,30 @@ describe("UIT-002-T3 真 chromium 执行（内嵌静态页：fill/click/assert �
         timeoutMs: 10000,
         steps: [
           { op: "goto", url: `http://127.0.0.1:${port}/` },
-          { op: "fill", value: "rabbit", locator: { locatorType: "testid", locator: "demo-username" } },
+          {
+            op: "fill",
+            value: "rabbit",
+            locator: { locatorType: "testid", locator: "demo-username" },
+          },
           { op: "click", locator: { locatorType: "testid", locator: "demo-submit" } },
-          { op: "assert-text", expected: "提交成功，rabbit", locator: { locatorType: "testid", locator: "demo-result" } },
+          {
+            op: "assert-text",
+            expected: "提交成功，rabbit",
+            locator: { locatorType: "testid", locator: "demo-result" },
+          },
           { op: "screenshot", name: "终态" },
         ],
       },
       async () => false,
     );
     expect(r.status).toBe("SUCCESS");
-    expect(r.steps.map((s) => s.status)).toEqual(["SUCCESS", "SUCCESS", "SUCCESS", "SUCCESS", "SUCCESS"]);
+    expect(r.steps.map((s) => s.status)).toEqual([
+      "SUCCESS",
+      "SUCCESS",
+      "SUCCESS",
+      "SUCCESS",
+      "SUCCESS",
+    ]);
     expect(emitted.some((f) => f.type === "step-op")).toBe(true);
     // screenshot 上传在无 web 栈环境下静默降级（fileId 缺失不阻断）——帧有无均可，验证不崩
   }, 30000);
@@ -135,7 +163,11 @@ describe("UIT-002-T3 真 chromium 执行（内嵌静态页：fill/click/assert �
         steps: [
           { op: "goto", url: `http://127.0.0.1:${port}/` },
           { op: "click", locator: { locatorType: "testid", locator: "demo-submit" } },
-          { op: "assert-text", expected: "不存在的文案XYZ", locator: { locatorType: "testid", locator: "demo-result" } },
+          {
+            op: "assert-text",
+            expected: "不存在的文案XYZ",
+            locator: { locatorType: "testid", locator: "demo-result" },
+          },
           { op: "wait", ms: 100 },
         ],
       },
@@ -161,7 +193,11 @@ describe("UIT-002-T3 真 chromium 执行（内嵌静态页：fill/click/assert �
         timeoutMs: 5000,
         steps: [
           { op: "goto", url: `http://127.0.0.1:${port}/` },
-          { op: "click", elementId: UUID, locator: { locatorType: "css", locator: `__missing__:${UUID}` } },
+          {
+            op: "click",
+            elementId: UUID,
+            locator: { locatorType: "css", locator: `__missing__:${UUID}` },
+          },
         ],
       },
       async () => false,

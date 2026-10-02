@@ -142,10 +142,7 @@ export default function SettingsInfoPage() {
       <div className="rabbit-card p-5 space-y-5 max-w-3xl" data-testid="project-info-form">
         {isError ? (
           /* 查询失败（服务重启/网络闪断/无权）不能落回 Spin——2026-09-30 报障：无限转圈无提示 */
-          <div
-            className="py-12 flex flex-col items-center gap-3"
-            data-testid="project-info-error"
-          >
+          <div className="py-12 flex flex-col items-center gap-3" data-testid="project-info-error">
             <Empty
               image={Empty.PRESENTED_IMAGE_SIMPLE}
               description={error instanceof Error ? error.message : "基本信息加载失败"}

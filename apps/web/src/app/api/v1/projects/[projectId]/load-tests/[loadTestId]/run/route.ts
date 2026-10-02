@@ -12,9 +12,7 @@ export const POST = withProjectScope(async (ctx, _req, segArg?: unknown) => {
     ctx.requirePerm("PROJECT_LOAD:EXECUTE");
     ctx.requireWritable();
     await assertEntpEnabled("LOAD_TEST");
-    const { loadTestId } = await (
-      segArg as { params: Promise<{ loadTestId: string }> }
-    ).params;
+    const { loadTestId } = await (segArg as { params: Promise<{ loadTestId: string }> }).params;
     return NextResponse.json(ok(await runLoadTest(ctx.projectId, loadTestId, ctx.userId)), {
       status: 202,
     });

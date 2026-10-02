@@ -1,20 +1,20 @@
 # rabbit CLI（RabbitCLI-Bootstrap 定制 · AI Agent 原生终端）
 
-| 元信息项     | 内容                                                                                                                                              |
-| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 文档编号     | CLI-001（新模块前缀 CLI）                                                                                                                          |
-| 所属迭代     | Sprint 11 — AI CLI 与 Token 通道                                                                                                                   |
-| 优先级       | P1（迭代内）                                                                                                                                       |
-| 所属模块     | apps/cli（Go，技术栈新增——AGENTS §2 变更，同 PR 登记 tech-stack.md）                                                                               |
-| 文档状态     | Implemented（2026-09-30 交付：六处扩展+services P1+apidef 代码生成+CI Go 作业；go test 全绿（含扩展 5 例）；对生产栈冒烟（login→project use→env ls→登出吊销）全通；接口契约评审物已产出 docs/design/CLI-001-rabbit-cli/，确认后置）|
-| 最后更新日期 | 2026-09-30                                                                                                                                         |
-| 上游依赖     | SYS-009（Token 通道——auth login/refresh/revoke 对端）；packages/api-client/src/generated/openapi.json（apidef 代码生成输入）                          |
-| 下游消费     | AI Agent 会话（skills install 分发 RabbitAITest 技能）；P4 AI 深度集成                                                                               |
-| 上游依据     | 脚手架仓库 RabbitAI-Lab/RabbitCLI-Bootstrap（main 分支，vendor 基线记录于 apps/cli/VENDORED.md）；需求文档 §八三通道                                  |
-| 对标基线     | 超基线自有增强；形态对标 gh（GitHub CLI）——device flow 登录+资源命令+raw API 兜底                                                                   |
-| 关联架构文档 | api-conventions.md（信封/分页——CLI 侧消费）；rbac-permission-model.md（scope 语义）；tech-stack.md（同 PR增补 Go CLI 子项）                          |
-| 高保真确认   | 待确认（CLI 非图形界面，按门禁 2「接口契约评审」变体：评审物=命令帮助文本+示例会话+SKILL.md，见 docs/design/CLI-001-rabbit-cli/）                     |
-| 工作量估算   | 后端 4 人日（Go）+ CI/发布 1 人日                                                                                                                  |
+| 元信息项     | 内容                                                                                                                                                                                                                                |
+| ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 文档编号     | CLI-001（新模块前缀 CLI）                                                                                                                                                                                                           |
+| 所属迭代     | Sprint 11 — AI CLI 与 Token 通道                                                                                                                                                                                                    |
+| 优先级       | P1（迭代内）                                                                                                                                                                                                                        |
+| 所属模块     | apps/cli（Go，技术栈新增——AGENTS §2 变更，同 PR 登记 tech-stack.md）                                                                                                                                                                |
+| 文档状态     | Implemented（2026-09-30 交付：六处扩展+services P1+apidef 代码生成+CI Go 作业；go test 全绿（含扩展 5 例）；对生产栈冒烟（login→project use→env ls→登出吊销）全通；接口契约评审物已产出 docs/design/CLI-001-rabbit-cli/，确认后置） |
+| 最后更新日期 | 2026-09-30                                                                                                                                                                                                                          |
+| 上游依赖     | SYS-009（Token 通道——auth login/refresh/revoke 对端）；packages/api-client/src/generated/openapi.json（apidef 代码生成输入）                                                                                                        |
+| 下游消费     | AI Agent 会话（skills install 分发 RabbitAITest 技能）；P4 AI 深度集成                                                                                                                                                              |
+| 上游依据     | 脚手架仓库 RabbitAI-Lab/RabbitCLI-Bootstrap（main 分支，vendor 基线记录于 apps/cli/VENDORED.md）；需求文档 §八三通道                                                                                                                |
+| 对标基线     | 超基线自有增强；形态对标 gh（GitHub CLI）——device flow 登录+资源命令+raw API 兜底                                                                                                                                                   |
+| 关联架构文档 | api-conventions.md（信封/分页——CLI 侧消费）；rbac-permission-model.md（scope 语义）；tech-stack.md（同 PR增补 Go CLI 子项）                                                                                                         |
+| 高保真确认   | 待确认（CLI 非图形界面，按门禁 2「接口契约评审」变体：评审物=命令帮助文本+示例会话+SKILL.md，见 docs/design/CLI-001-rabbit-cli/）                                                                                                   |
+| 工作量估算   | 后端 4 人日（Go）+ CI/发布 1 人日                                                                                                                                                                                                   |
 
 ## 1. 概述
 
@@ -24,21 +24,21 @@
 
 ### 1.2 范围边界（能力行 → §5 用例映射）
 
-| 能力                                                                                             | P1 ✅ | 后续                                                      |
-| ------------------------------------------------------------------------------------------------ | ----- | ---------------------------------------------------------- |
-| 脚手架 vendor：apps/cli 收编 main 基线，NAME=rabbit（配置目录 ~/.config/rabbit、RABBIT_* 前缀）  | ✅    | upstream 合并节奏（扩展回馈后跟随）                        |
-| 扩展①scope：`auth login --scope read,exec` → device code 请求带 scope；status 回显               | ✅    | —                                                          |
-| 扩展②refresh 旋转：token 响应存 refresh_token；401 自动 grant_type=refresh_token 刷新一次重试    | ✅    | —                                                          |
-| 扩展③登出吊销：可选 authRevokeUrl——logout 先 best-effort POST /oauth/revoke 再清本地             | ✅    | —                                                          |
-| 扩展④错误解包：CliError 构造时识别平台信封 {code,message}——message 提升为错误消息               | ✅    | —                                                          |
-| 扩展⑤页码分页：--page-all 增加 page/size+total 协议分支（items<页长或累计≥total 即停）           | ✅    | —                                                          |
-| 扩展⑥尊重 device 响应 interval/expires_in（原写死 5s/10min）                                     | ✅    | —                                                          |
-| 服务命令 P1：case/api-case/api/scenario/plan/env/task/report/project（ls/get/create/update/rm/run）| ✅    | mock/插件/系统管理面（P2 登记）                            |
-| Shortcuts P1：`+run <目标>`（默认环境→执行→等待→摘要）、`+report <taskId>`、`+case-from <file>`  | ✅    | `+fail-reason`、`+batch` 等（按使用反馈）                  |
-| 上下文：`--project` 全局旗标 + config 键 `project` 缺省 + `project use` 快捷写入                 | ✅    | 多 profile 并行上下文                                      |
-| 契约纪律：OpenAPI 快照→gen-cli-services.mjs→internal/services/apidef/paths.go；服务命令禁手写路径 | ✅    | 参数类型级生成（P1 只生成路径常量+方法+权限面）            |
-| 测试：go test（分页协议/auth 状态机/httptest）+ CI Go 作业（build+test）+ 冒烟套件               | ✅    | Release 资产 tag 构建（rabbit-v{ver}-{os}-{arch}，随发布流）|
-| skills：内置 RabbitAITest SKILL.md（用例编写/工作流/分页）随二进制 embed，`skills install` 分发  | ✅    | 技能市场/多技能包                                          |
+| 能力                                                                                                | P1 ✅ | 后续                                                         |
+| --------------------------------------------------------------------------------------------------- | ----- | ------------------------------------------------------------ |
+| 脚手架 vendor：apps/cli 收编 main 基线，NAME=rabbit（配置目录 ~/.config/rabbit、RABBIT_* 前缀）     | ✅    | upstream 合并节奏（扩展回馈后跟随）                          |
+| 扩展①scope：`auth login --scope read,exec` → device code 请求带 scope；status 回显                  | ✅    | —                                                            |
+| 扩展②refresh 旋转：token 响应存 refresh_token；401 自动 grant_type=refresh_token 刷新一次重试       | ✅    | —                                                            |
+| 扩展③登出吊销：可选 authRevokeUrl——logout 先 best-effort POST /oauth/revoke 再清本地                | ✅    | —                                                            |
+| 扩展④错误解包：CliError 构造时识别平台信封 {code,message}——message 提升为错误消息                   | ✅    | —                                                            |
+| 扩展⑤页码分页：--page-all 增加 page/size+total 协议分支（items<页长或累计≥total 即停）              | ✅    | —                                                            |
+| 扩展⑥尊重 device 响应 interval/expires_in（原写死 5s/10min）                                        | ✅    | —                                                            |
+| 服务命令 P1：case/api-case/api/scenario/plan/env/task/report/project（ls/get/create/update/rm/run） | ✅    | mock/插件/系统管理面（P2 登记）                              |
+| Shortcuts P1：`+run <目标>`（默认环境→执行→等待→摘要）、`+report <taskId>`、`+case-from <file>`     | ✅    | `+fail-reason`、`+batch` 等（按使用反馈）                    |
+| 上下文：`--project` 全局旗标 + config 键 `project` 缺省 + `project use` 快捷写入                    | ✅    | 多 profile 并行上下文                                        |
+| 契约纪律：OpenAPI 快照→gen-cli-services.mjs→internal/services/apidef/paths.go；服务命令禁手写路径   | ✅    | 参数类型级生成（P1 只生成路径常量+方法+权限面）              |
+| 测试：go test（分页协议/auth 状态机/httptest）+ CI Go 作业（build+test）+ 冒烟套件                  | ✅    | Release 资产 tag 构建（rabbit-v{ver}-{os}-{arch}，随发布流） |
+| skills：内置 RabbitAITest SKILL.md（用例编写/工作流/分页）随二进制 embed，`skills install` 分发     | ✅    | 技能市场/多技能包                                            |
 
 ### 1.3 前置依赖
 

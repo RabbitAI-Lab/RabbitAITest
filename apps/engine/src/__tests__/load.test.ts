@@ -9,7 +9,13 @@ import {
   percentile,
   type LoadCommand,
 } from "@rabbit/shared";
-import { aggregateSecond, concurrencySchedule, summarize, tpsSchedule, runLoad } from "../load/generator";
+import {
+  aggregateSecond,
+  concurrencySchedule,
+  summarize,
+  tpsSchedule,
+  runLoad,
+} from "../load/generator";
 
 const UUID = "00000000-0000-4000-8000-000000000001";
 
@@ -20,7 +26,13 @@ function mkCmd(partial: Partial<LoadCommand["pressure"]> = {}): LoadCommand {
     loadTestId: UUID,
     name: "t",
     target: { method: "GET", url: "http://127.0.0.1:9/x", headers: [], body: "" },
-    pressure: { mode: "concurrency", durationSec: 10, maxConcurrency: 10, ramp: [{ atSec: 0, concurrency: 2 }, ...([] as never[])], ...partial } as LoadCommand["pressure"],
+    pressure: {
+      mode: "concurrency",
+      durationSec: 10,
+      maxConcurrency: 10,
+      ramp: [{ atSec: 0, concurrency: 2 }, ...([] as never[])],
+      ...partial,
+    } as LoadCommand["pressure"],
     thresholds: { okRateMin: 99, p95MsMax: 500, avgMsMax: 200 },
   };
 }
@@ -78,11 +90,17 @@ describe("LOAD-003-T2 聚合器（aggregateSecond/summarize/percentile）", () =
     expect(percentile([1, 5, 9], 50)).toBe(5); // 入参契约=已排序（调用方 aggregateSecond 内排序）
   });
   it("秒窗口聚合：sent/ok/fail 计数 + 分位 + concurrent 透传", () => {
-    const f = aggregateSecond(UUID, 3, 1000, [
-      { ok: true, rtMs: 10 },
-      { ok: true, rtMs: 20 },
-      { ok: false, rtMs: 900 },
-    ], 8);
+    const f = aggregateSecond(
+      UUID,
+      3,
+      1000,
+      [
+        { ok: true, rtMs: 10 },
+        { ok: true, rtMs: 20 },
+        { ok: false, rtMs: 900 },
+      ],
+      8,
+    );
     expect(f.sec).toBe(3);
     expect(f.sent).toBe(3);
     expect(f.ok).toBe(2);
@@ -113,18 +131,55 @@ describe("LOAD-003-T3 zod schema（loadTargetSchema/loadPressureSchema/threshold
   it("目标 URL：相对路径与非 http(s) 拒绝", () => {
     expect(loadTargetSchema.safeParse({ method: "GET", url: "/ping" }).success).toBe(false);
     expect(loadTargetSchema.safeParse({ method: "GET", url: "ftp://x/y" }).success).toBe(false);
-    expect(loadTargetSchema.safeParse({ method: "GET", url: "http://127.0.0.1:1/ping" }).success).toBe(true);
+    expect(
+      loadTargetSchema.safeParse({ method: "GET", url: "http://127.0.0.1:1/ping" }).success,
+    ).toBe(true);
   });
   it("压力模型上界：时长>600/并发>200/TPS>1000 拒绝", () => {
-    expect(loadPressureSchema.safeParse({ mode: "concurrency", durationSec: 601, maxConcurrency: 1, ramp: [{ atSec: 0, concurrency: 1 }] }).success).toBe(false);
-    expect(loadPressureSchema.safeParse({ mode: "concurrency", durationSec: 10, maxConcurrency: 201, ramp: [{ atSec: 0, concurrency: 1 }] }).success).toBe(false);
-    expect(loadPressureSchema.safeParse({ mode: "tps", durationSec: 10, targetTps: 1001, rampSec: 0 }).success).toBe(false);
+    expect(
+      loadPressureSchema.safeParse({
+        mode: "concurrency",
+        durationSec: 601,
+        maxConcurrency: 1,
+        ramp: [{ atSec: 0, concurrency: 1 }],
+      }).success,
+    ).toBe(false);
+    expect(
+      loadPressureSchema.safeParse({
+        mode: "concurrency",
+        durationSec: 10,
+        maxConcurrency: 201,
+        ramp: [{ atSec: 0, concurrency: 1 }],
+      }).success,
+    ).toBe(false);
+    expect(
+      loadPressureSchema.safeParse({ mode: "tps", durationSec: 10, targetTps: 1001, rampSec: 0 })
+        .success,
+    ).toBe(false);
   });
   it("并发阶梯：atSec 非递增 / 首点非 0 拒绝", () => {
     const base = { mode: "concurrency", durationSec: 10, maxConcurrency: 10 };
-    expect(loadPressureSchema.safeParse({ ...base, ramp: [{ atSec: 5, concurrency: 1 }] }).success).toBe(false);
-    expect(loadPressureSchema.safeParse({ ...base, ramp: [{ atSec: 0, concurrency: 1 }, { atSec: 0, concurrency: 2 }] }).success).toBe(false);
-    expect(loadPressureSchema.safeParse({ ...base, ramp: [{ atSec: 0, concurrency: 1 }, { atSec: 3, concurrency: 2 }] }).success).toBe(true);
+    expect(
+      loadPressureSchema.safeParse({ ...base, ramp: [{ atSec: 5, concurrency: 1 }] }).success,
+    ).toBe(false);
+    expect(
+      loadPressureSchema.safeParse({
+        ...base,
+        ramp: [
+          { atSec: 0, concurrency: 1 },
+          { atSec: 0, concurrency: 2 },
+        ],
+      }).success,
+    ).toBe(false);
+    expect(
+      loadPressureSchema.safeParse({
+        ...base,
+        ramp: [
+          { atSec: 0, concurrency: 1 },
+          { atSec: 3, concurrency: 2 },
+        ],
+      }).success,
+    ).toBe(true);
   });
   it("阈值与整体 create：默认值补齐 + 非法拒绝", () => {
     expect(loadThresholdsSchema.parse({})).toEqual({ okRateMin: 99, p95MsMax: 500, avgMsMax: 200 });

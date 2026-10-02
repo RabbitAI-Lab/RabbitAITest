@@ -1,0 +1,1322 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AGENT-002 测试资产生成管线（高保真确认版）</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@1.48.0/dist/umd/lucide.min.js"></script>
+    <style>
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei",
+          sans-serif;
+      }
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #d5d7db;
+        border-radius: 3px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .nav-item,
+      .btn,
+      .tab-btn,
+      .sec-item {
+        transition: all 0.12s;
+      }
+      .drawer {
+        transition: transform 0.18s ease;
+      }
+      .sec-item.active {
+        background: #574bff0f;
+        color: #574bff;
+        border-left: 2px solid #574bff;
+        font-weight: 500;
+      }
+      .mono {
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      }
+      @keyframes pulse-dot {
+        0%,
+        100% {
+          opacity: 0.35;
+        }
+        50% {
+          opacity: 1;
+        }
+      }
+      .spin {
+        animation: pulse-dot 1.2s infinite;
+      }
+    </style>
+  </head>
+  <body class="bg-[#EEF0F4] text-[#1F2329] text-[13px]">
+    <!-- ══════════ 原型说明条（非产品 UI） ══════════ -->
+    <div
+      class="bg-[#1B1F2A] text-white/90 px-5 py-3 flex items-center gap-3 flex-wrap sticky top-0 z-50"
+    >
+      <span class="font-semibold">AGENT-002 测试资产生成管线 · 高保真确认版</span>
+      <span class="text-white/50 text-xs">画面编号①-⑤对应规格 §1.2 能力行 / §3</span>
+      <span class="ml-auto flex gap-1.5" id="screen-switch">
+        <button data-screen="w1" class="btn px-3 py-1 rounded bg-white/15">① 向导·上下文源</button>
+        <button data-screen="w2" class="btn px-3 py-1 rounded bg-white/10">
+          ② 向导·阶段与选项
+        </button>
+        <button data-screen="w3" class="btn px-3 py-1 rounded bg-white/10">③ 向导·运行进度</button>
+        <button data-screen="draft" class="btn px-3 py-1 rounded bg-white/10">
+          ④ 产物预览与导入
+        </button>
+        <button data-screen="pedit" class="btn px-3 py-1 rounded bg-white/10">
+          ⑤ pipeline 编辑抽屉
+        </button>
+      </span>
+    </div>
+
+    <div class="flex flex-col h-[calc(100vh-45px)]">
+      <!-- 顶栏 -->
+      <div class="bg-white border-b border-[#E5E6EB] flex items-center h-9 shrink-0">
+        <div class="flex items-end h-full px-1 gap-1">
+          <div
+            class="flex items-center gap-1.5 px-3 h-full bg-[#EEF0F4] border-r border-l border-t border-[#E5E6EB] rounded-t text-[12px] font-medium"
+          >
+            项目设置 · 兔子测试项目 <i data-lucide="x" class="w-3 h-3 text-[#8F959E]"></i>
+          </div>
+          <div class="flex items-center gap-1.5 px-3 h-full text-[12px] text-[#646A73]">
+            功能用例 <i data-lucide="x" class="w-3 h-3 text-[#8F959E]"></i>
+          </div>
+        </div>
+        <div class="ml-auto flex items-center gap-2 pr-3">
+          <i data-lucide="search" class="w-3.5 h-3.5 text-[#646A73]"></i>
+          <div
+            class="w-6 h-6 rounded-full bg-[#574BFF] text-white text-[11px] flex items-center justify-center"
+          >
+            兔
+          </div>
+        </div>
+      </div>
+
+      <!-- ───────── 画面①②③ 生成向导 ───────── -->
+      <div id="screen-w1" class="screen flex-1 min-h-0 flex flex-col">
+        <!-- 向导头 -->
+        <div class="bg-white border-b border-[#E5E6EB] px-8 py-4 flex items-center gap-4 shrink-0">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-lg bg-[#00B42A]/10 flex items-center justify-center">
+              <i data-lucide="workflow" class="w-4 h-4" style="color: #00b42a"></i>
+            </div>
+            <div>
+              <div class="font-medium text-[14px]">发起生成 · 资产生成管线</div>
+              <div class="text-[11px] text-[#8F959E]">
+                pipeline 模式 · 产物全部进入草稿区，人工确认后才导入
+              </div>
+            </div>
+          </div>
+          <div class="ml-auto flex items-center gap-0 text-[12px]">
+            <div
+              class="flex items-center gap-1.5 px-3 py-1.5 bg-[#574BFF]/8 text-[#574BFF] rounded-l-lg border border-[#574BFF]/30"
+            >
+              <span
+                class="w-4 h-4 rounded-full bg-[#574BFF] text-white text-[10px] flex items-center justify-center"
+                >1</span
+              >上下文源
+            </div>
+            <div class="w-6 h-px bg-[#E5E6EB]"></div>
+            <div
+              class="flex items-center gap-1.5 px-3 py-1.5 text-[#8F959E] border border-[#E5E6EB] border-l-0"
+            >
+              <span
+                class="w-4 h-4 rounded-full border border-[#C9CDD4] text-[10px] flex items-center justify-center"
+                >2</span
+              >阶段与选项
+            </div>
+            <div class="w-6 h-px bg-[#E5E6EB]"></div>
+            <div
+              class="flex items-center gap-1.5 px-3 py-1.5 text-[#8F959E] border border-[#E5E6EB] border-l-0 rounded-r-lg"
+            >
+              <span
+                class="w-4 h-4 rounded-full border border-[#C9CDD4] text-[10px] flex items-center justify-center"
+                >3</span
+              >运行
+            </div>
+          </div>
+        </div>
+
+        <div class="flex-1 overflow-auto p-8 max-w-[980px] w-full mx-auto">
+          <!-- 仓库（多选 + 每仓库选分支） -->
+          <div class="mb-6">
+            <div class="flex items-center gap-2 mb-2.5">
+              <i data-lucide="git-branch" class="w-3.5 h-3.5 text-[#574BFF]"></i
+              ><span class="font-medium">代码仓库</span
+              ><span class="text-[11px] text-[#8F959E]"
+                >（选仓库 + 选分支；任务启动时自动克隆/切分支/拉取最新至 Agent 工作目录
+                repos/）</span
+              >
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <label
+                class="flex items-center gap-3 p-3.5 rounded-lg border border-[#574BFF] bg-[#574BFF]/5 cursor-pointer"
+              >
+                <input type="checkbox" checked class="accent-[#574BFF]" />
+                <i data-lucide="github" class="w-4 h-4"></i>
+                <div class="flex-1 min-w-0">
+                  <div class="text-[12px] truncate">RabbitAI-Lab/user-service</div>
+                  <div class="text-[11px] text-[#8F959E]">1,842 文件 · 最近提交 3h 前</div>
+                </div>
+                <select
+                  class="px-2 py-1 rounded border border-[#E5E6EB] text-[11px] bg-white shrink-0"
+                  onclick="event.preventDefault()"
+                  title="分支（默认 defaultBranch）"
+                >
+                  <option>main</option>
+                  <option>release/1.2</option>
+                  <option>feat/login-v2</option>
+                </select>
+              </label>
+              <label
+                class="flex items-center gap-3 p-3.5 rounded-lg border border-[#E5E6EB] bg-white cursor-pointer"
+              >
+                <input type="checkbox" class="accent-[#574BFF]" />
+                <i data-lucide="gitlab" class="w-4 h-4"></i>
+                <div class="flex-1 min-w-0">
+                  <div class="text-[12px] truncate">rabbit/shared-docs</div>
+                  <div class="text-[11px] text-[#8F959E]">356 文件 · Token 认证</div>
+                </div>
+                <select
+                  class="px-2 py-1 rounded border border-[#E5E6EB] text-[11px] bg-white shrink-0"
+                  onclick="event.preventDefault()"
+                >
+                  <option>docs</option>
+                  <option>master</option>
+                </select>
+              </label>
+            </div>
+          </div>
+          <!-- 仓库文档（默认展开 docs/ 一次拉全子目录 · 默认不勾选 · 可搜索） -->
+          <div class="mb-6">
+            <div class="flex items-center gap-2 mb-2.5">
+              <i data-lucide="folder-tree" class="w-3.5 h-3.5 text-[#574BFF]"></i
+              ><span class="font-medium">仓库文档</span
+              ><span class="text-[11px] text-[#8F959E]"
+                >（从所选仓库选择文本类文件；代码文件由阶段 B 自动采样，无需在此勾选）</span
+              >
+            </div>
+            <div class="rounded-lg border border-[#E5E6EB] bg-white p-3" data-doc-source>
+              <div class="flex items-center gap-2 mb-2">
+                <div class="text-[11px] text-[#8F959E] flex items-center gap-1.5 flex-1">
+                  <i data-lucide="github" class="w-3 h-3"></i>RabbitAI-Lab/user-service @ main<span
+                    class="text-[#574BFF]"
+                    >docs/ 已默认展开（一次获取全部子目录）</span
+                  >
+                </div>
+                <div class="relative">
+                  <i
+                    data-lucide="search"
+                    class="w-3 h-3 text-[#8F959E] absolute left-2 top-1.5"
+                  ></i>
+                  <input
+                    placeholder="搜索 docs 目录与文件"
+                    class="pl-6 pr-2 py-1 rounded border border-[#E5E6EB] text-[11px] w-48 focus:outline-none focus:border-[#574BFF]"
+                  />
+                </div>
+              </div>
+              <div class="space-y-0.5 text-[12px]">
+                <div class="flex items-center gap-2 text-[#646A73] font-medium">
+                  <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i
+                  ><i data-lucide="folder-open" class="w-3.5 h-3.5 text-[#574BFF]"></i>docs<span
+                    class="text-[11px] text-[#8F959E] font-normal"
+                    >子目录 3 · 文件 5</span
+                  >
+                </div>
+                <label
+                  data-path="repos/RabbitAI-Lab__user-service/docs/README.md"
+                  class="flex items-center gap-2 pl-8 py-0.5 rounded cursor-pointer hover:bg-[#FAFBFC]"
+                  ><input type="checkbox" class="accent-[#574BFF]" /><i
+                    data-lucide="file-text"
+                    class="w-3.5 h-3.5 text-[#8F959E]"
+                  ></i
+                  ><span class="flex-1">README.md</span
+                  ><span class="text-[11px] text-[#8F959E]">4KB</span></label
+                >
+                <div class="flex items-center gap-2 pl-6 text-[#646A73]">
+                  <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i
+                  ><i data-lucide="folder-open" class="w-3.5 h-3.5 text-[#8F959E]"></i>api<span
+                    class="text-[11px] text-[#8F959E]"
+                    >2 项</span
+                  >
+                </div>
+                <label
+                  data-path="repos/RabbitAI-Lab__user-service/docs/api/接口约定-支付回调.md"
+                  class="flex items-center gap-2 pl-12 py-0.5 rounded cursor-pointer hover:bg-[#FAFBFC]"
+                  ><input type="checkbox" class="accent-[#574BFF]" /><i
+                    data-lucide="file-text"
+                    class="w-3.5 h-3.5 text-[#8F959E]"
+                  ></i
+                  ><span class="flex-1">接口约定-支付回调.md</span
+                  ><span class="text-[11px] text-[#8F959E]">23KB</span></label
+                >
+                <label
+                  data-path="repos/RabbitAI-Lab__user-service/docs/api/接口约定-登录.md"
+                  class="flex items-center gap-2 pl-12 py-0.5 rounded cursor-pointer hover:bg-[#FAFBFC]"
+                  ><input type="checkbox" class="accent-[#574BFF]" /><i
+                    data-lucide="file-text"
+                    class="w-3.5 h-3.5 text-[#8F959E]"
+                  ></i
+                  ><span class="flex-1">接口约定-登录.md</span
+                  ><span class="text-[11px] text-[#8F959E]">18KB</span></label
+                >
+                <div class="flex items-center gap-2 pl-6 text-[#646A73]">
+                  <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i
+                  ><i data-lucide="folder" class="w-3.5 h-3.5 text-[#8F959E]"></i>design<span
+                    class="text-[11px] text-[#8F959E]"
+                    >5 项 · 按需展开</span
+                  >
+                </div>
+                <div class="flex items-center gap-2 pl-6 text-[#646A73]">
+                  <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i
+                  ><i data-lucide="folder-open" class="w-3.5 h-3.5 text-[#8F959E]"></i>spec
+                </div>
+                <label
+                  data-path="repos/RabbitAI-Lab__user-service/docs/spec/登录模块需求规格 v2.3.md"
+                  class="flex items-center gap-2 pl-12 py-0.5 rounded cursor-pointer hover:bg-[#FAFBFC]"
+                  ><input type="checkbox" class="accent-[#574BFF]" /><i
+                    data-lucide="file-text"
+                    class="w-3.5 h-3.5 text-[#8F959E]"
+                  ></i
+                  ><span class="flex-1">登录模块需求规格 v2.3.md</span
+                  ><span class="text-[11px] text-[#8F959E]">86KB</span></label
+                >
+                <label
+                  data-path="repos/RabbitAI-Lab__user-service/docs/spec/原型图-登录流程.fig"
+                  class="flex items-center gap-2 pl-12 py-0.5 rounded cursor-not-allowed opacity-50"
+                  ><input type="checkbox" disabled class="accent-[#574BFF]" /><i
+                    data-lucide="file-image"
+                    class="w-3.5 h-3.5 text-[#8F959E]"
+                  ></i
+                  ><span class="flex-1">原型图-登录流程.fig</span
+                  ><span class="text-[11px] text-[#FA3939]">非文本类，不可选</span></label
+                >
+                <div class="flex items-center gap-2 text-[#646A73]">
+                  <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i
+                  ><i data-lucide="folder" class="w-3.5 h-3.5 text-[#8F959E]"></i>assets<span
+                    class="text-[11px] text-[#8F959E]"
+                    >12 项</span
+                  >
+                </div>
+                <div class="flex items-center gap-2 text-[#646A73]">
+                  <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i
+                  ><i data-lucide="folder" class="w-3.5 h-3.5 text-[#8F959E]"></i>src<span
+                    class="text-[11px] text-[#8F959E]"
+                    >代码——阶段 B 自动采样</span
+                  >
+                </div>
+              </div>
+              <div class="text-[11px] text-[#8F959E] mt-2">
+                默认不勾选任何文件；非 docs 目录按需展开（懒加载）；搜索命中 docs 内目录与文件名
+              </div>
+            </div>
+          </div>
+          <!-- 平台文档（搜索添加——文件库/存储库，规范类团队资产） -->
+          <div class="mb-6">
+            <div class="flex items-center gap-2 mb-2.5">
+              <i data-lucide="folder-open" class="w-3.5 h-3.5 text-[#574BFF]"></i
+              ><span class="font-medium">平台文档</span
+              ><span class="text-[11px] text-[#8F959E]"
+                >（搜索添加——文件库/存储库中不在仓库里的规范类/约定类团队资产；文本类
+                ≤1MB/文件）</span
+              >
+            </div>
+            <div class="rounded-lg border border-[#E5E6EB] bg-white" data-doc-source>
+              <div class="px-4 py-2.5 border-b border-[#F0F1F5] flex items-center gap-2">
+                <div class="relative flex-1 max-w-[340px]">
+                  <i
+                    data-lucide="search"
+                    class="w-3 h-3 text-[#8F959E] absolute left-2 top-1.5"
+                  ></i>
+                  <input
+                    placeholder="搜索文件名，如：规范 / 基线 / 术语"
+                    class="w-full pl-6 pr-2 py-1 rounded border border-[#E5E6EB] text-[11px] focus:outline-none focus:border-[#574BFF]"
+                  />
+                </div>
+                <select class="px-2 py-1 rounded border border-[#E5E6EB] text-[11px] bg-white">
+                  <option>全部来源</option>
+                  <option>文件库</option>
+                  <option>存储库</option>
+                </select>
+                <span class="text-[11px] text-[#8F959E] ml-auto">命中 24 · 已选 0</span>
+              </div>
+              <div class="divide-y divide-[#F0F1F5]">
+                <label
+                  data-path="platform-docs/测试用例编写规范 v3.1.md"
+                  class="flex items-center gap-3 px-4 py-2.5 cursor-pointer hover:bg-[#FAFBFC]"
+                  ><input type="checkbox" class="accent-[#574BFF]" /><i
+                    data-lucide="file-text"
+                    class="w-3.5 h-3.5 text-[#8F959E]"
+                  ></i
+                  ><span class="text-[12px] flex-1">测试用例编写规范 v3.1.md</span
+                  ><span class="text-[11px] text-[#8F959E]">56KB · 文件库 · 团队规范</span></label
+                >
+                <label
+                  data-path="platform-docs/Web 安全测试基线.md"
+                  class="flex items-center gap-3 px-4 py-2.5 cursor-pointer hover:bg-[#FAFBFC]"
+                  ><input type="checkbox" class="accent-[#574BFF]" /><i
+                    data-lucide="file-text"
+                    class="w-3.5 h-3.5 text-[#8F959E]"
+                  ></i
+                  ><span class="text-[12px] flex-1">Web 安全测试基线.md</span
+                  ><span class="text-[11px] text-[#8F959E]">31KB · 存储库 · 团队规范</span></label
+                >
+                <label
+                  data-path="platform-docs/业务术语表.csv"
+                  class="flex items-center gap-3 px-4 py-2.5 cursor-pointer hover:bg-[#FAFBFC]"
+                  ><input type="checkbox" class="accent-[#574BFF]" /><i
+                    data-lucide="file-text"
+                    class="w-3.5 h-3.5 text-[#8F959E]"
+                  ></i
+                  ><span class="text-[12px] flex-1">业务术语表.csv</span
+                  ><span class="text-[11px] text-[#8F959E]">12KB · 文件库</span></label
+                >
+                <label
+                  data-path="platform-docs/UI 走查截图包.zip"
+                  class="flex items-center gap-3 px-4 py-2.5 cursor-not-allowed opacity-50"
+                  ><input type="checkbox" disabled class="accent-[#574BFF]" /><i
+                    data-lucide="file-archive"
+                    class="w-3.5 h-3.5 text-[#8F959E]"
+                  ></i
+                  ><span class="text-[12px] flex-1">UI 走查截图包.zip</span
+                  ><span class="text-[11px] text-[#FA3939]">非文本类，不可选</span></label
+                >
+              </div>
+            </div>
+            <div class="text-[11px] text-[#8F959E] mt-1.5">
+              管理入口=项目「文件管理」（上传/更新在此维护，向导只做搜索与选择）；与 Skills
+              分工：Skills 是给 Agent 的指令，平台文档是给模型的参考资料
+            </div>
+          </div>
+          <!-- 需求（默认提示词 + AI 生成精简版） -->
+          <div class="mb-6">
+            <div class="flex items-center gap-2 mb-2.5">
+              <i data-lucide="clipboard-list" class="w-3.5 h-3.5 text-[#574BFF]"></i
+              ><span class="font-medium">需求</span>
+              <button
+                class="btn px-2.5 py-1 rounded border border-[#574BFF] text-[#574BFF] text-[11px] hover:bg-[#574BFF]/8 flex items-center gap-1"
+              >
+                <i data-lucide="sparkles" class="w-3 h-3"></i>AI 生成
+              </button>
+              <span class="text-[11px] text-[#8F959E]"
+                >根据已选文档自动生成精简提示词，生成后可编辑</span
+              >
+            </div>
+            <textarea
+              id="req-text"
+              rows="3"
+              class="w-full px-3.5 py-2.5 rounded-lg border border-[#E5E6EB] focus:outline-none focus:border-[#574BFF] text-[12px]"
+            >
+请根据文档，及所选代码库，生成测试用例。</textarea>
+            <div class="mt-2 text-[11px] text-[#8F959E]">
+              默认提示词可直接使用；勾选仓库文档/平台文档后自动在末尾维护「已选择文档:…」行（条目=工作区相对路径，本页可体验）；「AI
+              生成」依据已选仓库文档+平台文档生成更聚焦的精简版本（≤1K 字符，未选文档时置灰）·
+              本版不接三方需求平台（联动登记 Backlog）
+            </div>
+          </div>
+          <!-- 参照用例 -->
+          <div
+            class="mb-6 flex items-center gap-3 p-3.5 rounded-lg border border-[#E5E6EB] bg-white"
+          >
+            <label class="flex items-center gap-2 cursor-pointer"
+              ><input type="checkbox" checked class="accent-[#574BFF]" /><span class="text-[12px]"
+                >以既有功能用例为风格参照</span
+              ></label
+            >
+            <span class="text-[11px] text-[#8F959E]"
+              >取当前模块下前 20 条入上下文，对齐命名与粒度</span
+            >
+          </div>
+        </div>
+
+        <div class="bg-white border-t border-[#E5E6EB] px-8 py-3 flex items-center gap-2 shrink-0">
+          <button class="btn px-4 py-1.5 rounded border border-[#E5E6EB] text-[#646A73]">
+            取消
+          </button>
+          <div class="ml-auto flex gap-2">
+            <button class="btn px-4 py-1.5 rounded border border-[#E5E6EB] text-[#646A73]">
+              上一步
+            </button>
+            <button
+              class="btn px-4 py-1.5 rounded bg-[#574BFF] text-white hover:bg-[#4a3fe8]"
+              onclick="switchScreen('w2')"
+            >
+              下一步：阶段与选项
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 画面② 阶段与选项 -->
+      <div id="screen-w2" class="screen hidden flex-1 min-h-0 flex flex-col">
+        <div class="bg-white border-b border-[#E5E6EB] px-8 py-4 shrink-0">
+          <div class="flex items-center gap-2 mb-1">
+            <div class="w-8 h-8 rounded-lg bg-[#00B42A]/10 flex items-center justify-center">
+              <i data-lucide="workflow" class="w-4 h-4" style="color: #00b42a"></i>
+            </div>
+            <div class="font-medium text-[14px]">发起生成 · 资产生成管线</div>
+          </div>
+          <div class="ml-auto flex items-center gap-0 text-[12px] w-fit">
+            <div
+              class="flex items-center gap-1.5 px-3 py-1.5 text-[#00B42A] border border-[#00B42A]/30 rounded-l-lg"
+              style="background: #00b42a14"
+            >
+              <span
+                class="w-4 h-4 rounded-full flex items-center justify-center text-white text-[10px]"
+                style="background: #00b42a"
+                >✓</span
+              >上下文源
+            </div>
+            <div class="w-6 h-px bg-[#E5E6EB]"></div>
+            <div
+              class="flex items-center gap-1.5 px-3 py-1.5 bg-[#574BFF]/8 text-[#574BFF] border border-[#574BFF]/30"
+            >
+              <span
+                class="w-4 h-4 rounded-full bg-[#574BFF] text-white text-[10px] flex items-center justify-center"
+                >2</span
+              >阶段与选项
+            </div>
+            <div class="w-6 h-px bg-[#E5E6EB]"></div>
+            <div
+              class="flex items-center gap-1.5 px-3 py-1.5 text-[#8F959E] border border-[#E5E6EB] border-l-0 rounded-r-lg"
+            >
+              <span
+                class="w-4 h-4 rounded-full border border-[#C9CDD4] text-[10px] flex items-center justify-center"
+                >3</span
+              >运行
+            </div>
+          </div>
+        </div>
+        <div class="flex-1 overflow-auto p-8 max-w-[980px] w-full mx-auto space-y-5">
+          <!-- 阶段 A -->
+          <div class="rounded-xl border border-[#574BFF] bg-[#574BFF]/4 p-4">
+            <label class="flex items-center gap-2.5 cursor-pointer">
+              <input type="checkbox" checked class="accent-[#574BFF] w-4 h-4" />
+              <span class="font-medium">阶段 A · 需求分析</span>
+              <span class="text-[11px] text-[#8F959E]">需求/文档 → 测试点 + 功能用例草稿</span>
+              <span class="ml-auto text-[11px]"
+                >上限
+                <input
+                  value="50"
+                  class="w-12 px-2 py-0.5 rounded border border-[#E5E6EB] text-[11px]"
+                />
+                条</span
+              >
+            </label>
+          </div>
+          <!-- 阶段 B -->
+          <div class="rounded-xl border border-[#574BFF] bg-[#574BFF]/4 p-4">
+            <label class="flex items-center gap-2.5 cursor-pointer mb-3">
+              <input type="checkbox" checked class="accent-[#574BFF] w-4 h-4" />
+              <span class="font-medium">阶段 B · 接口资产提取</span>
+              <span class="text-[11px] text-[#8F959E]"
+                >检出 OpenAPI → 确定性解析；否则代码路由提取</span
+              >
+              <span class="ml-auto text-[11px]"
+                >接口上限
+                <input
+                  value="100"
+                  class="w-12 px-2 py-0.5 rounded border border-[#E5E6EB] text-[11px]"
+              /></span>
+            </label>
+            <div class="flex items-center gap-4 pl-7">
+              <span class="text-[11px] text-[#646A73]">路线：</span>
+              <label class="flex items-center gap-1.5 text-[12px] cursor-pointer"
+                ><input type="radio" name="broute" checked class="accent-[#574BFF]" />自动</label
+              >
+              <label class="flex items-center gap-1.5 text-[12px] cursor-pointer"
+                ><input type="radio" name="broute" class="accent-[#574BFF]" />仅 OpenAPI</label
+              >
+              <label class="flex items-center gap-1.5 text-[12px] cursor-pointer"
+                ><input type="radio" name="broute" class="accent-[#574BFF]" />仅代码提取</label
+              >
+              <span class="text-[11px] text-[#00B42A] ml-2" style="color: #00b42a"
+                >已检出 openapi.yaml → 将走确定性解析（不经 LLM）</span
+              >
+            </div>
+            <div class="flex items-center gap-4 pl-7 mt-2.5">
+              <span class="text-[11px] text-[#646A73]">产物：</span>
+              <label class="flex items-center gap-1.5 text-[12px] cursor-pointer"
+                ><input type="checkbox" checked class="accent-[#574BFF]" />接口定义</label
+              >
+              <label class="flex items-center gap-1.5 text-[12px] cursor-pointer"
+                ><input type="checkbox" checked class="accent-[#574BFF]" />API 用例</label
+              >
+              <label class="flex items-center gap-1.5 text-[12px] cursor-pointer"
+                ><input type="checkbox" checked class="accent-[#574BFF]" />场景骨架</label
+              >
+            </div>
+          </div>
+          <!-- 阶段 C -->
+          <div class="rounded-xl border border-[#574BFF] bg-[#574BFF]/4 p-4">
+            <label class="flex items-center gap-2.5 cursor-pointer mb-3">
+              <input type="checkbox" checked class="accent-[#574BFF] w-4 h-4" />
+              <span class="font-medium">阶段 C · 脚本生成</span>
+              <span class="text-[11px] text-[#8F959E]">消费 A/B 产物生成可执行脚本</span>
+              <span class="ml-auto text-[11px]"
+                >场景上限
+                <input
+                  value="30"
+                  class="w-12 px-2 py-0.5 rounded border border-[#E5E6EB] text-[11px]"
+              /></span>
+            </label>
+            <div class="flex items-center gap-4 pl-7">
+              <label class="flex items-center gap-1.5 text-[12px] cursor-pointer"
+                ><input type="checkbox" checked class="accent-[#574BFF]" />场景 DSL（步骤树）</label
+              >
+              <label class="flex items-center gap-1.5 text-[12px] cursor-pointer"
+                ><input type="checkbox" checked class="accent-[#574BFF]" />UI 用例（八指令）</label
+              >
+              <label
+                class="flex items-center gap-1.5 text-[12px] cursor-pointer"
+                title="默认开启：生成侧 AST 静态校验 → 草稿人工确认 → 执行侧受信脚本口径"
+                ><input type="checkbox" checked class="accent-[#574BFF]" />Playwright 脚本<span
+                  class="text-[10px] text-[#8F959E]"
+                  >（AST 校验+人工确认）</span
+                ></label
+              >
+            </div>
+            <div class="text-[11px] text-[#FF8800] mt-2 pl-7 flex items-center gap-1">
+              <i data-lucide="triangle-alert" class="w-3 h-3"></i>UI 用例中 2
+              个元素未在元素库命中，将生成 ELEMENT_MISSING 占位待补
+            </div>
+          </div>
+          <!-- 附加指令 -->
+          <div>
+            <label class="text-[12px] text-[#646A73] block mb-1.5"
+              >附加指令（并入各阶段提示词）</label
+            >
+            <textarea
+              rows="2"
+              class="w-full px-3.5 py-2.5 rounded-lg border border-[#E5E6EB] text-[12px]"
+              placeholder="例：用例命名风格保持「场景-预期」；优先覆盖异常路径"
+            >
+用例命名保持「场景-预期」风格；优先覆盖异常与边界路径</textarea>
+          </div>
+        </div>
+        <div class="bg-white border-t border-[#E5E6EB] px-8 py-3 flex items-center gap-2 shrink-0">
+          <button class="btn px-4 py-1.5 rounded border border-[#E5E6EB] text-[#646A73]">
+            取消
+          </button>
+          <div class="ml-auto flex gap-2">
+            <button
+              class="btn px-4 py-1.5 rounded border border-[#E5E6EB] text-[#646A73]"
+              onclick="switchScreen('w1')"
+            >
+              上一步
+            </button>
+            <button
+              class="btn px-4 py-1.5 rounded bg-[#574BFF] text-white hover:bg-[#4a3fe8]"
+              onclick="switchScreen('w3')"
+            >
+              开始生成
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 画面③ 运行进度 -->
+      <div id="screen-w3" class="screen hidden flex-1 min-h-0 flex flex-col">
+        <div class="bg-white border-b border-[#E5E6EB] px-8 py-4 flex items-center gap-3 shrink-0">
+          <div class="font-medium text-[14px]">生成运行中 · run 7b3e…</div>
+          <span class="text-[10px] px-1.5 py-px rounded bg-[#574BFF]/10 text-[#574BFF]"
+            >已登记任务中心</span
+          >
+          <span class="text-[11px] text-[#8F959E]">预算 48K · 已用 27.6K tokens · 2m18s</span>
+          <button
+            class="btn ml-auto px-3 py-1.5 rounded border border-[#FA3939] text-[#FA3939] text-[12px] flex items-center gap-1"
+          >
+            <i data-lucide="square" class="w-3 h-3"></i>取消
+          </button>
+        </div>
+        <div class="flex-1 overflow-auto p-8 max-w-[980px] w-full mx-auto">
+          <!-- 阶段进度条 -->
+          <div class="flex items-center mb-6">
+            <div class="flex-1 flex items-center gap-2">
+              <span
+                class="w-6 h-6 rounded-full flex items-center justify-center text-white text-[11px]"
+                style="background: #00b42a"
+                >✓</span
+              >
+              <div>
+                <div class="text-[12px] font-medium">阶段 A · 需求分析</div>
+                <div class="text-[11px] text-[#8F959E]">42s · 测试点 8 · 用例 24 · 剔除 2</div>
+              </div>
+            </div>
+            <div class="flex-1 h-0.5 mx-3" style="background: #00b42a"></div>
+            <div class="flex-1 flex items-center gap-2">
+              <span
+                class="w-6 h-6 rounded-full bg-[#574BFF] text-white text-[11px] flex items-center justify-center spin"
+                >⟳</span
+              >
+              <div>
+                <div class="text-[12px] font-medium text-[#574BFF]">阶段 B · 接口资产提取</div>
+                <div class="text-[11px] text-[#8F959E]">LLM 调用 2/3 · 接口 31/…</div>
+              </div>
+            </div>
+            <div class="flex-1 h-0.5 mx-3 bg-[#E5E6EB]"></div>
+            <div class="flex-1 flex items-center gap-2 opacity-50">
+              <span
+                class="w-6 h-6 rounded-full border-2 border-[#C9CDD4] text-[#8F959E] text-[11px] flex items-center justify-center"
+                >3</span
+              >
+              <div class="text-[12px] text-[#8F959E]">阶段 C · 脚本生成</div>
+            </div>
+          </div>
+          <!-- 实时轨迹 -->
+          <div class="rounded-xl border border-[#E5E6EB] bg-white divide-y divide-[#F0F1F5]">
+            <div class="px-4 py-2 flex items-center gap-2 text-[12px] text-[#646A73]">
+              <span
+                class="w-5 h-5 rounded-full bg-[#574BFF]/10 flex items-center justify-center text-[10px]"
+                >📁</span
+              >工作目录准备 · repos/RabbitAI-Lab__user-service → checkout main + pull 最新
+              <span style="color: #00b42a">✓ 2.1s</span>
+            </div>
+            <div class="px-4 py-2 flex items-center gap-2 text-[12px] text-[#646A73]">
+              <span class="w-5"></span>platform-docs/ 同步 12 个文件（3 个未变跳过）<span
+                style="color: #00b42a"
+                >✓ 0.4s</span
+              >
+            </div>
+            <div class="px-4 py-2 flex items-center gap-2 text-[12px] text-[#646A73]">
+              <span class="w-5"></span>任务目录 tasks/7b3e…/ 创建 · 软链
+              repos·platform-docs（只读）+ output/<span style="color: #00b42a">✓</span>
+            </div>
+            <div class="px-4 py-2 flex items-center gap-2 text-[12px] text-[#646A73]">
+              <span
+                class="w-5 h-5 rounded-full bg-[#574BFF]/10 flex items-center justify-center text-[10px]"
+                >🤖</span
+              >pi 会话启动 · cwd=Agent 工作区 · DeepSeek-V3<span style="color: #00b42a">✓</span>
+            </div>
+            <div class="px-4 py-2.5 flex items-center gap-2 text-[12px]">
+              <span
+                class="w-5 h-5 rounded-full bg-[#00B42A]/10 flex items-center justify-center text-[10px]"
+                >A</span
+              ><span class="font-medium">stage-start 阶段 A</span
+              ><span class="text-[#8F959E] ml-auto text-[11px]">09:41:02</span>
+            </div>
+            <div class="px-4 py-2 flex items-center gap-2 text-[12px] text-[#646A73]">
+              <span class="w-5"></span>🤖 pi 自主工作：读文档 5 份 · draft.submit 功能用例 24
+              条（剔除 2 · 自纠 1 成功）
+            </div>
+            <div class="px-4 py-2 flex items-center gap-2 text-[12px] text-[#646A73]">
+              <span class="w-5"></span>📦 draft-append 测试点 ×8 · 功能用例 ×24（冲突 3：与
+              CASE-0102 等同名）
+            </div>
+            <div class="px-4 py-2.5 flex items-center gap-2 text-[12px]">
+              <span
+                class="w-5 h-5 rounded-full bg-[#574BFF]/10 flex items-center justify-center text-[10px] text-[#574BFF]"
+                >B</span
+              ><span class="font-medium">stage-start 阶段 B</span
+              ><span class="text-[#8F959E] ml-auto text-[11px]">09:41:44</span>
+            </div>
+            <div class="px-4 py-2 flex items-center gap-2 text-[12px] text-[#646A73]">
+              <span class="w-5"></span>📄 检出 openapi.yaml（3.1）→ 确定性解析 · 接口 31 个 · 未经
+              LLM
+            </div>
+            <div class="px-4 py-2 flex items-center gap-2 text-[12px] text-[#646A73]">
+              <span class="w-5"></span>🧠 LLM 调用 1 · API 用例生成 18/31…<span
+                class="w-1.5 h-1.5 rounded-full bg-[#574BFF] spin ml-1"
+              ></span>
+            </div>
+          </div>
+          <!-- 完成态卡片（示意，实现态运行结束显示） -->
+          <div class="mt-6 rounded-xl border border-[#00B42A]/30 p-4" style="background: #00b42a0d">
+            <div
+              class="flex items-center gap-2 mb-2 text-[12px] font-medium"
+              style="color: #00b42a"
+            >
+              <i data-lucide="circle-check" class="w-4 h-4"></i>完成态示意（运行结束后显示）
+            </div>
+            <div class="grid grid-cols-6 gap-2 text-center">
+              <div class="rounded-lg bg-white border border-[#E5E6EB] py-2">
+                <div class="text-[16px] font-medium">8</div>
+                <div class="text-[10px] text-[#8F959E]">测试点</div>
+              </div>
+              <div class="rounded-lg bg-white border border-[#E5E6EB] py-2">
+                <div class="text-[16px] font-medium">24</div>
+                <div class="text-[10px] text-[#8F959E]">功能用例</div>
+              </div>
+              <div class="rounded-lg bg-white border border-[#E5E6EB] py-2">
+                <div class="text-[16px] font-medium">31</div>
+                <div class="text-[10px] text-[#8F959E]">接口定义</div>
+              </div>
+              <div class="rounded-lg bg-white border border-[#E5E6EB] py-2">
+                <div class="text-[16px] font-medium">18</div>
+                <div class="text-[10px] text-[#8F959E]">API 用例</div>
+              </div>
+              <div class="rounded-lg bg-white border border-[#E5E6EB] py-2">
+                <div class="text-[16px] font-medium">6</div>
+                <div class="text-[10px] text-[#8F959E]">场景</div>
+              </div>
+              <div class="rounded-lg bg-white border border-[#E5E6EB] py-2">
+                <div class="text-[16px] font-medium">9</div>
+                <div class="text-[10px] text-[#8F959E]">UI 用例</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-3 mt-3 text-[11px] text-[#8F959E]">
+              冲突 5 · 剔除 2 · 待人工决策 89 · token 96.2K · 6m12s · 生成≠入库（人工确认后导入）
+              <button
+                class="btn ml-auto px-3.5 py-1.5 rounded bg-[#574BFF] text-white text-[12px]"
+                onclick="switchScreen('draft')"
+              >
+                查看产物
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 画面④ 产物预览 -->
+      <div id="screen-draft" class="screen hidden flex-1 min-h-0 flex flex-col">
+        <div class="bg-white border-b border-[#E5E6EB] px-8 py-4 flex items-center gap-3 shrink-0">
+          <div class="font-medium text-[14px]">产物预览 · run 7b3e…（10-01 18:46）</div>
+          <span class="text-[11px] text-[#8F959E]">草稿保留 30 天 · 导入前不落生产库</span>
+          <div class="ml-auto flex items-center gap-2">
+            <span class="text-[11px] text-[#8F959E]"
+              >已选 <span class="text-[#574BFF] font-medium">41</span> / 96</span
+            >
+            <div
+              class="flex items-center gap-1.5 text-[11.5px] bg-[#F0F1F5] rounded-lg px-2.5 py-1"
+            >
+              <span class="text-[#8F959E]">入库方式</span>
+              <label class="flex items-center gap-1 cursor-pointer"
+                ><input
+                  type="radio"
+                  name="dest"
+                  class="accent-[#574BFF]"
+                />直接入库（未评审）</label
+              >
+              <label class="flex items-center gap-1 cursor-pointer font-medium text-[#574BFF]"
+                ><input
+                  type="radio"
+                  name="dest"
+                  checked
+                  class="accent-[#574BFF]"
+                />入库并发起评审</label
+              >
+              <select class="px-1.5 py-0.5 rounded border border-[#E5E6EB] text-[11px] bg-white">
+                <option>评审人：许某</option>
+                <option>评审人：王某</option>
+              </select>
+            </div>
+            <button
+              class="btn px-3 py-1.5 rounded border border-[#E5E6EB] text-[#646A73] text-[12px]"
+            >
+              废弃所选
+            </button>
+            <button
+              class="btn px-3.5 py-1.5 rounded bg-[#574BFF] text-white text-[12px] hover:bg-[#4a3fe8]"
+            >
+              导入所选 (41)
+            </button>
+          </div>
+        </div>
+        <!-- 类型 tab -->
+        <div class="bg-white border-b border-[#E5E6EB] px-8 flex items-end gap-4 shrink-0">
+          <div
+            class="tab2 pb-2.5 border-b-2 border-[#574BFF] text-[#574BFF] font-medium text-[12px]"
+          >
+            功能用例 <span class="text-[10px] bg-[#574BFF]/10 rounded px-1">24</span>
+          </div>
+          <div class="pb-2.5 border-b-2 border-transparent text-[#646A73] text-[12px]">
+            测试点 <span class="text-[10px] bg-[#F0F1F5] rounded px-1">8</span>
+          </div>
+          <div class="pb-2.5 border-b-2 border-transparent text-[#646A73] text-[12px]">
+            接口定义 <span class="text-[10px] bg-[#F0F1F5] rounded px-1">31</span>
+          </div>
+          <div class="pb-2.5 border-b-2 border-transparent text-[#646A73] text-[12px]">
+            API 用例 <span class="text-[10px] bg-[#F0F1F5] rounded px-1">18</span>
+          </div>
+          <div class="pb-2.5 border-b-2 border-transparent text-[#646A73] text-[12px]">
+            场景 <span class="text-[10px] bg-[#F0F1F5] rounded px-1">6</span>
+          </div>
+          <div class="pb-2.5 border-b-2 border-transparent text-[#646A73] text-[12px]">
+            UI 用例 <span class="text-[10px] bg-[#F0F1F5] rounded px-1">9</span>
+          </div>
+          <div
+            class="ml-auto pb-2.5 text-[11px] text-[#8F959E]"
+            title="采纳率 = 已采纳 ÷（已采纳 + 废弃 + 过期未决）；剔除项不计分母"
+          >
+            新增 <span style="color: #00b42a">86</span> · 冲突
+            <span class="text-[#FF8800]">8</span> · 剔除 <span class="text-[#8F959E]">2</span> ·
+            已采纳 41 · 待决策 53 · <span class="text-[#574BFF] font-medium">采纳率 43.6%</span>
+          </div>
+        </div>
+        <div class="flex-1 overflow-auto p-6">
+          <div class="rounded-lg border border-[#E5E6EB] bg-white divide-y divide-[#F0F1F5]">
+            <!-- 行1 新增（勾选） -->
+            <div class="px-4 py-3 flex items-center gap-3 hover:bg-[#FAFBFC]">
+              <input type="checkbox" checked class="accent-[#574BFF]" />
+              <div class="flex-1 min-w-0">
+                <div class="text-[12px]">验证码登录-正确手机号与验证码-登录成功</div>
+                <div class="text-[11px] text-[#8F959E] mt-0.5">
+                  模块：登录/验证码 · 优先级 P1 · 步骤 6 · 来源：需求①
+                </div>
+              </div>
+              <span
+                class="text-[10px] px-1.5 py-px rounded"
+                style="background: #00b42a14; color: #00b42a"
+                >新增</span
+              >
+              <button class="text-[11px] text-[#574BFF]">展开</button>
+            </div>
+            <!-- 行2 展开预览 -->
+            <div class="px-4 py-3 bg-[#FAFBFC]">
+              <div class="flex items-center gap-3">
+                <input type="checkbox" checked class="accent-[#574BFF]" />
+                <div class="flex-1 text-[12px]">密码错误-连续 5 次-锁定 10 分钟</div>
+                <span
+                  class="text-[10px] px-1.5 py-px rounded"
+                  style="background: #00b42a14; color: #00b42a"
+                  >新增</span
+                >
+                <button class="text-[11px] text-[#574BFF]">收起</button>
+              </div>
+              <div class="mt-3 ml-7 rounded-lg border border-[#F0F1F5] bg-white p-3.5 text-[12px]">
+                <div class="grid grid-cols-3 gap-2 mb-2 text-[11px] text-[#8F959E]">
+                  <span>前置：已注册账号且未锁定</span><span>优先级：P0</span
+                  ><span>标签：安全/登录</span>
+                </div>
+                <table class="w-full text-[11.5px]">
+                  <thead>
+                    <tr class="text-[#8F959E] text-left border-b border-[#F0F1F5]">
+                      <th class="py-1.5 font-normal w-10">#</th>
+                      <th class="py-1.5 font-normal">步骤</th>
+                      <th class="py-1.5 font-normal">预期</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr class="border-b border-[#F0F1F5]">
+                      <td class="py-1.5">1</td>
+                      <td>打开登录页，输入正确手机号与错误密码</td>
+                      <td>提示「账号或密码错误」，剩余次数 4</td>
+                    </tr>
+                    <tr class="border-b border-[#F0F1F5]">
+                      <td class="py-1.5">…</td>
+                      <td>连续输入错误密码至第 5 次</td>
+                      <td>提示「已锁定」，倒计时 10:00</td>
+                    </tr>
+                    <tr>
+                      <td class="py-1.5">…</td>
+                      <td>锁定期间用正确密码登录</td>
+                      <td>拒绝登录，提示锁定剩余时间</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <!-- 行3 冲突 -->
+            <div class="px-4 py-3 flex items-center gap-3 hover:bg-[#FAFBFC]">
+              <input type="checkbox" class="accent-[#574BFF]" />
+              <div class="flex-1 min-w-0">
+                <div class="text-[12px]">多端登录-同账号新设备登录-按策略互踢</div>
+                <div class="text-[11px] text-[#8F959E] mt-0.5">
+                  模块：登录/多端 · 优先级 P1 · 步骤 5
+                </div>
+              </div>
+              <span
+                class="text-[10px] px-1.5 py-px rounded bg-[#FF8800]/10 text-[#FF8800]"
+                title="与既有用例 CASE-0102 同模块同名"
+                >冲突 · 与 CASE-0102 同名</span
+              >
+              <button class="text-[11px] text-[#574BFF]">展开</button>
+            </div>
+            <!-- 行4 导入成功（导入后状态） -->
+            <div class="px-4 py-3 flex items-center gap-3" style="background: #00b42a08">
+              <i data-lucide="circle-check" class="w-4 h-4" style="color: #00b42a"></i>
+              <div class="flex-1 text-[12px]">记住登录-勾选后 30 天免登</div>
+              <span class="text-[11px] text-[#646A73]"
+                >已导入 <span class="mono" style="color: #00b42a">CASE-0187</span></span
+              >
+              <span
+                class="text-[10px] px-1.5 py-px rounded"
+                style="background: #00b42a14; color: #00b42a"
+                >IMPORTED</span
+              >
+            </div>
+            <!-- 行5 导入失败（可重试） -->
+            <div class="px-4 py-3 flex items-center gap-3" style="background: #fa393908">
+              <input type="checkbox" class="accent-[#574BFF]" />
+              <div class="flex-1 text-[12px]">验证码-60 秒内重复发送-拦截</div>
+              <span class="text-[11px] text-[#FA3939]"
+                >导入失败：30422 校验失败（模块已被移动）</span
+              >
+              <button class="text-[11px] text-[#574BFF]">重试</button>
+            </div>
+            <!-- 行6 剔除 -->
+            <div class="px-4 py-3 flex items-center gap-3 opacity-60">
+              <i data-lucide="circle-slash" class="w-4 h-4 text-[#8F959E]"></i>
+              <div class="flex-1 text-[12px] line-through">登录-xxx-yyy（schema 校验未过）</div>
+              <span
+                class="text-[10px] px-1.5 py-px rounded bg-[#F0F1F5] text-[#8F959E]"
+                title="预期结果为空，zod 校验剔除"
+                >INVALID · 剔除</span
+              >
+            </div>
+            <!-- 行7 废弃（显式不采纳，计入采纳率分母） -->
+            <div class="px-4 py-3 flex items-center gap-3 opacity-60">
+              <i data-lucide="circle-x" class="w-4 h-4 text-[#8F959E]"></i>
+              <div class="flex-1 text-[12px] line-through">多端登录-旧策略踢新-按配置拒绝</div>
+              <span
+                class="text-[10px] px-1.5 py-px rounded bg-[#8F959E]/15 text-[#646A73]"
+                title="人工显式废弃，不可恢复；计入采纳率分母"
+                >DISCARDED · 已废弃</span
+              >
+              <span class="text-[11px] text-[#8F959E]">10-01 19:02 由 许某 废弃</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 画面⑤ pipeline 编辑抽屉 -->
+      <div
+        id="screen-pedit"
+        class="screen hidden absolute inset-0 z-40"
+        style="position: absolute; inset: 0; pointer-events: none"
+      >
+        <div class="absolute inset-0 bg-black/20" style="pointer-events: auto"></div>
+        <div
+          class="drawer absolute right-0 top-0 bottom-0 w-[860px] bg-white flex flex-col"
+          style="pointer-events: auto; box-shadow: -8px 0 24px rgba(0, 0, 0, 0.08)"
+        >
+          <div class="px-6 py-4 border-b border-[#E5E6EB] flex items-center gap-3 shrink-0">
+            <div class="font-medium text-[14px]">编辑 Agent · 资产生成管线</div>
+            <span class="text-[10px] px-1.5 py-px rounded bg-[#00B42A]/10" style="color: #00b42a"
+              >pipeline</span
+            >
+            <span class="text-[11px] text-[#8F959E] ml-2">version 2 · 更新于 10-01</span>
+            <div class="ml-auto flex items-center gap-2">
+              <button class="btn px-3 py-1.5 rounded border border-[#E5E6EB]">取消</button>
+              <button class="btn px-3 py-1.5 rounded bg-[#574BFF] text-white">保存</button>
+              <button class="btn p-1 rounded hover:bg-[#F0F1F5]" onclick="switchScreen('w1')">
+                <i data-lucide="x" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+          <div class="flex flex-1 min-h-0">
+            <div class="w-44 border-r border-[#E5E6EB] p-2 shrink-0 overflow-auto">
+              <div
+                class="sec-item px-3 py-2 rounded cursor-pointer text-[#3D4350]"
+                data-sec="pbase"
+              >
+                基本信息
+              </div>
+              <div
+                class="sec-item px-3 py-2 rounded cursor-pointer text-[#3D4350]"
+                data-sec="pmodel"
+              >
+                模型与参数
+              </div>
+              <div
+                class="sec-item px-3 py-2 rounded cursor-pointer text-[#3D4350]"
+                data-sec="pprompt"
+              >
+                提示词（追加段）
+              </div>
+              <div class="sec-item active px-3 py-2 rounded cursor-pointer" data-sec="pctx">
+                上下文默认源
+              </div>
+              <div
+                class="sec-item px-3 py-2 rounded cursor-pointer text-[#3D4350]"
+                data-sec="pstages"
+              >
+                阶段默认
+              </div>
+              <div
+                class="sec-item px-3 py-2 rounded cursor-pointer text-[#3D4350]"
+                data-sec="padvanced"
+              >
+                高级
+              </div>
+              <div class="sec-item px-3 py-2 rounded cursor-pointer text-[#3D4350]" data-sec="pa2a">
+                A2A 接入
+              </div>
+            </div>
+            <div class="flex-1 overflow-auto p-6">
+              <div id="sec-pbase" class="psec hidden space-y-4 max-w-[560px]">
+                <div>
+                  <label class="text-[12px] text-[#646A73] block mb-1.5">名称</label
+                  ><input
+                    value="资产生成管线"
+                    class="w-full px-3 py-2 rounded-lg border border-[#E5E6EB]"
+                  />
+                </div>
+                <div>
+                  <label class="text-[12px] text-[#646A73] block mb-1.5">运行模式</label>
+                  <div class="flex gap-3">
+                    <label
+                      class="flex items-center gap-2 px-3 py-2 rounded-lg border border-[#E5E6EB] cursor-pointer"
+                      ><input type="radio" name="pmode" class="accent-[#574BFF]" /><span
+                        >对话循环（chat）</span
+                      ></label
+                    >
+                    <label
+                      class="flex items-center gap-2 px-3 py-2 rounded-lg border border-[#00B42A] bg-[#00B42A]/5 cursor-pointer"
+                      ><input type="radio" name="pmode" checked class="accent-[#574BFF]" /><span
+                        style="color: #00b42a"
+                        >生成管线（pipeline）</span
+                      ></label
+                    >
+                  </div>
+                </div>
+              </div>
+              <div id="sec-pctx" class="psec space-y-5 max-w-[600px]">
+                <div class="text-[12px] text-[#646A73]">
+                  每次生成的默认上下文源（向导中可临时调整）；打分装配为确定性规则，上下文包快照留痕可重放
+                </div>
+                <div>
+                  <div class="text-[12px] font-medium mb-2">代码仓库</div>
+                  <div class="rounded-lg border border-[#E5E6EB] divide-y divide-[#F0F1F5]">
+                    <label class="flex items-center gap-3 px-4 py-2.5 cursor-pointer"
+                      ><input type="checkbox" checked class="accent-[#574BFF]" /><i
+                        data-lucide="github"
+                        class="w-4 h-4"
+                      ></i
+                      ><span class="text-[12px] flex-1">RabbitAI-Lab/user-service</span
+                      ><select
+                        class="px-2 py-0.5 rounded border border-[#E5E6EB] text-[11px] bg-white"
+                        onclick="event.preventDefault()"
+                      >
+                        <option>main</option>
+                        <option>release/1.2</option></select
+                      ><span class="text-[11px] text-[#8F959E]">默认源</span></label
+                    >
+                    <label class="flex items-center gap-3 px-4 py-2.5 cursor-pointer"
+                      ><input type="checkbox" class="accent-[#574BFF]" /><i
+                        data-lucide="gitlab"
+                        class="w-4 h-4"
+                      ></i
+                      ><span class="text-[12px] flex-1">rabbit/shared-docs</span
+                      ><select
+                        class="px-2 py-0.5 rounded border border-[#E5E6EB] text-[11px] bg-white"
+                        onclick="event.preventDefault()"
+                      >
+                        <option>docs</option>
+                        <option>master</option>
+                      </select></label
+                    >
+                  </div>
+                </div>
+                <div>
+                  <div class="text-[12px] font-medium mb-2">
+                    仓库文档默认路径过滤（正则，命中优先入装配）
+                  </div>
+                  <input
+                    value="^(docs|spec)/.*\.(md|yaml)$"
+                    class="w-full mono text-[12px] px-3 py-2 rounded-lg border border-[#E5E6EB]"
+                  />
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                  <div>
+                    <label class="text-[12px] text-[#646A73] block mb-1.5"
+                      >上下文预算（tokens）</label
+                    ><input
+                      value="48000"
+                      class="w-full px-3 py-2 rounded-lg border border-[#E5E6EB]"
+                    />
+                    <div class="text-[11px] text-[#8F959E] mt-1">16K – 96K</div>
+                  </div>
+                  <div>
+                    <label class="text-[12px] text-[#646A73] block mb-1.5"
+                      >需求模板（追加到阶段 A 提示词）</label
+                    ><textarea
+                      rows="2"
+                      class="w-full px-3 py-2 rounded-lg border border-[#E5E6EB] text-[12px]"
+                    >
+重点关注安全与异常路径…</textarea>
+                  </div>
+                </div>
+              </div>
+              <div id="sec-pstages" class="psec hidden max-w-[600px] space-y-4">
+                <label class="flex items-center gap-2.5 cursor-pointer text-[12px]"
+                  ><input type="checkbox" checked class="accent-[#574BFF] w-4 h-4" /><span
+                    class="font-medium"
+                    >阶段 A · 需求分析</span
+                  ><span class="text-[#8F959E]">默认上限 50</span></label
+                >
+                <div class="border border-[#E5E6EB] rounded-lg p-3.5 space-y-2.5">
+                  <label class="flex items-center gap-2.5 cursor-pointer text-[12px]"
+                    ><input type="checkbox" checked class="accent-[#574BFF] w-4 h-4" /><span
+                      class="font-medium"
+                      >阶段 B · 接口资产提取</span
+                    >
+                    <select
+                      class="ml-auto px-2 py-1 rounded border border-[#E5E6EB] text-[11px] bg-white"
+                    >
+                      <option>自动</option>
+                      <option>仅 OpenAPI</option>
+                      <option>仅代码提取</option>
+                    </select></label
+                  >
+                  <div class="pl-7 flex gap-4 text-[11.5px] text-[#646A73]">
+                    <label class="flex items-center gap-1.5"
+                      ><input type="checkbox" checked class="accent-[#574BFF]" />接口定义</label
+                    ><label class="flex items-center gap-1.5"
+                      ><input type="checkbox" checked class="accent-[#574BFF]" />API 用例</label
+                    ><label class="flex items-center gap-1.5"
+                      ><input type="checkbox" checked class="accent-[#574BFF]" />场景骨架</label
+                    >
+                  </div>
+                </div>
+                <div class="border border-[#E5E6EB] rounded-lg p-3.5 space-y-2.5">
+                  <label class="flex items-center gap-2.5 cursor-pointer text-[12px]"
+                    ><input type="checkbox" checked class="accent-[#574BFF] w-4 h-4" /><span
+                      class="font-medium"
+                      >阶段 C · 脚本生成</span
+                    ></label
+                  >
+                  <div class="pl-7 flex gap-4 text-[11.5px] text-[#646A73]">
+                    <label class="flex items-center gap-1.5"
+                      ><input type="checkbox" checked class="accent-[#574BFF]" />场景 DSL</label
+                    >
+                    <label class="flex items-center gap-1.5"
+                      ><input type="checkbox" checked class="accent-[#574BFF]" />UI 八指令</label
+                    >
+                    <label class="flex items-center gap-1.5"
+                      ><input type="checkbox" checked class="accent-[#574BFF]" />Playwright
+                      脚本</label
+                    >
+                  </div>
+                  <div class="pl-7 text-[11px] text-[#8F959E]">
+                    三形态默认全开；Playwright 产物过 AST 静态校验，导入走草稿人工确认（§7 决策 5）
+                  </div>
+                </div>
+              </div>
+              <div id="sec-pmodel" class="psec hidden space-y-4 max-w-[560px]">
+                <div>
+                  <label class="text-[12px] text-[#646A73] block mb-1.5">模型</label>
+                  <select class="w-full px-3 py-2 rounded-lg border border-[#E5E6EB] bg-white">
+                    <option selected>DeepSeek-V3（deepseek）</option>
+                    <option>GLM-4.6（zhipu）</option>
+                  </select>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                  <div>
+                    <label class="text-[12px] text-[#646A73] block mb-1.5">温度</label
+                    ><input
+                      value="0.2"
+                      class="w-full px-3 py-2 rounded-lg border border-[#E5E6EB]"
+                    />
+                  </div>
+                  <div>
+                    <label class="text-[12px] text-[#646A73] block mb-1.5"
+                      >单 Run 时长上限（秒）</label
+                    ><input
+                      value="900"
+                      class="w-full px-3 py-2 rounded-lg border border-[#E5E6EB]"
+                    />
+                  </div>
+                </div>
+              </div>
+              <div id="sec-pprompt" class="psec hidden max-w-[620px]">
+                <div class="text-[12px] text-[#646A73] mb-1.5">
+                  追加段（拼在各阶段指令模板之后）
+                </div>
+                <textarea
+                  rows="10"
+                  class="w-full mono text-[12px] px-3 py-2.5 rounded-lg border border-[#E5E6EB] leading-relaxed"
+                >
+命名统一「场景-动作-预期」；不要臆造模块与接口；产物严格遵循给定 JSON 结构。</textarea>
+              </div>
+              <div id="sec-padvanced" class="psec hidden space-y-4 max-w-[560px]">
+                <div>
+                  <label class="text-[12px] text-[#646A73] block mb-1.5"
+                    >运行身份（runAs · A2A 触发生成时的执行身份）</label
+                  >
+                  <select class="w-full px-3 py-2 rounded-lg border border-[#E5E6EB] bg-white">
+                    <option selected>许某（创建人）</option>
+                  </select>
+                  <div
+                    class="text-[11px] text-[#FF8800] mt-1.5 bg-[#FF8800]/8 rounded px-2.5 py-1.5"
+                  >
+                    A2A 触发只产出草稿；导入永远需要人在 UI 确认（§7 决策 2）
+                  </div>
+                </div>
+              </div>
+              <div id="sec-pa2a" class="psec hidden max-w-[620px]">
+                <div class="text-[12px] text-[#646A73]">
+                  A2A 面与 chat 模式同构（AGENT-001 §2.5）；外部 AI 可 SendMessage
+                  触发生成，产物=DataPart 草稿摘要
+                </div>
+                <pre
+                  class="mono text-[11px] bg-[#1B1F2A] text-[#D7DAE0] rounded-lg px-3.5 py-3 mt-3 overflow-auto leading-relaxed"
+                >
+curl -X POST https://rabbit.example.com/api/v1/a2a/projects/8a21…/agents/e07b… \
+  -H "Authorization: Bearer rag_****" -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"SendMessage",
+       "params":{"message":{"role":"ROLE_USER",
+         "parts":[{"text":"对登录模块生成功能用例与场景"}],
+         "messageId":"m-101"}}}'
+# → task.artifacts: DataPart { "draftRunId":"…", "counts":{"functional_case":{"new":24,"conflict":3}}, "a2aImport":false }</pre>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function switchScreen(name) {
+        document.querySelectorAll(".screen").forEach((s) => s.classList.add("hidden"));
+        document.getElementById("screen-" + name).classList.remove("hidden");
+        document.querySelectorAll("#screen-switch button").forEach((b) => {
+          b.classList.toggle("bg-white/15", b.dataset.screen === name);
+          b.classList.toggle("bg-white/10", b.dataset.screen !== name);
+        });
+      }
+      document
+        .querySelectorAll("#screen-switch button")
+        .forEach((b) => b.addEventListener("click", () => switchScreen(b.dataset.screen)));
+      document.querySelectorAll('.sec-item[data-sec^="p"]').forEach((s) =>
+        s.addEventListener("click", () => {
+          document.querySelectorAll(".sec-item").forEach((x) => x.classList.remove("active"));
+          s.classList.add("active");
+          document
+            .querySelectorAll(".psec")
+            .forEach((p) => p.classList.toggle("hidden", p.id !== "sec-" + s.dataset.sec));
+        }),
+      );
+      document.querySelectorAll(".tab2").forEach((t) =>
+        t.addEventListener("click", () => {
+          document.querySelectorAll(".tab2").forEach((x) => {
+            x.classList.remove("border-[#574BFF]", "text-[#574BFF]", "font-medium");
+            x.classList.add("border-transparent", "text-[#646A73]");
+          });
+          t.classList.add("border-[#574BFF]", "text-[#574BFF]", "font-medium");
+          t.classList.remove("border-transparent", "text-[#646A73]");
+        }),
+      );
+      // 勾选文档 → 需求框自动维护「已选择文档:」末行（工作区相对路径，幂等替换，不侵扰用户手输内容）
+      const reqText = document.getElementById("req-text");
+      const DOC_LINE = /^已选择文档[:：]/;
+      function syncDocLine() {
+        if (!reqText) return;
+        const names = [];
+        document
+          .querySelectorAll('[data-doc-source] input[type="checkbox"]:checked')
+          .forEach((cb) => {
+            const label = cb.closest("label");
+            if (!label || label.classList.contains("cursor-not-allowed")) return;
+            const span = label.querySelector("span.flex-1");
+            names.push(label.dataset.path || (span ? span.textContent.trim() : ""));
+          });
+        const lines = reqText.value.split("\n").filter((l) => !DOC_LINE.test(l.trim()));
+        if (names.length) lines.push("已选择文档:" + names.join(", "));
+        reqText.value = lines.join("\n");
+      }
+      document.addEventListener("change", (e) => {
+        if (e.target.matches('[data-doc-source] input[type="checkbox"]')) syncDocLine();
+      });
+      lucide.createIcons();
+    </script>
+  </body>
+</html>

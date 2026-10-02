@@ -14,10 +14,7 @@
   "graphTooltip": 1,
   "refresh": "30s",
   "schemaVersion": 39,
-  "tags": [
-    "rabbitaitest",
-    "overview"
-  ],
+  "tags": ["rabbitaitest", "overview"],
   "time": {
     "from": "now-3h",
     "to": "now"

@@ -119,25 +119,25 @@ rabbit report get <taskId>                           # 报告详情
 
 ## 常用命令速查
 
-| 命令 | 说明 |
-| --- | --- |
-| `rabbit auth login / status / logout` | Device Flow 登录 / 状态 / 登出吊销 |
-| `rabbit project ls / use <id>` | 项目列表 / 设默认项目 |
-| `rabbit case ls / get / create --file / update / rm` | 功能用例 CRUD |
-| `rabbit api ls / cases <apiId>` | 接口定义 / 接口用例 |
-| `rabbit api-case run <apiId> <caseId> --env <envId>` | 触发接口用例执行 |
-| `rabbit scenario ls / run <id> --env <envId>` | 场景列表 / 执行 |
-| `rabbit plan ls / get / run <id>` | 测试计划 |
-| `rabbit environments ls` | 环境列表（envId 发现） |
-| `rabbit task get / wait / stop <taskId>` | 任务状态 / 等待终态 / 停止 |
-| `rabbit report get <taskId>` | 报告详情 |
-| `rabbit +run api-case / scenario / plan …` | 快捷方式：执行→等待→摘要 |
-| `rabbit +report <taskId>` | 快捷方式：报告摘要 |
-| `rabbit api <METHOD> <PATH>` | Raw 兜底：调用任意 `/api/v1` 端点 |
-| `rabbit schema [group]` | 机器可读的命令结构自省 |
-| `rabbit skills install` | 向 AI Agent 分发内置使用技能 |
-| `rabbit env list / add / use` | 多环境切换（dev/staging/prod 各持独立 baseUrl+token） |
-| `rabbit update` | 在线自升级（ Releases 资产发布后可用） |
+| 命令                                                 | 说明                                                  |
+| ---------------------------------------------------- | ----------------------------------------------------- |
+| `rabbit auth login / status / logout`                | Device Flow 登录 / 状态 / 登出吊销                    |
+| `rabbit project ls / use <id>`                       | 项目列表 / 设默认项目                                 |
+| `rabbit case ls / get / create --file / update / rm` | 功能用例 CRUD                                         |
+| `rabbit api ls / cases <apiId>`                      | 接口定义 / 接口用例                                   |
+| `rabbit api-case run <apiId> <caseId> --env <envId>` | 触发接口用例执行                                      |
+| `rabbit scenario ls / run <id> --env <envId>`        | 场景列表 / 执行                                       |
+| `rabbit plan ls / get / run <id>`                    | 测试计划                                              |
+| `rabbit environments ls`                             | 环境列表（envId 发现）                                |
+| `rabbit task get / wait / stop <taskId>`             | 任务状态 / 等待终态 / 停止                            |
+| `rabbit report get <taskId>`                         | 报告详情                                              |
+| `rabbit +run api-case / scenario / plan …`           | 快捷方式：执行→等待→摘要                              |
+| `rabbit +report <taskId>`                            | 快捷方式：报告摘要                                    |
+| `rabbit api <METHOD> <PATH>`                         | Raw 兜底：调用任意 `/api/v1` 端点                     |
+| `rabbit schema [group]`                              | 机器可读的命令结构自省                                |
+| `rabbit skills install`                              | 向 AI Agent 分发内置使用技能                          |
+| `rabbit env list / add / use`                        | 多环境切换（dev/staging/prod 各持独立 baseUrl+token） |
+| `rabbit update`                                      | 在线自升级（ Releases 资产发布后可用）                |
 
 ## 输出契约（AI Agent 必读）
 

@@ -18,9 +18,7 @@ import { envDatasourceSchema, processorSchema } from "../execution/schemas";
 describe("PLUG-004-T1 sql-guard 只读白名单", () => {
   const ok = (sql: string) => expect(() => assertReadOnlySelect(sql)).not.toThrow();
   const bad = (sql: string, hint?: string) =>
-    expect(() => assertReadOnlySelect(sql)).toThrow(
-      hint ? new RegExp(hint) : SqlGuardError,
-    );
+    expect(() => assertReadOnlySelect(sql)).toThrow(hint ? new RegExp(hint) : SqlGuardError);
 
   it("合法：SELECT/WITH/大小写/尾分号/绑定占位符", () => {
     ok("SELECT 1");
@@ -75,7 +73,10 @@ describe("PLUG-004-T2 driver-kit", () => {
     expect(pg).toMatchObject({ user: "u", password: "p@x", host: "h", port: 5432, path: "db" });
     expect(pg.redacted).toBe("postgresql://h:5432");
     expect(parseDbUrl("mysql://u@h/db", "mysql")).toMatchObject({ port: 3306, path: "db" });
-    expect(parseDbUrl("oracle://u:p@h:1521/SVC", "oracle")).toMatchObject({ port: 1521, path: "SVC" });
+    expect(parseDbUrl("oracle://u:p@h:1521/SVC", "oracle")).toMatchObject({
+      port: 1521,
+      path: "SVC",
+    });
     expect(parseDbUrl("sqlserver://u:p@h?encrypt=false", "sqlserver")).toMatchObject({
       port: 1433,
       path: "",
@@ -102,7 +103,10 @@ describe("PLUG-004-T2 driver-kit", () => {
       "t = 'why?' -- note ?\nAND x = $1",
     );
     expect(replaceQuestionPlaceholders("/* ? */ x = ?", "colon").sql).toBe("/* ? */ x = :1");
-    expect(replaceQuestionPlaceholders("SELECT 1", "dollar")).toEqual({ sql: "SELECT 1", count: 0 });
+    expect(replaceQuestionPlaceholders("SELECT 1", "dollar")).toEqual({
+      sql: "SELECT 1",
+      count: 0,
+    });
   });
 
   it("normalizeRows/zipRows：值归一化+行数上限+列名小写", () => {
@@ -153,22 +157,24 @@ describe("PLUG-004-T4 schema：driver 枚举与 URL 约定", () => {
   });
 
   it("datasourceTestSchema：合法/非法 scheme 组合", () => {
-    expect(
-      datasourceTestSchema.safeParse({ driver: "dm", url: "dm://u:p@h:5236" }).success,
-    ).toBe(true);
-    expect(
-      datasourceTestSchema.safeParse({ driver: "dm", url: "mysql://u:p@h" }).success,
-    ).toBe(false);
-    expect(
-      datasourceTestSchema.safeParse({ driver: "db2", url: "db2://h" }).success,
-    ).toBe(false);
+    expect(datasourceTestSchema.safeParse({ driver: "dm", url: "dm://u:p@h:5236" }).success).toBe(
+      true,
+    );
+    expect(datasourceTestSchema.safeParse({ driver: "dm", url: "mysql://u:p@h" }).success).toBe(
+      false,
+    );
+    expect(datasourceTestSchema.safeParse({ driver: "db2", url: "db2://h" }).success).toBe(false);
     expect(datasourceTestSchema.safeParse({ driver: "mysql" }).success).toBe(false);
   });
 
   it("envDatasourceSchema：driver 枚举+URL 前缀校验", () => {
     expect(
-      envDatasourceSchema.safeParse({ id: "a", name: "n", driver: "oracle", url: "oracle://u:p@h:1521/S" })
-        .success,
+      envDatasourceSchema.safeParse({
+        id: "a",
+        name: "n",
+        driver: "oracle",
+        url: "oracle://u:p@h:1521/S",
+      }).success,
     ).toBe(true);
     expect(
       envDatasourceSchema.safeParse({ id: "a", name: "n", driver: "oracle", url: "postgresql://h" })
@@ -176,8 +182,12 @@ describe("PLUG-004-T4 schema：driver 枚举与 URL 约定", () => {
     ).toBe(false);
     // 历史 PG 数据源兼容
     expect(
-      envDatasourceSchema.safeParse({ id: "a", name: "n", driver: "postgresql", url: "postgresql://h/db" })
-        .success,
+      envDatasourceSchema.safeParse({
+        id: "a",
+        name: "n",
+        driver: "postgresql",
+        url: "postgresql://h/db",
+      }).success,
     ).toBe(true);
   });
 

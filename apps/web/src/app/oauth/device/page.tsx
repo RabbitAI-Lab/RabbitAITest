@@ -30,7 +30,10 @@ export default function OAuthDevicePage() {
   }, []);
 
   const formatCode = (raw: string) => {
-    const digits = raw.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 8);
+    const digits = raw
+      .toUpperCase()
+      .replace(/[^A-Z0-9]/g, "")
+      .slice(0, 8);
     return digits.length > 4 ? `${digits.slice(0, 4)}-${digits.slice(4)}` : digits;
   };
 
@@ -54,7 +57,10 @@ export default function OAuthDevicePage() {
   });
 
   return (
-    <div className="min-h-screen grid place-items-center bg-gray-50" data-testid="page-oauth-device">
+    <div
+      className="min-h-screen grid place-items-center bg-gray-50"
+      data-testid="page-oauth-device"
+    >
       <div className="w-[380px] rabbit-card p-6 space-y-4">
         <Space size={8}>
           <span className="w-7 h-7 rounded-md bg-[#574BFF] text-white grid place-items-center text-sm font-bold">

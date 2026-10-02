@@ -37,7 +37,9 @@
               <option>达梦 DM</option>
             </select>
             <div class="flex gap-2">
-              <button class="border rounded px-2 py-1.5 text-xs" data-testid="ds-test">测试连接</button>
+              <button class="border rounded px-2 py-1.5 text-xs" data-testid="ds-test">
+                测试连接
+              </button>
               <button class="border rounded px-2 py-1.5 text-xs text-slate-400">删除</button>
             </div>
           </div>
@@ -64,20 +66,24 @@
           <div class="border rounded p-3 bg-slate-50 text-xs text-slate-500 space-y-1">
             <p>
               <b>数据来源</b>：driver 下拉=shared DRIVER_META 五家（PostgreSQL/MySQL/Oracle/SQL
-              Server/达梦 DM）；URL 占位随 driver 切换（postgresql://…:5432/db ·
-              mysql://…:3306/db · oracle://…:1521/服务名 · sqlserver://…:1433/db · dm://…:5236）。
+              Server/达梦 DM）；URL 占位随 driver 切换（postgresql://…:5432/db · mysql://…:3306/db ·
+              oracle://…:1521/服务名 · sqlserver://…:1433/db · dm://…:5236）。
             </p>
             <p><b>连接测试三态（行内 message，不是 toast 弹层）</b>：</p>
             <div class="flex gap-2 items-center" data-testid="ds-test-ok">
               <span class="text-emerald-600">● 连接成功（1.2s）</span
-              ><span class="text-slate-400">— PostgreSQL 走内置直连，零上传可用（PROJ-003 语义延续）</span>
+              ><span class="text-slate-400"
+                >— PostgreSQL 走内置直连，零上传可用（PROJ-003 语义延续）</span
+              >
             </div>
             <div class="flex gap-2 items-center" data-testid="ds-test-fail">
-              <span class="text-red-500">● 连接失败：连接被拒绝（dm.invalid.host:5236，3.0s 超时前收到 RST）</span
+              <span class="text-red-500"
+                >● 连接失败：连接被拒绝（dm.invalid.host:5236，3.0s 超时前收到 RST）</span
               ><span class="text-slate-400">— 失败不是假成功，message 展示驱动友好化文案</span>
             </div>
             <div class="flex gap-2 items-center" data-testid="ds-test-nodriver">
-              <span class="text-amber-600">● 驱动插件未启用：请先在 系统设置 → 插件管理 上传并启用 oracle 驱动</span
+              <span class="text-amber-600"
+                >● 驱动插件未启用：请先在 系统设置 → 插件管理 上传并启用 oracle 驱动</span
               ><span class="text-slate-400">— 非 PG 四家须插件启用后才可测试</span>
             </div>
           </div>
@@ -93,7 +99,9 @@
           <div class="flex items-center gap-2 text-xs text-slate-500">
             处理器列表：
             <span class="border rounded px-2 py-1 bg-slate-50">1 · 脚本（等待 200ms）</span>
-            <span class="border-2 border-[#574BFF] rounded px-2 py-1 bg-white font-medium" data-testid="proc-sql-active"
+            <span
+              class="border-2 border-[#574BFF] rounded px-2 py-1 bg-white font-medium"
+              data-testid="proc-sql-active"
               >2 · SQL</span
             >
             <button class="border rounded px-2 py-1">＋ 添加处理器（脚本 / SQL / 等待）</button>
@@ -102,31 +110,45 @@
           <div class="border rounded p-3 space-y-3" data-testid="sql-form">
             <div class="flex items-center gap-2">
               <span class="w-20 text-slate-500">数据源</span>
-              <select class="border rounded px-2 py-1.5 bg-white flex-1" data-testid="sql-datasource">
+              <select
+                class="border rounded px-2 py-1.5 bg-white flex-1"
+                data-testid="sql-datasource"
+              >
                 <option selected>订单库-主（PostgreSQL）</option>
                 <option>用户库（MySQL）</option>
               </select>
-              <span class="text-xs text-slate-400">选项=当前所选环境的 database 列表（name + driver）</span>
+              <span class="text-xs text-slate-400"
+                >选项=当前所选环境的 database 列表（name + driver）</span
+              >
             </div>
             <div class="flex items-start gap-2">
               <span class="w-20 text-slate-500 pt-1.5">SQL 语句</span>
               <textarea
                 class="border rounded px-2 py-1.5 font-mono text-xs flex-1 h-16"
                 data-testid="sql-text"
->SELECT id, status FROM orders WHERE tenant_id = ? AND created_at > ?</textarea
               >
+SELECT id, status FROM orders WHERE tenant_id = ? AND created_at > ?</textarea>
             </div>
             <div class="flex items-start gap-2">
               <span class="w-20 text-slate-500 pt-1.5">绑定参数</span>
               <div class="flex-1 space-y-1.5" data-testid="sql-params">
                 <div class="flex gap-2 items-center">
                   <input class="border rounded px-2 py-1 flex-1 font-mono text-xs" value="t_1001" />
-                  <select class="border rounded px-1.5 py-1 bg-white w-24"><option selected>变量</option><option>字面值</option></select>
+                  <select class="border rounded px-1.5 py-1 bg-white w-24">
+                    <option selected>变量</option>
+                    <option>字面值</option>
+                  </select>
                   <button class="border rounded px-2 py-1 text-xs text-slate-400">删除</button>
                 </div>
                 <div class="flex gap-2 items-center">
-                  <input class="border rounded px-2 py-1 flex-1 font-mono text-xs" value="2026-01-01 00:00:00" />
-                  <select class="border rounded px-1.5 py-1 bg-white w-24"><option>变量</option><option selected>字面值</option></select>
+                  <input
+                    class="border rounded px-2 py-1 flex-1 font-mono text-xs"
+                    value="2026-01-01 00:00:00"
+                  />
+                  <select class="border rounded px-1.5 py-1 bg-white w-24">
+                    <option>变量</option>
+                    <option selected>字面值</option>
+                  </select>
                   <button class="border rounded px-2 py-1 text-xs text-slate-400">删除</button>
                 </div>
                 <button class="border rounded px-2 py-1 text-xs">＋ 添加参数</button>
@@ -139,17 +161,25 @@
                   <input class="border rounded px-2 py-1 w-36 font-mono text-xs" value="id" />
                   <span class="text-slate-400">→</span>
                   <input class="border rounded px-2 py-1 w-36 font-mono text-xs" value="orderId" />
-                  <span class="text-xs text-slate-400">首行列名 → 变量（供后续步骤 ${orderId} 引用）</span>
+                  <span class="text-xs text-slate-400"
+                    >首行列名 → 变量（供后续步骤 ${orderId} 引用）</span
+                  >
                 </div>
                 <div class="flex gap-2 items-center">
                   <input class="border rounded px-2 py-1 w-36 font-mono text-xs" value="status" />
                   <span class="text-slate-400">→</span>
-                  <input class="border rounded px-2 py-1 w-36 font-mono text-xs" value="orderStatus" />
+                  <input
+                    class="border rounded px-2 py-1 w-36 font-mono text-xs"
+                    value="orderStatus"
+                  />
                 </div>
                 <button class="border rounded px-2 py-1 text-xs">＋ 添加提取</button>
               </div>
             </div>
-            <div class="border rounded p-2 bg-amber-50 text-amber-700 text-xs" data-testid="sql-guard-hint">
+            <div
+              class="border rounded p-2 bg-amber-50 text-amber-700 text-xs"
+              data-testid="sql-guard-hint"
+            >
               ⚠ 只读防线：语句须为单条 SELECT/WITH（禁 INTO · FOR UPDATE），执行于 READ ONLY
               事务；变量值只经绑定参数传入（不拼入 SQL 文本）——非白名单语句执行报 SQL_NOT_SELECT。
             </div>
@@ -166,35 +196,61 @@
           <table class="w-full text-left">
             <thead class="text-xs text-slate-500 border-b">
               <tr>
-                <th class="py-2">名称</th><th>类型</th><th>版本</th><th>SPI</th><th>状态</th><th>操作</th>
+                <th class="py-2">名称</th>
+                <th>类型</th>
+                <th>版本</th>
+                <th>SPI</th>
+                <th>状态</th>
+                <th>操作</th>
               </tr>
             </thead>
             <tbody class="divide-y">
               <tr>
                 <td class="py-2 font-mono text-xs">postgresql</td>
-                <td><span class="border rounded px-1.5 py-0.5 text-xs bg-purple-50 text-purple-700" data-testid="kind-driver-badge">驱动</span></td>
-                <td>1.0.0</td><td>1.0</td>
+                <td>
+                  <span
+                    class="border rounded px-1.5 py-0.5 text-xs bg-purple-50 text-purple-700"
+                    data-testid="kind-driver-badge"
+                    >驱动</span
+                  >
+                </td>
+                <td>1.0.0</td>
+                <td>1.0</td>
                 <td><span class="text-emerald-600">● 启用</span></td>
                 <td class="text-slate-500 text-xs">停用 · 删除</td>
               </tr>
               <tr>
                 <td class="py-2 font-mono text-xs">dm</td>
-                <td><span class="border rounded px-1.5 py-0.5 text-xs bg-purple-50 text-purple-700">驱动</span></td>
-                <td>1.0.0</td><td>1.0</td>
+                <td>
+                  <span class="border rounded px-1.5 py-0.5 text-xs bg-purple-50 text-purple-700"
+                    >驱动</span
+                  >
+                </td>
+                <td>1.0.0</td>
+                <td>1.0</td>
                 <td><span class="text-slate-400">○ 停用</span></td>
                 <td class="text-slate-500 text-xs">启用 · 删除</td>
               </tr>
             </tbody>
           </table>
           <div class="border rounded p-3 bg-slate-50 text-xs text-slate-500 mt-3">
-            <b>零改动说明</b>：kind 徽标/启停/上传/组织范围均为 PLUG-001 既有能力——本画板仅锚定「驱动」徽标样式与行形态，走查对照用。上传对话框支持 .tgz（驱动 tarball 与协议/平台插件同构）。
+            <b>零改动说明</b>：kind 徽标/启停/上传/组织范围均为 PLUG-001
+            既有能力——本画板仅锚定「驱动」徽标样式与行形态，走查对照用。上传对话框支持 .tgz（驱动
+            tarball 与协议/平台插件同构）。
           </div>
         </div>
       </section>
 
       <section class="bg-white border rounded-md p-4 text-xs text-slate-500 space-y-1">
-        <p><b>本原型覆盖的状态面（走查清单）</b>：driver 五选 · URL 占位跟随 · 连接测试三态（成功/失败/驱动未启用）· SQL 表单启用态（数据源/SQL/参数绑定 变量↔字面值/varMapping）· 只读防线提示 · 驱动插件行（徽标/启停）。</p>
-        <p><b>裁剪说明</b>：非 PG 四家真实连通（需真库）不在原型/自动化范围（PLUG-004 §5 豁免登记）；数据源凭据以 **** 展示，明文回显沿用 PROJ-003 既有口径（加密存储延后登记）。</p>
+        <p>
+          <b>本原型覆盖的状态面（走查清单）</b>：driver 五选 · URL 占位跟随 ·
+          连接测试三态（成功/失败/驱动未启用）· SQL 表单启用态（数据源/SQL/参数绑定
+          变量↔字面值/varMapping）· 只读防线提示 · 驱动插件行（徽标/启停）。
+        </p>
+        <p>
+          <b>裁剪说明</b>：非 PG 四家真实连通（需真库）不在原型/自动化范围（PLUG-004 §5
+          豁免登记）；数据源凭据以 **** 展示，明文回显沿用 PROJ-003 既有口径（加密存储延后登记）。
+        </p>
       </section>
     </main>
   </body>

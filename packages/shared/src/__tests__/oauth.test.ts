@@ -1,11 +1,6 @@
 /** SYS-009：scope 模型单测——parseScope 边界 + requiredScopeFor 矩阵（exec 注册表/方法缺省/段通配）。 */
 import { describe, expect, it } from "vitest";
-import {
-  EXEC_ROUTES,
-  normalizeUserCode,
-  parseScope,
-  requiredScopeFor,
-} from "../system/oauth";
+import { EXEC_ROUTES, normalizeUserCode, parseScope, requiredScopeFor } from "../system/oauth";
 
 describe("parseScope", () => {
   it("空/缺省 → 最小权限 read", () => {

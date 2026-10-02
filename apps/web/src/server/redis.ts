@@ -8,6 +8,7 @@ const globalForInfra = globalThis as unknown as {
   __execQueuesByPool?: Map<string, Queue>;
   __scheduleQueue?: Queue;
   __runnerQueue?: Queue;
+  __agentQueue?: Queue;
 };
 
 export function redis(): Redis {
@@ -51,6 +52,20 @@ export function scheduleQueue(): Queue {
     });
   }
   return globalForInfra.__scheduleQueue;
+}
+
+/** S14 AGENT-001：Agent 运行队列（web 自产自销；BullMQ group=agentId 并发 1——每 Agent 任务串行）。 */
+export function agentQueue(): Queue {
+  if (!globalForInfra.__agentQueue) {
+    globalForInfra.__agentQueue = new Queue("agent-run", {
+      connection: new Redis(config.redisUrl, { maxRetriesPerRequest: null }),
+    });
+  }
+  return globalForInfra.__agentQueue;
+}
+
+export function agentRunStreamKey(runId: string): string {
+  return `agent-run:stream:${runId}`;
 }
 
 /** S14 UIT-004：runner 管理队列（web 编排 → engine 消费；安装/检测/目录清理，契约=runnerJobSchema）。 */

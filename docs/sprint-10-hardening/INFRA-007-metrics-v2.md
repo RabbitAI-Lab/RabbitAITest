@@ -2,14 +2,14 @@
 
 ## 0. 元信息
 
-| 项       | 值                                                                                                                                                              |
-| -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 状态     | Draft → Implemented（分支 `INFRA-007-metrics-v2`，基线 main 837eebd，worktree RabbitAITest-s2，2026-09-30）                                                      |
-| 模块     | INFRA（可观测性，无产品面 UI 变更）                                                                                                                             |
+| 项       | 值                                                                                                                                                                                                                |
+| -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 状态     | Draft → Implemented（分支 `INFRA-007-metrics-v2`，基线 main 837eebd，worktree RabbitAITest-s2，2026-09-30）                                                                                                       |
+| 模块     | INFRA（可观测性，无产品面 UI 变更）                                                                                                                                                                               |
 | 评审方式 | 纯后端规格，依 AGENTS 门禁 2 以**接口契约评审**替代高保真原型——契约面 = §2.1 指标目录（名称/类型/标签/口径）+ §2.3 鉴权矩阵；经用户目标式授权「好的，请完善这套指标体系」后实施（确认人：用户；原型：不适用 N/A） |
-| 关联规则 | rules/observability.md §6（最小指标集——本规格兑现并改写）· api-conventions（文本端点信封例外，INFRA-004 已登记）· rules/security.md §4（密钥与凭据）          |
-| 前置     | S8 INFRA-004（/system/metrics v1 最小集）；S9 ENTP-006（exec-pool-{poolId} 按池队列）；INTG-003（个人 APIKEY 通道）                                             |
-| 并行分支 | INFRA-006（RLS 租户隔离，另一会话独立分支交付）——本规格不依赖其代码；两者共同触及 guard/index.ts 与 packages/db 构造点，合并次序任意（见 §4.7）                 |
+| 关联规则 | rules/observability.md §6（最小指标集——本规格兑现并改写）· api-conventions（文本端点信封例外，INFRA-004 已登记）· rules/security.md §4（密钥与凭据）                                                              |
+| 前置     | S8 INFRA-004（/system/metrics v1 最小集）；S9 ENTP-006（exec-pool-{poolId} 按池队列）；INTG-003（个人 APIKEY 通道）                                                                                               |
+| 并行分支 | INFRA-006（RLS 租户隔离，另一会话独立分支交付）——本规格不依赖其代码；两者共同触及 guard/index.ts 与 packages/db 构造点，合并次序任意（见 §4.7）                                                                   |
 
 ## 1. 问题（为什么必须做）
 
@@ -24,13 +24,13 @@ INFRA-004 交付的 `/api/v1/system/metrics` 是「最小指标集」（4 组指
 
 ### 1.2 能力行（P1）
 
-| # | 能力                         | 说明                                                                 | 层级 | 测试映射                          |
-| - | ---------------------------- | -------------------------------------------------------------------- | ---- | --------------------------------- |
-| 1 | 指标目录 v2 暴露             | 新增 6 组指标（时延分位/慢查询/失败分类/任务 24h/失败率/误报），既有 4 组不破坏 | API  | INFRA-007-T2（jmx 正常路径）      |
-| 2 | 全池队列与槽位               | 队列深度/执行中/dead 与引擎槽位按池展开（label=BullMQ 队列名）        | API  | INFRA-007-T2（jmx 断言按池 label） |
-| 3 | APIKEY 直连抓取              | `Authorization: Bearer ak.sk` 免会话抓取，权限仍收敛于 SYSTEM_METRICS:READ | API  | INFRA-007-T2（jmx APIKEY 三分支） |
-| 4 | 监控部署资产                 | prometheus.yml 示例 + Grafana 看板 JSON + 部署文档（含告警建议）      | 文档 | 评审走查（本规格 §2.5）           |
-| 5 | 指标语义自描述               | 全部指标 HELP 注明窗口口径与重启语义（gauge 窗口/进程内计数归零）     | API  | INFRA-007-T1/T2（HELP 断言）      |
+| #   | 能力             | 说明                                                                            | 层级 | 测试映射                           |
+| --- | ---------------- | ------------------------------------------------------------------------------- | ---- | ---------------------------------- |
+| 1   | 指标目录 v2 暴露 | 新增 6 组指标（时延分位/慢查询/失败分类/任务 24h/失败率/误报），既有 4 组不破坏 | API  | INFRA-007-T2（jmx 正常路径）       |
+| 2   | 全池队列与槽位   | 队列深度/执行中/dead 与引擎槽位按池展开（label=BullMQ 队列名）                  | API  | INFRA-007-T2（jmx 断言按池 label） |
+| 3   | APIKEY 直连抓取  | `Authorization: Bearer ak.sk` 免会话抓取，权限仍收敛于 SYSTEM_METRICS:READ      | API  | INFRA-007-T2（jmx APIKEY 三分支）  |
+| 4   | 监控部署资产     | prometheus.yml 示例 + Grafana 看板 JSON + 部署文档（含告警建议）                | 文档 | 评审走查（本规格 §2.5）            |
+| 5   | 指标语义自描述   | 全部指标 HELP 注明窗口口径与重启语义（gauge 窗口/进程内计数归零）               | API  | INFRA-007-T1/T2（HELP 断言）       |
 
 （无 UI 能力行——纯后端指标端点，Playwright 豁免登记见 §5。）
 
@@ -40,23 +40,23 @@ INFRA-004 交付的 `/api/v1/system/metrics` 是「最小指标集」（4 组指
 
 既有 4 组（v1，**只增不改**）：
 
-| 指标                                 | 类型    | 标签                                | 口径（HELP 冻结）                                                              |
-| ------------------------------------ | ------- | ----------------------------------- | ------------------------------------------------------------------------------ |
-| `rabbit_queue_depth` / `_active` / `_dead` | gauge | `pool`（BullMQ 队列名）             | v2 起 `pool` 取值为队列名：默认池=`exec`（与 v1 字面一致），非默认池=`exec-pool-{poolId}`；池清单来自 resource_pools 表 ∪ 默认队列 |
-| `rabbit_engine_slots`                | gauge   | `pool`, `state=used\|cap`           | v2 起按池逐池输出（v1 仅默认池一条）；数据源 resource_pools.nodes 心跳快照     |
-| `rabbit_task_duration_ms`            | summary | `quantile=0.5\|0.95` + `_sum/_count` | 近 1h 终态任务，DB 聚合（不变）                                                |
-| `rabbit_http_requests_total`         | counter | `route_group`, `status_class`       | 进程内累计、重启归零（不变）                                                    |
+| 指标                                       | 类型    | 标签                                 | 口径（HELP 冻结）                                                                                                                  |
+| ------------------------------------------ | ------- | ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `rabbit_queue_depth` / `_active` / `_dead` | gauge   | `pool`（BullMQ 队列名）              | v2 起 `pool` 取值为队列名：默认池=`exec`（与 v1 字面一致），非默认池=`exec-pool-{poolId}`；池清单来自 resource_pools 表 ∪ 默认队列 |
+| `rabbit_engine_slots`                      | gauge   | `pool`, `state=used\|cap`            | v2 起按池逐池输出（v1 仅默认池一条）；数据源 resource_pools.nodes 心跳快照                                                         |
+| `rabbit_task_duration_ms`                  | summary | `quantile=0.5\|0.95` + `_sum/_count` | 近 1h 终态任务，DB 聚合（不变）                                                                                                    |
+| `rabbit_http_requests_total`               | counter | `route_group`, `status_class`        | 进程内累计、重启归零（不变）                                                                                                       |
 
 新增 6 组：
 
-| 指标                              | 类型    | 标签                                    | 数据源与口径                                                                                                          |
-| --------------------------------- | ------- | --------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| `rabbit_http_request_duration_ms` | summary | `route_group`, `quantile=0.5\|0.95` + `_sum/_count` | 进程内每路由组环形缓冲（最近 512 样本/组），guard accessLog 埋点；滑动窗口口径注明于 HELP，重启归零                   |
-| `rabbit_db_slow_queries_total`    | counter | —                                       | Prisma `$on('query')` 事件，duration ≥ 200ms（`RABBIT_SLOW_QUERY_MS` 可调，0=关闭订阅）计数；重启归零                 |
-| `rabbit_task_failures_24h`        | gauge   | `kind`（四种 FailureKind + `UNCLASSIFIED`） | 近 24h `exec_tasks.status='FAILED'` 按 `failure_kind` 分组（NULL→UNCLASSIFIED），DB 聚合                              |
-| `rabbit_tasks_24h`                | gauge   | `status`                                | 近 24h `exec_tasks` 按 `created_at` 窗口、`status` 分组计数，DB 聚合                                                   |
-| `rabbit_task_failure_rate_24h`    | gauge   | —                                       | 近 24h FAILED/total（`created_at` 口径）；分母 0 时输出 0                                                              |
-| `rabbit_false_alarm_hit_rate_24h` | gauge   | —                                       | 近 24h `false_alarm_hits` 计数 / `exec_items(status='FAILED')` join 任务窗口计数（分母 0 → 0）；分子≥0 可 >1（一条失败项可命中多规则），语义注明 |
+| 指标                              | 类型    | 标签                                                | 数据源与口径                                                                                                                                     |
+| --------------------------------- | ------- | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `rabbit_http_request_duration_ms` | summary | `route_group`, `quantile=0.5\|0.95` + `_sum/_count` | 进程内每路由组环形缓冲（最近 512 样本/组），guard accessLog 埋点；滑动窗口口径注明于 HELP，重启归零                                              |
+| `rabbit_db_slow_queries_total`    | counter | —                                                   | Prisma `$on('query')` 事件，duration ≥ 200ms（`RABBIT_SLOW_QUERY_MS` 可调，0=关闭订阅）计数；重启归零                                            |
+| `rabbit_task_failures_24h`        | gauge   | `kind`（四种 FailureKind + `UNCLASSIFIED`）         | 近 24h `exec_tasks.status='FAILED'` 按 `failure_kind` 分组（NULL→UNCLASSIFIED），DB 聚合                                                         |
+| `rabbit_tasks_24h`                | gauge   | `status`                                            | 近 24h `exec_tasks` 按 `created_at` 窗口、`status` 分组计数，DB 聚合                                                                             |
+| `rabbit_task_failure_rate_24h`    | gauge   | —                                                   | 近 24h FAILED/total（`created_at` 口径）；分母 0 时输出 0                                                                                        |
+| `rabbit_false_alarm_hit_rate_24h` | gauge   | —                                                   | 近 24h `false_alarm_hits` 计数 / `exec_items(status='FAILED')` join 任务窗口计数（分母 0 → 0）；分子≥0 可 >1（一条失败项可命中多规则），语义注明 |
 
 所有 label 值经 Prometheus 文本格式转义（`\\`、`\"`、`\n`）；指标段（队列/槽位/DB 聚合/进程内）各自独立降级——任一数据源故障只跳过该段，端点仍 200 输出其余指标（v1 queueOk 模式推广）。
 
@@ -69,11 +69,11 @@ INFRA-004 交付的 `/api/v1/system/metrics` 是「最小指标集」（4 组指
 
 `GET /api/v1/system/metrics` 权限语义：**SYSTEM_METRICS:READ 不变**，新增第三通道：
 
-| 通道                  | 凭据                                   | 判定                                                                                                |
-| --------------------- | -------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| 会话（浏览器/既有 jmx） | Cookie session                        | `getActiveUserId` → `permissionSetFor` 含 SYSTEM_METRICS:READ → 200；无会话 → 走 APIKEY 通道         |
-| APIKEY（Prometheus）  | `Authorization: Basic ak:sk` / `Bearer ak.sk` | `verifyApiKey`（常量时间比对，INTG-003 复用）→ userId → 权限点校验 → 200；key 无效/吊销 → 401（10010） |
-| 无凭据                | —                                      | 401（10001，与 v1 未登录一致——INFRA-004 jmx T4.1 兼容）                                             |
+| 通道                    | 凭据                                          | 判定                                                                                                   |
+| ----------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| 会话（浏览器/既有 jmx） | Cookie session                                | `getActiveUserId` → `permissionSetFor` 含 SYSTEM_METRICS:READ → 200；无会话 → 走 APIKEY 通道           |
+| APIKEY（Prometheus）    | `Authorization: Basic ak:sk` / `Bearer ak.sk` | `verifyApiKey`（常量时间比对，INTG-003 复用）→ userId → 权限点校验 → 200；key 无效/吊销 → 401（10010） |
+| 无凭据                  | —                                             | 401（10001，与 v1 未登录一致——INFRA-004 jmx T4.1 兼容）                                                |
 
 - 无权限（普通用户或其 APIKEY）→ 403（10003，与 v1 一致——INFRA-004 jmx T4.2 兼容）。
 - APIKEY 通道限流：`rateLimit("system-metrics", ak 前缀, 30, 60)`（30 次/分钟；15s 抓取间隔=4 次/分钟，余量 7 倍）→ 429（10012，OPEN_RATE_LIMITED 复用）；jmx 不做 429 直发（固定窗口分钟边界翻滚不稳定，INTG-003 同口径先例——限流由 rateLimit 单测覆盖）。
@@ -107,16 +107,16 @@ packages/db PrismaClient（log: query event）── $on('query') → metrics-db
 
 文件清单：
 
-| 文件                                                              | 变更   | 内容                                                        |
-| ----------------------------------------------------------------- | ------ | ----------------------------------------------------------- |
-| `apps/web/src/server/metrics-counter.ts`                          | 修改   | +`httpObserve`/`httpDurationSnapshot`/`DURATION_WINDOW`     |
-| `apps/web/src/server/metrics-format.ts`                           | 新增   | 文本组装纯函数（escape/percentile/ratio/行构造）            |
-| `apps/web/src/server/metrics-db.ts`                               | 新增   | 慢查询计量（订阅一次 + 计数出口）                           |
-| `apps/web/src/app/api/v1/system/metrics/route.ts`                 | 重写   | v2 组装 + 鉴权矩阵（§2.3）                                  |
-| `apps/web/src/server/guard/index.ts`                              | +4 行  | accessLog 导出 + httpObserve 埋点 + 慢查询订阅初始化        |
-| `packages/db/src/index.ts`                                        | +1 处  | PrismaClient 启用 query 事件                                |
-| `docs/deployment/*`                                               | 新增   | 监控文档 + prometheus.yml + Grafana JSON                    |
-| `rules/observability.md` §6                                       | 改写   | 已交付指标目录对齐 + Backlog 登记                           |
+| 文件                                              | 变更  | 内容                                                    |
+| ------------------------------------------------- | ----- | ------------------------------------------------------- |
+| `apps/web/src/server/metrics-counter.ts`          | 修改  | +`httpObserve`/`httpDurationSnapshot`/`DURATION_WINDOW` |
+| `apps/web/src/server/metrics-format.ts`           | 新增  | 文本组装纯函数（escape/percentile/ratio/行构造）        |
+| `apps/web/src/server/metrics-db.ts`               | 新增  | 慢查询计量（订阅一次 + 计数出口）                       |
+| `apps/web/src/app/api/v1/system/metrics/route.ts` | 重写  | v2 组装 + 鉴权矩阵（§2.3）                              |
+| `apps/web/src/server/guard/index.ts`              | +4 行 | accessLog 导出 + httpObserve 埋点 + 慢查询订阅初始化    |
+| `packages/db/src/index.ts`                        | +1 处 | PrismaClient 启用 query 事件                            |
+| `docs/deployment/*`                               | 新增  | 监控文档 + prometheus.yml + Grafana JSON                |
+| `rules/observability.md` §6                       | 改写  | 已交付指标目录对齐 + Backlog 登记                       |
 
 零业务表 DDL（门禁 3 不涉及）；OpenAPI 无变更（同 path 同响应 schema，鉴权经 header 不进契约）。
 
@@ -132,11 +132,11 @@ packages/db PrismaClient（log: query event）── $on('query') → metrics-db
 
 ## 5. 测试用例
 
-| 编号            | 类型                                                    | 内容                                                                                                                                                                                              |
-| --------------- | ------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| INFRA-007-T1    | Vitest `apps/web/src/server/__tests__/s10-metrics-v2.test.ts` | httpObserve 环形缓冲（超容量淘汰、分位口径、非法值丢弃）；httpDurationRows（空组跳过/sum/count）；escapeLabelValue 转义矩阵；percentile 边界；ratio 分母 0→0；failureKindRows（NULL→UNCLASSIFIED、四 kind）；metrics-db（阈值默认/非法 env 回退、订阅一次、≥阈值计数、0 跳过订阅） |
-| INFRA-007-T2    | JMeter `tests/api/INFRA-007-metrics-v2.jmx`             | 四类×四断言：正常路径（管理员会话 200 + v1/v2 指标名与 `pool="exec"` label 断言 + JSR223 Content-Type=text/plain + 时长上限；管理员 APIKEY Bearer 直连 200）；401（未登录 10001 / 无效 key 10010）；403（普通用户会话 10003 / 普通用户 APIKEY 10003）；422/分页不适用（无请求体、文本端点非信封——INFRA-004 同口径登记；429 限流不做直发，见 §2.3） |
-| e2e             | 豁免登记                                                | 纯后端指标端点无 UI 能力行（§1.2 无 UI 行）；全量 e2e 回归作为 guard 埋点零回归证据                                               |
+| 编号         | 类型                                                          | 内容                                                                                                                                                                                                                                                                                                                                               |
+| ------------ | ------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| INFRA-007-T1 | Vitest `apps/web/src/server/__tests__/s10-metrics-v2.test.ts` | httpObserve 环形缓冲（超容量淘汰、分位口径、非法值丢弃）；httpDurationRows（空组跳过/sum/count）；escapeLabelValue 转义矩阵；percentile 边界；ratio 分母 0→0；failureKindRows（NULL→UNCLASSIFIED、四 kind）；metrics-db（阈值默认/非法 env 回退、订阅一次、≥阈值计数、0 跳过订阅）                                                                 |
+| INFRA-007-T2 | JMeter `tests/api/INFRA-007-metrics-v2.jmx`                   | 四类×四断言：正常路径（管理员会话 200 + v1/v2 指标名与 `pool="exec"` label 断言 + JSR223 Content-Type=text/plain + 时长上限；管理员 APIKEY Bearer 直连 200）；401（未登录 10001 / 无效 key 10010）；403（普通用户会话 10003 / 普通用户 APIKEY 10003）；422/分页不适用（无请求体、文本端点非信封——INFRA-004 同口径登记；429 限流不做直发，见 §2.3） |
+| e2e          | 豁免登记                                                      | 纯后端指标端点无 UI 能力行（§1.2 无 UI 行）；全量 e2e 回归作为 guard 埋点零回归证据                                                                                                                                                                                                                                                                |
 
 ## 6. 竞品/业界对标
 
