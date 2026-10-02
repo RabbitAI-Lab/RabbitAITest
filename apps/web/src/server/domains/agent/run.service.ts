@@ -49,7 +49,9 @@ export async function emitFrame(runId: string, type: string, payload: unknown): 
 // ── 创建/续投/取消 ──
 
 async function getAgentRow(agentId: string, projectId: string) {
-  const agent = await prisma.projectAgent.findFirst({ where: { id: agentId, projectId, deletedAt: null } });
+  const agent = await prisma.projectAgent.findFirst({
+    where: { id: agentId, projectId, deletedAt: null },
+  });
   if (!agent) throw new DomainError(ErrCode.AGENT_NOT_FOUND, "Agent 不存在或已删除");
   if (!agent.enabled) throw new DomainError(ErrCode.AGENT_DISABLED, "Agent 已停用");
   return agent;
@@ -100,11 +102,17 @@ export async function createRun(
 ): Promise<{ runId: string }> {
   const agent = await getAgentRow(agentId, projectId);
   if (agent.mode !== "chat")
-    throw new DomainError(ErrCode.AGENT_CONFIG_INVALID, "该 Agent 为 pipeline 模式，请从生成向导发起（AGENT-002）");
+    throw new DomainError(
+      ErrCode.AGENT_CONFIG_INVALID,
+      "该 Agent 为 pipeline 模式，请从生成向导发起（AGENT-002）",
+    );
   // 模型可用前置
   await resolveRuntime(agent.modelId);
 
-  const project = await prisma.project.findUnique({ where: { id: projectId }, select: { name: true } });
+  const project = await prisma.project.findUnique({
+    where: { id: projectId },
+    select: { name: true },
+  });
   const skills = await loadSkills(projectId, (agent.skillIds ?? []) as string[]);
   const snapAgent = agent as unknown as AgentCfgRow;
   const run = await prisma.agentRun.create({
@@ -131,7 +139,11 @@ export async function createRun(
     },
   });
   // 每 Agent 串行：处理器内 Redis 锁（bullmq 5.x 无 groups；锁竞争走 Delayed 重排）
-  await agentQueue().add("chat", { runId: run.id }, { jobId: run.id, removeOnComplete: 500, removeOnFail: 500 });
+  await agentQueue().add(
+    "chat",
+    { runId: run.id },
+    { jobId: run.id, removeOnComplete: 500, removeOnFail: 500 },
+  );
   await emitFrame(run.id, "run-created", { runId: run.id, agentId });
   return { runId: run.id };
 }
@@ -145,7 +157,11 @@ export async function cancelRun(projectId: string, runId: string): Promise<void>
 }
 
 async function isCancelled(runId: string): Promise<boolean> {
-  return (await redis().exists(`agent-run:cancel:${runId}`).catch(() => false)) === 1;
+  return (
+    (await redis()
+      .exists(`agent-run:cancel:${runId}`)
+      .catch(() => false)) === 1
+  );
 }
 
 // ── 列表/详情 ──
@@ -161,7 +177,19 @@ export async function listRuns(projectId: string, agentId: string | null, q: Age
     orderBy: { createdAt: "desc" },
     skip: (q.page - 1) * q.pageSize,
     take: q.pageSize,
-    select: { id: true, agentId: true, source: true, status: true, promptTokens: true, completionTokens: true, durationMs: true, error: true, startedAt: true, finishedAt: true, createdAt: true },
+    select: {
+      id: true,
+      agentId: true,
+      source: true,
+      status: true,
+      promptTokens: true,
+      completionTokens: true,
+      durationMs: true,
+      error: true,
+      startedAt: true,
+      finishedAt: true,
+      createdAt: true,
+    },
   });
   const total = await prisma.agentRun.count({
     where: {
@@ -247,14 +275,22 @@ async function appendMessage(
   name?: string,
 ): Promise<void> {
   await prisma.agentRunMessage.create({
-    data: { runId, seq: await nextSeq(runId), role, name: name ?? null, content: content as object },
+    data: {
+      runId,
+      seq: await nextSeq(runId),
+      role,
+      name: name ?? null,
+      content: content as object,
+    },
   });
 }
 
 export async function processAgentRun(runId: string): Promise<void> {
   const run = await prisma.agentRun.findUnique({ where: { id: runId } });
   if (!run || run.status !== "PENDING") return;
-  await withAgentLock(run.agentId, async () => { await executeRun(runId); });
+  await withAgentLock(run.agentId, async () => {
+    await executeRun(runId);
+  });
 }
 
 /** 每 Agent 串行锁：SET NX 拿锁执行；竞争方 3s 后重排（DelayedError 模式释放 worker 槽） */
@@ -268,7 +304,9 @@ async function withAgentLock(agentId: string, fn: () => Promise<void>): Promise<
   try {
     await fn();
   } finally {
-    await redis().del(key).catch(() => {});
+    await redis()
+      .del(key)
+      .catch(() => {});
   }
 }
 
@@ -300,23 +338,31 @@ async function executeRun(runId: string): Promise<void> {
       void appendMessage(runId, "tool", { input: { stage: "workspace" }, output: s }, "workspace");
       void emitFrame(runId, "ws-step", s);
     };
-    const { taskDir, wsDir } = await ensureWorkspace({
-      projectId: run.projectId,
-      agentId: agent.id,
-      runId,
-      repos,
-    }, step);
+    const { taskDir, wsDir } = await ensureWorkspace(
+      {
+        projectId: run.projectId,
+        agentId: agent.id,
+        runId,
+        repos,
+      },
+      step,
+    );
 
-    if (await isCancelled(runId)) throw new DomainError(ErrCode.AGENT_RUN_NOT_CANCELLABLE, "已取消");
+    if (await isCancelled(runId))
+      throw new DomainError(ErrCode.AGENT_RUN_NOT_CANCELLABLE, "已取消");
 
     // ② 权限断言闭包（执行身份）
-    const perms = await permissionSetFor(run.asUserId, { projectId: run.projectId }).catch(() => new Set<string>());
+    const perms = await permissionSetFor(run.asUserId, { projectId: run.projectId }).catch(
+      () => new Set<string>(),
+    );
     const assertPermission = async (point: string) => {
       if (!perms.has(point))
         return Promise.reject(new Error(`执行身份缺少权限点 ${point}，该调用被拒绝`));
     };
     const toolCtx: ToolCtx = { projectId: run.projectId, userId: run.asUserId, runId, wsDir };
-    const tools = snapshot.toolKeys.map((k) => AGENT_TOOL_MAP.get(k)).filter((t): t is NonNullable<typeof t> => Boolean(t));
+    const tools = snapshot.toolKeys
+      .map((k) => AGENT_TOOL_MAP.get(k))
+      .filter((t): t is NonNullable<typeof t> => Boolean(t));
 
     // 轨迹首条：用户消息
     await appendMessage(runId, "user", { text: (run.input as { text?: string }).text ?? "" });
@@ -325,11 +371,9 @@ async function executeRun(runId: string): Promise<void> {
     const model = await resolveRuntime(snapshot.modelId);
     const piAgentDir = path.join(wsDir, ".pi");
     // pi 以 cwd 的 AGENTS.md 为项目上下文——系统提示词写入任务目录（含 Skills 与平台上下文块）
-    await (await import("node:fs/promises")).writeFile(
-      path.join(taskDir, "AGENTS.md"),
-      snapshot.systemPrompt,
-      "utf8",
-    );
+    await (
+      await import("node:fs/promises")
+    ).writeFile(path.join(taskDir, "AGENTS.md"), snapshot.systemPrompt, "utf8");
     const result = await runPiSession({
       taskDir,
       agentDir: piAgentDir,
@@ -404,7 +448,10 @@ async function executeRun(runId: string): Promise<void> {
 }
 
 /** Run 的仓库分支集：pipelineConfig.repos 优先，否则 agent.repoIds + 默认分支 */
-async function resolveRunRepos(projectId: string, repoIds: string[]): Promise<{ repoId: string; branch: string }[]> {
+async function resolveRunRepos(
+  projectId: string,
+  repoIds: string[],
+): Promise<{ repoId: string; branch: string }[]> {
   if (!repoIds.length) return [];
   const rows = await prisma.scmRepository.findMany({
     where: { projectId, deletedAt: null, id: { in: repoIds } },

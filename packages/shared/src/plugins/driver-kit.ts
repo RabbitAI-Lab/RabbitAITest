@@ -168,7 +168,8 @@ export function normalizeDbValue(v: unknown): string | number | boolean | null {
   if (typeof v === "string" || typeof v === "number" || typeof v === "boolean") return v;
   if (v instanceof Date) return v.toISOString();
   if (typeof Buffer !== "undefined" && Buffer.isBuffer(v)) return v.toString("base64");
-  if (ArrayBuffer.isView(v)) return Buffer.from(v.buffer, v.byteOffset, v.byteLength).toString("base64");
+  if (ArrayBuffer.isView(v))
+    return Buffer.from(v.buffer, v.byteOffset, v.byteLength).toString("base64");
   try {
     const s = JSON.stringify(v);
     return s === undefined ? String(v) : s;

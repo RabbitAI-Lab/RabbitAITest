@@ -41,12 +41,16 @@ beforeAll(async () => {
   };
   server = new grpc.Server();
   server.addService(pkg.Echo.service, {
-    Say: (call: grpc.ServerUnaryCall<{ text: string }, { text: string }>, cb: grpc.sendUnaryData<{ text: string }>) =>
-      cb(null, { text: `got:${call.request.text}` }),
+    Say: (
+      call: grpc.ServerUnaryCall<{ text: string }, { text: string }>,
+      cb: grpc.sendUnaryData<{ text: string }>,
+    ) => cb(null, { text: `got:${call.request.text}` }),
     Fail: (_call: grpc.ServerUnaryCall<unknown, unknown>, cb: grpc.sendUnaryData<unknown>) =>
       cb({ code: grpc.status.INVALID_ARGUMENT, details: "bad input" } as grpc.ServiceError, null),
-    Slow: (call: grpc.ServerUnaryCall<{ text: string }, { text: string }>, cb: grpc.sendUnaryData<{ text: string }>) =>
-      setTimeout(() => cb(null, { text: "late" }), 5000),
+    Slow: (
+      call: grpc.ServerUnaryCall<{ text: string }, { text: string }>,
+      cb: grpc.sendUnaryData<{ text: string }>,
+    ) => setTimeout(() => cb(null, { text: "late" }), 5000),
   } as never);
   port = await new Promise<number>((res) => {
     server.bindAsync("127.0.0.1:0", grpc.ServerCredentials.createInsecure(), (_e, p) => res(p));
@@ -65,17 +69,35 @@ describe("PLUG-005-T4 grpc 插件（内嵌 echo server）", () => {
   it("契约：name=protocol + configSchema 合法/非法样本", () => {
     expect(plugin.protocol).toBe("grpc");
     expect(
-      plugin.configSchema.safeParse({ ...base, port, protoContent: "syntax = \"proto3\";", method: "Say" }).success,
+      plugin.configSchema.safeParse({
+        ...base,
+        port,
+        protoContent: 'syntax = "proto3";',
+        method: "Say",
+      }).success,
     ).toBe(true);
     expect(plugin.configSchema.safeParse({ ...base, port, method: "Say" }).success).toBe(false); // 缺 proto
     expect(
-      plugin.configSchema.safeParse({ ...base, port, protoContent: "x", protoBase64: "eA==", method: "Say" }).success,
+      plugin.configSchema.safeParse({
+        ...base,
+        port,
+        protoContent: "x",
+        protoBase64: "eA==",
+        method: "Say",
+      }).success,
     ).toBe(false); // 二选一
   });
 
   it("unary Say 往返：code=0 且 bodyText 含响应", async () => {
     const r = await plugin
-      .buildSampler({ ...base, port, protoContent: PROTO, method: "Say", requestMessage: { text: "hello" }, timeoutMs: 5000 })
+      .buildSampler({
+        ...base,
+        port,
+        protoContent: PROTO,
+        method: "Say",
+        requestMessage: { text: "hello" },
+        timeoutMs: 5000,
+      })
       .run();
     expect(r.ok).toBe(true);
     expect(r.code).toBe(0);
@@ -84,7 +106,14 @@ describe("PLUG-005-T4 grpc 插件（内嵌 echo server）", () => {
 
   it("服务端错误 status（INVALID_ARGUMENT）→ code=4 带 details", async () => {
     const r = await plugin
-      .buildSampler({ ...base, port, protoContent: PROTO, method: "Fail", requestMessage: { text: "x" }, timeoutMs: 5000 })
+      .buildSampler({
+        ...base,
+        port,
+        protoContent: PROTO,
+        method: "Fail",
+        requestMessage: { text: "x" },
+        timeoutMs: 5000,
+      })
       .run();
     expect(r.ok).toBe(false);
     expect(r.code).toBe(4);
@@ -93,7 +122,14 @@ describe("PLUG-005-T4 grpc 插件（内嵌 echo server）", () => {
 
   it("超时（服务端 5s 慢响应，客户端 300ms deadline）→ code=1", async () => {
     const r = await plugin
-      .buildSampler({ ...base, port, protoContent: PROTO, method: "Slow", requestMessage: { text: "x" }, timeoutMs: 300 })
+      .buildSampler({
+        ...base,
+        port,
+        protoContent: PROTO,
+        method: "Slow",
+        requestMessage: { text: "x" },
+        timeoutMs: 300,
+      })
       .run();
     expect(r.ok).toBe(false);
     expect(r.code).toBe(1);
@@ -101,7 +137,14 @@ describe("PLUG-005-T4 grpc 插件（内嵌 echo server）", () => {
 
   it("service 不存在 → code=4 且 bodyText 含可用列表", async () => {
     const r = await plugin
-      .buildSampler({ ...base, port, protoContent: PROTO, service: "NoSuch", method: "Say", timeoutMs: 1000 })
+      .buildSampler({
+        ...base,
+        port,
+        protoContent: PROTO,
+        service: "NoSuch",
+        method: "Say",
+        timeoutMs: 1000,
+      })
       .run();
     expect(r.ok).toBe(false);
     expect(r.code).toBe(4);

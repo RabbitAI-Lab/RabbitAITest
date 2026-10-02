@@ -1,6 +1,6 @@
 /** S9 单测（ENTP-005）：dispatch 模板渲染挂钩（模板→渲染/无模板→defaults 回退 S5 零回归）+ 模板服务。 */
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import { DomainError, ErrCode , setFeatureGateEnabled } from "@rabbit/shared";
+import { DomainError, ErrCode, setFeatureGateEnabled } from "@rabbit/shared";
 
 // prisma mock：appSetting/robot/notification/user + messageTemplate + license
 vi.mock("@rabbit/db", () => {

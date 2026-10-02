@@ -45,9 +45,17 @@ function firstError(v: unknown): string | null {
     return "port 须为 1-65535 整数";
   if (c.db !== undefined && (!Number.isInteger(c.db) || c.db < 0 || c.db > 15))
     return "db 须为 0-15 整数";
-  if (c.args !== undefined && (!Array.isArray(c.args) || c.args.length > 32 || c.args.some((a) => typeof a !== "string" || a.length > 8192)))
+  if (
+    c.args !== undefined &&
+    (!Array.isArray(c.args) ||
+      c.args.length > 32 ||
+      c.args.some((a) => typeof a !== "string" || a.length > 8192))
+  )
     return "args 须为字符串数组（≤32 项，单项 ≤8KB）";
-  if (c.timeoutMs !== undefined && (!Number.isInteger(c.timeoutMs) || c.timeoutMs < 100 || c.timeoutMs > 30_000))
+  if (
+    c.timeoutMs !== undefined &&
+    (!Number.isInteger(c.timeoutMs) || c.timeoutMs < 100 || c.timeoutMs > 30_000)
+  )
     return "timeoutMs 须为 100-30000 整数";
   return null;
 }

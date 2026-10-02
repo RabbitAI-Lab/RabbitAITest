@@ -28,7 +28,12 @@ export const urlPartSchema = z.object({
   filename: z.string().optional(),
   mediaType: z.string().optional(),
 });
-export const a2aPartSchema = z.union([textPartSchema, dataPartSchema, rawPartSchema, urlPartSchema]);
+export const a2aPartSchema = z.union([
+  textPartSchema,
+  dataPartSchema,
+  rawPartSchema,
+  urlPartSchema,
+]);
 export type A2aPart = z.infer<typeof a2aPartSchema>;
 
 export const a2aMessageSchema = z.object({
@@ -99,7 +104,10 @@ export const sendMessageParamsSchema = z.object({
 });
 export type SendMessageParams = z.infer<typeof sendMessageParamsSchema>;
 
-export const getTaskParamsSchema = z.object({ taskId: z.string(), historyLength: z.number().int().optional() });
+export const getTaskParamsSchema = z.object({
+  taskId: z.string(),
+  historyLength: z.number().int().optional(),
+});
 
 export const listTasksParamsSchema = z.object({
   contextId: z.string().optional(),

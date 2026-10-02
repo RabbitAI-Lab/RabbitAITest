@@ -61,7 +61,9 @@ const run = async () => {
   await page.goto(`${BASE}/login`);
   await step(page, "S11 性能测试 / UI 测试 · 验收演示 · 管理员登录", 1800);
   await page.getByTestId("login-email").fill("admin@rabbit.test");
-  await page.getByTestId("login-password").fill(process.env.DEMO_ADMIN_PASSWORD ?? "rabbit-admin-123");
+  await page
+    .getByTestId("login-password")
+    .fill(process.env.DEMO_ADMIN_PASSWORD ?? "rabbit-admin-123");
   await page.getByTestId("login-submit").click();
   await page.waitForURL(`${BASE}/`, { timeout: 15000 });
   await sleep(1000);
@@ -70,7 +72,11 @@ const run = async () => {
     data: { code: issueLicense(["LOAD_TEST", "UI_TEST"]) },
   });
   if (!licRes.ok()) throw new Error(`license add failed: ${licRes.status()}`);
-  await step(page, "① License 激活（LOAD_TEST / UI_TEST 特性）——三重门控=模块开关 ∧ 权限点 ∧ License", 2400);
+  await step(
+    page,
+    "① License 激活（LOAD_TEST / UI_TEST 特性）——三重门控=模块开关 ∧ 权限点 ∧ License",
+    2400,
+  );
 
   // ── ② 社区版态对照：摘除 License → 占位页 ──
   await api.delete(`${BASE}/api/v1/system/license`);
@@ -134,12 +140,19 @@ const run = async () => {
     await dialog.waitFor({ timeout: 8000 });
     await page.getByTestId("uit-element-name").locator("input").fill(name);
     await dialog.locator(".ant-select").first().click();
-    const opt = page.locator(".ant-select-item-option").filter({ hasText: new RegExp(`^${locatorType}$`) }).first();
+    const opt = page
+      .locator(".ant-select-item-option")
+      .filter({ hasText: new RegExp(`^${locatorType}$`) })
+      .first();
     await opt.waitFor({ timeout: 8000 });
     await opt.click();
     await page.getByTestId("uit-element-locator").locator("input").fill(locator);
     await page.getByRole("button", { name: /确 定|OK/ }).click();
-    await page.getByTestId("uit-elements-table").filter({ hasText: name }).first().waitFor({ timeout: 8000 });
+    await page
+      .getByTestId("uit-elements-table")
+      .filter({ hasText: name })
+      .first()
+      .waitFor({ timeout: 8000 });
   };
   await createElement("演示-输入框", "testid", "demo-username");
   await createElement("演示-提交按钮", "testid", "demo-submit");
@@ -159,28 +172,63 @@ const run = async () => {
   // 步骤 2：fill
   await addStep();
   await page.getByTestId("uit-step-op-1").locator(".ant-select").first().click();
-  await page.locator(".ant-select-dropdown:not(.ant-select-dropdown-hidden)").last().getByText("fill（填写输入）").click();
+  await page
+    .locator(".ant-select-dropdown:not(.ant-select-dropdown-hidden)")
+    .last()
+    .getByText("fill（填写输入）")
+    .click();
   await page.getByTestId("uit-step-element-1").locator(".ant-select").first().click();
-  await page.locator(".ant-select-dropdown:not(.ant-select-dropdown-hidden)").last().getByText(/演示-输入框/).first().click();
+  await page
+    .locator(".ant-select-dropdown:not(.ant-select-dropdown-hidden)")
+    .last()
+    .getByText(/演示-输入框/)
+    .first()
+    .click();
   await page.getByPlaceholder("填写值").fill("rabbit-demo");
   // 步骤 3：click
   await addStep();
   await page.getByTestId("uit-step-op-2").locator(".ant-select").first().click();
-  await page.locator(".ant-select-dropdown:not(.ant-select-dropdown-hidden)").last().getByText("click（点击元素）").click();
+  await page
+    .locator(".ant-select-dropdown:not(.ant-select-dropdown-hidden)")
+    .last()
+    .getByText("click（点击元素）")
+    .click();
   await page.getByTestId("uit-step-element-2").locator(".ant-select").first().click();
-  await page.locator(".ant-select-dropdown:not(.ant-select-dropdown-hidden)").last().getByText(/演示-提交按钮/).first().click();
+  await page
+    .locator(".ant-select-dropdown:not(.ant-select-dropdown-hidden)")
+    .last()
+    .getByText(/演示-提交按钮/)
+    .first()
+    .click();
   // 步骤 4：assert-text
   await addStep();
   await page.getByTestId("uit-step-op-3").locator(".ant-select").first().click();
-  await page.locator(".ant-select-dropdown:not(.ant-select-dropdown-hidden)").last().getByText("assert-text（断言文案）").click();
+  await page
+    .locator(".ant-select-dropdown:not(.ant-select-dropdown-hidden)")
+    .last()
+    .getByText("assert-text（断言文案）")
+    .click();
   await page.getByTestId("uit-step-element-3").locator(".ant-select").first().click();
-  await page.locator(".ant-select-dropdown:not(.ant-select-dropdown-hidden)").last().getByText(/演示-结果文案/).first().click();
+  await page
+    .locator(".ant-select-dropdown:not(.ant-select-dropdown-hidden)")
+    .last()
+    .getByText(/演示-结果文案/)
+    .first()
+    .click();
   await page.getByPlaceholder("期望包含的文案").fill("提交成功，rabbit-demo");
   // 步骤 5：screenshot
   await addStep();
   await page.getByTestId("uit-step-op-4").locator(".ant-select").first().click();
-  await page.locator(".ant-select-dropdown:not(.ant-select-dropdown-hidden)").last().getByText("screenshot（截图）").click();
-  await step(page, "⑦ 步骤序列：goto → fill(rabbit-demo) → click(提交) → assert-text → screenshot", 2400);
+  await page
+    .locator(".ant-select-dropdown:not(.ant-select-dropdown-hidden)")
+    .last()
+    .getByText("screenshot（截图）")
+    .click();
+  await step(
+    page,
+    "⑦ 步骤序列：goto → fill(rabbit-demo) → click(提交) → assert-text → screenshot",
+    2400,
+  );
   await page.getByTestId("uit-save-btn").click();
   await page.waitForURL(/\/ui-test$/, { timeout: 10000 });
   await page.getByText(caseName).first().waitFor({ timeout: 8000 });
@@ -191,7 +239,11 @@ const run = async () => {
   await page.waitForURL(/\/ui-test\/tasks\/[0-9a-f-]{36}/, { timeout: 15000 });
   await step(page, "⑧ chromium 真执行中（引擎 playwright-core 驱动）…", 9000);
   await page.getByTestId("uit-report-status").getByText("SUCCESS").waitFor({ timeout: 90000 });
-  await step(page, "⑧ 执行报告：步骤全 ✓ + 断言文案实值回显 + 截图网格（internal/files 落库）", 5000);
+  await step(
+    page,
+    "⑧ 执行报告：步骤全 ✓ + 断言文案实值回显 + 截图网格（internal/files 落库）",
+    5000,
+  );
 
   // ── ⑨ 收尾：摘除 License → 回社区版占位 ──
   await api.delete(`${BASE}/api/v1/system/license`);
@@ -204,9 +256,13 @@ const run = async () => {
   await browser.close();
   // webm 落点：recordVideo 目录按 context 命名随机文件——重命名固定
   const fs = await import("node:fs");
-  const files = fs.readdirSync(OUT).filter((f) => f.endsWith(".webm") && f !== "s11-acceptance-demo.webm");
+  const files = fs
+    .readdirSync(OUT)
+    .filter((f) => f.endsWith(".webm") && f !== "s11-acceptance-demo.webm");
   if (files.length > 0) {
-    const newest = files.sort((a, b) => fs.statSync(path.join(OUT, b)).mtimeMs - fs.statSync(path.join(OUT, a)).mtimeMs)[0];
+    const newest = files.sort(
+      (a, b) => fs.statSync(path.join(OUT, b)).mtimeMs - fs.statSync(path.join(OUT, a)).mtimeMs,
+    )[0];
     fs.renameSync(path.join(OUT, newest), path.join(OUT, "s11-acceptance-demo.webm"));
     for (const f of files) {
       if (f !== newest) fs.rmSync(path.join(OUT, f), { force: true });

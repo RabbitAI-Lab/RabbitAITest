@@ -9,13 +9,16 @@
     <!-- 画板一：/oauth/device 授权确认页（独立页·三态） -->
     <section class="bg-white border rounded-md mb-4">
       <div class="px-3 py-2 border-b bg-slate-50 font-medium">
-        画板一 · 授权确认页 /oauth/device（独立页非 console 布局；未登录 302 /login?next= 回跳；三态：输码 → 确认 → 结果）
+        画板一 · 授权确认页 /oauth/device（独立页非 console 布局；未登录 302 /login?next=
+        回跳；三态：输码 → 确认 → 结果）
       </div>
       <div class="flex divide-x">
         <!-- 状态 1：输码态 -->
         <div class="flex-1 p-6 max-w-[360px]">
           <div class="flex items-center gap-2 mb-1">
-            <span class="w-6 h-6 rounded bg-[#574BFF] text-white grid place-items-center text-xs">R</span>
+            <span class="w-6 h-6 rounded bg-[#574BFF] text-white grid place-items-center text-xs"
+              >R</span
+            >
             <span class="font-semibold">RabbitAITest · 终端授权</span>
           </div>
           <p class="text-slate-500 text-xs mb-4">CLI 发起登录后，将终端显示的 8 位代码输入此处</p>
@@ -46,13 +49,16 @@
             <div>
               <div class="text-slate-500 text-[13px] mb-1.5">申请权限（scope）</div>
               <div class="flex gap-1.5 flex-wrap">
-                <span class="border border-green-300 bg-green-50 text-green-700 rounded px-2 py-0.5 text-xs"
+                <span
+                  class="border border-green-300 bg-green-50 text-green-700 rounded px-2 py-0.5 text-xs"
                   >read · 查看</span
                 >
-                <span class="border border-blue-300 bg-blue-50 text-blue-700 rounded px-2 py-0.5 text-xs"
+                <span
+                  class="border border-blue-300 bg-blue-50 text-blue-700 rounded px-2 py-0.5 text-xs"
                   >exec · 执行</span
                 >
-                <span class="border border-slate-300 bg-slate-100 text-slate-400 rounded px-2 py-0.5 text-xs line-through"
+                <span
+                  class="border border-slate-300 bg-slate-100 text-slate-400 rounded px-2 py-0.5 text-xs line-through"
                   >write · 修改（未申请）</span
                 >
               </div>
@@ -95,20 +101,24 @@
     <!-- 画板二：/personal/authorizations 授权会话页（console 个人中心布局） -->
     <section class="bg-white border rounded-md">
       <div class="px-3 py-2 border-b bg-slate-50 font-medium">
-        画板二 · 个人中心 /personal/authorizations（授权会话管理——表格 + 吊销 + 空态引导；导航挂「个人中心 ▾」内，APIKEY 同级）
+        画板二 · 个人中心 /personal/authorizations（授权会话管理——表格 + 吊销 +
+        空态引导；导航挂「个人中心 ▾」内，APIKEY 同级）
       </div>
       <header class="h-12 bg-white border-b flex items-center px-4 gap-3">
         <span class="font-semibold">RabbitAITest</span>
         <nav class="ml-4 flex gap-4 text-slate-500 text-xs">
           <span>工作台</span><span>测试用例</span><span>接口测试</span>
         </nav>
-        <span class="ml-auto text-slate-400 text-xs">消息 · 张三 ▾（个人中心：个人信息/密码/授权会话/APIKEY…）</span>
+        <span class="ml-auto text-slate-400 text-xs"
+          >消息 · 张三 ▾（个人中心：个人信息/密码/授权会话/APIKEY…）</span
+        >
       </header>
       <div class="p-4">
         <div class="flex items-center gap-2 mb-3">
           <h2 class="font-medium">授权会话</h2>
           <span class="text-xs text-slate-400"
-            >CLI / 终端经 Device Flow 登录产生的令牌会话 · access 2 小时 · refresh 30 天（旋转）</span
+            >CLI / 终端经 Device Flow 登录产生的令牌会话 · access 2 小时 · refresh 30
+            天（旋转）</span
           >
           <button class="ml-auto border border-red-300 text-red-600 rounded-md px-3 py-1 text-xs">
             全部吊销
@@ -128,13 +138,21 @@
           </thead>
           <tbody class="divide-y">
             <tr>
-              <td class="px-3 py-2"><span class="font-mono text-xs">rabbit-cli</span><div class="text-xs text-slate-400">MacBook · alice-agent</div></td>
-              <td class="px-3 py-2"><span class="border rounded px-1.5 py-0.5 text-xs mr-1">read</span><span class="border rounded px-1.5 py-0.5 text-xs">exec</span></td>
+              <td class="px-3 py-2">
+                <span class="font-mono text-xs">rabbit-cli</span>
+                <div class="text-xs text-slate-400">MacBook · alice-agent</div>
+              </td>
+              <td class="px-3 py-2">
+                <span class="border rounded px-1.5 py-0.5 text-xs mr-1">read</span
+                ><span class="border rounded px-1.5 py-0.5 text-xs">exec</span>
+              </td>
               <td class="px-3 py-2 font-mono text-xs">192.168.1.∗</td>
               <td class="px-3 py-2 text-slate-400 text-xs">09-30 14:31</td>
               <td class="px-3 py-2 text-slate-400 text-xs">09-30 16:31</td>
               <td class="px-3 py-2"><span class="text-green-600 text-xs">● 生效中</span></td>
-              <td class="px-3 py-2"><a class="text-red-500">吊销</a>（Popconfirm：终端将立即 401）</td>
+              <td class="px-3 py-2">
+                <a class="text-red-500">吊销</a>（Popconfirm：终端将立即 401）
+              </td>
             </tr>
             <tr class="opacity-60">
               <td class="px-3 py-2"><span class="font-mono text-xs">rabbit-cli</span></td>
@@ -147,9 +165,13 @@
             </tr>
           </tbody>
         </table>
-        <div class="border border-dashed rounded-md p-4 mt-3 text-center text-xs text-slate-400 hidden">
+        <div
+          class="border border-dashed rounded-md p-4 mt-3 text-center text-xs text-slate-400 hidden"
+        >
           空态：暂无终端授权——在终端运行
-          <code class="font-mono bg-slate-100 px-1">rabbit auth login --server &lt;平台地址&gt;</code>
+          <code class="font-mono bg-slate-100 px-1"
+            >rabbit auth login --server &lt;平台地址&gt;</code
+          >
           后此处出现会话
         </div>
       </div>

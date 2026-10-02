@@ -36,8 +36,10 @@ async function startGrpcEcho(): Promise<{ port: number; close: () => void }> {
   };
   const server = new grpc.Server();
   server.addService(pkg.Echo.service, {
-    Say: (call: grpc.ServerUnaryCall<{ text: string }, { text: string }>, cb: grpc.sendUnaryData<{ text: string }>) =>
-      cb(null, { text: `got:${call.request.text}` }),
+    Say: (
+      call: grpc.ServerUnaryCall<{ text: string }, { text: string }>,
+      cb: grpc.sendUnaryData<{ text: string }>,
+    ) => cb(null, { text: `got:${call.request.text}` }),
   } as never);
   const port = await new Promise<number>((res) => {
     server.bindAsync("127.0.0.1:0", grpc.ServerCredentials.createInsecure(), (_e, p) => res(p));
@@ -70,9 +72,7 @@ async function executeRedisPingUntilReady(
       .getByText("redis", { exact: true })
       .click();
     await page.getByTestId("req-tab-protocol").click();
-    await page
-      .getByTestId("req-protocol-config")
-      .fill(JSON.stringify(cfg, null, 2));
+    await page.getByTestId("req-protocol-config").fill(JSON.stringify(cfg, null, 2));
     const execApi = expectApi("**/api/v1/projects/*/exec-tasks");
     const reqPromise = page
       .waitForResponse("**/api/v1/projects/*/exec-tasks")
@@ -195,7 +195,8 @@ test("PLUG-005-T10 grpc 引擎全链路：对内嵌 echo server unary 执行（b
           {
             host: "127.0.0.1",
             port: echo.port,
-            protoContent: 'syntax = "proto3";\npackage e2e;\nservice Echo { rpc Say (Req) returns (Res) {} }\nmessage Req { string text = 1; }\nmessage Res { string text = 1; }',
+            protoContent:
+              'syntax = "proto3";\npackage e2e;\nservice Echo { rpc Say (Req) returns (Res) {} }\nmessage Req { string text = 1; }\nmessage Res { string text = 1; }',
             service: "Echo",
             method: "Say",
             requestMessage: { text: "e2e-grpc" },

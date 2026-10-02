@@ -124,7 +124,11 @@ test("SYS-010-04 权限二态：admin 下拉两项可见 + 系统域隔离", asy
   await expectNoConsoleErrors();
 });
 
-test("SYS-010-05 侧栏收起/展开 + 分组折叠（含 localStorage 持久化）", async ({ page, authedPage, expectNoConsoleErrors }) => {
+test("SYS-010-05 侧栏收起/展开 + 分组折叠（含 localStorage 持久化）", async ({
+  page,
+  authedPage,
+  expectNoConsoleErrors,
+}) => {
   await page.goto("/");
   // 分组折叠（默认接口测试展开、测试管理折叠）：点分组头展开测试管理
   await expect(page.getByTestId("nav-bugs")).toBeHidden();
@@ -163,7 +167,11 @@ test("SYS-010-06 刷新恢复与跨域标签联动", async ({ page, authedPage, 
   await expectNoConsoleErrors();
 });
 
-test("SYS-010-07 标签上限 20：超限提示且不新增", async ({ page, authedPage, expectNoConsoleErrors }) => {
+test("SYS-010-07 标签上限 20：超限提示且不新增", async ({
+  page,
+  authedPage,
+  expectNoConsoleErrors,
+}) => {
   await page.goto("/");
   // 注入 20 个标签（含工作台）后刷新——恢复机制读 sessionStorage
   const tabs = ["/", ...Array.from({ length: 19 }, (_, i) => `/p${i}`)].map((key) => ({ key }));
@@ -205,4 +213,3 @@ test("SYS-010-08 预置折叠记忆的首次加载（hydration 对齐防回归�
   await expect(page.getByTestId("nav-bugs")).toBeVisible();
   await expectNoConsoleErrors();
 });
-

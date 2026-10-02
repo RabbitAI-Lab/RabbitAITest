@@ -1,6 +1,14 @@
 /** AGENT-001 P1 单测：密钥生成（前缀/哈希/长度）/ 工具目录投影 / 六要素校验 / 技能引用删除 409 / run 源空与模式守卫。 */
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { DomainError, ErrCode, AGENT_TOOLS, AGENT_TOOL_KEYS, agentToolJsonSchema, zodToJsonSchemaShape, agentCreateSchema } from "@rabbit/shared";
+import {
+  DomainError,
+  ErrCode,
+  AGENT_TOOLS,
+  AGENT_TOOL_KEYS,
+  agentToolJsonSchema,
+  zodToJsonSchemaShape,
+  agentCreateSchema,
+} from "@rabbit/shared";
 
 vi.mock("@rabbit/db", () => {
   return {
@@ -14,8 +22,21 @@ vi.mock("@rabbit/db", () => {
         update: vi.fn(),
         count: vi.fn(),
       },
-      agentSkill: { findFirst: vi.fn(), findMany: vi.fn(), create: vi.fn(), update: vi.fn(), count: vi.fn() },
-      agentRun: { findFirst: vi.fn(), findUnique: vi.fn(), create: vi.fn(), findMany: vi.fn(), count: vi.fn(), update: vi.fn() },
+      agentSkill: {
+        findFirst: vi.fn(),
+        findMany: vi.fn(),
+        create: vi.fn(),
+        update: vi.fn(),
+        count: vi.fn(),
+      },
+      agentRun: {
+        findFirst: vi.fn(),
+        findUnique: vi.fn(),
+        create: vi.fn(),
+        findMany: vi.fn(),
+        count: vi.fn(),
+        update: vi.fn(),
+      },
       agentRunMessage: { findMany: vi.fn(), create: vi.fn() },
       aiModel: { findFirst: vi.fn(), findUnique: vi.fn() },
       user: { findUnique: vi.fn() },
@@ -39,7 +60,13 @@ vi.mock("@/server/redis", () => ({
 }));
 
 vi.mock("@/server/domains/ai/model.service", () => ({
-  resolveRuntime: vi.fn(async () => ({ id: "11111111-1111-4111-8111-111111111111", name: "GLM", baseUrl: "https://x", model: "glm-4.6", apiKey: "sk-test" })),
+  resolveRuntime: vi.fn(async () => ({
+    id: "11111111-1111-4111-8111-111111111111",
+    name: "GLM",
+    baseUrl: "https://x",
+    model: "glm-4.6",
+    apiKey: "sk-test",
+  })),
 }));
 
 import { prisma } from "@rabbit/db";
@@ -124,7 +151,9 @@ describe("A2A 密钥（rag_ 前缀/SHA-256/一次回显）", () => {
     (prisma.projectAgent.update as ReturnType<typeof vi.fn>).mockResolvedValue(agentRow());
     const r = await agentSvc.rotateAgentKey("p1", "a1");
     expect(r.apiKey).toMatch(/^rag_/);
-    const call = ((prisma.projectAgent.update as ReturnType<typeof vi.fn>).mock.calls[0]![0] as { data: Record<string, Record<string, unknown>> });
+    const call = (prisma.projectAgent.update as ReturnType<typeof vi.fn>).mock.calls[0]![0] as {
+      data: Record<string, Record<string, unknown>>;
+    };
     expect(call.data.a2aEnabled).toBe(true);
     expect(call.data.apiKeyHash).toHaveLength(64);
   });
@@ -133,7 +162,9 @@ describe("A2A 密钥（rag_ 前缀/SHA-256/一次回显）", () => {
     (prisma.projectAgent.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(agentRow());
     (prisma.projectAgent.update as ReturnType<typeof vi.fn>).mockResolvedValue(agentRow());
     await agentSvc.revokeAgentKey("p1", "a1");
-    const call = ((prisma.projectAgent.update as ReturnType<typeof vi.fn>).mock.calls[0]![0] as { data: Record<string, Record<string, unknown>> });
+    const call = (prisma.projectAgent.update as ReturnType<typeof vi.fn>).mock.calls[0]![0] as {
+      data: Record<string, Record<string, unknown>>;
+    };
     expect(call.data).toMatchObject({ a2aEnabled: false, apiKeyHash: null, apiKeyPrefix: null });
   });
 });
@@ -142,68 +173,118 @@ describe("六要素校验", () => {
   it("模型不存在/未启用 → 70622", async () => {
     (prisma.aiModel.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(null);
     await expect(
-      agentSvc.createAgent("p1", "u1", agentCreateSchema.parse({ name: "x", modelId: "11111111-1111-4111-8111-111111111111", systemPrompt: "p" })),
+      agentSvc.createAgent(
+        "p1",
+        "u1",
+        agentCreateSchema.parse({
+          name: "x",
+          modelId: "11111111-1111-4111-8111-111111111111",
+          systemPrompt: "p",
+        }),
+      ),
     ).rejects.toMatchObject({ code: ErrCode.AGENT_MODEL_INVALID });
   });
 
   it("未知工具 key → 70623", async () => {
-    (prisma.aiModel.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue({ id: "11111111-1111-4111-8111-111111111111" });
+    (prisma.aiModel.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue({
+      id: "11111111-1111-4111-8111-111111111111",
+    });
     await expect(
       agentSvc.createAgent(
         "p1",
         "u1",
-        agentCreateSchema.parse({ name: "x", modelId: "11111111-1111-4111-8111-111111111111", systemPrompt: "p", toolKeys: ["nope.tool"] }),
+        agentCreateSchema.parse({
+          name: "x",
+          modelId: "11111111-1111-4111-8111-111111111111",
+          systemPrompt: "p",
+          toolKeys: ["nope.tool"],
+        }),
       ),
     ).rejects.toMatchObject({ code: ErrCode.AGENT_CONFIG_INVALID });
   });
 
   it("名称重复 → 70609", async () => {
-    (prisma.aiModel.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue({ id: "11111111-1111-4111-8111-111111111111" });
+    (prisma.aiModel.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue({
+      id: "11111111-1111-4111-8111-111111111111",
+    });
     (prisma.projectAgent.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue({ id: "other" });
     await expect(
-      agentSvc.createAgent("p1", "u1", agentCreateSchema.parse({ name: "x", modelId: "11111111-1111-4111-8111-111111111111", systemPrompt: "p" })),
+      agentSvc.createAgent(
+        "p1",
+        "u1",
+        agentCreateSchema.parse({
+          name: "x",
+          modelId: "11111111-1111-4111-8111-111111111111",
+          systemPrompt: "p",
+        }),
+      ),
     ).rejects.toMatchObject({ code: ErrCode.AGENT_NAME_EXISTS });
   });
 
   it("删除前置：RUNNING 拒 70639", async () => {
     (prisma.projectAgent.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(agentRow());
     (prisma.agentRun.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue({ id: "r1" });
-    await expect(agentSvc.deleteAgent("p1", "a1")).rejects.toMatchObject({ code: ErrCode.AGENT_RUN_NOT_CANCELLABLE });
+    await expect(agentSvc.deleteAgent("p1", "a1")).rejects.toMatchObject({
+      code: ErrCode.AGENT_RUN_NOT_CANCELLABLE,
+    });
   });
 });
 
 describe("技能库", () => {
   it("被引用删除 → 70624", async () => {
-    (prisma.agentSkill.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue({ id: "s1", name: "n", description: "d", content: "c", enabled: true, createdAt: new Date(), updatedAt: new Date() });
-    (prisma.projectAgent.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([{ skillIds: ["s1"] }]);
-    await expect(skillSvc.deleteSkill("p1", "s1")).rejects.toMatchObject({ code: ErrCode.AGENT_SKILL_IN_USE });
+    (prisma.agentSkill.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue({
+      id: "s1",
+      name: "n",
+      description: "d",
+      content: "c",
+      enabled: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+    (prisma.projectAgent.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([
+      { skillIds: ["s1"] },
+    ]);
+    await expect(skillSvc.deleteSkill("p1", "s1")).rejects.toMatchObject({
+      code: ErrCode.AGENT_SKILL_IN_USE,
+    });
   });
 
   it("名称重复 → 70619", async () => {
     (prisma.agentSkill.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue({ id: "s2" });
     await expect(
-      skillSvc.createSkill("p1", "u1", { name: "n", description: "d", content: "c", enabled: true }),
+      skillSvc.createSkill("p1", "u1", {
+        name: "n",
+        description: "d",
+        content: "c",
+        enabled: true,
+      }),
     ).rejects.toMatchObject({ code: ErrCode.AGENT_SKILL_NAME_EXISTS });
   });
 });
 
 describe("run 创建守卫", () => {
   it("pipeline 模式从调试台发起 → 70623（引导走生成向导）", async () => {
-    (prisma.projectAgent.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(agentRow({ mode: "pipeline" }));
+    (prisma.projectAgent.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(
+      agentRow({ mode: "pipeline" }),
+    );
     await expect(runSvc.createRun("p1", "a1", "u1", { message: "hi" })).rejects.toMatchObject({
       code: ErrCode.AGENT_CONFIG_INVALID,
     });
   });
 
   it("Agent 禁用 → 70641", async () => {
-    (prisma.projectAgent.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(agentRow({ enabled: false }));
+    (prisma.projectAgent.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(
+      agentRow({ enabled: false }),
+    );
     await expect(runSvc.createRun("p1", "a1", "u1", { message: "hi" })).rejects.toMatchObject({
       code: ErrCode.AGENT_DISABLED,
     });
   });
 
   it("chat 正常入队：source=UI、asUser=调用者、snapshot 含工具与 Skills 注入", async () => {
-    (prisma.projectAgent.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(agentRow({ skillIds: ["sk1"] }));
+    (prisma.projectAgent.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(
+      agentRow({ skillIds: ["sk1"] }),
+    );
     (prisma.agentSkill.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([
       { name: "等价类", description: "何时", content: "规则…" },
     ]);
@@ -211,7 +292,11 @@ describe("run 创建守卫", () => {
     (prisma.agentRun.create as ReturnType<typeof vi.fn>).mockResolvedValue({ id: "run1" });
     const r = await runSvc.createRun("p1", "a1", "u1", { message: "生成用例" });
     expect(r.runId).toBe("run1");
-    const data = ((prisma.agentRun.create as ReturnType<typeof vi.fn>).mock.calls[0]![0] as { data: Record<string, unknown> }).data;
+    const data = (
+      (prisma.agentRun.create as ReturnType<typeof vi.fn>).mock.calls[0]![0] as {
+        data: Record<string, unknown>;
+      }
+    ).data;
     expect(data.source).toBe("UI");
     expect(data.asUserId).toBe("u1");
     const snapshot = data.snapshot as { systemPrompt: string };

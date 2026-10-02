@@ -19,7 +19,11 @@ export interface HostPort {
 }
 
 /** host:port 解析（host 必填、端口 1-65535 默认回填） */
-export function parseHostPort(host: string, port: number | undefined, defaultPort: number): HostPort {
+export function parseHostPort(
+  host: string,
+  port: number | undefined,
+  defaultPort: number,
+): HostPort {
   if (typeof host !== "string" || host.trim().length === 0) {
     throw new Error("host 必填");
   }

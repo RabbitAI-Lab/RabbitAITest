@@ -99,11 +99,7 @@ function GroupSection({
 
   // 单项直点（无分组头，仅工作台）
   if (group.single) {
-    return (
-      <div className="pt-2.5">
-        {items.map((it) => link(it.href, it.label, it.testid))}
-      </div>
-    );
+    return <div className="pt-2.5">{items.map((it) => link(it.href, it.label, it.testid))}</div>;
   }
 
   const open = !collapsed.has(group.id);
@@ -114,21 +110,39 @@ function GroupSection({
         onClick={() => onToggle(group.id)}
         aria-expanded={open}
       >
-        <ChevronDown size={12} className={`shrink-0 transition-transform ${open ? "" : "-rotate-90"}`} />
+        <ChevronDown
+          size={12}
+          className={`shrink-0 transition-transform ${open ? "" : "-rotate-90"}`}
+        />
         <span className="font-medium">{group.label}</span>
       </button>
-      <div className={open ? "" : "hidden"}>{items.map((it) => link(it.href, it.label, it.testid))}</div>
+      <div className={open ? "" : "hidden"}>
+        {items.map((it) => link(it.href, it.label, it.testid))}
+      </div>
     </div>
   );
 }
 
-export function LeftNav({ railHidden, onToggleRail }: { railHidden: boolean; onToggleRail: () => void }) {
+export function LeftNav({
+  railHidden,
+  onToggleRail,
+}: {
+  railHidden: boolean;
+  onToggleRail: () => void;
+}) {
   const router = useRouter();
   const pathname = usePathname();
   const realm = realmOf(pathname ?? "/"); // 域由 URL 决定（唯一事实源；标签联动经 layout 同步 effect）
   const { canGlobal } = usePermissions();
   const project = useProjectInfo();
-  const modules = project?.modules ?? { case: true, api: true, plan: true, bug: true, load: true, uit: true };
+  const modules = project?.modules ?? {
+    case: true,
+    api: true,
+    plan: true,
+    bug: true,
+    load: true,
+    uit: true,
+  };
   const openTab = useOpenTab();
   const activeKey = useTabsStore((s) => s.activeKey);
   const [collapsed, toggleCollapsed] = useCollapsedGroups();

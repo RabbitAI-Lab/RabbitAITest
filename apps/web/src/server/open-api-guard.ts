@@ -44,10 +44,7 @@ export function withApiKey<Args extends unknown[]>(
         const need = requiredScopeFor(req.method, path);
         if (identity.tokenScope && !identity.tokenScope.includes(need)) {
           return finish(
-            NextResponse.json(
-              fail(ErrCode.FORBIDDEN, `token scope 缺少 ${need}`),
-              { status: 403 },
-            ),
+            NextResponse.json(fail(ErrCode.FORBIDDEN, `token scope 缺少 ${need}`), { status: 403 }),
           );
         }
         if (identity.kind === "token") {

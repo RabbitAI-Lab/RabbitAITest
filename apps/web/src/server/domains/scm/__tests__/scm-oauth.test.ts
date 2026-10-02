@@ -97,12 +97,10 @@ beforeEach(() => {
   process.env.RABBIT_INTEGRATION_SECRET = SECRET;
   process.env.SCM_GITHUB_BASE_URL = MOCK_GH;
   process.env.SCM_GITLAB_BASE_URL = MOCK_GL;
-  vi.mocked(prisma.scmOrgApp.findUnique).mockImplementation(
-    (async (args: unknown) => {
-      const where = (args as { where: { orgId_provider: { provider: string } } }).where;
-      return orgApp(where.orgId_provider.provider);
-    }) as never,
-  );
+  vi.mocked(prisma.scmOrgApp.findUnique).mockImplementation((async (args: unknown) => {
+    const where = (args as { where: { orgId_provider: { provider: string } } }).where;
+    return orgApp(where.orgId_provider.provider);
+  }) as never);
 });
 afterEach(() => {
   delete process.env.SCM_GITHUB_BASE_URL;

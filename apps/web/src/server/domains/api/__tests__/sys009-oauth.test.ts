@@ -120,7 +120,8 @@ vi.mock("@rabbit/db", () => {
         return (
           state.grants.find((g) => {
             if (where.accessTokenHash && g.accessTokenHash !== where.accessTokenHash) return false;
-            if (where.refreshTokenHash && g.refreshTokenHash !== where.refreshTokenHash) return false;
+            if (where.refreshTokenHash && g.refreshTokenHash !== where.refreshTokenHash)
+              return false;
             if (where.prevRefreshHash && g.prevRefreshHash !== where.prevRefreshHash) return false;
             if (where.status && g.status !== where.status) return false;
             if (where.id && g.id !== where.id) return false;
@@ -151,7 +152,10 @@ vi.mock("@rabbit/db", () => {
         state.users.find((u) => {
           if (where.id && u.id !== where.id) return false;
           if (where.status && u.status !== where.status) return false;
-          if (where.deletedAt !== undefined && (u.deletedAt === null) !== (where.deletedAt === null))
+          if (
+            where.deletedAt !== undefined &&
+            (u.deletedAt === null) !== (where.deletedAt === null)
+          )
             return false;
           return true;
         }) ?? null,
@@ -232,7 +236,11 @@ describe("Device Flow 状态机", () => {
   });
   it("坏 device_code → expired；批准后确认页回显与列表", async () => {
     expect(await exchangeDeviceToken("rdc_notexist")).toEqual({ kind: "expired" });
-    const issued = await issueDeviceCode({ scope: "read,exec", origin: "http://x", ip: "192.168.1.23" });
+    const issued = await issueDeviceCode({
+      scope: "read,exec",
+      origin: "http://x",
+      ip: "192.168.1.23",
+    });
     const pending = await lookupPendingByUserCode(formatUserCode(issued.user_code.toLowerCase()));
     expect(pending?.scope).toEqual(["read", "exec"]);
     expect(pending?.ip).toBe("192.168.1.∗");

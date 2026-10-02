@@ -60,7 +60,11 @@ const handlers: Record<string, Handler> = {
       });
       created.push({ id: row.id, num: row.num });
     }
-    return { created, count: created.length, note: "已落默认模块、未评审态（PREPARING）；如需指定模块请在评审后移动" };
+    return {
+      created,
+      count: created.length,
+      note: "已落默认模块、未评审态（PREPARING）；如需指定模块请在评审后移动",
+    };
   },
   "module.tree": async (_i, ctx) => {
     const nodes = await prisma.moduleNode.findMany({
@@ -75,7 +79,10 @@ const handlers: Record<string, Handler> = {
         id: r.id,
         name: r.name,
         isDefault: r.isDefault,
-        children: nodes.filter((n) => n.parentId === r.id).slice(0, 20).map((c) => ({ id: c.id, name: c.name, isDefault: c.isDefault })),
+        children: nodes
+          .filter((n) => n.parentId === r.id)
+          .slice(0, 20)
+          .map((c) => ({ id: c.id, name: c.name, isDefault: c.isDefault })),
       })),
       truncated: nodes.length >= 200,
       note: "用例的 module 归属必须取自本结果中的节点 id",
@@ -86,9 +93,7 @@ const handlers: Record<string, Handler> = {
     const rows = await prisma.apiDefinition.findMany({
       where: {
         projectId: ctx.projectId,
-        ...(kw
-          ? { OR: [{ name: { contains: kw } }, { path: { contains: kw } }] }
-          : {}),
+        ...(kw ? { OR: [{ name: { contains: kw } }, { path: { contains: kw } }] } : {}),
       },
       select: { id: true, method: true, path: true, name: true, num: true },
       orderBy: { createdAt: "desc" },
@@ -115,7 +120,12 @@ const handlers: Record<string, Handler> = {
   },
   "plan.run": async (i, ctx) => {
     const r = await createPlanTask(ctx.projectId, i.planId as string, ctx.userId, {});
-    return { taskId: r.taskId, itemCount: r.itemCount, warnings: r.warnings, note: "已提交执行，可用 task.status 查询进度" };
+    return {
+      taskId: r.taskId,
+      itemCount: r.itemCount,
+      warnings: r.warnings,
+      note: "已提交执行，可用 task.status 查询进度",
+    };
   },
   "task.status": async (i, ctx) => {
     const t = await prisma.execTask.findFirst({
@@ -132,11 +142,13 @@ const handlers: Record<string, Handler> = {
     });
     if (!rp) return { error: "报告不存在" };
     const topN = Math.min(Number(i.failTopN ?? 5), 20);
-    const fails = await prisma.execItem.findMany({
-      where: { taskId: rp.id.replace(/^rpt-/, ""), status: "FAILED" },
-      select: { refType: true, refId: true },
-      take: topN,
-    }).catch(() => []);
+    const fails = await prisma.execItem
+      .findMany({
+        where: { taskId: rp.id.replace(/^rpt-/, ""), status: "FAILED" },
+        select: { refType: true, refId: true },
+        take: topN,
+      })
+      .catch(() => []);
     return { ...rp, failTop: fails };
   },
   "bug.search": async (i, ctx) => {
@@ -166,7 +178,12 @@ const handlers: Record<string, Handler> = {
       select: { owner: true, repo: true },
     });
     if (!repo) return { error: "仓库不在本项目绑定列表" };
-    const base = path.join(ctx.wsDir, "repos", repoDirName(repo.owner, repo.repo), (i.path as string) ?? "");
+    const base = path.join(
+      ctx.wsDir,
+      "repos",
+      repoDirName(repo.owner, repo.repo),
+      (i.path as string) ?? "",
+    );
     const wsReal = path.resolve(ctx.wsDir, "repos");
     const target = path.resolve(base);
     if (!target.startsWith(wsReal + path.sep)) return { error: "路径越界" };
@@ -192,7 +209,10 @@ const handlers: Record<string, Handler> = {
     if (!file.startsWith(wsReal + path.sep)) return { error: "路径越界" };
     try {
       const stat = await fs.stat(file);
-      if (stat.size > 256 * 1024) return { error: `文件超过 256KB（实际 ${(stat.size / 1024).toFixed(0)}KB），请分段读取或改读摘要` };
+      if (stat.size > 256 * 1024)
+        return {
+          error: `文件超过 256KB（实际 ${(stat.size / 1024).toFixed(0)}KB），请分段读取或改读摘要`,
+        };
       const buf = await fs.readFile(file, "utf8");
       return { path: i.path, size: stat.size, content: buf };
     } catch {
@@ -208,7 +228,12 @@ export async function executeTool(
   assertPermission: (point: string) => Promise<void>,
 ): Promise<{ ok: boolean; result: unknown; def: AgentToolDef }> {
   const def = AGENT_TOOL_MAP.get(key);
-  if (!def) return { ok: false, result: { error: `未知工具 ${key}` }, def: null as unknown as AgentToolDef };
+  if (!def)
+    return {
+      ok: false,
+      result: { error: `未知工具 ${key}` },
+      def: null as unknown as AgentToolDef,
+    };
   await assertPermission(def.requiredPermission); // 无权 → 错误说明回传 LLM（不熔断）
   const handler = handlers[key];
   if (!handler) return { ok: false, result: { error: "工具暂未实现" }, def };
@@ -216,7 +241,11 @@ export async function executeTool(
     const result = await handler(input, ctx);
     return { ok: true, result, def };
   } catch (e) {
-    return { ok: false, result: { error: `工具执行失败：${(e as Error).message?.slice(0, 300)}` }, def };
+    return {
+      ok: false,
+      result: { error: `工具执行失败：${(e as Error).message?.slice(0, 300)}` },
+      def,
+    };
   }
 }
 

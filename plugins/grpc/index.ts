@@ -13,7 +13,11 @@ import { randomUUID } from "node:crypto";
 // bundle 内 protoLoader.loadSync=undefined，勘误 7；值与类型同源，禁 const 别名（丢类型命名空间））
 import * as grpc from "@grpc/grpc-js";
 import * as protoLoader from "@grpc/proto-loader";
-import { raceTimeout, truncateBody, parseHostPort } from "../../packages/shared/src/plugins/protocol-kit";
+import {
+  raceTimeout,
+  truncateBody,
+  parseHostPort,
+} from "../../packages/shared/src/plugins/protocol-kit";
 
 export interface GrpcConfig {
   host: string;
@@ -30,19 +34,37 @@ export interface GrpcConfig {
 
 function isGrpcConfig(v: unknown): v is GrpcConfig {
   const c = v as Partial<GrpcConfig>;
-  if (typeof c?.host !== "string" || c.host.trim().length === 0 || c.host.length > 256) return false;
-  if (c.port !== undefined && (!Number.isInteger(c.port) || c.port < 1 || c.port > 65535)) return false;
+  if (typeof c?.host !== "string" || c.host.trim().length === 0 || c.host.length > 256)
+    return false;
+  if (c.port !== undefined && (!Number.isInteger(c.port) || c.port < 1 || c.port > 65535))
+    return false;
   if ((c.protoContent !== undefined) === (c.protoBase64 !== undefined)) return false;
-  if (c.protoContent !== undefined && (typeof c.protoContent !== "string" || c.protoContent.length > 64 * 1024))
+  if (
+    c.protoContent !== undefined &&
+    (typeof c.protoContent !== "string" || c.protoContent.length > 64 * 1024)
+  )
     return false;
-  if (c.protoBase64 !== undefined && (typeof c.protoBase64 !== "string" || c.protoBase64.length > 128 * 1024))
+  if (
+    c.protoBase64 !== undefined &&
+    (typeof c.protoBase64 !== "string" || c.protoBase64.length > 128 * 1024)
+  )
     return false;
-  if (typeof c.service !== "string" || c.service.length === 0 || c.service.length > 256) return false;
+  if (typeof c.service !== "string" || c.service.length === 0 || c.service.length > 256)
+    return false;
   if (typeof c.method !== "string" || c.method.length === 0 || c.method.length > 128) return false;
-  if (c.requestMessage !== undefined && (typeof c.requestMessage !== "object" || c.requestMessage === null || Array.isArray(c.requestMessage)))
+  if (
+    c.requestMessage !== undefined &&
+    (typeof c.requestMessage !== "object" ||
+      c.requestMessage === null ||
+      Array.isArray(c.requestMessage))
+  )
     return false;
-  if (c.metadata !== undefined && (typeof c.metadata !== "object" || c.metadata === null)) return false;
-  if (c.timeoutMs !== undefined && (!Number.isInteger(c.timeoutMs) || c.timeoutMs < 100 || c.timeoutMs > 30_000))
+  if (c.metadata !== undefined && (typeof c.metadata !== "object" || c.metadata === null))
+    return false;
+  if (
+    c.timeoutMs !== undefined &&
+    (!Number.isInteger(c.timeoutMs) || c.timeoutMs < 100 || c.timeoutMs > 30_000)
+  )
     return false;
   return true;
 }
@@ -107,7 +129,8 @@ export function createPlugin(): SamplerPlugin {
                 const name = prefix ? `${prefix}.${k}` : k;
                 if (typeof v === "function" && (v as { service?: unknown }).service) {
                   services.push(name);
-                  if (k === cfg.service || name === cfg.service || name.endsWith(`.${cfg.service}`)) ctor = v;
+                  if (k === cfg.service || name === cfg.service || name.endsWith(`.${cfg.service}`))
+                    ctor = v;
                 } else if (typeof v === "object" && v !== null) {
                   const hit = walk(v, name);
                   if (hit) return hit;
@@ -120,7 +143,9 @@ export function createPlugin(): SamplerPlugin {
               return {
                 ok: false,
                 code: 4,
-                bodyText: truncateBody(`service 不存在：${cfg.service}（可用：${services.join(", ") || "无"}）`),
+                bodyText: truncateBody(
+                  `service 不存在：${cfg.service}（可用：${services.join(", ") || "无"}）`,
+                ),
                 responseTimeMs: Date.now() - started,
               };
             }
@@ -138,7 +163,9 @@ export function createPlugin(): SamplerPlugin {
               for (const [k, v] of Object.entries(cfg.metadata!)) md.add(k, v);
               const reply = await raceTimeout(
                 new Promise<unknown>((resolve, reject) => {
-                  const fn = (client as unknown as Record<string, (...a: unknown[]) => void>)[cfg.method];
+                  const fn = (client as unknown as Record<string, (...a: unknown[]) => void>)[
+                    cfg.method
+                  ];
                   if (!fn) return reject(new Error(`method 不存在：${cfg.method}`));
                   fn.call(
                     client,

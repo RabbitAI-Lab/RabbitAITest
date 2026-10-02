@@ -60,12 +60,7 @@ export async function POST(req: Request) {
       if (!refreshToken) {
         return NextResponse.json({ error: "invalid_request" }, { status: 400 });
       }
-      const rl = await rateLimit(
-        "oauth-refresh",
-        sha256Hex(refreshToken).slice(0, 16),
-        10,
-        60,
-      );
+      const rl = await rateLimit("oauth-refresh", sha256Hex(refreshToken).slice(0, 16), 10, 60);
       if (!rl.allowed) {
         return NextResponse.json({ error: "slow_down" }, { status: 429 });
       }

@@ -13,21 +13,38 @@
       <span>演示项目 #1</span>
       <span class="text-slate-300">/</span>
       <span class="font-medium">UI 测试</span>
-      <span class="ml-auto text-xs text-slate-400">S13 · UIT-003 · 脚本模式（开源全功能口径，无 License 门控）</span>
+      <span class="ml-auto text-xs text-slate-400"
+        >S13 · UIT-003 · 脚本模式（开源全功能口径，无 License 门控）</span
+      >
     </header>
     <main class="p-4 space-y-4 max-w-[1280px]">
-
       <!-- ═══════════ 画板一 · 用例列表（/ui-test 重设计） ═══════════ -->
       <section class="bg-white border rounded-md" data-testid="uit3-cases-board">
         <div class="px-4 py-3 border-b flex items-center gap-2">
           <span class="font-medium">画板一 · 用例列表（/ui-test）</span>
-          <span class="text-xs text-slate-400">新增「模式」列；新建默认=脚本模式；「粘贴导入」直达</span>
+          <span class="text-xs text-slate-400"
+            >新增「模式」列；新建默认=脚本模式；「粘贴导入」直达</span
+          >
         </div>
         <div class="p-4 space-y-3">
           <div class="flex items-center gap-2">
-            <input class="border rounded px-2 py-1 text-sm w-56" placeholder="搜索用例名" data-testid="uit3-search" />
-            <button class="bg-[#574BFF] text-white rounded px-3 py-1.5 text-sm" data-testid="uit3-create-btn">新建 UI 用例</button>
-            <button class="border rounded px-3 py-1.5 text-sm text-[#574BFF] border-[#574BFF]/40" data-testid="uit3-paste-import">粘贴导入脚本</button>
+            <input
+              class="border rounded px-2 py-1 text-sm w-56"
+              placeholder="搜索用例名"
+              data-testid="uit3-search"
+            />
+            <button
+              class="bg-[#574BFF] text-white rounded px-3 py-1.5 text-sm"
+              data-testid="uit3-create-btn"
+            >
+              新建 UI 用例
+            </button>
+            <button
+              class="border rounded px-3 py-1.5 text-sm text-[#574BFF] border-[#574BFF]/40"
+              data-testid="uit3-paste-import"
+            >
+              粘贴导入脚本
+            </button>
             <button class="border rounded px-3 py-1.5 text-sm">元素库</button>
             <button class="border rounded px-3 py-1.5 text-sm">批量执行</button>
             <span class="ml-auto text-xs text-slate-400">新建默认「脚本模式」，可在编辑器切换</span>
@@ -35,43 +52,92 @@
           <table class="w-full text-sm" data-testid="uit3-cases-table">
             <thead>
               <tr class="text-left text-slate-500 border-b">
-                <th class="py-2">名称</th><th>模式</th><th>规模</th><th>摘要</th><th>最近结果</th><th class="text-right">操作</th>
+                <th class="py-2">名称</th>
+                <th>模式</th>
+                <th>规模</th>
+                <th>摘要</th>
+                <th>最近结果</th>
+                <th class="text-right">操作</th>
               </tr>
             </thead>
             <tbody>
               <tr class="border-b">
                 <td class="py-2.5 font-medium">演示页 · 提交表单</td>
-                <td><span class="border rounded px-1.5 py-0.5 text-xs text-violet-600 border-violet-200 bg-violet-50">脚本</span></td>
+                <td>
+                  <span
+                    class="border rounded px-1.5 py-0.5 text-xs text-violet-600 border-violet-200 bg-violet-50"
+                    >脚本</span
+                  >
+                </td>
                 <td>3 tests</td>
-                <td class="text-slate-500 font-mono text-xs">describe「演示页 · 提交表单」：提交成功 / 空值拦截 / 元素可见</td>
-                <td><span class="border rounded px-1.5 py-0.5 text-xs text-emerald-600 border-emerald-200 bg-emerald-50">SUCCESS · 3/3</span></td>
+                <td class="text-slate-500 font-mono text-xs">
+                  describe「演示页 · 提交表单」：提交成功 / 空值拦截 / 元素可见
+                </td>
+                <td>
+                  <span
+                    class="border rounded px-1.5 py-0.5 text-xs text-emerald-600 border-emerald-200 bg-emerald-50"
+                    >SUCCESS · 3/3</span
+                  >
+                </td>
                 <td class="text-right space-x-2">
-                  <button class="text-[#574BFF]">执行</button><button class="text-slate-500">编辑</button><button class="text-slate-500">报告</button><button class="text-red-400">删除</button>
+                  <button class="text-[#574BFF]">执行</button
+                  ><button class="text-slate-500">编辑</button
+                  ><button class="text-slate-500">报告</button
+                  ><button class="text-red-400">删除</button>
                 </td>
               </tr>
               <tr class="border-b">
                 <td class="py-2.5 font-medium">演示页 · 文案快照校验</td>
-                <td><span class="border rounded px-1.5 py-0.5 text-xs text-violet-600 border-violet-200 bg-violet-50">脚本</span></td>
+                <td>
+                  <span
+                    class="border rounded px-1.5 py-0.5 text-xs text-violet-600 border-violet-200 bg-violet-50"
+                    >脚本</span
+                  >
+                </td>
                 <td>1 test</td>
-                <td class="text-slate-500 font-mono text-xs">expect(locator).toHaveText(...)（预期失败示例）</td>
-                <td><span class="border rounded px-1.5 py-0.5 text-xs text-red-500 border-red-200 bg-red-50">FAILED · 0/1</span></td>
+                <td class="text-slate-500 font-mono text-xs">
+                  expect(locator).toHaveText(...)（预期失败示例）
+                </td>
+                <td>
+                  <span
+                    class="border rounded px-1.5 py-0.5 text-xs text-red-500 border-red-200 bg-red-50"
+                    >FAILED · 0/1</span
+                  >
+                </td>
                 <td class="text-right space-x-2">
-                  <button class="text-[#574BFF]">报告</button><button class="text-slate-500">编辑</button><button class="text-red-400">删除</button>
+                  <button class="text-[#574BFF]">报告</button
+                  ><button class="text-slate-500">编辑</button
+                  ><button class="text-red-400">删除</button>
                 </td>
               </tr>
               <tr>
                 <td class="py-2.5 font-medium">存量 · 步骤用例（UIT-002）</td>
-                <td><span class="border rounded px-1.5 py-0.5 text-xs text-slate-500 border-slate-200 bg-slate-50">步骤</span></td>
+                <td>
+                  <span
+                    class="border rounded px-1.5 py-0.5 text-xs text-slate-500 border-slate-200 bg-slate-50"
+                    >步骤</span
+                  >
+                </td>
                 <td>4 steps</td>
                 <td class="text-slate-500 font-mono text-xs">goto → fill → click → assert-text</td>
-                <td><span class="border rounded px-1.5 py-0.5 text-xs text-emerald-600 border-emerald-200 bg-emerald-50">SUCCESS</span></td>
+                <td>
+                  <span
+                    class="border rounded px-1.5 py-0.5 text-xs text-emerald-600 border-emerald-200 bg-emerald-50"
+                    >SUCCESS</span
+                  >
+                </td>
                 <td class="text-right space-x-2">
-                  <button class="text-[#574BFF]">执行</button><button class="text-slate-500">编辑</button><button class="text-slate-500">报告</button><button class="text-red-400">删除</button>
+                  <button class="text-[#574BFF]">执行</button
+                  ><button class="text-slate-500">编辑</button
+                  ><button class="text-slate-500">报告</button
+                  ><button class="text-red-400">删除</button>
                 </td>
               </tr>
             </tbody>
           </table>
-          <div class="flex justify-between text-xs text-slate-400"><span>共 3 条（脚本 2 · 步骤 1）</span><span>1 / 1 页</span></div>
+          <div class="flex justify-between text-xs text-slate-400">
+            <span>共 3 条（脚本 2 · 步骤 1）</span><span>1 / 1 页</span>
+          </div>
         </div>
       </section>
 
@@ -79,25 +145,38 @@
       <section class="bg-white border rounded-md" data-testid="uit3-editor-board">
         <div class="px-4 py-3 border-b flex items-center gap-2">
           <span class="font-medium">画板二 · 脚本编辑器（/ui-test/cases/new · 脚本模式）</span>
-          <span class="text-xs text-slate-400">代码编辑器为主体：粘贴 AI 产出的标准 Playwright 脚本，零改造直接用</span>
+          <span class="text-xs text-slate-400"
+            >代码编辑器为主体：粘贴 AI 产出的标准 Playwright 脚本，零改造直接用</span
+          >
         </div>
         <div class="p-4 space-y-3">
           <!-- 顶栏：名称 + 模式切换 + 超时 -->
           <div class="flex gap-3 items-end flex-wrap" data-testid="uit3-editor-header">
             <label class="text-sm space-y-1 flex-1 min-w-56">
               <span class="text-xs text-slate-500 block">用例名称</span>
-              <input class="border rounded px-2 py-1.5 w-full" value="演示页 · 提交表单" data-testid="uit3-case-name" />
+              <input
+                class="border rounded px-2 py-1.5 w-full"
+                value="演示页 · 提交表单"
+                data-testid="uit3-case-name"
+              />
             </label>
             <div class="text-sm space-y-1">
               <span class="text-xs text-slate-500 block">模式</span>
-              <div class="border rounded-md p-0.5 flex bg-slate-50" data-testid="uit3-mode-segmented">
+              <div
+                class="border rounded-md p-0.5 flex bg-slate-50"
+                data-testid="uit3-mode-segmented"
+              >
                 <button class="bg-[#574BFF] text-white rounded px-4 py-1 text-sm">脚本模式</button>
                 <button class="text-slate-500 px-4 py-1 text-sm">步骤模式</button>
               </div>
             </div>
             <label class="text-sm space-y-1 w-44">
               <span class="text-xs text-slate-500 block">单 test 超时（ms，5s-300s）</span>
-              <input class="border rounded px-2 py-1.5 w-full" value="30000" data-testid="uit3-timeout" />
+              <input
+                class="border rounded px-2 py-1.5 w-full"
+                value="30000"
+                data-testid="uit3-timeout"
+              />
             </label>
           </div>
 
@@ -107,19 +186,37 @@
               <!-- 工具条 -->
               <div class="flex items-center gap-2 text-sm" data-testid="uit3-editor-toolbar">
                 <select class="border rounded px-2 py-1 text-xs">
-                  <option>插入模板…</option><option>空模板</option><option>登录冒烟</option><option>表单提交</option><option>断言套件</option>
+                  <option>插入模板…</option>
+                  <option>空模板</option>
+                  <option>登录冒烟</option>
+                  <option>表单提交</option>
+                  <option>断言套件</option>
                 </select>
-                <button class="border rounded px-3 py-1 text-xs text-[#574BFF] border-[#574BFF]/40" data-testid="uit3-validate-btn">✓ 校验脚本（干跑收集）</button>
+                <button
+                  class="border rounded px-3 py-1 text-xs text-[#574BFF] border-[#574BFF]/40"
+                  data-testid="uit3-validate-btn"
+                >
+                  ✓ 校验脚本（干跑收集）
+                </button>
                 <span class="text-xs text-slate-400">871 字符 / 上限 100 KB</span>
-                <span class="ml-auto text-xs text-slate-400">TS 高亮 · 行号 · Ctrl+F 搜索（CodeMirror 6；补全= P2）</span>
+                <span class="ml-auto text-xs text-slate-400"
+                  >TS 高亮 · 行号 · Ctrl+F 搜索（CodeMirror 6；补全= P2）</span
+                >
               </div>
               <!-- 代码区（深色，行号+语法着色） -->
-              <div class="rounded-md overflow-hidden border border-slate-700" data-testid="uit3-code-editor">
-                <div class="bg-slate-800 px-3 py-1.5 text-xs text-slate-400 flex items-center gap-2">
+              <div
+                class="rounded-md overflow-hidden border border-slate-700"
+                data-testid="uit3-code-editor"
+              >
+                <div
+                  class="bg-slate-800 px-3 py-1.5 text-xs text-slate-400 flex items-center gap-2"
+                >
                   <span class="text-slate-500">●</span><span>case.spec.ts</span>
                   <span class="ml-auto">test · describe · expect（@playwright/test）</span>
                 </div>
-                <pre class="bg-slate-900 text-[13px] leading-6 overflow-x-auto"><code><span class="flex"><span class="select-none w-10 text-right pr-3 text-slate-600">1</span><span class="flex-1 pr-4"><span class="text-sky-400">import</span> <span class="text-slate-300">{ test, expect }</span> <span class="text-sky-400">from</span> <span class="text-emerald-300">'@playwright/test'</span><span class="text-slate-300">;</span></span></span>
+                <pre
+                  class="bg-slate-900 text-[13px] leading-6 overflow-x-auto"
+                ><code><span class="flex"><span class="select-none w-10 text-right pr-3 text-slate-600">1</span><span class="flex-1 pr-4"><span class="text-sky-400">import</span> <span class="text-slate-300">{ test, expect }</span> <span class="text-sky-400">from</span> <span class="text-emerald-300">'@playwright/test'</span><span class="text-slate-300">;</span></span></span>
 <span class="flex"><span class="select-none w-10 text-right pr-3 text-slate-600">2</span><span class="flex-1 pr-4">​</span></span>
 <span class="flex"><span class="select-none w-10 text-right pr-3 text-slate-600">3</span><span class="flex-1 pr-4"><span class="text-slate-500 italic">// 参数注入：右侧「参数」面板的 KV → 子进程环境变量 RABBIT_PARAM_*</span></span></span>
 <span class="flex"><span class="select-none w-10 text-right pr-3 text-slate-600">4</span><span class="flex-1 pr-4"><span class="text-sky-400">const</span> <span class="text-slate-200">BASE</span> <span class="text-slate-300">=</span> <span class="text-violet-300">process</span><span class="text-slate-300">.</span><span class="text-violet-300">env</span><span class="text-slate-300">.</span><span class="text-amber-200">RABBIT_PARAM_BASEURL</span> <span class="text-slate-300">??</span> <span class="text-emerald-300">'http://127.0.0.1:4000'</span><span class="text-slate-300">;</span></span></span>
@@ -152,13 +249,19 @@
                 <div class="flex items-start gap-2 px-3 py-2 bg-emerald-50/60">
                   <span class="text-emerald-500 font-bold">✓</span>
                   <div class="flex-1">
-                    <div>校验通过（干跑任务 #task-8f21 · 2.4s）— 识别 <b>3</b> 个测试：正确用户名提交成功 · 空用户名提交被拦截 · 结果文案元素可见</div>
+                    <div>
+                      校验通过（干跑任务 #task-8f21 · 2.4s）— 识别
+                      <b>3</b> 个测试：正确用户名提交成功 · 空用户名提交被拦截 · 结果文案元素可见
+                    </div>
                   </div>
                 </div>
                 <div class="flex items-start gap-2 px-3 py-2 bg-red-50/60">
                   <span class="text-red-500 font-bold">✗</span>
                   <div class="flex-1">
-                    校验失败 — <span class="font-mono text-xs">case.spec.ts:13:17 · TS1005「',' expected」</span>
+                    校验失败 —
+                    <span class="font-mono text-xs"
+                      >case.spec.ts:13:17 · TS1005「',' expected」</span
+                    >
                     <a class="text-[#574BFF] text-xs ml-1">点击定位到编辑器行 ↵</a>
                     <span class="text-xs text-slate-400 ml-2">（校验不阻断保存，可存草稿）</span>
                   </div>
@@ -175,17 +278,34 @@
                 </div>
                 <div class="p-3 space-y-2 text-sm">
                   <div class="flex items-center gap-2">
-                    <input class="border rounded px-2 py-1 flex-1 font-mono text-xs" value="BASEURL" />
-                    <input class="border rounded px-2 py-1 flex-1 font-mono text-xs" value="http://127.0.0.1:4000" />
+                    <input
+                      class="border rounded px-2 py-1 flex-1 font-mono text-xs"
+                      value="BASEURL"
+                    />
+                    <input
+                      class="border rounded px-2 py-1 flex-1 font-mono text-xs"
+                      value="http://127.0.0.1:4000"
+                    />
                     <button class="text-red-400 text-xs">删</button>
                   </div>
                   <div class="flex items-center gap-2">
-                    <input class="border rounded px-2 py-1 flex-1 font-mono text-xs" value="USERNAME" />
-                    <input class="border rounded px-2 py-1 flex-1 font-mono text-xs" value="rabbit-e2e" />
+                    <input
+                      class="border rounded px-2 py-1 flex-1 font-mono text-xs"
+                      value="USERNAME"
+                    />
+                    <input
+                      class="border rounded px-2 py-1 flex-1 font-mono text-xs"
+                      value="rabbit-e2e"
+                    />
                     <button class="text-red-400 text-xs">删</button>
                   </div>
-                  <button class="text-xs text-[#574BFF]" data-testid="uit3-add-param">+ 添加参数（≤20 组）</button>
-                  <div class="text-xs text-slate-400">脚本内以 <span class="font-mono">process.env.RABBIT_PARAM_BASEURL</span> 读取；值 ≤2048</div>
+                  <button class="text-xs text-[#574BFF]" data-testid="uit3-add-param">
+                    + 添加参数（≤20 组）
+                  </button>
+                  <div class="text-xs text-slate-400">
+                    脚本内以
+                    <span class="font-mono">process.env.RABBIT_PARAM_BASEURL</span> 读取；值 ≤2048
+                  </div>
                 </div>
               </div>
               <div class="border rounded-md" data-testid="uit3-elements-ref">
@@ -197,30 +317,44 @@
                   <div class="px-3 py-2 flex items-center gap-2">
                     <div class="flex-1 min-w-0">
                       <div>输入框-用户名</div>
-                      <div class="font-mono text-xs text-slate-400 truncate">getByTestId('demo-username')</div>
+                      <div class="font-mono text-xs text-slate-400 truncate">
+                        getByTestId('demo-username')
+                      </div>
                     </div>
                     <button class="text-xs text-[#574BFF]">复制</button>
                   </div>
                   <div class="px-3 py-2 flex items-center gap-2">
                     <div class="flex-1 min-w-0">
                       <div>提交按钮</div>
-                      <div class="font-mono text-xs text-slate-400 truncate">getByRole('button', { name: '提交' })</div>
+                      <div class="font-mono text-xs text-slate-400 truncate">
+                        getByRole('button', { name: '提交' })
+                      </div>
                     </div>
                     <button class="text-xs text-[#574BFF]">复制</button>
                   </div>
                   <div class="px-3 py-2 flex items-center gap-2">
                     <div class="flex-1 min-w-0">
                       <div>结果文案</div>
-                      <div class="font-mono text-xs text-slate-400 truncate">locator('.demo-result-text')</div>
+                      <div class="font-mono text-xs text-slate-400 truncate">
+                        locator('.demo-result-text')
+                      </div>
                     </div>
                     <button class="text-xs text-[#574BFF]">复制</button>
                   </div>
                 </div>
-                <div class="px-3 py-2 text-xs text-slate-400 border-t">脚本模式不引用元素库（脚本自含定位器）；此面板仅为编写时参考。</div>
+                <div class="px-3 py-2 text-xs text-slate-400 border-t">
+                  脚本模式不引用元素库（脚本自含定位器）；此面板仅为编写时参考。
+                </div>
               </div>
-              <div class="border rounded-md p-3 text-xs text-slate-500 space-y-1" data-testid="uit3-exec-hint">
+              <div
+                class="border rounded-md p-3 text-xs text-slate-500 space-y-1"
+                data-testid="uit3-exec-hint"
+              >
                 <div class="font-medium text-slate-600 text-sm">执行说明</div>
-                <div>· 引擎以官方 <span class="font-mono">playwright test</span> 子进程执行（workers=1 / retries=0）</div>
+                <div>
+                  · 引擎以官方 <span class="font-mono">playwright test</span> 子进程执行（workers=1
+                  / retries=0）
+                </div>
                 <div>· 每 test 超时=上方设置；任务总超时 600s 硬顶</div>
                 <div>· trace=on、失败自动截图；报告页可下载 trace.zip</div>
               </div>
@@ -228,10 +362,16 @@
           </div>
 
           <!-- 模式切换确认（静态示意） -->
-          <div class="border rounded-md border-amber-200 bg-amber-50/60 p-3 text-sm flex items-center gap-3" data-testid="uit3-mode-switch-confirm">
+          <div
+            class="border rounded-md border-amber-200 bg-amber-50/60 p-3 text-sm flex items-center gap-3"
+            data-testid="uit3-mode-switch-confirm"
+          >
             <span class="text-amber-500">⇄</span>
             <div class="flex-1">
-              切换到「步骤模式」？<span class="text-slate-500">脚本内容将保留（切回脚本模式可继续编辑），保存时以当前模式为准；不提供步骤 ↔ 脚本自动互转。</span>
+              切换到「步骤模式」？<span class="text-slate-500"
+                >脚本内容将保留（切回脚本模式可继续编辑），保存时以当前模式为准；不提供步骤 ↔
+                脚本自动互转。</span
+              >
             </div>
             <button class="bg-[#574BFF] text-white rounded px-3 py-1 text-xs">确认切换</button>
             <button class="border rounded px-3 py-1 text-xs">取消</button>
@@ -239,7 +379,12 @@
 
           <div class="flex gap-2 justify-end">
             <button class="border rounded px-3 py-1.5 text-sm">取消</button>
-            <button class="bg-[#574BFF] text-white rounded px-3 py-1.5 text-sm" data-testid="uit3-save-btn">保存用例</button>
+            <button
+              class="bg-[#574BFF] text-white rounded px-3 py-1.5 text-sm"
+              data-testid="uit3-save-btn"
+            >
+              保存用例
+            </button>
           </div>
         </div>
       </section>
@@ -251,17 +396,40 @@
           <span class="text-xs text-slate-400">AI 助手产出 → 一键进平台</span>
         </div>
         <div class="p-4 flex justify-center bg-slate-100/60">
-          <div class="bg-white border rounded-lg shadow-lg w-[720px]" data-testid="uit3-paste-modal">
+          <div
+            class="bg-white border rounded-lg shadow-lg w-[720px]"
+            data-testid="uit3-paste-modal"
+          >
             <div class="px-4 py-3 border-b font-medium text-sm">粘贴导入 Playwright 脚本</div>
             <div class="p-4 space-y-3">
-              <input class="border rounded px-2 py-1.5 w-full text-sm" placeholder="用例名称（默认取脚本内首个 describe/test 标题）" data-testid="uit3-paste-name" />
-              <textarea class="border rounded px-2 py-1.5 w-full font-mono text-xs h-40 bg-slate-900 text-emerald-200 placeholder:text-slate-600" placeholder="粘贴标准 Playwright Test 脚本（import { test, expect } from '@playwright/test' …）" data-testid="uit3-paste-textarea"></textarea>
+              <input
+                class="border rounded px-2 py-1.5 w-full text-sm"
+                placeholder="用例名称（默认取脚本内首个 describe/test 标题）"
+                data-testid="uit3-paste-name"
+              />
+              <textarea
+                class="border rounded px-2 py-1.5 w-full font-mono text-xs h-40 bg-slate-900 text-emerald-200 placeholder:text-slate-600"
+                placeholder="粘贴标准 Playwright Test 脚本（import { test, expect } from '@playwright/test' …）"
+                data-testid="uit3-paste-textarea"
+              ></textarea>
               <div class="flex gap-2 justify-end">
                 <button class="border rounded px-3 py-1.5 text-sm">取消</button>
-                <button class="border rounded px-3 py-1.5 text-sm text-[#574BFF] border-[#574BFF]/40">仅校验</button>
-                <button class="bg-[#574BFF] text-white rounded px-3 py-1.5 text-sm" data-testid="uit3-paste-create">校验并创建</button>
+                <button
+                  class="border rounded px-3 py-1.5 text-sm text-[#574BFF] border-[#574BFF]/40"
+                >
+                  仅校验
+                </button>
+                <button
+                  class="bg-[#574BFF] text-white rounded px-3 py-1.5 text-sm"
+                  data-testid="uit3-paste-create"
+                >
+                  校验并创建
+                </button>
               </div>
-              <div class="text-xs text-slate-400">「校验并创建」= 干跑收集（识别 N 个测试 / 报编译错误）通过后创建并进入编辑器；失败则停留并定位错误。</div>
+              <div class="text-xs text-slate-400">
+                「校验并创建」= 干跑收集（识别 N 个测试 /
+                报编译错误）通过后创建并进入编辑器；失败则停留并定位错误。
+              </div>
             </div>
           </div>
         </div>
@@ -271,14 +439,19 @@
       <section class="bg-white border rounded-md" data-testid="uit3-report-fail-board">
         <div class="px-4 py-3 border-b flex items-center gap-2">
           <span class="font-medium">画板三 · 执行报告（/ui-test/tasks/{taskId} · 失败态）</span>
-          <span class="border rounded px-1.5 py-0.5 text-xs text-red-500 border-red-200 bg-red-50">FAILED · 2/3 通过</span>
-          <span class="text-xs text-slate-400 ml-auto">chromium headless · 8.4s · workers=1 · retries=0</span>
+          <span class="border rounded px-1.5 py-0.5 text-xs text-red-500 border-red-200 bg-red-50"
+            >FAILED · 2/3 通过</span
+          >
+          <span class="text-xs text-slate-400 ml-auto"
+            >chromium headless · 8.4s · workers=1 · retries=0</span
+          >
         </div>
         <div class="p-4 space-y-3">
           <!-- 测试树 -->
           <div class="border rounded-md divide-y text-sm" data-testid="uit3-report-tree">
             <div class="px-3 py-2 flex items-center gap-2 text-slate-500">
-              <span>▾</span><span class="font-medium text-slate-700">describe「演示页 · 提交表单」</span>
+              <span>▾</span
+              ><span class="font-medium text-slate-700">describe「演示页 · 提交表单」</span>
               <span class="ml-auto text-xs">3 tests · 2 通过 1 失败</span>
             </div>
             <div class="flex items-center gap-3 px-3 py-2 pl-8">
@@ -290,15 +463,29 @@
               <span class="text-red-500 font-bold">✗</span>
               <span class="flex-1 font-medium">空用户名提交被拦截</span>
               <span class="text-xs text-slate-400">1.8s · retry 0</span>
-              <button class="text-xs text-[#574BFF]" data-testid="uit3-expand-error">展开错误 ▾</button>
+              <button class="text-xs text-[#574BFF]" data-testid="uit3-expand-error">
+                展开错误 ▾
+              </button>
             </div>
             <div class="px-3 py-2 pl-12 bg-red-50/40 space-y-2" data-testid="uit3-error-detail">
-              <div class="font-mono text-xs text-red-600">Error: expect(locator).toHaveText(expected) — Locator: locator('.demo-result-text')</div>
-              <div class="font-mono text-xs text-slate-600">Expected string: <span class="text-emerald-700">"用户名不能为空"</span> · Received string: <span class="text-red-600">"提交成功，guest"</span></div>
+              <div class="font-mono text-xs text-red-600">
+                Error: expect(locator).toHaveText(expected) — Locator: locator('.demo-result-text')
+              </div>
+              <div class="font-mono text-xs text-slate-600">
+                Expected string: <span class="text-emerald-700">"用户名不能为空"</span> · Received
+                string: <span class="text-red-600">"提交成功，guest"</span>
+              </div>
               <!-- 错误代码帧 -->
-              <div class="rounded border border-slate-700 overflow-hidden" data-testid="uit3-code-frame">
-                <div class="bg-slate-800 px-3 py-1 text-xs text-slate-400 font-mono">case.spec.ts:18</div>
-                <pre class="bg-slate-900 font-mono text-xs leading-5 text-slate-400 p-0 m-0"><span class="flex px-3"><span class="select-none w-6 text-right pr-2">16</span><span>  test('空用户名提交被拦截', async ({ page }) {</span></span>
+              <div
+                class="rounded border border-slate-700 overflow-hidden"
+                data-testid="uit3-code-frame"
+              >
+                <div class="bg-slate-800 px-3 py-1 text-xs text-slate-400 font-mono">
+                  case.spec.ts:18
+                </div>
+                <pre
+                  class="bg-slate-900 font-mono text-xs leading-5 text-slate-400 p-0 m-0"
+                ><span class="flex px-3"><span class="select-none w-6 text-right pr-2">16</span><span>  test('空用户名提交被拦截', async ({ page }) {</span></span>
 <span class="flex px-3"><span class="select-none w-6 text-right pr-2">17</span><span>    await page.goto(`${BASE}/uit/demo`);</span></span>
 <span class="flex px-3 bg-red-500/10"><span class="select-none w-6 text-right pr-2 text-red-400">18</span><span class="text-red-300">    await page.getByRole('button', { name: '提交' }).click();  <span class="text-red-500">◀</span></span></span>
 <span class="flex px-3"><span class="select-none w-6 text-right pr-2">19</span><span>    await expect(page.locator('.demo-result-text'))</span></span>
@@ -314,10 +501,16 @@
           <!-- 截图 + trace -->
           <div class="grid grid-cols-[1fr_280px] gap-3">
             <div>
-              <div class="text-xs text-slate-500 mb-1">失败现场截图（screenshot=only-on-failure；点击放大）</div>
+              <div class="text-xs text-slate-500 mb-1">
+                失败现场截图（screenshot=only-on-failure；点击放大）
+              </div>
               <div class="grid grid-cols-2 gap-3" data-testid="uit3-fail-shots">
                 <div class="border-2 border-red-300 rounded p-2 space-y-1">
-                  <div class="h-28 bg-slate-100 rounded flex items-center justify-center text-xs text-red-400">失败现场 · 空用户名提交被拦截</div>
+                  <div
+                    class="h-28 bg-slate-100 rounded flex items-center justify-center text-xs text-red-400"
+                  >
+                    失败现场 · 空用户名提交被拦截
+                  </div>
                   <div class="text-xs text-slate-400">18.2 KB · png</div>
                 </div>
               </div>
@@ -327,10 +520,18 @@
               <div class="border rounded p-3 space-y-2 text-sm" data-testid="uit3-trace-card">
                 <div class="font-mono text-xs">trace.zip · 2.8 MB</div>
                 <div class="flex gap-2">
-                  <button class="bg-[#574BFF] text-white rounded px-2.5 py-1 text-xs" data-testid="uit3-trace-download">下载</button>
+                  <button
+                    class="bg-[#574BFF] text-white rounded px-2.5 py-1 text-xs"
+                    data-testid="uit3-trace-download"
+                  >
+                    下载
+                  </button>
                   <button class="border rounded px-2.5 py-1 text-xs">回放指引</button>
                 </div>
-                <div class="text-xs text-slate-400">本地回放：<span class="font-mono">npx playwright show-trace trace.zip</span><br/>（网页内嵌 viewer = P2，已登记）</div>
+                <div class="text-xs text-slate-400">
+                  本地回放：<span class="font-mono">npx playwright show-trace trace.zip</span
+                  ><br />（网页内嵌 viewer = P2，已登记）
+                </div>
               </div>
             </div>
           </div>
@@ -340,36 +541,77 @@
       <!-- ═══════════ 画板四 · 执行报告（成功态） ═══════════ -->
       <section class="bg-white border rounded-md" data-testid="uit3-report-ok-board">
         <div class="px-4 py-3 border-b flex items-center gap-2">
-          <span class="font-medium">画板四 · 执行报告（成功态 · 步骤模式用例报告不变，见 UIT-002 画板四）</span>
-          <span class="border rounded px-1.5 py-0.5 text-xs text-emerald-600 border-emerald-200 bg-emerald-50">SUCCESS · 3/3</span>
+          <span class="font-medium"
+            >画板四 · 执行报告（成功态 · 步骤模式用例报告不变，见 UIT-002 画板四）</span
+          >
+          <span
+            class="border rounded px-1.5 py-0.5 text-xs text-emerald-600 border-emerald-200 bg-emerald-50"
+            >SUCCESS · 3/3</span
+          >
           <span class="text-xs text-slate-400 ml-auto">chromium headless · 5.1s</span>
         </div>
         <div class="p-4 space-y-3">
           <div class="border rounded-md divide-y text-sm" data-testid="uit3-ok-tree">
             <div class="px-3 py-2 flex items-center gap-2 text-slate-500">
-              <span>▾</span><span class="font-medium text-slate-700">describe「演示页 · 提交表单」</span>
+              <span>▾</span
+              ><span class="font-medium text-slate-700">describe「演示页 · 提交表单」</span>
               <span class="ml-auto text-xs">3 tests · 全部通过</span>
             </div>
-            <div class="flex items-center gap-3 px-3 py-2 pl-8"><span class="text-emerald-500 font-bold">✓</span><span class="flex-1">正确用户名提交成功</span><span class="text-xs text-slate-400">1.1s</span></div>
-            <div class="flex items-center gap-3 px-3 py-2 pl-8"><span class="text-emerald-500 font-bold">✓</span><span class="flex-1">空用户名提交被拦截</span><span class="text-xs text-slate-400">0.9s</span></div>
-            <div class="flex items-center gap-3 px-3 py-2 pl-8"><span class="text-emerald-500 font-bold">✓</span><span class="flex-1">结果文案元素可见</span><span class="text-xs text-slate-400">0.8s</span></div>
+            <div class="flex items-center gap-3 px-3 py-2 pl-8">
+              <span class="text-emerald-500 font-bold">✓</span
+              ><span class="flex-1">正确用户名提交成功</span
+              ><span class="text-xs text-slate-400">1.1s</span>
+            </div>
+            <div class="flex items-center gap-3 px-3 py-2 pl-8">
+              <span class="text-emerald-500 font-bold">✓</span
+              ><span class="flex-1">空用户名提交被拦截</span
+              ><span class="text-xs text-slate-400">0.9s</span>
+            </div>
+            <div class="flex items-center gap-3 px-3 py-2 pl-8">
+              <span class="text-emerald-500 font-bold">✓</span
+              ><span class="flex-1">结果文案元素可见</span
+              ><span class="text-xs text-slate-400">0.8s</span>
+            </div>
           </div>
-          <div class="text-xs text-slate-400">成功态无截图（screenshot=only-on-failure）；trace.zip 照常产出可下载（复用画板三 trace 卡）。</div>
+          <div class="text-xs text-slate-400">
+            成功态无截图（screenshot=only-on-failure）；trace.zip 照常产出可下载（复用画板三 trace
+            卡）。
+          </div>
         </div>
       </section>
 
       <!-- ═══════════ 设计说明 ═══════════ -->
-      <section class="bg-white border rounded-md text-xs text-slate-500 space-y-1.5" data-testid="uit3-notes">
+      <section
+        class="bg-white border rounded-md text-xs text-slate-500 space-y-1.5"
+        data-testid="uit3-notes"
+      >
         <div class="px-4 py-2 border-b text-sm text-slate-700 font-medium">设计说明</div>
         <div class="px-4 py-3 space-y-1.5">
-          <div>① <b>直录直执行</b>：脚本=标准 Playwright Test 文件，AI 产出零改造粘贴即用；引擎以官方 <span class="font-mono">playwright test</span> 子进程执行（语义零漂移：fixtures / describe / beforeEach / web-first expect / trace 全支持）。</div>
-          <div>② <b>存量兼容</b>：UIT-002 步骤用例零迁移（模式=步骤），编辑器/执行/报告原样保留；新建默认脚本模式，两模式数据独立（切换不丢内容），不做自动互转。</div>
-          <div>③ <b>安全口径</b>：脚本=受信全功能载荷（MeterSphere 脚本模块同口径，不走 quickjs——Playwright 需真实 Node 运行时）；补偿控制=PROJECT_UIT:CREATE/UPDATE 权限门禁+入库审计+独立子进程可强杀+任务总超时 600s 硬顶（rules/engine.md §6 例外随实现 PR 修订）。</div>
-          <div>④ <b>P2 登记</b>：编辑器 API 补全/格式化、内嵌 trace viewer、AI 生成脚本（对接 AI-004）、.spec.ts/zip 文件导入、多浏览器与设备矩阵。</div>
-          <div>⑤ 权限沿用 PROJECT_UIT:READ|CREATE|UPDATE|DELETE|EXECUTE；开源全功能口径（ENTP-009），无 License 门控。</div>
+          <div>
+            ① <b>直录直执行</b>：脚本=标准 Playwright Test 文件，AI 产出零改造粘贴即用；引擎以官方
+            <span class="font-mono">playwright test</span> 子进程执行（语义零漂移：fixtures /
+            describe / beforeEach / web-first expect / trace 全支持）。
+          </div>
+          <div>
+            ② <b>存量兼容</b>：UIT-002
+            步骤用例零迁移（模式=步骤），编辑器/执行/报告原样保留；新建默认脚本模式，两模式数据独立（切换不丢内容），不做自动互转。
+          </div>
+          <div>
+            ③ <b>安全口径</b>：脚本=受信全功能载荷（MeterSphere 脚本模块同口径，不走
+            quickjs——Playwright 需真实 Node 运行时）；补偿控制=PROJECT_UIT:CREATE/UPDATE
+            权限门禁+入库审计+独立子进程可强杀+任务总超时 600s 硬顶（rules/engine.md §6 例外随实现
+            PR 修订）。
+          </div>
+          <div>
+            ④ <b>P2 登记</b>：编辑器 API 补全/格式化、内嵌 trace viewer、AI 生成脚本（对接
+            AI-004）、.spec.ts/zip 文件导入、多浏览器与设备矩阵。
+          </div>
+          <div>
+            ⑤ 权限沿用 PROJECT_UIT:READ|CREATE|UPDATE|DELETE|EXECUTE；开源全功能口径（ENTP-009），无
+            License 门控。
+          </div>
         </div>
       </section>
-
     </main>
   </body>
 </html>

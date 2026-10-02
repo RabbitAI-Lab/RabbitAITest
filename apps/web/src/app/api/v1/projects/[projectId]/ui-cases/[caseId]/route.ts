@@ -2,11 +2,7 @@ import { NextResponse } from "next/server";
 import { ok, uiCaseUpdateSchema } from "@rabbit/shared";
 import { withProjectScope, toResponse } from "@/server/guard";
 import { assertEntpEnabled } from "@/server/domains/entp/license.service";
-import {
-  getUiCase,
-  updateUiCase,
-  deleteUiCase,
-} from "@/server/domains/exec/uit.service";
+import { getUiCase, updateUiCase, deleteUiCase } from "@/server/domains/exec/uit.service";
 
 export const runtime = "nodejs";
 

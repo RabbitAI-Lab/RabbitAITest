@@ -31,7 +31,10 @@ export interface PiRunOptions {
   /** 平台工具目录子集 */
   tools: { key: string; title: string; description: string; write: boolean; input: ZodTypeAny }[];
   /** 工具执行桥（校验/权限/截断在调用方） */
-  callTool: (key: string, input: Record<string, unknown>) => Promise<{ ok: boolean; result: unknown }>;
+  callTool: (
+    key: string,
+    input: Record<string, unknown>,
+  ) => Promise<{ ok: boolean; result: unknown }>;
   onEvent: (e: PiEvent) => void;
 }
 

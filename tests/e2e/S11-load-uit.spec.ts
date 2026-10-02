@@ -30,7 +30,14 @@ async function assertFreshProjectModulesDefaultOn(page: import("@playwright/test
     expect(info.status()).toBe(200);
     const modules = ((await info.json()) as { data: { modules: Record<string, boolean> } }).data
       .modules;
-    expect(modules).toMatchObject({ case: true, api: true, plan: true, bug: true, load: true, uit: true });
+    expect(modules).toMatchObject({
+      case: true,
+      api: true,
+      plan: true,
+      bug: true,
+      load: true,
+      uit: true,
+    });
   } finally {
     await ctx.close();
   }
@@ -62,7 +69,9 @@ async function ensureCommunity(page: import("@playwright/test").Page) {
   try {
     await loginSeedAdmin(adminCtx.request, adminCtx);
     for (let round = 0; round < 40 && streak < 2; round++) {
-      const r = await adminCtx.request.get("/api/v1/public/license-status", { headers: { "cache-control": "no-store" } });
+      const r = await adminCtx.request.get("/api/v1/public/license-status", {
+        headers: { "cache-control": "no-store" },
+      });
       const j = (await r.json()) as { data: { edition: string } };
       if (j.data.edition === "COMMUNITY") {
         streak += 1;
@@ -229,21 +238,49 @@ test("UIT-002-T7 建元素 3 个→建用例（mock /uit/demo 4 步）→执行�
   await page.getByPlaceholder("http(s) 绝对 URL").fill(`${MOCK_URL}/uit/demo`);
   // 步骤 2：fill（用户名输入框 ← e2e-rabbit）
   await page.getByTestId("uit-add-step").click();
-  await pickOption(page, page.getByTestId("uit-step-op-1").locator(".ant-select").first(), "fill（填写输入）");
-  await pickOption(page, page.getByTestId("uit-step-element-1").locator(".ant-select").first(), /用户名输入框/);
+  await pickOption(
+    page,
+    page.getByTestId("uit-step-op-1").locator(".ant-select").first(),
+    "fill（填写输入）",
+  );
+  await pickOption(
+    page,
+    page.getByTestId("uit-step-element-1").locator(".ant-select").first(),
+    /用户名输入框/,
+  );
   await page.getByPlaceholder("填写值").fill("e2e-rabbit");
   // 步骤 3：click（提交按钮）
   await page.getByTestId("uit-add-step").click();
-  await pickOption(page, page.getByTestId("uit-step-op-2").locator(".ant-select").first(), "click（点击元素）");
-  await pickOption(page, page.getByTestId("uit-step-element-2").locator(".ant-select").first(), /提交按钮/);
+  await pickOption(
+    page,
+    page.getByTestId("uit-step-op-2").locator(".ant-select").first(),
+    "click（点击元素）",
+  );
+  await pickOption(
+    page,
+    page.getByTestId("uit-step-element-2").locator(".ant-select").first(),
+    /提交按钮/,
+  );
   // 步骤 4：assert-text（结果文案 期望 提交成功，e2e-rabbit）
   await page.getByTestId("uit-add-step").click();
-  await pickOption(page, page.getByTestId("uit-step-op-3").locator(".ant-select").first(), "assert-text（断言文案）");
-  await pickOption(page, page.getByTestId("uit-step-element-3").locator(".ant-select").first(), /结果文案/);
+  await pickOption(
+    page,
+    page.getByTestId("uit-step-op-3").locator(".ant-select").first(),
+    "assert-text（断言文案）",
+  );
+  await pickOption(
+    page,
+    page.getByTestId("uit-step-element-3").locator(".ant-select").first(),
+    /结果文案/,
+  );
   await page.getByPlaceholder("期望包含的文案").fill("提交成功，e2e-rabbit");
   // 步骤 5：screenshot（终态截图——验证 ui-screenshot 帧与报告网格）
   await page.getByTestId("uit-add-step").click();
-  await pickOption(page, page.getByTestId("uit-step-op-4").locator(".ant-select").first(), "screenshot（截图）");
+  await pickOption(
+    page,
+    page.getByTestId("uit-step-op-4").locator(".ant-select").first(),
+    "screenshot（截图）",
+  );
 
   await page.getByTestId("uit-save-btn").click();
   // 创建完成信号=跳回列表+表格含名
@@ -482,4 +519,3 @@ test("LOAD-001-T4b 资源池 DTO 占位字段（loadTest/uiTest=false 联动 §4
   expect(body.data.items[0]?.uiTest).toBe(false);
   await expectNoConsoleErrors();
 });
-

@@ -496,8 +496,8 @@ function ProcessorList({
                   </div>
                 </div>
                 <p className="text-xs text-[#FA8C16]" data-testid={`sql-guard-hint-${i + 1}`}>
-                  只读防线：单条 SELECT/WITH（禁 INTO · FOR UPDATE）+ READ ONLY 事务；变量值只经绑定参数传入（不拼入
-                  SQL 文本）
+                  只读防线：单条 SELECT/WITH（禁 INTO · FOR UPDATE）+ READ ONLY
+                  事务；变量值只经绑定参数传入（不拼入 SQL 文本）
                 </p>
               </div>
             )}

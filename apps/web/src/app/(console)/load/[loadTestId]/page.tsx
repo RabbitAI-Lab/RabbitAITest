@@ -24,7 +24,9 @@ export default function LoadEditPage() {
     <div className="p-4 md:p-6 space-y-4 max-w-[1100px]">
       <PageHeader title={`编辑施压计划${data ? ` · ${data.name}` : ""}`} sub="性能测试" />
       <Spin spinning={isLoading}>
-        {data && currentProjectId ? <LoadPlanForm projectId={currentProjectId} initial={data} /> : null}
+        {data && currentProjectId ? (
+          <LoadPlanForm projectId={currentProjectId} initial={data} />
+        ) : null}
       </Spin>
     </div>
   );

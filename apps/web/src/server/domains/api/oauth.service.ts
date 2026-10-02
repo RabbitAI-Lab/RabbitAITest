@@ -41,7 +41,8 @@ function hashEquals(a: string, b: string): boolean {
 function genUserCode(): string {
   let code = "";
   const bytes = randomBytes(8);
-  for (let i = 0; i < 8; i++) code += USER_CODE_CHARSET.charAt(bytes[i]! % USER_CODE_CHARSET.length);
+  for (let i = 0; i < 8; i++)
+    code += USER_CODE_CHARSET.charAt(bytes[i]! % USER_CODE_CHARSET.length);
   return code;
 }
 
@@ -147,9 +148,17 @@ async function findPending(normalized: string) {
 }
 
 /** 批准/拒绝（session 本人）；无效/过期 → 422 10030。错码锁定（≥5 次/10 分钟，用户维度）由 route 层计数。 */
-export async function approveDeviceCode(raw: string, userId: string, approve: boolean): Promise<void> {
+export async function approveDeviceCode(
+  raw: string,
+  userId: string,
+  approve: boolean,
+): Promise<void> {
   const row = await findPending(normalizeUserCode(raw));
-  if (!row) throw new DomainError(ErrCode.OAUTH_USER_CODE_INVALID, ErrMsg[ErrCode.OAUTH_USER_CODE_INVALID]!);
+  if (!row)
+    throw new DomainError(
+      ErrCode.OAUTH_USER_CODE_INVALID,
+      ErrMsg[ErrCode.OAUTH_USER_CODE_INVALID]!,
+    );
   await prisma.oAuthDeviceCode.update({
     where: { id: row.id },
     data: approve
@@ -311,7 +320,8 @@ export async function listGrants(userId: string) {
 
 export async function revokeGrant(userId: string, grantId: string): Promise<void> {
   const row = await prisma.oAuthGrant.findFirst({ where: { id: grantId, userId } });
-  if (!row) throw new DomainError(ErrCode.OAUTH_GRANT_NOT_FOUND, ErrMsg[ErrCode.OAUTH_GRANT_NOT_FOUND]!);
+  if (!row)
+    throw new DomainError(ErrCode.OAUTH_GRANT_NOT_FOUND, ErrMsg[ErrCode.OAUTH_GRANT_NOT_FOUND]!);
   await prisma.oAuthGrant.update({
     where: { id: grantId },
     data: { status: "REVOKED", revokedAt: new Date(), refreshTokenHash: null },

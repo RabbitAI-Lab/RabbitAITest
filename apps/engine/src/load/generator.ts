@@ -7,12 +7,7 @@ import { Agent, request } from "undici";
 import pLimit from "p-limit";
 import type Redis from "ioredis";
 import { config, percentile } from "@rabbit/shared";
-import type {
-  LoadCommand,
-  LoadMetricFrame,
-  LoadSummary,
-  LoadVerdictItem,
-} from "@rabbit/shared";
+import type { LoadCommand, LoadMetricFrame, LoadSummary, LoadVerdictItem } from "@rabbit/shared";
 import { logFor } from "@rabbit/shared/logger";
 
 /** ───────────── 调度表（纯函数，Vitest 直测） ───────────── */
@@ -110,9 +105,24 @@ export function summarize(
   const p95Ms = frames.length ? Math.max(...frames.map((f) => f.rtP95)) : 0;
   const p99Ms = frames.length ? Math.max(...frames.map((f) => f.rtP99)) : 0;
   const items: LoadVerdictItem[] = [
-    { key: "okRate", threshold: thresholds.okRateMin, actual: okRate, passed: okRate >= thresholds.okRateMin },
-    { key: "p95", threshold: thresholds.p95MsMax, actual: p95Ms, passed: p95Ms <= thresholds.p95MsMax },
-    { key: "avg", threshold: thresholds.avgMsMax, actual: avgMs, passed: avgMs <= thresholds.avgMsMax },
+    {
+      key: "okRate",
+      threshold: thresholds.okRateMin,
+      actual: okRate,
+      passed: okRate >= thresholds.okRateMin,
+    },
+    {
+      key: "p95",
+      threshold: thresholds.p95MsMax,
+      actual: p95Ms,
+      passed: p95Ms <= thresholds.p95MsMax,
+    },
+    {
+      key: "avg",
+      threshold: thresholds.avgMsMax,
+      actual: avgMs,
+      passed: avgMs <= thresholds.avgMsMax,
+    },
   ];
   return {
     seconds: frames.length,

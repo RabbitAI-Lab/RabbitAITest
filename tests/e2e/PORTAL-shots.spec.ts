@@ -1,11 +1,5 @@
 import { test, expect, navFromHome } from "./fixtures";
-import {
-  createScenario,
-  saveSteps,
-  customStep,
-  loopForeachStep,
-  waitStep,
-} from "./s3-helpers";
+import { createScenario, saveSteps, customStep, loopForeachStep, waitStep } from "./s3-helpers";
 
 /**
  * 门户站（portal/）真实界面截图采集——非 CI 用例，站点素材复采工具。
@@ -107,7 +101,7 @@ test("PORTAL-case-mindmap 脑图模式", async ({ authedPage, page, request }) =
 test("PORTAL-apis 接口定义列表", async ({ authedPage, page, request }) => {
   const pid = authedPage.projectId;
   const mods = await request.get(`/api/v1/projects/${pid}/modules?scene=api`);
-  const modId = (((await mods.json()) as { data: { items: { id: string }[] } }).data.items[0]).id;
+  const modId = ((await mods.json()) as { data: { items: { id: string }[] } }).data.items[0].id;
   const spec = {
     method: "GET",
     url: "/pets/{id}",
@@ -124,7 +118,13 @@ test("PORTAL-apis 接口定义列表", async ({ authedPage, page, request }) => 
     data: {
       moduleId: modId,
       name: "查询宠物",
-      request: { spec, asserts: [{ kind: "status_code", path: "", op: "eq", expected: "200" }], pre: [], post: [], extracts: [] },
+      request: {
+        spec,
+        asserts: [{ kind: "status_code", path: "", op: "eq", expected: "200" }],
+        pre: [],
+        post: [],
+        extracts: [],
+      },
       response: { status: 200, headers: [], body: '{"code":0,"data":{"kind":"dog"}}' },
     },
   });
@@ -132,7 +132,13 @@ test("PORTAL-apis 接口定义列表", async ({ authedPage, page, request }) => 
     data: {
       moduleId: modId,
       name: "创建订单",
-      request: { spec: { ...spec, method: "POST", url: "/orders" }, asserts: [], pre: [], post: [], extracts: [] },
+      request: {
+        spec: { ...spec, method: "POST", url: "/orders" },
+        asserts: [],
+        pre: [],
+        post: [],
+        extracts: [],
+      },
       response: { status: 200, headers: [], body: '{"code":0}' },
     },
   });
@@ -145,7 +151,7 @@ test("PORTAL-apis 接口定义列表", async ({ authedPage, page, request }) => 
 test("PORTAL-apis-detail 接口定义详情", async ({ authedPage, page, request }) => {
   const pid = authedPage.projectId;
   const mods = await request.get(`/api/v1/projects/${pid}/modules?scene=api`);
-  const modId = (((await mods.json()) as { data: { items: { id: string }[] } }).data.items[0]).id;
+  const modId = ((await mods.json()) as { data: { items: { id: string }[] } }).data.items[0].id;
   await request.post(`/api/v1/projects/${pid}/apis`, {
     data: {
       moduleId: modId,
@@ -191,7 +197,9 @@ test("PORTAL-scenario 场景编排（含循环/请求/等待步骤）", async ({
   const pid = authedPage.projectId;
   const sc = await createScenario(request, pid, { name: "下单冒烟场景" });
   await saveSteps(request, pid, sc.id, [
-    customStep("查询商品", MOCK_URL, [{ kind: "status_code", path: "", op: "eq", expected: "200" }]),
+    customStep("查询商品", MOCK_URL, [
+      { kind: "status_code", path: "", op: "eq", expected: "200" },
+    ]),
     loopForeachStep("遍历购物车", "cartList", customStep("提交订单", MOCK_URL)),
     waitStep("等待库存同步", 500),
   ]);
@@ -273,9 +281,9 @@ test("PORTAL-ai-assistant AI 智能助手对话", async ({ authedPage, page }) =
   await expect(page.getByTestId("ai-assistant-drawer")).toBeVisible();
   await page.getByTestId("ai-chat-input").fill("密码锁定策略怎么设计用例？");
   await page.getByTestId("ai-chat-send").click();
-  await expect(
-    page.getByTestId("ai-chat-messages").getByText(/边界值/),
-  ).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByTestId("ai-chat-messages").getByText(/边界值/)).toBeVisible({
+    timeout: 20_000,
+  });
   await page.waitForTimeout(800);
   await page.screenshot({ path: `${SHOTS}/ai-assistant.png` });
 });

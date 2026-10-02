@@ -26,7 +26,12 @@ export const POST = withProjectScope(async (ctx, req) => {
       action: "agent.create",
       objectType: "project_agent",
       objectId: created.id,
-      detail: { name: created.name, mode: created.mode, role: created.role, fromTemplate: body.fromTemplate ?? null },
+      detail: {
+        name: created.name,
+        mode: created.mode,
+        role: created.role,
+        fromTemplate: body.fromTemplate ?? null,
+      },
     });
     void flushAudit();
     return okResponse(created, 201);

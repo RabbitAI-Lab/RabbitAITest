@@ -66,7 +66,9 @@ export function createPlugin(): DriverPlugin {
       const timeoutMs = req.timeoutMs ?? QUERY_TIMEOUT_MS;
       const placeholders = (req.sqlText.match(/\?/g) ?? []).length;
       if (placeholders !== req.params.length) {
-        throw new Error(`占位符数量（${placeholders}）与绑定参数数量（${req.params.length}）不一致`);
+        throw new Error(
+          `占位符数量（${placeholders}）与绑定参数数量（${req.params.length}）不一致`,
+        );
       }
       const values = req.params.map((p) => p.value ?? null);
       return withConnection(

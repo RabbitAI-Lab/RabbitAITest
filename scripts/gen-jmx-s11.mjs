@@ -224,7 +224,10 @@ const g1 = threadGroup("SYS-009-T1 正常路径", [
     path: "/api/v1/oauth/device/code",
     method: "POST",
     raw: true,
-    body: form([["client_id", "rabbit-cli"], ["scope", "read,exec"]]),
+    body: form([
+      ["client_id", "rabbit-cli"],
+      ["scope", "read,exec"],
+    ]),
     headers: [["Content-Type", "application/x-www-form-urlencoded"]],
     fields: [["$.expires_in", "600"]],
     contains: [
@@ -325,7 +328,10 @@ const g2a = threadGroup("SYS-009-T2a read-scope 取证", [
     path: "/api/v1/oauth/device/code",
     method: "POST",
     raw: true,
-    body: form([["client_id", "rabbit-cli"], ["scope", "read"]]),
+    body: form([
+      ["client_id", "rabbit-cli"],
+      ["scope", "read"],
+    ]),
     headers: [["Content-Type", "application/x-www-form-urlencoded"]],
     contains: [["$.device_code", "rdc_"]],
     extracts: [
@@ -346,7 +352,10 @@ const g2a = threadGroup("SYS-009-T2a read-scope 取证", [
     path: "/api/v1/oauth/token",
     method: "POST",
     raw: true,
-    body: form([["grant_type", DEVICE_GRANT], ["device_code", "${D2}"]]),
+    body: form([
+      ["grant_type", DEVICE_GRANT],
+      ["device_code", "${D2}"],
+    ]),
     headers: [["Content-Type", "application/x-www-form-urlencoded"]],
     fields: [["$.scope", "read"]],
     extracts: [{ var: "AT_RO", path: "$.access_token" }],
@@ -462,7 +471,10 @@ const g3 = threadGroup("SYS-009-T3 校验失败", [
     method: "POST",
     status: 400,
     raw: true,
-    body: form([["client_id", "rabbit-cli"], ["scope", "admin"]]),
+    body: form([
+      ["client_id", "rabbit-cli"],
+      ["scope", "admin"],
+    ]),
     headers: [["Content-Type", "application/x-www-form-urlencoded"]],
     fields: [["$.error", "invalid_scope"]],
   }),

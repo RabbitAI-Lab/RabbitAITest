@@ -83,11 +83,7 @@ export default function AuthorizationsPage() {
       title: "状态",
       dataIndex: "status",
       render: (v: string, r: AuthorizationRow) =>
-        v === "ACTIVE" && !r.revokedAt ? (
-          <Tag color="success">生效中</Tag>
-        ) : (
-          <Tag>已吊销</Tag>
-        ),
+        v === "ACTIVE" && !r.revokedAt ? <Tag color="success">生效中</Tag> : <Tag>已吊销</Tag>,
     },
     {
       title: "操作",

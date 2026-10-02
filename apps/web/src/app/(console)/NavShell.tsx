@@ -33,7 +33,11 @@ export function NavShell({ children }: { children: React.ReactNode }) {
         // realm 容错重推导（旧数据/手改 sessionStorage 不致命）
         if (Array.isArray(saved) && saved.every((t) => typeof t?.key === "string")) {
           restore(
-            saved.map((t) => ({ key: t.key, realm: realmOf(t.key), pinned: t.pinned ?? undefined })),
+            saved.map((t) => ({
+              key: t.key,
+              realm: realmOf(t.key),
+              pinned: t.pinned ?? undefined,
+            })),
             ak,
           );
         }

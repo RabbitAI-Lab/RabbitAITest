@@ -20,10 +20,12 @@ function isAmqpConfig(v: unknown): v is AmqpConfig {
   const c = v as Partial<AmqpConfig>;
   if (typeof c?.url !== "string" || (!c.url.startsWith("amqp://") && !c.url.startsWith("amqps://")))
     return false;
-  if (typeof c.message !== "string" || c.message.length === 0 || c.message.length > 4096) return false;
+  if (typeof c.message !== "string" || c.message.length === 0 || c.message.length > 4096)
+    return false;
   if (c.routingKey !== undefined && (typeof c.routingKey !== "string" || c.routingKey.length > 256))
     return false;
-  if (c.exchange !== undefined && (typeof c.exchange !== "string" || c.exchange.length > 256)) return false;
+  if (c.exchange !== undefined && (typeof c.exchange !== "string" || c.exchange.length > 256))
+    return false;
   if (
     c.timeoutMs !== undefined &&
     (!Number.isInteger(c.timeoutMs) || c.timeoutMs < 100 || c.timeoutMs > 30_000)

@@ -13,7 +13,13 @@ import { MongoClient } from "mongodb";
 import net from "node:net";
 import crypto from "node:crypto";
 
-const { Server: GrpcServer, ServerCredentials, credentials, loadPackageDefinition, Metadata } = grpcPkg;
+const {
+  Server: GrpcServer,
+  ServerCredentials,
+  credentials,
+  loadPackageDefinition,
+  Metadata,
+} = grpcPkg;
 const grpc = grpcPkg;
 const protoLoader = protoLoaderPkg;
 const { Server: SshServer } = ssh2;
@@ -37,14 +43,22 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 const protoPath = join(tmpdir(), `plug005-demo-${Date.now()}.proto`);
 writeFileSync(protoPath, PROTO);
-const pkgDef = protoLoader.loadSync(protoPath, { keepCase: true, longs: String, enums: String, defaults: true, oneofs: true });
+const pkgDef = protoLoader.loadSync(protoPath, {
+  keepCase: true,
+  longs: String,
+  enums: String,
+  defaults: true,
+  oneofs: true,
+});
 const pkg = loadPackageDefinition(pkgDef).plug005;
 const gserver = new GrpcServer();
 gserver.addService(pkg.Echo.service, {
   Say: (call, cb) => cb(null, { text: `got:${call.request.text}` }),
 });
 const grpcPort = await new Promise((res) => {
-  gserver.bindAsync(`127.0.0.1:${GRPC_PORT}`, ServerCredentials.createInsecure(), (_e, p) => res(p));
+  gserver.bindAsync(`127.0.0.1:${GRPC_PORT}`, ServerCredentials.createInsecure(), (_e, p) =>
+    res(p),
+  );
 });
 gserver.start();
 log(`gRPC echo server on 127.0.0.1:${grpcPort}（unary Say → got:<text>）`);
@@ -63,22 +77,33 @@ const str = (s) => {
 };
 const pubBlob = Buffer.concat([str("ssh-ed25519"), str(pubKey)]);
 const check = crypto.randomBytes(4);
-const privPayload = Buffer.concat([check, check, str("ssh-ed25519"), str(pubKey), str(Buffer.concat([seed, pubKey])), str("")]);
+const privPayload = Buffer.concat([
+  check,
+  check,
+  str("ssh-ed25519"),
+  str(pubKey),
+  str(Buffer.concat([seed, pubKey])),
+  str(""),
+]);
 const padLen = 8 - (privPayload.length % 8);
 const padding = Buffer.from(Array.from({ length: padLen === 8 ? 0 : padLen }, (_, i) => i + 1));
 const privBlob = Buffer.concat([privPayload, padding]);
 const openssh = Buffer.concat([
   Buffer.from("openssh-key-v1\0"),
-  str("none"), str("none"), str(""),
+  str("none"),
+  str("none"),
+  str(""),
   Buffer.from([0, 0, 0, 1]),
-  str(pubBlob), str(privBlob),
+  str(pubBlob),
+  str(privBlob),
 ]);
 const b64 = openssh.toString("base64").replace(/.{1,70}/g, "$&\n");
 const hostKeyPem = `-----BEGIN OPENSSH PRIVATE KEY-----\n${b64}\n-----END OPENSSH PRIVATE KEY-----\n`;
 const sshServer = new SshServer({ hostKeys: [hostKeyPem] }, (client) => {
   client
     .on("authentication", (ctx) => {
-      if (ctx.username === "demo" && (ctx.password === undefined || ctx.password === "rabbit-demo")) ctx.accept();
+      if (ctx.username === "demo" && (ctx.password === undefined || ctx.password === "rabbit-demo"))
+        ctx.accept();
       else ctx.reject();
     })
     .on("ready", () => {
@@ -94,7 +119,9 @@ const sshServer = new SshServer({ hostKeys: [hostKeyPem] }, (client) => {
     .on("error", () => {});
 });
 await new Promise((r) => sshServer.listen(SSH_PORT, "127.0.0.1", r));
-log(`SSH 服务 on 127.0.0.1:${SSH_PORT}（user=demo / password=rabbit-demo，exec 回显 demo-host:<cmd>）`);
+log(
+  `SSH 服务 on 127.0.0.1:${SSH_PORT}（user=demo / password=rabbit-demo，exec 回显 demo-host:<cmd>）`,
+);
 
 // ── ③ mongo 演示数据（容器就绪后预置）──
 const waitTcp = async (host, port, label, tries = 60) => {

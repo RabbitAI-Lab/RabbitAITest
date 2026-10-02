@@ -137,7 +137,11 @@ async function syncPlatformDocs(projectId: string, docsDir: string, step: (s: En
     const stale = entry.split(":")[0];
     if (!next[id] && stale) await fs.rm(path.join(docsDir, stale), { force: true }).catch(() => {});
   }
-  step({ kind: "docs_sync", detail: `platform-docs 同步 ${copied} 复制 / ${skipped} 跳过`, ms: Date.now() - t0 });
+  step({
+    kind: "docs_sync",
+    detail: `platform-docs 同步 ${copied} 复制 / ${skipped} 跳过`,
+    ms: Date.now() - t0,
+  });
 }
 
 export interface EnsureWorkspaceInput {
@@ -177,11 +181,9 @@ export async function ensureWorkspace(
       .catch(() => false);
     let t0 = Date.now();
     if (!exists) {
-      const res = await run(
-        "git",
-        ["clone", "--branch", r.branch, "--single-branch", url, dir],
-        { timeoutMs: 300_000 },
-      );
+      const res = await run("git", ["clone", "--branch", r.branch, "--single-branch", url, dir], {
+        timeoutMs: 300_000,
+      });
       if (res.code !== 0) {
         throw new DomainError(
           ErrCode.AGENT_WS_PREPARE_FAILED,
@@ -234,7 +236,11 @@ export async function ensureWorkspace(
       throw new DomainError(ErrCode.AGENT_WS_PREPARE_FAILED, `创建软链失败：${String(e)}`);
     });
   }
-  step({ kind: "task_dir", detail: `tasks/${input.runId}/ 创建 + 软链 + output/`, ms: Date.now() - t0 });
+  step({
+    kind: "task_dir",
+    detail: `tasks/${input.runId}/ 创建 + 软链 + output/`,
+    ms: Date.now() - t0,
+  });
 
   return { taskDir, wsDir };
 }

@@ -68,16 +68,12 @@ const agentBaseSchema = z.object({
   description: z.string().max(512).optional(),
   role: z.enum(AGENT_ROLES).default("CUSTOM"),
   mode: z.enum(AGENT_MODES).default("chat"),
-  modelId: z.string().uuid(),
+  /** 空=系统默认模型（服务端补齐） */
+  modelId: z.string().uuid().optional(),
   systemPrompt: z.string().min(1).max(AGENT_SYSTEM_PROMPT_MAX),
   modelParams: agentModelParamsSchema.default({ temperature: 0.3, maxTokens: 4096 }),
   maxIterations: z.number().int().min(1).max(AGENT_MAX_ITERATIONS_MAX).default(12),
-  timeoutMs: z
-    .number()
-    .int()
-    .min(10_000)
-    .max(AGENT_TIMEOUT_MS_MAX)
-    .default(300_000),
+  timeoutMs: z.number().int().min(10_000).max(AGENT_TIMEOUT_MS_MAX).default(300_000),
   repoIds: z.array(z.string().uuid()).max(10).default([]),
   toolKeys: z.array(z.string().max(64)).max(32).default([]),
   skillIds: z.array(z.string().uuid()).max(AGENT_SKILL_REFS_MAX).default([]),
@@ -162,7 +158,10 @@ export type AgentSkillView = z.infer<typeof agentSkillViewSchema>;
 // ── 运行 ──
 
 export const agentRunCreateSchema = z.object({
-  message: z.string().min(1).max(32 * 1024),
+  message: z
+    .string()
+    .min(1)
+    .max(32 * 1024),
 });
 export type AgentRunCreateInput = z.infer<typeof agentRunCreateSchema>;
 

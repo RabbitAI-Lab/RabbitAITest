@@ -5,11 +5,7 @@ import { Button, Input, InputNumber, Select, Space, Table, message } from "antd"
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import {
-  loadApi,
-  ApiError,
-  type LoadTestRow,
-} from "@rabbit/api-client";
+import { loadApi, ApiError, type LoadTestRow } from "@rabbit/api-client";
 import type { LoadPressure, LoadTarget, LoadThresholds } from "@rabbit/shared";
 
 interface RampRow {
@@ -17,13 +13,7 @@ interface RampRow {
   concurrency: number;
 }
 
-export function LoadPlanForm({
-  projectId,
-  initial,
-}: {
-  projectId: string;
-  initial?: LoadTestRow;
-}) {
+export function LoadPlanForm({ projectId, initial }: { projectId: string; initial?: LoadTestRow }) {
   const router = useRouter();
   const qc = useQueryClient();
   const [msg, msgCtx] = message.useMessage();
@@ -88,7 +78,10 @@ export function LoadPlanForm({
             <Select
               value={method}
               onChange={(v) => setMethod(v as LoadTarget["method"])}
-              options={["GET", "POST", "PUT", "DELETE", "PATCH"].map((m) => ({ value: m, label: m }))}
+              options={["GET", "POST", "PUT", "DELETE", "PATCH"].map((m) => ({
+                value: m,
+                label: m,
+              }))}
               style={{ width: 100 }}
             />
           </span>
@@ -230,7 +223,10 @@ export function LoadPlanForm({
               size="small"
               data-testid="load-ramp-add"
               onClick={() =>
-                setRamp([...ramp, { atSec: (ramp[ramp.length - 1]?.atSec ?? 0) + 30, concurrency: 10 }])
+                setRamp([
+                  ...ramp,
+                  { atSec: (ramp[ramp.length - 1]?.atSec ?? 0) + 30, concurrency: 10 },
+                ])
               }
             >
               + 添加阶梯
@@ -244,15 +240,31 @@ export function LoadPlanForm({
         <div className="flex gap-4 flex-wrap">
           <label className="text-sm space-y-1 block">
             <span className="text-xs text-slate-500 block">成功率 ≥（%）</span>
-            <InputNumber min={0} max={100} value={okRateMin} onChange={(v) => setOkRateMin(v ?? 99)} data-testid="load-ok-rate" />
+            <InputNumber
+              min={0}
+              max={100}
+              value={okRateMin}
+              onChange={(v) => setOkRateMin(v ?? 99)}
+              data-testid="load-ok-rate"
+            />
           </label>
           <label className="text-sm space-y-1 block">
             <span className="text-xs text-slate-500 block">P95 ≤（ms）</span>
-            <InputNumber min={1} value={p95MsMax} onChange={(v) => setP95MsMax(v ?? 500)} data-testid="load-p95" />
+            <InputNumber
+              min={1}
+              value={p95MsMax}
+              onChange={(v) => setP95MsMax(v ?? 500)}
+              data-testid="load-p95"
+            />
           </label>
           <label className="text-sm space-y-1 block">
             <span className="text-xs text-slate-500 block">平均 RT ≤（ms）</span>
-            <InputNumber min={1} value={avgMsMax} onChange={(v) => setAvgMsMax(v ?? 200)} data-testid="load-avg" />
+            <InputNumber
+              min={1}
+              value={avgMsMax}
+              onChange={(v) => setAvgMsMax(v ?? 200)}
+              data-testid="load-avg"
+            />
           </label>
         </div>
       </div>

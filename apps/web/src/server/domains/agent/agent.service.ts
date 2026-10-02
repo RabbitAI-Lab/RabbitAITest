@@ -19,13 +19,22 @@ import { Prisma, prisma } from "@rabbit/db";
 type AgentRow = NonNullable<Awaited<ReturnType<typeof prisma.projectAgent.findFirst>>>;
 
 async function getAgent(projectId: string, agentId: string): Promise<AgentRow> {
-  const row = await prisma.projectAgent.findFirst({ where: { id: agentId, projectId, deletedAt: null } });
+  const row = await prisma.projectAgent.findFirst({
+    where: { id: agentId, projectId, deletedAt: null },
+  });
   if (!row) throw new DomainError(ErrCode.AGENT_NOT_FOUND, "Agent 不存在或已删除");
   return row;
 }
 
 /** 六要素应用层校验（422 AGENT_CONFIG_INVALID / AGENT_MODEL_INVALID） */
-async function validateConfig(projectId: string, input: Partial<AgentCreateInput> & { skillIds?: string[]; repoIds?: string[]; toolKeys?: string[] }) {
+async function validateConfig(
+  projectId: string,
+  input: Partial<AgentCreateInput> & {
+    skillIds?: string[];
+    repoIds?: string[];
+    toolKeys?: string[];
+  },
+) {
   if (input.modelId !== undefined) {
     const m = await prisma.aiModel.findFirst({ where: { id: input.modelId, enabled: true } });
     if (!m) throw new DomainError(ErrCode.AGENT_MODEL_INVALID, "所选模型不存在或未启用");
@@ -57,7 +66,10 @@ async function assertNameFree(projectId: string, name: string, excludeId?: strin
 }
 
 async function assertMember(projectId: string, userId: string) {
-  const m = await prisma.projectMember.findFirst({ where: { projectId, userId }, select: { id: true } });
+  const m = await prisma.projectMember.findFirst({
+    where: { projectId, userId },
+    select: { id: true },
+  });
   if (!m) throw new DomainError(ErrCode.AGENT_CONFIG_INVALID, "运行身份必须是项目成员");
 }
 
@@ -124,7 +136,11 @@ export async function createAgent(
       orderBy: [{ isDefault: "desc" }, { createdAt: "asc" }],
       select: { id: true },
     });
-    if (!def) throw new DomainError(ErrCode.AGENT_MODEL_INVALID, "尚无可用模型，请先在系统设置配置 AI 模型");
+    if (!def)
+      throw new DomainError(
+        ErrCode.AGENT_MODEL_INVALID,
+        "尚无可用模型，请先在系统设置配置 AI 模型",
+      );
     merged.modelId = def.id;
   }
   await validateConfig(projectId, merged);
@@ -162,7 +178,10 @@ export async function updateAgent(
 ): Promise<AgentView> {
   const row = await getAgent(projectId, agentId);
   if (input.version !== undefined && input.version !== row.version) {
-    throw new DomainError(ErrCode.AGENT_CONFIG_INVALID, "配置已被他人修改，请刷新后重试（版本冲突）");
+    throw new DomainError(
+      ErrCode.AGENT_CONFIG_INVALID,
+      "配置已被他人修改，请刷新后重试（版本冲突）",
+    );
   }
   const next = {
     modelId: input.modelId ?? row.modelId,
@@ -181,7 +200,9 @@ export async function updateAgent(
       ...(input.description !== undefined ? { description: input.description } : {}),
       ...(input.role !== undefined ? { role: input.role } : {}),
       ...(input.mode !== undefined ? { mode: input.mode } : {}),
-      ...(input.pipelineConfig !== undefined ? { pipelineConfig: input.pipelineConfig ?? null } : {}),
+      ...(input.pipelineConfig !== undefined
+        ? { pipelineConfig: input.pipelineConfig ?? null }
+        : {}),
       ...(input.modelId !== undefined ? { modelId: input.modelId } : {}),
       ...(input.systemPrompt !== undefined ? { systemPrompt: input.systemPrompt } : {}),
       ...(input.modelParams !== undefined ? { modelParams: input.modelParams } : {}),
@@ -204,7 +225,8 @@ export async function deleteAgent(projectId: string, agentId: string): Promise<v
     where: { agentId, status: { in: ["PENDING", "RUNNING"] } },
     select: { id: true },
   });
-  if (running) throw new DomainError(ErrCode.AGENT_RUN_NOT_CANCELLABLE, "Agent 有进行中的运行，无法删除");
+  if (running)
+    throw new DomainError(ErrCode.AGENT_RUN_NOT_CANCELLABLE, "Agent 有进行中的运行，无法删除");
   await prisma.projectAgent.update({ where: { id: agentId }, data: { deletedAt: new Date() } });
 }
 
@@ -260,7 +282,8 @@ export async function skillRefCounts(projectId: string): Promise<Map<string, num
     select: { skillIds: true },
   });
   const counts = new Map<string, number>();
-  for (const r of rows) for (const id of (r.skillIds ?? []) as string[]) counts.set(id, (counts.get(id) ?? 0) + 1);
+  for (const r of rows)
+    for (const id of (r.skillIds ?? []) as string[]) counts.set(id, (counts.get(id) ?? 0) + 1);
   return counts;
 }
 

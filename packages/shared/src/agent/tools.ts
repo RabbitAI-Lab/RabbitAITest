@@ -26,7 +26,10 @@ export interface AgentToolDef<Schema extends z.ZodTypeAny = z.ZodTypeAny> {
 // ── 入参 schema ──
 
 const keyword = z.string().max(128).optional();
-const pageArgs = { page: z.number().int().min(1).default(1), pageSize: z.number().int().min(1).max(50).default(20) };
+const pageArgs = {
+  page: z.number().int().min(1).default(1),
+  pageSize: z.number().int().min(1).max(50).default(20),
+};
 
 const caseSearchInput = z.object({ keyword, moduleId: z.string().uuid().optional(), ...pageArgs });
 const caseGetInput = z.object({ caseId: z.string().uuid() });
@@ -36,7 +39,10 @@ const caseCreateInput = z.object({
       z.object({
         name: z.string().min(1).max(512),
         precondition: z.string().max(4000).default(""),
-        steps: z.array(z.object({ desc: z.string().max(2000), expect: z.string().max(2000) })).max(50).default([]),
+        steps: z
+          .array(z.object({ desc: z.string().max(2000), expect: z.string().max(2000) }))
+          .max(50)
+          .default([]),
         level: z.enum(["P0", "P1", "P2", "P3"]).default("P2"),
         tags: z.array(z.string().max(64)).max(10).default([]),
       }),
@@ -47,9 +53,15 @@ const caseCreateInput = z.object({
 const moduleTreeInput = z.object({ depth: z.number().int().min(1).max(3).default(2) });
 const apiSearchInput = z.object({ keyword, ...pageArgs });
 const planSearchInput = z.object({ keyword, status: z.string().max(32).optional(), ...pageArgs });
-const planRunInput = z.object({ planId: z.string().uuid(), clientTaskId: z.string().max(64).optional() });
+const planRunInput = z.object({
+  planId: z.string().uuid(),
+  clientTaskId: z.string().max(64).optional(),
+});
 const taskStatusInput = z.object({ taskId: z.string().uuid() });
-const reportGetInput = z.object({ reportId: z.string().uuid(), failTopN: z.number().int().min(1).max(20).default(5) });
+const reportGetInput = z.object({
+  reportId: z.string().uuid(),
+  failTopN: z.number().int().min(1).max(20).default(5),
+});
 const bugSearchInput = z.object({ keyword, ...pageArgs });
 const bugCreateInput = z.object({
   title: z.string().min(1).max(255),
@@ -90,7 +102,8 @@ export const AGENT_TOOLS: readonly AgentToolDef[] = [
   {
     key: "case.create",
     title: "创建功能用例",
-    description: "批量创建功能用例草稿（单次 ≤20 条，落默认模块、PREPARING 未评审态，人工评审后生效）",
+    description:
+      "批量创建功能用例草稿（单次 ≤20 条，落默认模块、PREPARING 未评审态，人工评审后生效）",
     group: "case",
     requiredPermission: "PROJECT_CASE:CREATE",
     write: true,
@@ -225,7 +238,11 @@ export function zodToJsonSchemaShape(schema: z.ZodTypeAny): Record<string, unkno
     if (d.typeName === "ZodLiteral") return { type: "string", enum: [d.value] };
     if (d.typeName === "ZodObject") {
       const shapeRaw = d.shape as unknown;
-      const shape = (typeof shapeRaw === "function" ? (shapeRaw as () => Record<string, z.ZodTypeAny>)() : shapeRaw) as Record<string, z.ZodTypeAny>;
+      const shape = (
+        typeof shapeRaw === "function"
+          ? (shapeRaw as () => Record<string, z.ZodTypeAny>)()
+          : shapeRaw
+      ) as Record<string, z.ZodTypeAny>;
       const properties: Record<string, unknown> = {};
       const required: string[] = [];
       for (const [k, v] of Object.entries(shape)) {

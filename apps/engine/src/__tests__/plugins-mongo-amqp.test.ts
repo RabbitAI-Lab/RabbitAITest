@@ -15,12 +15,26 @@ describe("PLUG-005-T3 mongodb 插件（契约/守卫/错误映射）", () => {
 
   it("契约：name=protocol + configSchema 合法/非法样本", () => {
     expect(plugin.protocol).toBe("mongodb");
-    expect(plugin.configSchema.safeParse({ uri: "mongodb://h/db", operation: "ping" }).success).toBe(true);
-    expect(plugin.configSchema.safeParse({ uri: "mongodb://h/db", operation: "find", collection: "c" }).success).toBe(true);
-    expect(plugin.configSchema.safeParse({ uri: "http://h", operation: "ping" }).success).toBe(false);
-    expect(plugin.configSchema.safeParse({ uri: "mongodb://h/db", operation: "find" }).success).toBe(false); // 缺 collection
     expect(
-      plugin.configSchema.safeParse({ uri: "mongodb://h/db", operation: "find", collection: "c", query: { $where: "1" } }).success,
+      plugin.configSchema.safeParse({ uri: "mongodb://h/db", operation: "ping" }).success,
+    ).toBe(true);
+    expect(
+      plugin.configSchema.safeParse({ uri: "mongodb://h/db", operation: "find", collection: "c" })
+        .success,
+    ).toBe(true);
+    expect(plugin.configSchema.safeParse({ uri: "http://h", operation: "ping" }).success).toBe(
+      false,
+    );
+    expect(
+      plugin.configSchema.safeParse({ uri: "mongodb://h/db", operation: "find" }).success,
+    ).toBe(false); // 缺 collection
+    expect(
+      plugin.configSchema.safeParse({
+        uri: "mongodb://h/db",
+        operation: "find",
+        collection: "c",
+        query: { $where: "1" },
+      }).success,
     ).toBe(false); // $where 拒绝
   });
 
@@ -34,7 +48,12 @@ describe("PLUG-005-T3 mongodb 插件（契约/守卫/错误映射）", () => {
 
   it("count/find 须 uri 带库名 → code=4", async () => {
     const r = await plugin
-      .buildSampler({ uri: "mongodb://127.0.0.1:1", operation: "count", collection: "c", timeoutMs: 800 })
+      .buildSampler({
+        uri: "mongodb://127.0.0.1:1",
+        operation: "count",
+        collection: "c",
+        timeoutMs: 800,
+      })
       .run();
     // 连接失败先于库名判定（不可达）——两分支皆可接受，但不得 ok
     expect(r.ok).toBe(false);
@@ -53,7 +72,9 @@ describe("PLUG-005-T5 amqp 插件（契约/错误映射）", () => {
   });
 
   it("不可达连接 → code=2", async () => {
-    const r = await plugin.buildSampler({ url: "amqp://127.0.0.1:1", message: "m", timeoutMs: 800 }).run();
+    const r = await plugin
+      .buildSampler({ url: "amqp://127.0.0.1:1", message: "m", timeoutMs: 800 })
+      .run();
     expect(r.ok).toBe(false);
     expect(r.code).toBe(2);
   }, 10000);

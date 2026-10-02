@@ -21,8 +21,7 @@ export const licenseApi = {
   add: (code: string) => post<LicenseStatus>("/api/v1/system/license", { code }),
   remove: () => del<LicenseStatus>("/api/v1/system/license"),
   /** 公开（无鉴权）：前端按钮解锁驱动 */
-  publicStatus: () =>
-    get<LicenseStatus>("/api/v1/public/license-status"),
+  publicStatus: () => get<LicenseStatus>("/api/v1/public/license-status"),
 };
 
 // ── ENTP-001 多组织 ──

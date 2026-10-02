@@ -2,10 +2,7 @@ import { NextResponse } from "next/server";
 import { ok, uiElementUpdateSchema } from "@rabbit/shared";
 import { withProjectScope, toResponse } from "@/server/guard";
 import { assertEntpEnabled } from "@/server/domains/entp/license.service";
-import {
-  updateUiElement,
-  deleteUiElement,
-} from "@/server/domains/exec/uit.service";
+import { updateUiElement, deleteUiElement } from "@/server/domains/exec/uit.service";
 
 export const runtime = "nodejs";
 

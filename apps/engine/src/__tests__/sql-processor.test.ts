@@ -95,7 +95,15 @@ describe("PLUG-004-T3 SQL 处理器（解禁后语义）", () => {
     });
     await expect(
       runProcessors(
-        [{ kind: "sql", sql: "UPDATE t SET a = 1", datasourceId: "ds1", params: [], varMapping: {} }],
+        [
+          {
+            kind: "sql",
+            sql: "UPDATE t SET a = 1",
+            datasourceId: "ds1",
+            params: [],
+            varMapping: {},
+          },
+        ],
         { vars: {}, env, logs: [] },
       ),
     ).rejects.toMatchObject({

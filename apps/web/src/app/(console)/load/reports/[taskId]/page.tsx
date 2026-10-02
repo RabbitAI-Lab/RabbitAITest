@@ -63,7 +63,9 @@ export default function LoadReportPage() {
               </div>
               <div className="border rounded p-2 bg-white">
                 <div className="text-xs text-slate-400">成功率</div>
-                <div className={`text-base font-semibold ${s.okRate >= 99 ? "text-emerald-600" : "text-amber-600"}`}>
+                <div
+                  className={`text-base font-semibold ${s.okRate >= 99 ? "text-emerald-600" : "text-amber-600"}`}
+                >
                   {s.okRate}%
                 </div>
               </div>

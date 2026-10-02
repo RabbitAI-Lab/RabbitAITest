@@ -1,7 +1,16 @@
 "use client";
 
 import { Avatar, Badge, Dropdown, Empty } from "antd";
-import { HelpCircle, LogOut, Bell, Building2, Settings2, ShieldCheck, Sparkles, UserCircle2 } from "lucide-react";
+import {
+  HelpCircle,
+  LogOut,
+  Bell,
+  Building2,
+  Settings2,
+  ShieldCheck,
+  Sparkles,
+  UserCircle2,
+} from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -17,7 +26,13 @@ import { realmOf } from "@/stores/tabs";
 const DEFAULT_HELP_URL = "https://rabbitai-lab.github.io/RabbitAITest/docs/";
 
 /** 头像下拉「组织管理/系统设置」入口的权限点（SYS-004 口径：任一即可见）。 */
-const ORG_ENTRY_PERMS = ["ORG_PROJECT:READ", "ORG_MEMBER:READ", "ORG_DEPARTMENT:READ", "ORG_GROUP:READ", "ORG_TEMPLATE:READ"];
+const ORG_ENTRY_PERMS = [
+  "ORG_PROJECT:READ",
+  "ORG_MEMBER:READ",
+  "ORG_DEPARTMENT:READ",
+  "ORG_GROUP:READ",
+  "ORG_TEMPLATE:READ",
+];
 const SYSTEM_ENTRY_PERMS = [
   "SYSTEM_USER:READ",
   "SYSTEM_GROUP:READ",
@@ -204,18 +219,22 @@ export function TopBar({ email }: { email?: string }) {
               { key: "personal", icon: <UserCircle2 size={14} />, label: "个人中心" },
               // SYS-010：组织管理/系统设置域入口（权限门控，与侧栏三域隔离配套）
               ...(canOrgEntry
-                ? [{
-                    key: "org",
-                    icon: <Building2 size={14} />,
-                    label: <span data-testid="menu-org-management">组织管理</span>,
-                  }]
+                ? [
+                    {
+                      key: "org",
+                      icon: <Building2 size={14} />,
+                      label: <span data-testid="menu-org-management">组织管理</span>,
+                    },
+                  ]
                 : []),
               ...(canSystemEntry
-                ? [{
-                    key: "system",
-                    icon: <Settings2 size={14} />,
-                    label: <span data-testid="menu-system-settings">系统设置</span>,
-                  }]
+                ? [
+                    {
+                      key: "system",
+                      icon: <Settings2 size={14} />,
+                      label: <span data-testid="menu-system-settings">系统设置</span>,
+                    },
+                  ]
                 : []),
               { type: "divider" },
               { key: "logout", icon: <LogOut size={14} />, label: "退出登录" },

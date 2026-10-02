@@ -43,7 +43,12 @@ export default function UiElementsPage() {
   });
 
   const saveMut = useMutation({
-    mutationFn: (v: { name: string; locatorType: UiLocatorType; locator: string; description?: string }) =>
+    mutationFn: (v: {
+      name: string;
+      locatorType: UiLocatorType;
+      locator: string;
+      description?: string;
+    }) =>
       editing
         ? uitApi.updateElement(currentProjectId!, editing.id, v)
         : uitApi.createElement(currentProjectId!, v),
@@ -114,7 +119,9 @@ export default function UiElementsPage() {
             {
               title: "备注",
               dataIndex: "description",
-              render: (v: string | null) => <span className="text-xs text-slate-400">{v || "—"}</span>,
+              render: (v: string | null) => (
+                <span className="text-xs text-slate-400">{v || "—"}</span>
+              ),
             },
             {
               title: "操作",
@@ -165,14 +172,32 @@ export default function UiElementsPage() {
         <Form form={form} layout="vertical" initialValues={{ locatorType: "css" }}>
           {/* Form.Item 直挂控件（不得再包 span wrapper——断受控链致 validateFields 落 initialValues，e2e S11 教训）；
               testid 挂在 Form.Item 自身（antd 透传到 field 容器，spec 用 getByTestId(...).locator("input")/(".ant-select") 取内层） */}
-          <Form.Item name="name" label="名称" rules={[{ required: true, max: 128 }]} data-testid="uit-element-name">
+          <Form.Item
+            name="name"
+            label="名称"
+            rules={[{ required: true, max: 128 }]}
+            data-testid="uit-element-name"
+          >
             <Input placeholder="如：提交按钮" />
           </Form.Item>
-          <Form.Item name="locatorType" label="定位方式" rules={[{ required: true }]} data-testid="uit-element-type">
+          <Form.Item
+            name="locatorType"
+            label="定位方式"
+            rules={[{ required: true }]}
+            data-testid="uit-element-type"
+          >
             <Select options={LOCATOR_TYPES} className="w-full" />
           </Form.Item>
-          <Form.Item name="locator" label="定位器" rules={[{ required: true, max: 512 }]} data-testid="uit-element-locator">
-            <Input placeholder="css 选择器 / xpath / testid 值 / 文本 / role 简写" className="font-mono" />
+          <Form.Item
+            name="locator"
+            label="定位器"
+            rules={[{ required: true, max: 512 }]}
+            data-testid="uit-element-locator"
+          >
+            <Input
+              placeholder="css 选择器 / xpath / testid 值 / 文本 / role 简写"
+              className="font-mono"
+            />
           </Form.Item>
           <Form.Item name="description" label="备注" data-testid="uit-element-desc">
             <Input maxLength={512} />

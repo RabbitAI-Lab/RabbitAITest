@@ -2,12 +2,12 @@
 
 ## 0. 元信息
 
-| 项       | 值                                                                                          |
-| -------- | ------------------------------------------------------------------------------------------- |
-| 状态     | Implemented（分支 `INFRA-005-parallel-slot-isolation`，基线 main d19e493，2026-09-28）    |
-| 模块     | INFRA（开发/测试环境工具链，无产品面变更）                                                  |
+| 项       | 值                                                                                                                                               |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 状态     | Implemented（分支 `INFRA-005-parallel-slot-isolation`，基线 main d19e493，2026-09-28）                                                           |
+| 模块     | INFRA（开发/测试环境工具链，无产品面变更）                                                                                                       |
 | 评审方式 | 纯后端/工具类规格，依 AGENTS 门禁 2 以**接口契约评审**替代高保真原型——方案于 2026-09-28 会话中经用户认可后实施（确认人：用户；原型：不适用 N/A） |
-| 关联规则 | rules/git-workflow.md §9（并行纪律）· rules/testing.md §3.4.2（环境复用命令槽位化）· AGENTS.md §4.2 |
+| 关联规则 | rules/git-workflow.md §9（并行纪律）· rules/testing.md §3.4.2（环境复用命令槽位化）· AGENTS.md §4.2                                              |
 
 ## 1. 问题（为什么必须做）
 
@@ -29,11 +29,11 @@ S7 的 mock 4020 教训是对问题 1 的一次点状修补；本规格将其升
 
 ### 2.2 端口与资源表（base + slot）
 
-| 用途 | web        | mock      | PostgreSQL | Redis（逻辑库号 = slot）          | 临时路径                          |
-| ---- | ---------- | --------- | ---------- | --------------------------------- | --------------------------------- |
-| dev  | 3000+s     | 4000+s    | 5440+s     | redis://127.0.0.1:**6379**/{s}    | .pgdata（worktree 本地）          |
-| e2e  | 3100+s     | 4100+s    | 5450+s     | redis://127.0.0.1:**6381**/{s}    | /tmp/rabbit-e2e-root-s{s}         |
-| jm   | 3200+s     | 4200+s    | 5460+s     | redis://127.0.0.1:**6381**/{s}    | /tmp/rabbit-s{s}-jm/              |
+| 用途 | web    | mock   | PostgreSQL | Redis（逻辑库号 = slot）       | 临时路径                  |
+| ---- | ------ | ------ | ---------- | ------------------------------ | ------------------------- |
+| dev  | 3000+s | 4000+s | 5440+s     | redis://127.0.0.1:**6379**/{s} | .pgdata（worktree 本地）  |
+| e2e  | 3100+s | 4100+s | 5450+s     | redis://127.0.0.1:**6381**/{s} | /tmp/rabbit-e2e-root-s{s} |
+| jm   | 3200+s | 4200+s | 5460+s     | redis://127.0.0.1:**6381**/{s} | /tmp/rabbit-s{s}-jm/      |
 
 - **slot 0 兼容**：dev web 3000、e2e web 3100 与历史一致；dev PG 5433→5440、e2e PG 5434→5450、e2e mock 4001→4100、jm 栈 3101/4020/5438→3200/4200/5460 迁移无害（`.pgdata*` 数据目录跟 worktree 走，端口仅运行时参数；CI 的 DATABASE_URL/REDIS_URL 由 GitHub services 注入，不走这些默认值）。
 - **Redis 逻辑库隔离**：实例共享（容器不增），键空间随 `SELECT {slot}` 完全隔离——BullMQ 队列/SSE Stream/缓存互不可见，比 key 前缀彻底且零容器成本。ioredis/BullMQ 全链路 URL 透传（apps/web `new Redis(config.redisUrl)`、engine `redis.duplicate()`），无代码改动。
@@ -59,14 +59,14 @@ S7 的 mock 4020 教训是对问题 1 的一次点状修补；本规格将其升
 
 ## 3. 交付物
 
-| 类别 | 文件                                                                                                                     |
-| ---- | ------------------------------------------------------------------------------------------------------------------------ |
-| 核心 | scripts/rabbit-env.mjs（新增）· scripts/rabbit-env.test.mjs（新增，node:test，接入 `pnpm test`）· scripts/e2e-web-copy.mjs（新增：槽位专属 web 生产构建副本，使同 worktree 的 `pnpm dev`（next dev 写坏仓库 .next）与 e2e/jm 生产栈并存——原 ad-hoc /tmp 副本流程脚本化） |
-| 栈脚本 | scripts/dev.mjs（槽位化 + 端口预检 fail-fast + **持久 .pgdata 幂等重启修复**：原无条件 initialise/createdb 在重启场景必失败，存量缺陷）· pg-dev.mjs · pg-e2e.mjs（含 postmaster.pid 残留清理）· api-test-stack.sh · run-api-tests.sh · demo-local-exec.sh · apps/web/package.json（dev 脚本去 -p 3000，改 PORT 注入） |
-| e2e | tests/global-setup.mjs（槽位化 + 归属检测；**槽位值经子进程 JSON 获取**——playwright globalSetup 加载管线会把 import 的 .mjs 转 CJS 丢命名导出）· global-teardown.mjs（pkill 限定本 worktree 绝对路径）· playwright.config.ts · tests/e2e/env.ts（新增）· s2/s5/s6-helpers.ts · 24 个 spec 端口字面量参数化 · tests/smoke/verify-fp-ssrf.mjs |
-| CI | .github/workflows/ci.yml（api-test 内联栈 slot 化：3101/4000→3200/4200；e2e 注释更新）                                |
-| 文档/规则 | AGENTS.md §4.2 · CLAUDE.md §12 · rules/git-workflow.md §9 · rules/testing.md §3.4.2 · 本规格 · sprint-8-stabilize/sprint-overview.md |
-| 其他 | scripts/verify-fp-s2helpers-taint.mjs（playwright baseURL 正则随实现更新）；根 package.json（test 追加 `node --test scripts/*.test.mjs`） |
+| 类别      | 文件                                                                                                                                                                                                                                                                                                                                        |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 核心      | scripts/rabbit-env.mjs（新增）· scripts/rabbit-env.test.mjs（新增，node:test，接入 `pnpm test`）· scripts/e2e-web-copy.mjs（新增：槽位专属 web 生产构建副本，使同 worktree 的 `pnpm dev`（next dev 写坏仓库 .next）与 e2e/jm 生产栈并存——原 ad-hoc /tmp 副本流程脚本化）                                                                    |
+| 栈脚本    | scripts/dev.mjs（槽位化 + 端口预检 fail-fast + **持久 .pgdata 幂等重启修复**：原无条件 initialise/createdb 在重启场景必失败，存量缺陷）· pg-dev.mjs · pg-e2e.mjs（含 postmaster.pid 残留清理）· api-test-stack.sh · run-api-tests.sh · demo-local-exec.sh · apps/web/package.json（dev 脚本去 -p 3000，改 PORT 注入）                       |
+| e2e       | tests/global-setup.mjs（槽位化 + 归属检测；**槽位值经子进程 JSON 获取**——playwright globalSetup 加载管线会把 import 的 .mjs 转 CJS 丢命名导出）· global-teardown.mjs（pkill 限定本 worktree 绝对路径）· playwright.config.ts · tests/e2e/env.ts（新增）· s2/s5/s6-helpers.ts · 24 个 spec 端口字面量参数化 · tests/smoke/verify-fp-ssrf.mjs |
+| CI        | .github/workflows/ci.yml（api-test 内联栈 slot 化：3101/4000→3200/4200；e2e 注释更新）                                                                                                                                                                                                                                                      |
+| 文档/规则 | AGENTS.md §4.2 · CLAUDE.md §12 · rules/git-workflow.md §9 · rules/testing.md §3.4.2 · 本规格 · sprint-8-stabilize/sprint-overview.md                                                                                                                                                                                                        |
+| 其他      | scripts/verify-fp-s2helpers-taint.mjs（playwright baseURL 正则随实现更新）；根 package.json（test 追加 `node --test scripts/*.test.mjs`）                                                                                                                                                                                                   |
 
 ## 4. 验收标准与实测结果（2026-09-28，worktree RabbitAITest-s2 / slot 2）
 

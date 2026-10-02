@@ -22,7 +22,10 @@ describe("INFRA-009 engineProcRows", () => {
     expect(engineProcRows([{ proc: { uptimeSeconds: 1 } } as never])).toEqual([]);
     expect(
       engineProcRows([
-        { nodeId: "n2", proc: { uptimeSeconds: "x", cpuSeconds: 1, rssBytes: 1, heapUsedBytes: 1 } },
+        {
+          nodeId: "n2",
+          proc: { uptimeSeconds: "x", cpuSeconds: 1, rssBytes: 1, heapUsedBytes: 1 },
+        },
       ]),
     ).toEqual([]);
   });
@@ -47,9 +50,13 @@ describe("INFRA-009 runtimeBlock process label", () => {
       heapUsedBytes: 5,
       eventLoopLagMs: 0.1,
     };
-    expect(runtimeBlock(snap).some((l) => l === 'rabbit_process_uptime_seconds{process="web"} 1')).toBe(true);
     expect(
-      runtimeBlock(snap, "web-2").some((l) => l === 'rabbit_process_uptime_seconds{process="web-2"} 1'),
+      runtimeBlock(snap).some((l) => l === 'rabbit_process_uptime_seconds{process="web"} 1'),
+    ).toBe(true);
+    expect(
+      runtimeBlock(snap, "web-2").some(
+        (l) => l === 'rabbit_process_uptime_seconds{process="web-2"} 1',
+      ),
     ).toBe(true);
   });
 });

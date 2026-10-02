@@ -15,29 +15,29 @@ RabbitAITest 分社区版与企业版两个 edition。**ENTP-009（2026-09-30）
 
 ## 六项企业特性
 
-| 特性 key     | 名称               | 能力入口                                                     |
-| ------------ | ------------------ | ------------------------------------------------------------ |
-| MULTI_ORG    | 多组织管理         | `/system/orgs` 组织管理（ENTP_ORG 权限）                      |
-| SSO          | 单点认证 + 扫码登录 | `/system/sso` 认证配置（8 类认证源）与登录页扫码              |
-| MULTI_POOL   | 多资源池           | `/system/pools` 多池 CRUD/组织范围/启停，见[资源池](manual/system/pools.md) |
-| THEME        | 自定义主题品牌     | 系统参数 theme 组（品牌名/Logo 等），见[参数设置](manual/system/params.md) |
-| MSG_TEMPLATE | 自定义消息模板     | 消息管理 Tab3 模板，见[消息管理](manual/project/message.md)   |
-| USER_SCALE   | 用户扩容与部门     | 突破社区版 30 用户上限；部门管理 `/org/departments`           |
+| 特性 key     | 名称                | 能力入口                                                                    |
+| ------------ | ------------------- | --------------------------------------------------------------------------- |
+| MULTI_ORG    | 多组织管理          | `/system/orgs` 组织管理（ENTP_ORG 权限）                                    |
+| SSO          | 单点认证 + 扫码登录 | `/system/sso` 认证配置（8 类认证源）与登录页扫码                            |
+| MULTI_POOL   | 多资源池            | `/system/pools` 多池 CRUD/组织范围/启停，见[资源池](manual/system/pools.md) |
+| THEME        | 自定义主题品牌      | 系统参数 theme 组（品牌名/Logo 等），见[参数设置](manual/system/params.md)  |
+| MSG_TEMPLATE | 自定义消息模板      | 消息管理 Tab3 模板，见[消息管理](manual/project/message.md)                 |
+| USER_SCALE   | 用户扩容与部门      | 突破社区版 30 用户上限；部门管理 `/org/departments`                         |
 
 ## 单点认证（SSO）
 
 路径：`/system/sso`（系统 › 认证配置）。支持 8 类认证源：
 
-| 类型    | 说明                                           |
-| ------- | ---------------------------------------------- |
-| LDAP    | 目录认证（host/port/bindDn/userOu 等；filterKey 支持 uid / sAMAccountName / cn） |
-| CAS     | CAS 协议                                       |
-| OIDC    | OpenID Connect                                 |
-| OAuth2  | OAuth 2.0                                      |
-| SAML    | 协议枚举已预留，页面标记「未实现」，暂不可选     |
-| WECOM   | 企业微信扫码                                   |
-| DINGTALK| 钉钉扫码                                       |
-| FEISHU  | 飞书扫码                                       |
+| 类型     | 说明                                                                             |
+| -------- | -------------------------------------------------------------------------------- |
+| LDAP     | 目录认证（host/port/bindDn/userOu 等；filterKey 支持 uid / sAMAccountName / cn） |
+| CAS      | CAS 协议                                                                         |
+| OIDC     | OpenID Connect                                                                   |
+| OAuth2   | OAuth 2.0                                                                        |
+| SAML     | 协议枚举已预留，页面标记「未实现」，暂不可选                                     |
+| WECOM    | 企业微信扫码                                                                     |
+| DINGTALK | 钉钉扫码                                                                         |
+| FEISHU   | 飞书扫码                                                                         |
 
 配置要点：
 

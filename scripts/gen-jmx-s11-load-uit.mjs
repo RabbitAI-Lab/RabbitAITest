@@ -240,7 +240,10 @@ const registerSetup = (emailVar = "EMAIL") => [
     contains: ["$.data.projectId", "-"],
     extract: { var: "PROJECT_ID", path: "$.data.projectId" },
     duration: 8000,
-    jsr223: { name: "PROJECT_ID→props（跨组）", script: "props.put('PROJECT_ID', vars.get('PROJECT_ID'))" },
+    jsr223: {
+      name: "PROJECT_ID→props（跨组）",
+      script: "props.put('PROJECT_ID', vars.get('PROJECT_ID'))",
+    },
   }),
 ];
 
@@ -290,7 +293,8 @@ emit(
         ],
         jsr223: {
           name: "分页信封核对",
-          script: "if (vars.get('LT_TOTAL') == 'NOT_FOUND' || vars.get('LT_PAGE') != '1') { prev.setSuccessful(false); prev.setResponseMessage('分页信封缺失 total/page') }",
+          script:
+            "if (vars.get('LT_TOTAL') == 'NOT_FOUND' || vars.get('LT_PAGE') != '1') { prev.setSuccessful(false); prev.setResponseMessage('分页信封缺失 total/page') }",
         },
       }),
       sampler({
@@ -382,16 +386,20 @@ emit(
         code: 90072,
       }),
     ]),
-    threadGroup("G3 无会话 401（无 Cookie）", [
-      sampler({
-        name: "T3-1 未登录建计划",
-        method: "POST",
-        path: "/api/v1/projects/\${__P(PROJECT_ID,NOT_FOUND)}/load-tests",
-        body: { name: "x" },
-        status: 401,
-        code: 10001,
-      }),
-    ], false),
+    threadGroup(
+      "G3 无会话 401（无 Cookie）",
+      [
+        sampler({
+          name: "T3-1 未登录建计划",
+          method: "POST",
+          path: "/api/v1/projects/\${__P(PROJECT_ID,NOT_FOUND)}/load-tests",
+          body: { name: "x" },
+          status: 401,
+          code: 10001,
+        }),
+      ],
+      false,
+    ),
     threadGroup("G4 普通成员越权 403（注册普通用户）", [
       sampler({
         name: "T4-0 注册普通用户（无项目权限）",
@@ -419,7 +427,12 @@ emit(
         body: {
           name: "jm-坏模型${TS}",
           target: { method: "GET", url: `${MOCK_BASE}/perf/echo` },
-          pressure: { mode: "concurrency", durationSec: 10, maxConcurrency: 201, ramp: [{ atSec: 0, concurrency: 1 }] },
+          pressure: {
+            mode: "concurrency",
+            durationSec: 10,
+            maxConcurrency: 201,
+            ramp: [{ atSec: 0, concurrency: 1 }],
+          },
         },
         status: 422,
         code: 20422,
@@ -445,7 +458,10 @@ emit(
         path: "/api/v1/auth/login",
         body: ADMIN_LOGIN,
         field: ["$.code", "0"],
-        jsr223: { name: "切回 admin 会话", script: "// 本采样器仅重建 admin 会话；下一步 admin 侧删除 License" },
+        jsr223: {
+          name: "切回 admin 会话",
+          script: "// 本采样器仅重建 admin 会话；下一步 admin 侧删除 License",
+        },
       }),
       sampler({
         name: "T6-1 admin 删除 License",
@@ -546,7 +562,12 @@ emit(
         name: "T1-1 新建元素（testid）",
         method: "POST",
         path: "/api/v1/projects/${PROJECT_ID}/ui-elements",
-        body: { name: "jm-输入框${TS}", locatorType: "testid", locator: "demo-username", description: "演示页输入框" },
+        body: {
+          name: "jm-输入框${TS}",
+          locatorType: "testid",
+          locator: "demo-username",
+          description: "演示页输入框",
+        },
         status: 201,
         extract: { var: "EL_ID", path: "$.data.id" },
         jsr223: { name: "EL_ID→props", script: "props.put('EL_ID', vars.get('EL_ID'))" },
@@ -562,7 +583,8 @@ emit(
         ],
         jsr223: {
           name: "分页信封核对",
-          script: "if (vars.get('EL_TOTAL') == 'NOT_FOUND' || vars.get('EL_PAGE') != '1') { prev.setSuccessful(false); prev.setResponseMessage('分页信封缺失 total/page') }",
+          script:
+            "if (vars.get('EL_TOTAL') == 'NOT_FOUND' || vars.get('EL_PAGE') != '1') { prev.setSuccessful(false); prev.setResponseMessage('分页信封缺失 total/page') }",
         },
       }),
       sampler({
@@ -598,7 +620,11 @@ emit(
           steps: [
             { op: "goto", url: `${MOCK_BASE}/uit/demo` },
             { op: "click", elementId: "${EL2_ID}" },
-            { op: "assert-text", expected: "提交成功", locator: { locatorType: "css", locator: ".demo-result-text" } },
+            {
+              op: "assert-text",
+              expected: "提交成功",
+              locator: { locatorType: "css", locator: ".demo-result-text" },
+            },
           ],
         },
         status: 201,
@@ -649,16 +675,20 @@ emit(
         code: 20422, // zod batchSchema max(20) 先于服务层（40083 保留服务层兜底）
       }),
     ]),
-    threadGroup("G3 无会话 401（无 Cookie）", [
-      sampler({
-        name: "T3-1 未登录建用例",
-        method: "POST",
-        path: "/api/v1/projects/\${__P(PROJECT_ID,NOT_FOUND)}/ui-cases",
-        body: { name: "x", steps: [{ op: "wait", ms: 1 }] },
-        status: 401,
-        code: 10001,
-      }),
-    ], false),
+    threadGroup(
+      "G3 无会话 401（无 Cookie）",
+      [
+        sampler({
+          name: "T3-1 未登录建用例",
+          method: "POST",
+          path: "/api/v1/projects/\${__P(PROJECT_ID,NOT_FOUND)}/ui-cases",
+          body: { name: "x", steps: [{ op: "wait", ms: 1 }] },
+          status: 401,
+          code: 10001,
+        }),
+      ],
+      false,
+    ),
     threadGroup("G4 普通成员越权 403", [
       sampler({
         name: "T4-0 注册普通用户",
@@ -682,7 +712,10 @@ emit(
         name: "T5-1 坏步骤（交互指令缺元素引用与内联定位器）",
         method: "POST",
         path: "/api/v1/projects/${PROJECT_ID}/ui-cases",
-        body: { name: "jm-坏步骤${TS}", steps: [{ op: "goto", url: `${MOCK_BASE}/uit/demo` }, { op: "click" }] },
+        body: {
+          name: "jm-坏步骤${TS}",
+          steps: [{ op: "goto", url: `${MOCK_BASE}/uit/demo` }, { op: "click" }],
+        },
         status: 422,
         code: 20422,
       }),

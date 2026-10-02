@@ -8,32 +8,63 @@
     <script src="https://unpkg.com/lucide@1.48.0/dist/umd/lucide.min.js"></script>
     <style>
       body {
-        font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+        font-family:
+          -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei",
+          sans-serif;
       }
-      ::-webkit-scrollbar { width: 6px; height: 6px; }
-      ::-webkit-scrollbar-thumb { background: #d5d7db; border-radius: 3px; }
-      ::-webkit-scrollbar-track { background: transparent; }
-      .nav-item, .btn, .tab-btn, .sec-item, .row-actions, .switch { transition: all 0.12s; }
-      .card:hover .row-actions { opacity: 1; }
-      .row-actions { opacity: 0; }
-      .drawer { transition: transform 0.18s ease; }
-      .modal-mask { transition: opacity 0.15s; }
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #d5d7db;
+        border-radius: 3px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .nav-item,
+      .btn,
+      .tab-btn,
+      .sec-item,
+      .row-actions,
+      .switch {
+        transition: all 0.12s;
+      }
+      .card:hover .row-actions {
+        opacity: 1;
+      }
+      .row-actions {
+        opacity: 0;
+      }
+      .drawer {
+        transition: transform 0.18s ease;
+      }
+      .modal-mask {
+        transition: opacity 0.15s;
+      }
       .sec-item.active {
         background: #574bff0f;
-        color: #574bFF;
+        color: #574bff;
         border-left: 2px solid #574bff;
         font-weight: 500;
       }
-      .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+      .mono {
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      }
     </style>
   </head>
   <body class="bg-[#EEF0F4] text-[#1F2329] text-[13px]">
     <!-- ══════════ 原型说明条（非产品 UI） ══════════ -->
-    <div class="bg-[#1B1F2A] text-white/90 px-5 py-3 flex items-center gap-3 flex-wrap sticky top-0 z-50">
+    <div
+      class="bg-[#1B1F2A] text-white/90 px-5 py-3 flex items-center gap-3 flex-wrap sticky top-0 z-50"
+    >
       <span class="font-semibold">AGENT-001 项目级 Agent 配置与 A2A 接入 · 高保真确认版</span>
       <span class="text-white/50 text-xs">画面编号①②③对应规格 §1.2 能力行</span>
       <span class="ml-auto flex items-center gap-1.5" id="screen-switch">
-        <button data-screen="list" class="btn px-3 py-1 rounded bg-white/15">① Agent 管理（含技能/运行记录 tab）</button>
+        <button data-screen="list" class="btn px-3 py-1 rounded bg-white/15">
+          ① Agent 管理（含技能/运行记录 tab）
+        </button>
         <button data-screen="drawer" class="btn px-3 py-1 rounded bg-white/10">② 编辑抽屉</button>
         <button data-screen="debug" class="btn px-3 py-1 rounded bg-white/10">③ 调试台</button>
         <label class="flex items-center gap-1 text-xs text-white/60 ml-2 cursor-pointer">
@@ -46,14 +77,22 @@
       <!-- 顶栏：多标签 -->
       <div class="bg-white border-b border-[#E5E6EB] flex items-center h-9 shrink-0">
         <div class="flex items-end h-full px-1 gap-1 overflow-hidden">
-          <div class="flex items-center gap-1.5 px-3 h-full bg-[#EEF0F4] border-r border-l border-t border-[#E5E6EB] rounded-t text-[12px] font-medium">
+          <div
+            class="flex items-center gap-1.5 px-3 h-full bg-[#EEF0F4] border-r border-l border-t border-[#E5E6EB] rounded-t text-[12px] font-medium"
+          >
             项目设置 · 兔子测试项目 <i data-lucide="x" class="w-3 h-3 text-[#8F959E]"></i>
           </div>
-          <div class="flex items-center gap-1.5 px-3 h-full text-[12px] text-[#646A73]">功能用例 <i data-lucide="x" class="w-3 h-3 text-[#8F959E]"></i></div>
+          <div class="flex items-center gap-1.5 px-3 h-full text-[12px] text-[#646A73]">
+            功能用例 <i data-lucide="x" class="w-3 h-3 text-[#8F959E]"></i>
+          </div>
         </div>
         <div class="ml-auto flex items-center gap-2 pr-3">
           <i data-lucide="search" class="w-3.5 h-3.5 text-[#646A73]"></i>
-          <div class="w-6 h-6 rounded-full bg-[#574BFF] text-white text-[11px] flex items-center justify-center">兔</div>
+          <div
+            class="w-6 h-6 rounded-full bg-[#574BFF] text-white text-[11px] flex items-center justify-center"
+          >
+            兔
+          </div>
         </div>
       </div>
 
@@ -66,30 +105,61 @@
           </div>
           <div class="px-3 pt-2 pb-1 text-[11px] text-[#8F959E]">项目设置</div>
           <div class="px-2">
-            <div class="nav-item flex items-center gap-2 px-2.5 py-1.5 rounded text-[#3D4350]"><i data-lucide="info" class="w-3.5 h-3.5"></i>基本信息</div>
-            <div class="nav-item flex items-center gap-2 px-2.5 py-1.5 rounded text-[#3D4350]"><i data-lucide="users" class="w-3.5 h-3.5"></i>成员管理</div>
-            <div class="nav-item flex items-center gap-2 px-2.5 py-1.5 rounded text-[#3D4350]"><i data-lucide="git-branch" class="w-3.5 h-3.5"></i>代码仓库</div>
-            <div class="nav-item flex items-center gap-2 px-2.5 py-1.5 rounded bg-[#574BFF]/8 text-[#574BFF] font-medium border-l-2 border-[#574BFF]">
-              <i data-lucide="bot" class="w-3.5 h-3.5"></i>Agent<span class="ml-auto text-[10px] bg-[#574BFF]/12 px-1 py-px rounded">NEW</span>
+            <div class="nav-item flex items-center gap-2 px-2.5 py-1.5 rounded text-[#3D4350]">
+              <i data-lucide="info" class="w-3.5 h-3.5"></i>基本信息
+            </div>
+            <div class="nav-item flex items-center gap-2 px-2.5 py-1.5 rounded text-[#3D4350]">
+              <i data-lucide="users" class="w-3.5 h-3.5"></i>成员管理
+            </div>
+            <div class="nav-item flex items-center gap-2 px-2.5 py-1.5 rounded text-[#3D4350]">
+              <i data-lucide="git-branch" class="w-3.5 h-3.5"></i>代码仓库
+            </div>
+            <div
+              class="nav-item flex items-center gap-2 px-2.5 py-1.5 rounded bg-[#574BFF]/8 text-[#574BFF] font-medium border-l-2 border-[#574BFF]"
+            >
+              <i data-lucide="bot" class="w-3.5 h-3.5"></i>Agent<span
+                class="ml-auto text-[10px] bg-[#574BFF]/12 px-1 py-px rounded"
+                >NEW</span
+              >
             </div>
           </div>
-          <div class="mt-2 border-t border-[#F0F1F5] pt-2 px-3 pb-1 text-[11px] text-[#8F959E]">测试管理</div>
+          <div class="mt-2 border-t border-[#F0F1F5] pt-2 px-3 pb-1 text-[11px] text-[#8F959E]">
+            测试管理
+          </div>
           <div class="px-2">
-            <div class="nav-item flex items-center gap-2 px-2.5 py-1.5 rounded text-[#3D4350]"><i data-lucide="list-checks" class="w-3.5 h-3.5"></i>功能用例</div>
-            <div class="nav-item flex items-center gap-2 px-2.5 py-1.5 rounded text-[#3D4350]"><i data-lucide="bug" class="w-3.5 h-3.5"></i>缺陷管理</div>
+            <div class="nav-item flex items-center gap-2 px-2.5 py-1.5 rounded text-[#3D4350]">
+              <i data-lucide="list-checks" class="w-3.5 h-3.5"></i>功能用例
+            </div>
+            <div class="nav-item flex items-center gap-2 px-2.5 py-1.5 rounded text-[#3D4350]">
+              <i data-lucide="bug" class="w-3.5 h-3.5"></i>缺陷管理
+            </div>
           </div>
         </div>
 
         <!-- ══════════ 内容区 ══════════ -->
         <div class="flex-1 min-w-0 flex flex-col" id="content">
-
           <!-- ───────── 画面① Agent 管理（tab：Agent / 技能 / 运行记录） ───────── -->
           <div id="screen-list" class="flex-1 flex flex-col min-h-0">
             <!-- 二级 tab -->
             <div class="bg-white border-b border-[#E5E6EB] px-6 pt-3 flex items-end gap-5 shrink-0">
-              <div class="tab-btn pb-2 border-b-2 border-[#574BFF] text-[#574BFF] font-medium" data-tab="agents">Agent</div>
-              <div class="tab-btn pb-2 border-b-2 border-transparent text-[#646A73]" data-tab="skills">技能</div>
-              <div class="tab-btn pb-2 border-b-2 border-transparent text-[#646A73]" data-tab="runs">运行记录</div>
+              <div
+                class="tab-btn pb-2 border-b-2 border-[#574BFF] text-[#574BFF] font-medium"
+                data-tab="agents"
+              >
+                Agent
+              </div>
+              <div
+                class="tab-btn pb-2 border-b-2 border-transparent text-[#646A73]"
+                data-tab="skills"
+              >
+                技能
+              </div>
+              <div
+                class="tab-btn pb-2 border-b-2 border-transparent text-[#646A73]"
+                data-tab="runs"
+              >
+                运行记录
+              </div>
             </div>
 
             <!-- tab: Agent 列表 -->
@@ -97,13 +167,22 @@
               <div class="flex items-center gap-3 mb-4">
                 <div>
                   <div class="font-medium text-[14px]">项目 Agent</div>
-                  <div class="text-[12px] text-[#8F959E] mt-0.5">为项目配置专属智能体：对话循环（chat）或资产生成管线（pipeline）；开启 A2A 后外部 AI 可按协议调用</div>
+                  <div class="text-[12px] text-[#8F959E] mt-0.5">
+                    为项目配置专属智能体：对话循环（chat）或资产生成管线（pipeline）；开启 A2A
+                    后外部 AI 可按协议调用
+                  </div>
                 </div>
                 <div class="ml-auto flex items-center gap-2">
-                  <button class="btn px-3 py-1.5 rounded border border-[#E5E6EB] bg-white hover:border-[#574BFF] hover:text-[#574BFF] flex items-center gap-1" onclick="openModal('tpl-modal')">
+                  <button
+                    class="btn px-3 py-1.5 rounded border border-[#E5E6EB] bg-white hover:border-[#574BFF] hover:text-[#574BFF] flex items-center gap-1"
+                    onclick="openModal('tpl-modal')"
+                  >
                     <i data-lucide="layout-template" class="w-3.5 h-3.5"></i>从模板新建
                   </button>
-                  <button class="btn px-3 py-1.5 rounded bg-[#574BFF] text-white hover:bg-[#4a3fe8] flex items-center gap-1" onclick="openModal('tpl-modal')">
+                  <button
+                    class="btn px-3 py-1.5 rounded bg-[#574BFF] text-white hover:bg-[#4a3fe8] flex items-center gap-1"
+                    onclick="openModal('tpl-modal')"
+                  >
                     <i data-lucide="plus" class="w-3.5 h-3.5"></i>新建 Agent
                   </button>
                 </div>
@@ -111,24 +190,45 @@
 
               <!-- 空态（checkbox 切换） -->
               <div id="agent-empty" class="hidden py-20 flex flex-col items-center text-center">
-                <div class="w-16 h-16 rounded-2xl bg-[#574BFF]/8 flex items-center justify-center mb-4"><i data-lucide="bot" class="w-8 h-8 text-[#574BFF]"></i></div>
+                <div
+                  class="w-16 h-16 rounded-2xl bg-[#574BFF]/8 flex items-center justify-center mb-4"
+                >
+                  <i data-lucide="bot" class="w-8 h-8 text-[#574BFF]"></i>
+                </div>
                 <div class="text-[14px] font-medium">还没有项目 Agent</div>
-                <div class="text-[12px] text-[#8F959E] mt-1 mb-4">从模板一键创建，或空白新建后自行配置六要素</div>
+                <div class="text-[12px] text-[#8F959E] mt-1 mb-4">
+                  从模板一键创建，或空白新建后自行配置六要素
+                </div>
                 <div class="flex gap-4">
-                  <div class="w-40 p-3 rounded-lg border border-[#E5E6EB] bg-white hover:border-[#574BFF] cursor-pointer">
-                    <div class="flex items-center gap-2 text-[#574BFF] font-medium"><i data-lucide="file-text" class="w-4 h-4"></i>用例生成</div>
+                  <div
+                    class="w-40 p-3 rounded-lg border border-[#E5E6EB] bg-white hover:border-[#574BFF] cursor-pointer"
+                  >
+                    <div class="flex items-center gap-2 text-[#574BFF] font-medium">
+                      <i data-lucide="file-text" class="w-4 h-4"></i>用例生成
+                    </div>
                     <div class="text-[11px] text-[#8F959E] mt-1">从需求/仓库生成功能用例</div>
                   </div>
-                  <div class="w-40 p-3 rounded-lg border border-[#E5E6EB] bg-white hover:border-[#574BFF] cursor-pointer">
-                    <div class="flex items-center gap-2 text-[#574BFF] font-medium"><i data-lucide="play" class="w-4 h-4"></i>用例执行</div>
+                  <div
+                    class="w-40 p-3 rounded-lg border border-[#E5E6EB] bg-white hover:border-[#574BFF] cursor-pointer"
+                  >
+                    <div class="flex items-center gap-2 text-[#574BFF] font-medium">
+                      <i data-lucide="play" class="w-4 h-4"></i>用例执行
+                    </div>
                     <div class="text-[11px] text-[#8F959E] mt-1">按计划执行并汇报结果</div>
                   </div>
-                  <div class="w-40 p-3 rounded-lg border border-[#E5E6EB] bg-white hover:border-[#574BFF] cursor-pointer">
-                    <div class="flex items-center gap-2 text-[#574BFF] font-medium"><i data-lucide="chart-column" class="w-4 h-4"></i>测试分析</div>
+                  <div
+                    class="w-40 p-3 rounded-lg border border-[#E5E6EB] bg-white hover:border-[#574BFF] cursor-pointer"
+                  >
+                    <div class="flex items-center gap-2 text-[#574BFF] font-medium">
+                      <i data-lucide="chart-column" class="w-4 h-4"></i>测试分析
+                    </div>
                     <div class="text-[11px] text-[#8F959E] mt-1">读报告定位风险与缺陷</div>
                   </div>
-                  <div class="w-40 p-3 rounded-lg border border-dashed border-[#C9CDD4] bg-white/50 cursor-pointer flex flex-col items-center justify-center text-[#646A73]">
-                    <i data-lucide="plus" class="w-4 h-4"></i><div class="text-[11px] mt-1">空白新建</div>
+                  <div
+                    class="w-40 p-3 rounded-lg border border-dashed border-[#C9CDD4] bg-white/50 cursor-pointer flex flex-col items-center justify-center text-[#646A73]"
+                  >
+                    <i data-lucide="plus" class="w-4 h-4"></i>
+                    <div class="text-[11px] mt-1">空白新建</div>
                   </div>
                 </div>
               </div>
@@ -138,31 +238,68 @@
                 <!-- 卡片 1：chat 用例生成 -->
                 <div class="card bg-white rounded-lg border border-[#E5E6EB] p-4">
                   <div class="flex items-start gap-3">
-                    <div class="w-9 h-9 rounded-lg bg-[#574BFF]/10 flex items-center justify-center shrink-0"><i data-lucide="file-text" class="w-4 h-4 text-[#574BFF]"></i></div>
+                    <div
+                      class="w-9 h-9 rounded-lg bg-[#574BFF]/10 flex items-center justify-center shrink-0"
+                    >
+                      <i data-lucide="file-text" class="w-4 h-4 text-[#574BFF]"></i>
+                    </div>
                     <div class="min-w-0 flex-1">
                       <div class="flex items-center gap-1.5">
                         <span class="font-medium">用例生成助手</span>
-                        <span class="text-[10px] px-1.5 py-px rounded bg-[#574BFF]/10 text-[#574BFF]">chat</span>
-                        <span class="text-[10px] px-1.5 py-px rounded bg-[#00B42A]/10 text-[#00B42A] bg-[#00B42A1A]" style="background:#00B42A1A;color:#00B42A">用例生成</span>
+                        <span
+                          class="text-[10px] px-1.5 py-px rounded bg-[#574BFF]/10 text-[#574BFF]"
+                          >chat</span
+                        >
+                        <span
+                          class="text-[10px] px-1.5 py-px rounded bg-[#00B42A]/10 text-[#00B42A] bg-[#00B42A1A]"
+                          style="background: #00b42a1a; color: #00b42a"
+                          >用例生成</span
+                        >
                       </div>
-                      <div class="text-[11px] text-[#8F959E] mt-0.5 truncate">按需求描述与仓库代码生成功能用例草稿</div>
+                      <div class="text-[11px] text-[#8F959E] mt-0.5 truncate">
+                        按需求描述与仓库代码生成功能用例草稿
+                      </div>
                     </div>
-                    <label class="switch inline-flex items-center cursor-pointer" onclick="event.stopPropagation()">
+                    <label
+                      class="switch inline-flex items-center cursor-pointer"
+                      onclick="event.stopPropagation()"
+                    >
                       <input type="checkbox" checked class="sr-only peer" />
-                      <span class="w-8 h-4.5 rounded-full bg-[#C9CDD4] peer-checked:bg-[#574BFF] relative after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:w-3.5 after:h-3.5 after:rounded-full after:bg-white after:transition-all peer-checked:after:translate-x-3.5" style="height:18px;width:32px"></span>
+                      <span
+                        class="w-8 h-4.5 rounded-full bg-[#C9CDD4] peer-checked:bg-[#574BFF] relative after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:w-3.5 after:h-3.5 after:rounded-full after:bg-white after:transition-all peer-checked:after:translate-x-3.5"
+                        style="height: 18px; width: 32px"
+                      ></span>
                     </label>
                   </div>
                   <div class="flex items-center gap-3 mt-3 text-[11px] text-[#646A73]">
-                    <span class="flex items-center gap-1"><i data-lucide="cpu" class="w-3 h-3"></i>GLM-4.6</span>
+                    <span class="flex items-center gap-1"
+                      ><i data-lucide="cpu" class="w-3 h-3"></i>GLM-4.6</span
+                    >
                     <span>工具 8</span><span>Skills 2</span><span>仓库 1</span>
                   </div>
                   <div class="flex items-center mt-3 pt-3 border-t border-[#F0F1F5]">
-                    <span class="flex items-center gap-1 text-[11px] text-[#574BFF] bg-[#574BFF]/8 px-2 py-0.5 rounded"><i data-lucide="radio" class="w-3 h-3"></i>A2A 已开启</span>
+                    <span
+                      class="flex items-center gap-1 text-[11px] text-[#574BFF] bg-[#574BFF]/8 px-2 py-0.5 rounded"
+                      ><i data-lucide="radio" class="w-3 h-3"></i>A2A 已开启</span
+                    >
                     <span class="text-[10px] text-[#8F959E] ml-2">最近调用 10-02 09:12</span>
                     <div class="ml-auto row-actions flex items-center gap-1">
-                      <button class="btn px-2 py-1 rounded text-[#574BFF] hover:bg-[#574BFF]/8 text-[12px]">调试</button>
-                      <button class="btn px-2 py-1 rounded text-[#646A73] hover:bg-[#F0F1F5] text-[12px]" onclick="switchScreen('drawer')">编辑</button>
-                      <button class="btn px-2 py-1 rounded text-[#FA3939] hover:bg-[#FA3939]/8 text-[12px]">删除</button>
+                      <button
+                        class="btn px-2 py-1 rounded text-[#574BFF] hover:bg-[#574BFF]/8 text-[12px]"
+                      >
+                        调试
+                      </button>
+                      <button
+                        class="btn px-2 py-1 rounded text-[#646A73] hover:bg-[#F0F1F5] text-[12px]"
+                        onclick="switchScreen('drawer')"
+                      >
+                        编辑
+                      </button>
+                      <button
+                        class="btn px-2 py-1 rounded text-[#FA3939] hover:bg-[#FA3939]/8 text-[12px]"
+                      >
+                        删除
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -170,29 +307,58 @@
                 <!-- 卡片 2：pipeline 资产生成 -->
                 <div class="card bg-white rounded-lg border border-[#E5E6EB] p-4">
                   <div class="flex items-start gap-3">
-                    <div class="w-9 h-9 rounded-lg bg-[#00B42A]/10 flex items-center justify-center shrink-0"><i data-lucide="workflow" class="w-4 h-4 text-[#00B42A]"></i></div>
+                    <div
+                      class="w-9 h-9 rounded-lg bg-[#00B42A]/10 flex items-center justify-center shrink-0"
+                    >
+                      <i data-lucide="workflow" class="w-4 h-4 text-[#00B42A]"></i>
+                    </div>
                     <div class="min-w-0 flex-1">
                       <div class="flex items-center gap-1.5">
                         <span class="font-medium">资产生成管线</span>
-                        <span class="text-[10px] px-1.5 py-px rounded bg-[#00B42A]/10 text-[#00B42A]">pipeline</span>
+                        <span
+                          class="text-[10px] px-1.5 py-px rounded bg-[#00B42A]/10 text-[#00B42A]"
+                          >pipeline</span
+                        >
                       </div>
-                      <div class="text-[11px] text-[#8F959E] mt-0.5 truncate">代码库 + 文档 + 需求 → 用例与测试脚本（AGENT-002）</div>
+                      <div class="text-[11px] text-[#8F959E] mt-0.5 truncate">
+                        代码库 + 文档 + 需求 → 用例与测试脚本（AGENT-002）
+                      </div>
                     </div>
                     <label class="switch inline-flex items-center cursor-pointer">
                       <input type="checkbox" checked class="sr-only peer" />
-                      <span class="rounded-full bg-[#C9CDD4] peer-checked:bg-[#574BFF] relative after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:w-3.5 after:h-3.5 after:rounded-full after:bg-white after:transition-all peer-checked:after:translate-x-3.5" style="height:18px;width:32px"></span>
+                      <span
+                        class="rounded-full bg-[#C9CDD4] peer-checked:bg-[#574BFF] relative after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:w-3.5 after:h-3.5 after:rounded-full after:bg-white after:transition-all peer-checked:after:translate-x-3.5"
+                        style="height: 18px; width: 32px"
+                      ></span>
                     </label>
                   </div>
                   <div class="flex items-center gap-3 mt-3 text-[11px] text-[#646A73]">
-                    <span class="flex items-center gap-1"><i data-lucide="cpu" class="w-3 h-3"></i>DeepSeek-V3</span>
+                    <span class="flex items-center gap-1"
+                      ><i data-lucide="cpu" class="w-3 h-3"></i>DeepSeek-V3</span
+                    >
                     <span>阶段 A·B·C</span><span>预算 48K</span><span>仓库 2</span>
                   </div>
                   <div class="flex items-center mt-3 pt-3 border-t border-[#F0F1F5]">
-                    <span class="text-[11px] text-[#8F959E]">上次生成 10-01 · 累计采纳率 78.8%（127/161）</span>
+                    <span class="text-[11px] text-[#8F959E]"
+                      >上次生成 10-01 · 累计采纳率 78.8%（127/161）</span
+                    >
                     <div class="ml-auto row-actions flex items-center gap-1">
-                      <button class="btn px-2 py-1 rounded text-[#00B42A] hover:bg-[#00B42A]/8 text-[12px] font-medium">发起生成</button>
-                      <button class="btn px-2 py-1 rounded text-[#646A73] hover:bg-[#F0F1F5] text-[12px]" onclick="switchScreen('drawer')">编辑</button>
-                      <button class="btn px-2 py-1 rounded text-[#FA3939] hover:bg-[#FA3939]/8 text-[12px]">删除</button>
+                      <button
+                        class="btn px-2 py-1 rounded text-[#00B42A] hover:bg-[#00B42A]/8 text-[12px] font-medium"
+                      >
+                        发起生成
+                      </button>
+                      <button
+                        class="btn px-2 py-1 rounded text-[#646A73] hover:bg-[#F0F1F5] text-[12px]"
+                        onclick="switchScreen('drawer')"
+                      >
+                        编辑
+                      </button>
+                      <button
+                        class="btn px-2 py-1 rounded text-[#FA3939] hover:bg-[#FA3939]/8 text-[12px]"
+                      >
+                        删除
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -200,30 +366,61 @@
                 <!-- 卡片 3：用例执行（chat，A2A 关） -->
                 <div class="card bg-white rounded-lg border border-[#E5E6EB] p-4">
                   <div class="flex items-start gap-3">
-                    <div class="w-9 h-9 rounded-lg bg-[#FF8800]/10 flex items-center justify-center shrink-0"><i data-lucide="play" class="w-4 h-4 text-[#FF8800]"></i></div>
+                    <div
+                      class="w-9 h-9 rounded-lg bg-[#FF8800]/10 flex items-center justify-center shrink-0"
+                    >
+                      <i data-lucide="play" class="w-4 h-4 text-[#FF8800]"></i>
+                    </div>
                     <div class="min-w-0 flex-1">
                       <div class="flex items-center gap-1.5">
                         <span class="font-medium">回归执行助手</span>
-                        <span class="text-[10px] px-1.5 py-px rounded bg-[#574BFF]/10 text-[#574BFF]">chat</span>
-                        <span class="text-[10px] px-1.5 py-px rounded bg-[#F0F1F5] text-[#8F959E]">用例执行</span>
+                        <span
+                          class="text-[10px] px-1.5 py-px rounded bg-[#574BFF]/10 text-[#574BFF]"
+                          >chat</span
+                        >
+                        <span class="text-[10px] px-1.5 py-px rounded bg-[#F0F1F5] text-[#8F959E]"
+                          >用例执行</span
+                        >
                       </div>
-                      <div class="text-[11px] text-[#8F959E] mt-0.5 truncate">执行测试计划并汇报进度与失败摘要</div>
+                      <div class="text-[11px] text-[#8F959E] mt-0.5 truncate">
+                        执行测试计划并汇报进度与失败摘要
+                      </div>
                     </div>
                     <label class="switch inline-flex items-center cursor-pointer">
                       <input type="checkbox" class="sr-only peer" />
-                      <span class="rounded-full bg-[#C9CDD4] peer-checked:bg-[#574BFF] relative after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:w-3.5 after:h-3.5 after:rounded-full after:bg-white after:transition-all peer-checked:after:translate-x-3.5" style="height:18px;width:32px"></span>
+                      <span
+                        class="rounded-full bg-[#C9CDD4] peer-checked:bg-[#574BFF] relative after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:w-3.5 after:h-3.5 after:rounded-full after:bg-white after:transition-all peer-checked:after:translate-x-3.5"
+                        style="height: 18px; width: 32px"
+                      ></span>
                     </label>
                   </div>
                   <div class="flex items-center gap-3 mt-3 text-[11px] text-[#646A73]">
-                    <span class="flex items-center gap-1"><i data-lucide="cpu" class="w-3 h-3"></i>GLM-4.6</span>
+                    <span class="flex items-center gap-1"
+                      ><i data-lucide="cpu" class="w-3 h-3"></i>GLM-4.6</span
+                    >
                     <span>工具 5</span><span>Skills 0</span><span>仓库 0</span>
                   </div>
                   <div class="flex items-center mt-3 pt-3 border-t border-[#F0F1F5]">
-                    <span class="text-[11px] text-[#8F959E] bg-[#F0F1F5] px-2 py-0.5 rounded">A2A 未开启</span>
+                    <span class="text-[11px] text-[#8F959E] bg-[#F0F1F5] px-2 py-0.5 rounded"
+                      >A2A 未开启</span
+                    >
                     <div class="ml-auto row-actions flex items-center gap-1">
-                      <button class="btn px-2 py-1 rounded text-[#574BFF] hover:bg-[#574BFF]/8 text-[12px]">调试</button>
-                      <button class="btn px-2 py-1 rounded text-[#646A73] hover:bg-[#F0F1F5] text-[12px]" onclick="switchScreen('drawer')">编辑</button>
-                      <button class="btn px-2 py-1 rounded text-[#FA3939] hover:bg-[#FA3939]/8 text-[12px]">删除</button>
+                      <button
+                        class="btn px-2 py-1 rounded text-[#574BFF] hover:bg-[#574BFF]/8 text-[12px]"
+                      >
+                        调试
+                      </button>
+                      <button
+                        class="btn px-2 py-1 rounded text-[#646A73] hover:bg-[#F0F1F5] text-[12px]"
+                        onclick="switchScreen('drawer')"
+                      >
+                        编辑
+                      </button>
+                      <button
+                        class="btn px-2 py-1 rounded text-[#FA3939] hover:bg-[#FA3939]/8 text-[12px]"
+                      >
+                        删除
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -231,31 +428,62 @@
                 <!-- 卡片 4：测试分析（禁用态） -->
                 <div class="card bg-white rounded-lg border border-[#E5E6EB] p-4 opacity-70">
                   <div class="flex items-start gap-3">
-                    <div class="w-9 h-9 rounded-lg bg-[#8F959E]/10 flex items-center justify-center shrink-0"><i data-lucide="chart-column" class="w-4 h-4 text-[#8F959E]"></i></div>
+                    <div
+                      class="w-9 h-9 rounded-lg bg-[#8F959E]/10 flex items-center justify-center shrink-0"
+                    >
+                      <i data-lucide="chart-column" class="w-4 h-4 text-[#8F959E]"></i>
+                    </div>
                     <div class="min-w-0 flex-1">
                       <div class="flex items-center gap-1.5">
                         <span class="font-medium">测试分析助手</span>
-                        <span class="text-[10px] px-1.5 py-px rounded bg-[#574BFF]/10 text-[#574BFF]">chat</span>
-                        <span class="text-[10px] px-1.5 py-px rounded bg-[#F0F1F5] text-[#8F959E]">测试分析</span>
+                        <span
+                          class="text-[10px] px-1.5 py-px rounded bg-[#574BFF]/10 text-[#574BFF]"
+                          >chat</span
+                        >
+                        <span class="text-[10px] px-1.5 py-px rounded bg-[#F0F1F5] text-[#8F959E]"
+                          >测试分析</span
+                        >
                         <span class="text-[10px] text-[#FA3939]">已停用</span>
                       </div>
-                      <div class="text-[11px] text-[#8F959E] mt-0.5 truncate">读执行报告，输出风险摘要与缺陷建议</div>
+                      <div class="text-[11px] text-[#8F959E] mt-0.5 truncate">
+                        读执行报告，输出风险摘要与缺陷建议
+                      </div>
                     </div>
                     <label class="switch inline-flex items-center cursor-pointer">
                       <input type="checkbox" class="sr-only peer" />
-                      <span class="rounded-full bg-[#C9CDD4] peer-checked:bg-[#574BFF] relative after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:w-3.5 after:h-3.5 after:rounded-full after:bg-white after:transition-all peer-checked:after:translate-x-3.5" style="height:18px;width:32px"></span>
+                      <span
+                        class="rounded-full bg-[#C9CDD4] peer-checked:bg-[#574BFF] relative after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:w-3.5 after:h-3.5 after:rounded-full after:bg-white after:transition-all peer-checked:after:translate-x-3.5"
+                        style="height: 18px; width: 32px"
+                      ></span>
                     </label>
                   </div>
                   <div class="flex items-center gap-3 mt-3 text-[11px] text-[#646A73]">
-                    <span class="flex items-center gap-1"><i data-lucide="cpu" class="w-3 h-3"></i>GLM-4.6</span>
+                    <span class="flex items-center gap-1"
+                      ><i data-lucide="cpu" class="w-3 h-3"></i>GLM-4.6</span
+                    >
                     <span>工具 4</span><span>Skills 1</span><span>仓库 0</span>
                   </div>
                   <div class="flex items-center mt-3 pt-3 border-t border-[#F0F1F5]">
-                    <span class="text-[11px] text-[#8F959E] bg-[#F0F1F5] px-2 py-0.5 rounded">A2A 未开启</span>
+                    <span class="text-[11px] text-[#8F959E] bg-[#F0F1F5] px-2 py-0.5 rounded"
+                      >A2A 未开启</span
+                    >
                     <div class="ml-auto row-actions flex items-center gap-1">
-                      <button class="btn px-2 py-1 rounded text-[#574BFF] hover:bg-[#574BFF]/8 text-[12px]">调试</button>
-                      <button class="btn px-2 py-1 rounded text-[#646A73] hover:bg-[#F0F1F5] text-[12px]" onclick="switchScreen('drawer')">编辑</button>
-                      <button class="btn px-2 py-1 rounded text-[#FA3939] hover:bg-[#FA3939]/8 text-[12px]">删除</button>
+                      <button
+                        class="btn px-2 py-1 rounded text-[#574BFF] hover:bg-[#574BFF]/8 text-[12px]"
+                      >
+                        调试
+                      </button>
+                      <button
+                        class="btn px-2 py-1 rounded text-[#646A73] hover:bg-[#F0F1F5] text-[12px]"
+                        onclick="switchScreen('drawer')"
+                      >
+                        编辑
+                      </button>
+                      <button
+                        class="btn px-2 py-1 rounded text-[#FA3939] hover:bg-[#FA3939]/8 text-[12px]"
+                      >
+                        删除
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -267,36 +495,93 @@
               <div class="flex items-center mb-4">
                 <div>
                   <div class="font-medium text-[14px]">技能库</div>
-                  <div class="text-[12px] text-[#8F959E] mt-0.5">项目级 markdown 指令包，可被多个 Agent 引用（每个 Agent ≤5 个）</div>
+                  <div class="text-[12px] text-[#8F959E] mt-0.5">
+                    项目级 markdown 指令包，可被多个 Agent 引用（每个 Agent ≤5 个）
+                  </div>
                 </div>
-                <button class="btn ml-auto px-3 py-1.5 rounded bg-[#574BFF] text-white hover:bg-[#4a3fe8] flex items-center gap-1" onclick="openModal('skill-modal')"><i data-lucide="plus" class="w-3.5 h-3.5"></i>新建技能</button>
+                <button
+                  class="btn ml-auto px-3 py-1.5 rounded bg-[#574BFF] text-white hover:bg-[#4a3fe8] flex items-center gap-1"
+                  onclick="openModal('skill-modal')"
+                >
+                  <i data-lucide="plus" class="w-3.5 h-3.5"></i>新建技能
+                </button>
               </div>
               <div class="bg-white rounded-lg border border-[#E5E6EB]">
                 <table class="w-full text-[12px]">
-                  <thead><tr class="text-left text-[#8F959E] border-b border-[#F0F1F5]">
-                    <th class="px-4 py-2.5 font-normal">名称</th><th class="px-4 py-2.5 font-normal">触发说明</th><th class="px-4 py-2.5 font-normal">引用 Agent</th><th class="px-4 py-2.5 font-normal w-20">启用</th><th class="px-4 py-2.5 font-normal w-28">操作</th>
-                  </tr></thead>
+                  <thead>
+                    <tr class="text-left text-[#8F959E] border-b border-[#F0F1F5]">
+                      <th class="px-4 py-2.5 font-normal">名称</th>
+                      <th class="px-4 py-2.5 font-normal">触发说明</th>
+                      <th class="px-4 py-2.5 font-normal">引用 Agent</th>
+                      <th class="px-4 py-2.5 font-normal w-20">启用</th>
+                      <th class="px-4 py-2.5 font-normal w-28">操作</th>
+                    </tr>
+                  </thead>
                   <tbody>
                     <tr class="border-b border-[#F0F1F5] hover:bg-[#FAFBFC]">
-                      <td class="px-4 py-2.5"><span class="text-[#574BFF]">等价类与边界值方法</span></td>
-                      <td class="px-4 py-2.5 text-[#646A73]">生成功能用例时按等价类划分并补边界值场景</td>
+                      <td class="px-4 py-2.5">
+                        <span class="text-[#574BFF]">等价类与边界值方法</span>
+                      </td>
+                      <td class="px-4 py-2.5 text-[#646A73]">
+                        生成功能用例时按等价类划分并补边界值场景
+                      </td>
                       <td class="px-4 py-2.5">2（用例生成助手、资产生成管线）</td>
-                      <td class="px-4 py-2.5"><span class="inline-block w-8 rounded-full bg-[#574BFF] relative" style="height:16px"><span class="absolute top-0.5 left-4 w-3 h-3 rounded-full bg-white"></span></span></td>
-                      <td class="px-4 py-2.5"><button class="text-[#574BFF] mr-2" onclick="openModal('skill-modal')">编辑</button><button class="text-[#FA3939]">删除</button></td>
+                      <td class="px-4 py-2.5">
+                        <span
+                          class="inline-block w-8 rounded-full bg-[#574BFF] relative"
+                          style="height: 16px"
+                          ><span
+                            class="absolute top-0.5 left-4 w-3 h-3 rounded-full bg-white"
+                          ></span
+                        ></span>
+                      </td>
+                      <td class="px-4 py-2.5">
+                        <button class="text-[#574BFF] mr-2" onclick="openModal('skill-modal')">
+                          编辑</button
+                        ><button class="text-[#FA3939]">删除</button>
+                      </td>
                     </tr>
                     <tr class="border-b border-[#F0F1F5] hover:bg-[#FAFBFC]">
                       <td class="px-4 py-2.5"><span class="text-[#574BFF]">接口断言规范</span></td>
-                      <td class="px-4 py-2.5 text-[#646A73]">API 用例必须断言状态码+业务码+关键 JSONPath</td>
+                      <td class="px-4 py-2.5 text-[#646A73]">
+                        API 用例必须断言状态码+业务码+关键 JSONPath
+                      </td>
                       <td class="px-4 py-2.5">1（资产生成管线）</td>
-                      <td class="px-4 py-2.5"><span class="inline-block w-8 rounded-full bg-[#574BFF] relative" style="height:16px"><span class="absolute top-0.5 left-4 w-3 h-3 rounded-full bg-white"></span></span></td>
-                      <td class="px-4 py-2.5"><button class="text-[#574BFF] mr-2" onclick="openModal('skill-modal')">编辑</button><button class="text-[#FA3939]">删除</button></td>
+                      <td class="px-4 py-2.5">
+                        <span
+                          class="inline-block w-8 rounded-full bg-[#574BFF] relative"
+                          style="height: 16px"
+                          ><span
+                            class="absolute top-0.5 left-4 w-3 h-3 rounded-full bg-white"
+                          ></span
+                        ></span>
+                      </td>
+                      <td class="px-4 py-2.5">
+                        <button class="text-[#574BFF] mr-2" onclick="openModal('skill-modal')">
+                          编辑</button
+                        ><button class="text-[#FA3939]">删除</button>
+                      </td>
                     </tr>
                     <tr class="hover:bg-[#FAFBFC]">
                       <td class="px-4 py-2.5"><span class="text-[#574BFF]">缺陷描述模板</span></td>
-                      <td class="px-4 py-2.5 text-[#646A73]">创建缺陷时按「现象/复现步骤/期望/实际」四段式</td>
+                      <td class="px-4 py-2.5 text-[#646A73]">
+                        创建缺陷时按「现象/复现步骤/期望/实际」四段式
+                      </td>
                       <td class="px-4 py-2.5 text-[#8F959E]">0</td>
-                      <td class="px-4 py-2.5"><span class="inline-block w-8 rounded-full bg-[#C9CDD4] relative" style="height:16px"><span class="absolute top-0.5 left-0.5 w-3 h-3 rounded-full bg-white"></span></span></td>
-                      <td class="px-4 py-2.5"><button class="text-[#574BFF] mr-2" onclick="openModal('skill-modal')">编辑</button><button class="text-[#FA3939]">删除</button></td>
+                      <td class="px-4 py-2.5">
+                        <span
+                          class="inline-block w-8 rounded-full bg-[#C9CDD4] relative"
+                          style="height: 16px"
+                          ><span
+                            class="absolute top-0.5 left-0.5 w-3 h-3 rounded-full bg-white"
+                          ></span
+                        ></span>
+                      </td>
+                      <td class="px-4 py-2.5">
+                        <button class="text-[#574BFF] mr-2" onclick="openModal('skill-modal')">
+                          编辑</button
+                        ><button class="text-[#FA3939]">删除</button>
+                      </td>
                     </tr>
                   </tbody>
                 </table>
@@ -306,42 +591,110 @@
             <!-- tab: 运行记录 -->
             <div id="tab-runs" class="flex-1 overflow-auto p-6 hidden">
               <div class="flex items-center gap-2 mb-4">
-                <select class="px-2.5 py-1.5 rounded border border-[#E5E6EB] bg-white text-[12px]"><option>全部 Agent</option><option>用例生成助手</option><option>资产生成管线</option></select>
-                <select class="px-2.5 py-1.5 rounded border border-[#E5E6EB] bg-white text-[12px]"><option>全部来源</option><option>UI</option><option>A2A</option></select>
-                <select class="px-2.5 py-1.5 rounded border border-[#E5E6EB] bg-white text-[12px]"><option>全部状态</option><option>进行中</option><option>已完成</option><option>失败</option></select>
+                <select class="px-2.5 py-1.5 rounded border border-[#E5E6EB] bg-white text-[12px]">
+                  <option>全部 Agent</option>
+                  <option>用例生成助手</option>
+                  <option>资产生成管线</option>
+                </select>
+                <select class="px-2.5 py-1.5 rounded border border-[#E5E6EB] bg-white text-[12px]">
+                  <option>全部来源</option>
+                  <option>UI</option>
+                  <option>A2A</option>
+                </select>
+                <select class="px-2.5 py-1.5 rounded border border-[#E5E6EB] bg-white text-[12px]">
+                  <option>全部状态</option>
+                  <option>进行中</option>
+                  <option>已完成</option>
+                  <option>失败</option>
+                </select>
               </div>
               <div class="bg-white rounded-lg border border-[#E5E6EB]">
                 <table class="w-full text-[12px]">
-                  <thead><tr class="text-left text-[#8F959E] border-b border-[#F0F1F5]">
-                    <th class="px-4 py-2.5 font-normal">时间</th><th class="px-4 py-2.5 font-normal">Agent</th><th class="px-4 py-2.5 font-normal">来源</th><th class="px-4 py-2.5 font-normal">状态</th><th class="px-4 py-2.5 font-normal">耗时</th><th class="px-4 py-2.5 font-normal">Token（入/出）</th><th class="px-4 py-2.5 font-normal w-24">操作</th>
-                  </tr></thead>
+                  <thead>
+                    <tr class="text-left text-[#8F959E] border-b border-[#F0F1F5]">
+                      <th class="px-4 py-2.5 font-normal">时间</th>
+                      <th class="px-4 py-2.5 font-normal">Agent</th>
+                      <th class="px-4 py-2.5 font-normal">来源</th>
+                      <th class="px-4 py-2.5 font-normal">状态</th>
+                      <th class="px-4 py-2.5 font-normal">耗时</th>
+                      <th class="px-4 py-2.5 font-normal">Token（入/出）</th>
+                      <th class="px-4 py-2.5 font-normal w-24">操作</th>
+                    </tr>
+                  </thead>
                   <tbody>
                     <tr class="border-b border-[#F0F1F5] hover:bg-[#FAFBFC]">
-                      <td class="px-4 py-2.5 text-[#646A73]">10-02 09:12</td><td class="px-4 py-2.5">用例生成助手</td>
-                      <td class="px-4 py-2.5"><span class="text-[10px] px-1.5 py-px rounded bg-[#574BFF]/10 text-[#574BFF]">A2A</span></td>
-                      <td class="px-4 py-2.5"><span class="text-[#00B42A]" style="color:#00B42A">● 已完成</span></td>
-                      <td class="px-4 py-2.5">42s</td><td class="px-4 py-2.5">18.4K / 2.1K</td>
-                      <td class="px-4 py-2.5"><button class="text-[#574BFF]" onclick="openDrawer('run-detail')">详情</button></td>
+                      <td class="px-4 py-2.5 text-[#646A73]">10-02 09:12</td>
+                      <td class="px-4 py-2.5">用例生成助手</td>
+                      <td class="px-4 py-2.5">
+                        <span
+                          class="text-[10px] px-1.5 py-px rounded bg-[#574BFF]/10 text-[#574BFF]"
+                          >A2A</span
+                        >
+                      </td>
+                      <td class="px-4 py-2.5">
+                        <span class="text-[#00B42A]" style="color: #00b42a">● 已完成</span>
+                      </td>
+                      <td class="px-4 py-2.5">42s</td>
+                      <td class="px-4 py-2.5">18.4K / 2.1K</td>
+                      <td class="px-4 py-2.5">
+                        <button class="text-[#574BFF]" onclick="openDrawer('run-detail')">
+                          详情
+                        </button>
+                      </td>
                     </tr>
                     <tr class="border-b border-[#F0F1F5] hover:bg-[#FAFBFC]">
-                      <td class="px-4 py-2.5 text-[#646A73]">10-01 18:40</td><td class="px-4 py-2.5">资产生成管线</td>
-                      <td class="px-4 py-2.5"><span class="text-[10px] px-1.5 py-px rounded bg-[#F0F1F5] text-[#646A73]">UI</span> <span class="text-[10px] px-1.5 py-px rounded bg-[#00B42A]/10 text-[#00B42A]" style="color:#00B42A">采纳 41/52 · 78.8%</span></td>
-                      <td class="px-4 py-2.5"><span style="color:#00B42A">● 已完成</span></td>
-                      <td class="px-4 py-2.5">6m12s</td><td class="px-4 py-2.5">96.2K / 31.5K</td>
-                      <td class="px-4 py-2.5"><button class="text-[#574BFF]" onclick="openDrawer('run-detail')">详情</button></td>
+                      <td class="px-4 py-2.5 text-[#646A73]">10-01 18:40</td>
+                      <td class="px-4 py-2.5">资产生成管线</td>
+                      <td class="px-4 py-2.5">
+                        <span class="text-[10px] px-1.5 py-px rounded bg-[#F0F1F5] text-[#646A73]"
+                          >UI</span
+                        >
+                        <span
+                          class="text-[10px] px-1.5 py-px rounded bg-[#00B42A]/10 text-[#00B42A]"
+                          style="color: #00b42a"
+                          >采纳 41/52 · 78.8%</span
+                        >
+                      </td>
+                      <td class="px-4 py-2.5"><span style="color: #00b42a">● 已完成</span></td>
+                      <td class="px-4 py-2.5">6m12s</td>
+                      <td class="px-4 py-2.5">96.2K / 31.5K</td>
+                      <td class="px-4 py-2.5">
+                        <button class="text-[#574BFF]" onclick="openDrawer('run-detail')">
+                          详情
+                        </button>
+                      </td>
                     </tr>
                     <tr class="border-b border-[#F0F1F5] hover:bg-[#FAFBFC]">
-                      <td class="px-4 py-2.5 text-[#646A73]">10-01 15:03</td><td class="px-4 py-2.5">用例生成助手</td>
-                      <td class="px-4 py-2.5"><span class="text-[10px] px-1.5 py-px rounded bg-[#F0F1F5] text-[#646A73]">UI</span></td>
-                      <td class="px-4 py-2.5"><span class="text-[#FA3939]">● 失败</span><span class="text-[10px] text-[#8F959E] ml-1">70701 迭代超限</span></td>
-                      <td class="px-4 py-2.5">3m40s</td><td class="px-4 py-2.5">74.9K / 12.0K</td>
-                      <td class="px-4 py-2.5"><button class="text-[#574BFF]" onclick="openDrawer('run-detail')">详情</button></td>
+                      <td class="px-4 py-2.5 text-[#646A73]">10-01 15:03</td>
+                      <td class="px-4 py-2.5">用例生成助手</td>
+                      <td class="px-4 py-2.5">
+                        <span class="text-[10px] px-1.5 py-px rounded bg-[#F0F1F5] text-[#646A73]"
+                          >UI</span
+                        >
+                      </td>
+                      <td class="px-4 py-2.5">
+                        <span class="text-[#FA3939]">● 失败</span
+                        ><span class="text-[10px] text-[#8F959E] ml-1">70701 迭代超限</span>
+                      </td>
+                      <td class="px-4 py-2.5">3m40s</td>
+                      <td class="px-4 py-2.5">74.9K / 12.0K</td>
+                      <td class="px-4 py-2.5">
+                        <button class="text-[#574BFF]" onclick="openDrawer('run-detail')">
+                          详情
+                        </button>
+                      </td>
                     </tr>
                     <tr class="hover:bg-[#FAFBFC]">
-                      <td class="px-4 py-2.5 text-[#646A73]">10-01 11:26</td><td class="px-4 py-2.5">回归执行助手</td>
-                      <td class="px-4 py-2.5"><span class="text-[10px] px-1.5 py-px rounded bg-[#F0F1F5] text-[#646A73]">UI</span></td>
+                      <td class="px-4 py-2.5 text-[#646A73]">10-01 11:26</td>
+                      <td class="px-4 py-2.5">回归执行助手</td>
+                      <td class="px-4 py-2.5">
+                        <span class="text-[10px] px-1.5 py-px rounded bg-[#F0F1F5] text-[#646A73]"
+                          >UI</span
+                        >
+                      </td>
                       <td class="px-4 py-2.5"><span class="text-[#FF8800]">◐ 进行中</span></td>
-                      <td class="px-4 py-2.5">—</td><td class="px-4 py-2.5">—</td>
+                      <td class="px-4 py-2.5">—</td>
+                      <td class="px-4 py-2.5">—</td>
                       <td class="px-4 py-2.5"><button class="text-[#FA3939]">取消</button></td>
                     </tr>
                   </tbody>
@@ -353,93 +706,228 @@
           <!-- ───────── 画面③ 调试台 ───────── -->
           <div id="screen-debug" class="flex-1 min-h-0 hidden">
             <div class="h-full flex flex-col">
-              <div class="bg-white border-b border-[#E5E6EB] px-6 py-3 flex items-center gap-3 shrink-0">
-                <button class="btn p-1 rounded hover:bg-[#F0F1F5]" onclick="switchScreen('list')"><i data-lucide="arrow-left" class="w-4 h-4"></i></button>
-                <div class="w-7 h-7 rounded-lg bg-[#574BFF]/10 flex items-center justify-center"><i data-lucide="file-text" class="w-4 h-4 text-[#574BFF]"></i></div>
+              <div
+                class="bg-white border-b border-[#E5E6EB] px-6 py-3 flex items-center gap-3 shrink-0"
+              >
+                <button class="btn p-1 rounded hover:bg-[#F0F1F5]" onclick="switchScreen('list')">
+                  <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                </button>
+                <div class="w-7 h-7 rounded-lg bg-[#574BFF]/10 flex items-center justify-center">
+                  <i data-lucide="file-text" class="w-4 h-4 text-[#574BFF]"></i>
+                </div>
                 <div class="font-medium">用例生成助手 · 调试台</div>
-                <span class="text-[10px] px-1.5 py-px rounded bg-[#574BFF]/10 text-[#574BFF]">chat</span>
+                <span class="text-[10px] px-1.5 py-px rounded bg-[#574BFF]/10 text-[#574BFF]"
+                  >chat</span
+                >
                 <span class="text-[11px] text-[#8F959E]">执行身份：当前登录用户（许某）</span>
-                <span class="ml-auto text-[11px] text-[#8F959E] flex items-center gap-1"><i data-lucide="cpu" class="w-3 h-3"></i>GLM-4.6 · 迭代上限 12</span>
+                <span class="ml-auto text-[11px] text-[#8F959E] flex items-center gap-1"
+                  ><i data-lucide="cpu" class="w-3 h-3"></i>GLM-4.6 · 迭代上限 12</span
+                >
               </div>
               <div class="flex-1 flex min-h-0">
                 <!-- 对话区 -->
                 <div class="flex-1 flex flex-col min-w-0 bg-[#FAFBFC]">
                   <div class="flex-1 overflow-auto p-6 space-y-4">
-                    <div class="flex justify-end"><div class="max-w-[75%] bg-[#574BFF] text-white rounded-xl rounded-tr-sm px-4 py-2.5">为登录模块生成 5 条功能用例，参考仓库 user-service 的接口定义</div></div>
+                    <div class="flex justify-end">
+                      <div
+                        class="max-w-[75%] bg-[#574BFF] text-white rounded-xl rounded-tr-sm px-4 py-2.5"
+                      >
+                        为登录模块生成 5 条功能用例，参考仓库 user-service 的接口定义
+                      </div>
+                    </div>
                     <div class="flex gap-2.5">
-                      <div class="w-7 h-7 rounded-full bg-[#574BFF]/10 flex items-center justify-center shrink-0 mt-1"><i data-lucide="bot" class="w-4 h-4 text-[#574BFF]"></i></div>
+                      <div
+                        class="w-7 h-7 rounded-full bg-[#574BFF]/10 flex items-center justify-center shrink-0 mt-1"
+                      >
+                        <i data-lucide="bot" class="w-4 h-4 text-[#574BFF]"></i>
+                      </div>
                       <div class="max-w-[80%] space-y-2">
-                        <div class="bg-white border border-[#E5E6EB] rounded-xl rounded-tl-sm px-4 py-2.5">
-                          我先查一下仓库里 user-service 的接口与既有模块结构，再按等价类/边界值方法生成用例。
+                        <div
+                          class="bg-white border border-[#E5E6EB] rounded-xl rounded-tl-sm px-4 py-2.5"
+                        >
+                          我先查一下仓库里 user-service
+                          的接口与既有模块结构，再按等价类/边界值方法生成用例。
                         </div>
                         <div class="flex flex-wrap gap-1.5">
-                          <span class="text-[11px] bg-white border border-[#E5E6EB] rounded-md px-2 py-1 text-[#646A73] flex items-center gap-1"><i data-lucide="wrench" class="w-3 h-3 text-[#FF8800]"></i>module.tree<span class="text-[#00B42A]" style="color:#00B42A">✓ 200</span></span>
-                          <span class="text-[11px] bg-white border border-[#E5E6EB] rounded-md px-2 py-1 text-[#646A73] flex items-center gap-1"><i data-lucide="wrench" class="w-3 h-3 text-[#FF8800]"></i>repo.list_files<span style="color:#00B42A">✓ 200</span></span>
-                          <span class="text-[11px] bg-white border border-[#E5E6EB] rounded-md px-2 py-1 text-[#646A73] flex items-center gap-1"><i data-lucide="wrench" class="w-3 h-3 text-[#FF8800]"></i>repo.read_file<span style="color:#00B42A">✓ 200</span></span>
+                          <span
+                            class="text-[11px] bg-white border border-[#E5E6EB] rounded-md px-2 py-1 text-[#646A73] flex items-center gap-1"
+                            ><i data-lucide="wrench" class="w-3 h-3 text-[#FF8800]"></i
+                            >module.tree<span class="text-[#00B42A]" style="color: #00b42a"
+                              >✓ 200</span
+                            ></span
+                          >
+                          <span
+                            class="text-[11px] bg-white border border-[#E5E6EB] rounded-md px-2 py-1 text-[#646A73] flex items-center gap-1"
+                            ><i data-lucide="wrench" class="w-3 h-3 text-[#FF8800]"></i
+                            >repo.list_files<span style="color: #00b42a">✓ 200</span></span
+                          >
+                          <span
+                            class="text-[11px] bg-white border border-[#E5E6EB] rounded-md px-2 py-1 text-[#646A73] flex items-center gap-1"
+                            ><i data-lucide="wrench" class="w-3 h-3 text-[#FF8800]"></i
+                            >repo.read_file<span style="color: #00b42a">✓ 200</span></span
+                          >
                         </div>
-                        <div class="bg-white border border-[#E5E6EB] rounded-xl rounded-tl-sm px-4 py-2.5">
-                          已生成 5 条用例草稿（覆盖正常登录、密码错误锁定、验证码过期、多端互踢、记住登录），已通过 case.create 落库为草稿状态，编号 CASE-0187~0191。要点如下：…（正文略）
-                          <div class="mt-2 pt-2 border-t border-[#F0F1F5] text-[11px] text-[#8F959E]">📦 结构化产物：createdCaseIds = 5 · 工具调用 4 次 · 迭代 3 步</div>
+                        <div
+                          class="bg-white border border-[#E5E6EB] rounded-xl rounded-tl-sm px-4 py-2.5"
+                        >
+                          已生成 5
+                          条用例草稿（覆盖正常登录、密码错误锁定、验证码过期、多端互踢、记住登录），已通过
+                          case.create 落库为草稿状态，编号 CASE-0187~0191。要点如下：…（正文略）
+                          <div
+                            class="mt-2 pt-2 border-t border-[#F0F1F5] text-[11px] text-[#8F959E]"
+                          >
+                            📦 结构化产物：createdCaseIds = 5 · 工具调用 4 次 · 迭代 3 步
+                          </div>
                         </div>
                       </div>
                     </div>
-                    <div class="flex justify-end"><div class="max-w-[75%] bg-[#574BFF] text-white rounded-xl rounded-tr-sm px-4 py-2.5">把第 3 条验证码过期的预期结果再明确一下</div></div>
+                    <div class="flex justify-end">
+                      <div
+                        class="max-w-[75%] bg-[#574BFF] text-white rounded-xl rounded-tr-sm px-4 py-2.5"
+                      >
+                        把第 3 条验证码过期的预期结果再明确一下
+                      </div>
+                    </div>
                     <div class="flex gap-2.5">
-                      <div class="w-7 h-7 rounded-full bg-[#574BFF]/10 flex items-center justify-center shrink-0 mt-1"><i data-lucide="bot" class="w-4 h-4 text-[#574BFF]"></i></div>
-                      <div class="bg-white border border-[#E5E6EB] rounded-xl rounded-tl-sm px-4 py-2.5 flex items-center gap-2 text-[#646A73]">
-                        <span class="w-1.5 h-1.5 rounded-full bg-[#574BFF] animate-pulse"></span>思考中…
+                      <div
+                        class="w-7 h-7 rounded-full bg-[#574BFF]/10 flex items-center justify-center shrink-0 mt-1"
+                      >
+                        <i data-lucide="bot" class="w-4 h-4 text-[#574BFF]"></i>
+                      </div>
+                      <div
+                        class="bg-white border border-[#E5E6EB] rounded-xl rounded-tl-sm px-4 py-2.5 flex items-center gap-2 text-[#646A73]"
+                      >
+                        <span class="w-1.5 h-1.5 rounded-full bg-[#574BFF] animate-pulse"></span
+                        >思考中…
                       </div>
                     </div>
                   </div>
                   <div class="p-4 border-t border-[#E5E6EB] bg-white flex items-center gap-2">
-                    <input class="flex-1 px-3.5 py-2 rounded-lg border border-[#E5E6EB] focus:outline-none focus:border-[#574BFF]" placeholder="输入消息，Enter 发送（同 Run 多轮续跑）" />
-                    <button class="btn px-4 py-2 rounded-lg bg-[#574BFF] text-white hover:bg-[#4a3fe8]">发送</button>
-                    <button class="btn px-3 py-2 rounded-lg border border-[#FA3939] text-[#FA3939] hover:bg-[#FA3939]/8 flex items-center gap-1"><i data-lucide="square" class="w-3.5 h-3.5"></i>停止</button>
+                    <input
+                      class="flex-1 px-3.5 py-2 rounded-lg border border-[#E5E6EB] focus:outline-none focus:border-[#574BFF]"
+                      placeholder="输入消息，Enter 发送（同 Run 多轮续跑）"
+                    />
+                    <button
+                      class="btn px-4 py-2 rounded-lg bg-[#574BFF] text-white hover:bg-[#4a3fe8]"
+                    >
+                      发送
+                    </button>
+                    <button
+                      class="btn px-3 py-2 rounded-lg border border-[#FA3939] text-[#FA3939] hover:bg-[#FA3939]/8 flex items-center gap-1"
+                    >
+                      <i data-lucide="square" class="w-3.5 h-3.5"></i>停止
+                    </button>
                   </div>
                 </div>
                 <!-- 轨迹面板 -->
                 <div class="w-80 border-l border-[#E5E6EB] bg-white flex flex-col shrink-0">
-                  <div class="px-4 py-3 border-b border-[#E5E6EB] font-medium flex items-center gap-2"><i data-lucide="activity" class="w-3.5 h-3.5 text-[#574BFF]"></i>运行轨迹<span class="ml-auto text-[11px] text-[#8F959E]">run 9f2c…</span></div>
+                  <div
+                    class="px-4 py-3 border-b border-[#E5E6EB] font-medium flex items-center gap-2"
+                  >
+                    <i data-lucide="activity" class="w-3.5 h-3.5 text-[#574BFF]"></i>运行轨迹<span
+                      class="ml-auto text-[11px] text-[#8F959E]"
+                      >run 9f2c…</span
+                    >
+                  </div>
                   <div class="flex-1 overflow-auto p-4">
-                    <div class="text-[11px] text-[#8F959E] mb-3">本轮轨迹 · 3 次迭代 · 4 次工具调用</div>
+                    <div class="text-[11px] text-[#8F959E] mb-3">
+                      本轮轨迹 · 3 次迭代 · 4 次工具调用
+                    </div>
                     <div class="space-y-0">
                       <div class="flex gap-2">
-                        <div class="flex flex-col items-center"><span class="w-6 h-6 rounded-full bg-[#574BFF]/10 flex items-center justify-center text-[11px]">🧠</span><span class="w-px flex-1 bg-[#E5E6EB] my-1"></span></div>
+                        <div class="flex flex-col items-center">
+                          <span
+                            class="w-6 h-6 rounded-full bg-[#574BFF]/10 flex items-center justify-center text-[11px]"
+                            >🧠</span
+                          ><span class="w-px flex-1 bg-[#E5E6EB] my-1"></span>
+                        </div>
                         <div class="pb-4 min-w-0 flex-1">
                           <div class="text-[12px] font-medium">LLM · 迭代 1</div>
-                          <div class="text-[11px] text-[#8F959E] mt-0.5">决定先查模块树与仓库结构</div>
-                          <div class="mt-1 text-[10px] text-[#8F959E] mono bg-[#FAFBFC] border border-[#F0F1F5] rounded px-2 py-1 truncate">tool_calls: module.tree, repo.list_files</div>
+                          <div class="text-[11px] text-[#8F959E] mt-0.5">
+                            决定先查模块树与仓库结构
+                          </div>
+                          <div
+                            class="mt-1 text-[10px] text-[#8F959E] mono bg-[#FAFBFC] border border-[#F0F1F5] rounded px-2 py-1 truncate"
+                          >
+                            tool_calls: module.tree, repo.list_files
+                          </div>
                         </div>
                       </div>
                       <div class="flex gap-2">
-                        <div class="flex flex-col items-center"><span class="w-6 h-6 rounded-full bg-[#FF8800]/10 flex items-center justify-center text-[11px]">🔧</span><span class="w-px flex-1 bg-[#E5E6EB] my-1"></span></div>
+                        <div class="flex flex-col items-center">
+                          <span
+                            class="w-6 h-6 rounded-full bg-[#FF8800]/10 flex items-center justify-center text-[11px]"
+                            >🔧</span
+                          ><span class="w-px flex-1 bg-[#E5E6EB] my-1"></span>
+                        </div>
                         <div class="pb-4 min-w-0 flex-1">
-                          <div class="text-[12px] font-medium">module.tree <span class="text-[10px] text-[#00B42A]" style="color:#00B42A">200 · 84ms</span></div>
-                          <details class="mt-1"><summary class="text-[11px] text-[#574BFF] cursor-pointer">入参 / 出参</summary>
-                            <div class="mt-1 text-[10px] mono bg-[#FAFBFC] border border-[#F0F1F5] rounded p-2 overflow-auto">{"moduleId":null,"depth":2}</div>
-                            <div class="mt-1 text-[10px] mono bg-[#FAFBFC] border border-[#F0F1F5] rounded p-2 overflow-auto">{"nodes":[…12 项],"truncated":false}</div>
+                          <div class="text-[12px] font-medium">
+                            module.tree
+                            <span class="text-[10px] text-[#00B42A]" style="color: #00b42a"
+                              >200 · 84ms</span
+                            >
+                          </div>
+                          <details class="mt-1">
+                            <summary class="text-[11px] text-[#574BFF] cursor-pointer">
+                              入参 / 出参
+                            </summary>
+                            <div
+                              class="mt-1 text-[10px] mono bg-[#FAFBFC] border border-[#F0F1F5] rounded p-2 overflow-auto"
+                            >
+                              {"moduleId":null,"depth":2}
+                            </div>
+                            <div
+                              class="mt-1 text-[10px] mono bg-[#FAFBFC] border border-[#F0F1F5] rounded p-2 overflow-auto"
+                            >
+                              {"nodes":[…12 项],"truncated":false}
+                            </div>
                           </details>
                         </div>
                       </div>
                       <div class="flex gap-2">
-                        <div class="flex flex-col items-center"><span class="w-6 h-6 rounded-full bg-[#FF8800]/10 flex items-center justify-center text-[11px]">🔧</span><span class="w-px flex-1 bg-[#E5E6EB] my-1"></span></div>
+                        <div class="flex flex-col items-center">
+                          <span
+                            class="w-6 h-6 rounded-full bg-[#FF8800]/10 flex items-center justify-center text-[11px]"
+                            >🔧</span
+                          ><span class="w-px flex-1 bg-[#E5E6EB] my-1"></span>
+                        </div>
                         <div class="pb-4 min-w-0 flex-1">
-                          <div class="text-[12px] font-medium">repo.read_file <span class="text-[10px]" style="color:#00B42A">200 · 356ms</span></div>
-                          <div class="text-[11px] text-[#8F959E] mt-0.5">user-service/src/routes/auth.ts · 18KB</div>
+                          <div class="text-[12px] font-medium">
+                            repo.read_file
+                            <span class="text-[10px]" style="color: #00b42a">200 · 356ms</span>
+                          </div>
+                          <div class="text-[11px] text-[#8F959E] mt-0.5">
+                            user-service/src/routes/auth.ts · 18KB
+                          </div>
                         </div>
                       </div>
                       <div class="flex gap-2">
-                        <div class="flex flex-col items-center"><span class="w-6 h-6 rounded-full bg-[#574BFF]/10 flex items-center justify-center text-[11px]">🧠</span><span class="w-px flex-1 bg-[#E5E6EB] my-1"></span></div>
+                        <div class="flex flex-col items-center">
+                          <span
+                            class="w-6 h-6 rounded-full bg-[#574BFF]/10 flex items-center justify-center text-[11px]"
+                            >🧠</span
+                          ><span class="w-px flex-1 bg-[#E5E6EB] my-1"></span>
+                        </div>
                         <div class="pb-4 min-w-0 flex-1">
                           <div class="text-[12px] font-medium">LLM · 迭代 2</div>
-                          <div class="text-[11px] text-[#8F959E] mt-0.5">按等价类/边界值产出 5 条用例并调用创建</div>
+                          <div class="text-[11px] text-[#8F959E] mt-0.5">
+                            按等价类/边界值产出 5 条用例并调用创建
+                          </div>
                         </div>
                       </div>
                       <div class="flex gap-2">
-                        <div class="flex flex-col items-center"><span class="w-6 h-6 rounded-full bg-[#00B42A]/10 flex items-center justify-center text-[11px]" style="background:#00B42A1A">📦</span></div>
+                        <div class="flex flex-col items-center">
+                          <span
+                            class="w-6 h-6 rounded-full bg-[#00B42A]/10 flex items-center justify-center text-[11px]"
+                            style="background: #00b42a1a"
+                            >📦</span
+                          >
+                        </div>
                         <div class="pb-2 min-w-0 flex-1">
                           <div class="text-[12px] font-medium">产物</div>
-                          <div class="text-[11px] text-[#8F959E] mt-0.5">TextPart 答复 + DataPart {createdCaseIds:[×5]}</div>
+                          <div class="text-[11px] text-[#8F959E] mt-0.5">
+                            TextPart 答复 + DataPart {createdCaseIds:[×5]}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -451,59 +939,137 @@
         </div>
 
         <!-- ───────── 画面② 编辑抽屉（覆盖在内容区上） ───────── -->
-        <div id="screen-drawer" class="absolute inset-0 z-40 hidden" style="position:absolute; inset:0; pointer-events:none;">
-          <div class="absolute inset-0 bg-black/20" style="pointer-events:auto"></div>
-          <div class="drawer absolute right-0 top-0 bottom-0 w-[860px] bg-white flex flex-col" style="pointer-events:auto; transform:none; box-shadow:-8px 0 24px rgba(0,0,0,.08)">
+        <div
+          id="screen-drawer"
+          class="absolute inset-0 z-40 hidden"
+          style="position: absolute; inset: 0; pointer-events: none"
+        >
+          <div class="absolute inset-0 bg-black/20" style="pointer-events: auto"></div>
+          <div
+            class="drawer absolute right-0 top-0 bottom-0 w-[860px] bg-white flex flex-col"
+            style="
+              pointer-events: auto;
+              transform: none;
+              box-shadow: -8px 0 24px rgba(0, 0, 0, 0.08);
+            "
+          >
             <div class="px-6 py-4 border-b border-[#E5E6EB] flex items-center gap-3 shrink-0">
               <div class="font-medium text-[14px]">编辑 Agent · 用例生成助手</div>
-              <span class="text-[10px] px-1.5 py-px rounded bg-[#574BFF]/10 text-[#574BFF]">chat</span>
+              <span class="text-[10px] px-1.5 py-px rounded bg-[#574BFF]/10 text-[#574BFF]"
+                >chat</span
+              >
               <span class="text-[11px] text-[#8F959E] ml-2">version 3 · 更新于 10-01</span>
               <div class="ml-auto flex items-center gap-2">
                 <button class="btn px-3 py-1.5 rounded border border-[#E5E6EB]">取消</button>
-                <button class="btn px-3 py-1.5 rounded bg-[#574BFF] text-white hover:bg-[#4a3fe8]">保存</button>
-                <button class="btn p-1 rounded hover:bg-[#F0F1F5]" onclick="switchScreen('list')"><i data-lucide="x" class="w-4 h-4"></i></button>
+                <button class="btn px-3 py-1.5 rounded bg-[#574BFF] text-white hover:bg-[#4a3fe8]">
+                  保存
+                </button>
+                <button class="btn p-1 rounded hover:bg-[#F0F1F5]" onclick="switchScreen('list')">
+                  <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
               </div>
             </div>
             <div class="flex flex-1 min-h-0">
               <!-- 左侧分区导航 -->
               <div class="w-40 border-r border-[#E5E6EB] p-2 shrink-0 overflow-auto">
-                <div class="sec-item active px-3 py-2 rounded cursor-pointer" data-sec="base">基本信息</div>
-                <div class="sec-item px-3 py-2 rounded cursor-pointer text-[#3D4350]" data-sec="model">模型与参数</div>
-                <div class="sec-item px-3 py-2 rounded cursor-pointer text-[#3D4350]" data-sec="prompt">提示词</div>
-                <div class="sec-item px-3 py-2 rounded cursor-pointer text-[#3D4350]" data-sec="tools">工具 <span class="text-[10px] text-[#8F959E]">8/13</span></div>
-                <div class="sec-item px-3 py-2 rounded cursor-pointer text-[#3D4350]" data-sec="skills">Skills <span class="text-[10px] text-[#8F959E]">2/5</span></div>
-                <div class="sec-item px-3 py-2 rounded cursor-pointer text-[#3D4350]" data-sec="repos">代码仓库 <span class="text-[10px] text-[#8F959E]">1</span></div>
-                <div class="sec-item px-3 py-2 rounded cursor-pointer text-[#3D4350]" data-sec="advanced">高级</div>
-                <div class="sec-item px-3 py-2 rounded cursor-pointer text-[#3D4350]" data-sec="a2a">A2A 接入</div>
+                <div class="sec-item active px-3 py-2 rounded cursor-pointer" data-sec="base">
+                  基本信息
+                </div>
+                <div
+                  class="sec-item px-3 py-2 rounded cursor-pointer text-[#3D4350]"
+                  data-sec="model"
+                >
+                  模型与参数
+                </div>
+                <div
+                  class="sec-item px-3 py-2 rounded cursor-pointer text-[#3D4350]"
+                  data-sec="prompt"
+                >
+                  提示词
+                </div>
+                <div
+                  class="sec-item px-3 py-2 rounded cursor-pointer text-[#3D4350]"
+                  data-sec="tools"
+                >
+                  工具 <span class="text-[10px] text-[#8F959E]">8/13</span>
+                </div>
+                <div
+                  class="sec-item px-3 py-2 rounded cursor-pointer text-[#3D4350]"
+                  data-sec="skills"
+                >
+                  Skills <span class="text-[10px] text-[#8F959E]">2/5</span>
+                </div>
+                <div
+                  class="sec-item px-3 py-2 rounded cursor-pointer text-[#3D4350]"
+                  data-sec="repos"
+                >
+                  代码仓库 <span class="text-[10px] text-[#8F959E]">1</span>
+                </div>
+                <div
+                  class="sec-item px-3 py-2 rounded cursor-pointer text-[#3D4350]"
+                  data-sec="advanced"
+                >
+                  高级
+                </div>
+                <div
+                  class="sec-item px-3 py-2 rounded cursor-pointer text-[#3D4350]"
+                  data-sec="a2a"
+                >
+                  A2A 接入
+                </div>
               </div>
               <!-- 右侧表单区 -->
               <div class="flex-1 overflow-auto p-6">
                 <!-- 基本信息 -->
                 <div id="sec-base" class="sec-pane space-y-4 max-w-[560px]">
                   <div>
-                    <label class="text-[12px] text-[#646A73] block mb-1.5">名称 <span class="text-[#FA3939]">*</span></label>
-                    <input value="用例生成助手" class="w-full px-3 py-2 rounded-lg border border-[#E5E6EB] focus:outline-none focus:border-[#574BFF]" />
+                    <label class="text-[12px] text-[#646A73] block mb-1.5"
+                      >名称 <span class="text-[#FA3939]">*</span></label
+                    >
+                    <input
+                      value="用例生成助手"
+                      class="w-full px-3 py-2 rounded-lg border border-[#E5E6EB] focus:outline-none focus:border-[#574BFF]"
+                    />
                   </div>
                   <div>
                     <label class="text-[12px] text-[#646A73] block mb-1.5">描述</label>
-                    <textarea rows="2" class="w-full px-3 py-2 rounded-lg border border-[#E5E6EB] focus:outline-none focus:border-[#574BFF]">按需求描述与仓库代码生成功能用例草稿</textarea>
+                    <textarea
+                      rows="2"
+                      class="w-full px-3 py-2 rounded-lg border border-[#E5E6EB] focus:outline-none focus:border-[#574BFF]"
+                    >
+按需求描述与仓库代码生成功能用例草稿</textarea>
                   </div>
                   <div>
                     <label class="text-[12px] text-[#646A73] block mb-1.5">运行模式</label>
                     <div class="flex gap-3">
-                      <label class="flex items-center gap-2 px-3 py-2 rounded-lg border border-[#574BFF] bg-[#574BFF]/5 cursor-pointer">
-                        <input type="radio" name="mode" checked class="accent-[#574BFF]" /><span>对话循环（chat）</span>
+                      <label
+                        class="flex items-center gap-2 px-3 py-2 rounded-lg border border-[#574BFF] bg-[#574BFF]/5 cursor-pointer"
+                      >
+                        <input type="radio" name="mode" checked class="accent-[#574BFF]" /><span
+                          >对话循环（chat）</span
+                        >
                       </label>
-                      <label class="flex items-center gap-2 px-3 py-2 rounded-lg border border-[#E5E6EB] cursor-pointer">
-                        <input type="radio" name="mode" class="accent-[#574BFF]" /><span>生成管线（pipeline）</span>
+                      <label
+                        class="flex items-center gap-2 px-3 py-2 rounded-lg border border-[#E5E6EB] cursor-pointer"
+                      >
+                        <input type="radio" name="mode" class="accent-[#574BFF]" /><span
+                          >生成管线（pipeline）</span
+                        >
                       </label>
                     </div>
-                    <div class="text-[11px] text-[#8F959E] mt-1">pipeline 模式配置面见 AGENT-002（阶段/预算/上下文默认源）</div>
+                    <div class="text-[11px] text-[#8F959E] mt-1">
+                      pipeline 模式配置面见 AGENT-002（阶段/预算/上下文默认源）
+                    </div>
                   </div>
                   <div>
-                    <label class="text-[12px] text-[#646A73] block mb-1.5">角色分类（展示用）</label>
+                    <label class="text-[12px] text-[#646A73] block mb-1.5"
+                      >角色分类（展示用）</label
+                    >
                     <div class="flex gap-2">
-                      <span class="px-3 py-1.5 rounded-lg border border-[#574BFF] bg-[#574BFF]/5 text-[#574BFF]">用例生成</span>
+                      <span
+                        class="px-3 py-1.5 rounded-lg border border-[#574BFF] bg-[#574BFF]/5 text-[#574BFF]"
+                        >用例生成</span
+                      >
                       <span class="px-3 py-1.5 rounded-lg border border-[#E5E6EB]">用例执行</span>
                       <span class="px-3 py-1.5 rounded-lg border border-[#E5E6EB]">测试分析</span>
                       <span class="px-3 py-1.5 rounded-lg border border-[#E5E6EB]">自定义</span>
@@ -512,39 +1078,95 @@
                   <div>
                     <label class="text-[12px] text-[#646A73] block mb-1.5">图标</label>
                     <div class="flex gap-2">
-                      <span class="w-9 h-9 rounded-lg bg-[#574BFF]/10 text-[#574BFF] flex items-center justify-center border border-[#574BFF]"><i data-lucide="file-text" class="w-4 h-4"></i></span>
-                      <span class="w-9 h-9 rounded-lg border border-[#E5E6EB] flex items-center justify-center"><i data-lucide="play" class="w-4 h-4 text-[#646A73]"></i></span>
-                      <span class="w-9 h-9 rounded-lg border border-[#E5E6EB] flex items-center justify-center"><i data-lucide="chart-column" class="w-4 h-4 text-[#646A73]"></i></span>
-                      <span class="w-9 h-9 rounded-lg border border-[#E5E6EB] flex items-center justify-center"><i data-lucide="workflow" class="w-4 h-4 text-[#646A73]"></i></span>
-                      <span class="w-9 h-9 rounded-lg border border-[#E5E6EB] flex items-center justify-center"><i data-lucide="bot" class="w-4 h-4 text-[#646A73]"></i></span>
+                      <span
+                        class="w-9 h-9 rounded-lg bg-[#574BFF]/10 text-[#574BFF] flex items-center justify-center border border-[#574BFF]"
+                        ><i data-lucide="file-text" class="w-4 h-4"></i
+                      ></span>
+                      <span
+                        class="w-9 h-9 rounded-lg border border-[#E5E6EB] flex items-center justify-center"
+                        ><i data-lucide="play" class="w-4 h-4 text-[#646A73]"></i
+                      ></span>
+                      <span
+                        class="w-9 h-9 rounded-lg border border-[#E5E6EB] flex items-center justify-center"
+                        ><i data-lucide="chart-column" class="w-4 h-4 text-[#646A73]"></i
+                      ></span>
+                      <span
+                        class="w-9 h-9 rounded-lg border border-[#E5E6EB] flex items-center justify-center"
+                        ><i data-lucide="workflow" class="w-4 h-4 text-[#646A73]"></i
+                      ></span>
+                      <span
+                        class="w-9 h-9 rounded-lg border border-[#E5E6EB] flex items-center justify-center"
+                        ><i data-lucide="bot" class="w-4 h-4 text-[#646A73]"></i
+                      ></span>
                     </div>
                   </div>
                 </div>
                 <!-- 模型与参数 -->
                 <div id="sec-model" class="sec-pane hidden space-y-4 max-w-[560px]">
                   <div>
-                    <label class="text-[12px] text-[#646A73] block mb-1.5">模型（系统设置 · AI 模型登记）</label>
+                    <label class="text-[12px] text-[#646A73] block mb-1.5"
+                      >模型（系统设置 · AI 模型登记）</label
+                    >
                     <select class="w-full px-3 py-2 rounded-lg border border-[#E5E6EB] bg-white">
                       <option selected>GLM-4.6（zhipu · api.zhipuai.com）</option>
                       <option>DeepSeek-V3（deepseek · api.deepseek.com）</option>
                       <option>GPT-4o（openai · api.openai.com）</option>
                     </select>
-                    <div class="text-[11px] text-[#FF8800] mt-1.5 bg-[#FF8800]/8 rounded px-2.5 py-1.5">所选模型 API Key 未配置，运行前请到 系统设置 → AI 模型 补齐</div>
+                    <div
+                      class="text-[11px] text-[#FF8800] mt-1.5 bg-[#FF8800]/8 rounded px-2.5 py-1.5"
+                    >
+                      所选模型 API Key 未配置，运行前请到 系统设置 → AI 模型 补齐
+                    </div>
                   </div>
                   <div class="grid grid-cols-2 gap-4">
-                    <div><label class="text-[12px] text-[#646A73] block mb-1.5">温度 <span class="text-[#8F959E]">0.3</span></label><input type="range" min="0" max="1" step="0.1" value="0.3" class="w-full accent-[#574BFF]" /></div>
-                    <div><label class="text-[12px] text-[#646A73] block mb-1.5">maxTokens</label><input value="4096" class="w-full px-3 py-2 rounded-lg border border-[#E5E6EB]" /></div>
-                    <div><label class="text-[12px] text-[#646A73] block mb-1.5">迭代上限（≤30）</label><input value="12" class="w-full px-3 py-2 rounded-lg border border-[#E5E6EB]" /></div>
-                    <div><label class="text-[12px] text-[#646A73] block mb-1.5">超时（秒，≤600）</label><input value="300" class="w-full px-3 py-2 rounded-lg border border-[#E5E6EB]" /></div>
+                    <div>
+                      <label class="text-[12px] text-[#646A73] block mb-1.5"
+                        >温度 <span class="text-[#8F959E]">0.3</span></label
+                      ><input
+                        type="range"
+                        min="0"
+                        max="1"
+                        step="0.1"
+                        value="0.3"
+                        class="w-full accent-[#574BFF]"
+                      />
+                    </div>
+                    <div>
+                      <label class="text-[12px] text-[#646A73] block mb-1.5">maxTokens</label
+                      ><input
+                        value="4096"
+                        class="w-full px-3 py-2 rounded-lg border border-[#E5E6EB]"
+                      />
+                    </div>
+                    <div>
+                      <label class="text-[12px] text-[#646A73] block mb-1.5">迭代上限（≤30）</label
+                      ><input
+                        value="12"
+                        class="w-full px-3 py-2 rounded-lg border border-[#E5E6EB]"
+                      />
+                    </div>
+                    <div>
+                      <label class="text-[12px] text-[#646A73] block mb-1.5">超时（秒，≤600）</label
+                      ><input
+                        value="300"
+                        class="w-full px-3 py-2 rounded-lg border border-[#E5E6EB]"
+                      />
+                    </div>
                   </div>
                 </div>
                 <!-- 提示词 -->
                 <div id="sec-prompt" class="sec-pane hidden space-y-3 max-w-[640px]">
                   <div class="flex items-center justify-between">
-                    <label class="text-[12px] text-[#646A73]">系统提示词（运行时自动前置平台上下文块：项目名/模块树摘要/绑定仓库）</label>
+                    <label class="text-[12px] text-[#646A73]"
+                      >系统提示词（运行时自动前置平台上下文块：项目名/模块树摘要/绑定仓库）</label
+                    >
                     <span class="text-[11px] text-[#8F959E]">1,842 / 16,384 字符</span>
                   </div>
-                  <textarea rows="14" class="w-full mono text-[12px] px-3 py-2.5 rounded-lg border border-[#E5E6EB] focus:outline-none focus:border-[#574BFF] leading-relaxed">你是本项目的功能用例设计专家。
+                  <textarea
+                    rows="14"
+                    class="w-full mono text-[12px] px-3 py-2.5 rounded-lg border border-[#E5E6EB] focus:outline-none focus:border-[#574BFF] leading-relaxed"
+                  >
+你是本项目的功能用例设计专家。
 
 职责：
 1. 阅读需求与仓库代码，识别业务规则、边界与异常路径；
@@ -557,43 +1179,168 @@
                 </div>
                 <!-- 工具 -->
                 <div id="sec-tools" class="sec-pane hidden max-w-[640px]">
-                  <div class="text-[12px] text-[#646A73] mb-3">勾选即加入该 Agent 的工具目录；每次调用将按执行身份断言对应权限点，无权调用会被拒绝并记录轨迹</div>
+                  <div class="text-[12px] text-[#646A73] mb-3">
+                    勾选即加入该 Agent
+                    的工具目录；每次调用将按执行身份断言对应权限点，无权调用会被拒绝并记录轨迹
+                  </div>
                   <div class="space-y-4">
                     <div>
                       <div class="text-[12px] font-medium mb-2">用例</div>
                       <div class="rounded-lg border border-[#E5E6EB] divide-y divide-[#F0F1F5]">
-                        <label class="flex items-center gap-2.5 px-3.5 py-2 hover:bg-[#FAFBFC] cursor-pointer"><input type="checkbox" checked class="accent-[#574BFF]" /><span class="text-[12px] w-28">case.search</span><span class="text-[11px] text-[#8F959E] flex-1">功能用例搜索</span><span class="text-[10px] px-1.5 py-px rounded bg-[#F0F1F5] text-[#646A73]">PROJECT_CASE:READ</span></label>
-                        <label class="flex items-center gap-2.5 px-3.5 py-2 hover:bg-[#FAFBFC] cursor-pointer"><input type="checkbox" checked class="accent-[#574BFF]" /><span class="text-[12px] w-28">case.get</span><span class="text-[11px] text-[#8F959E] flex-1">用例详情</span><span class="text-[10px] px-1.5 py-px rounded bg-[#F0F1F5] text-[#646A73]">PROJECT_CASE:READ</span></label>
-                        <label class="flex items-center gap-2.5 px-3.5 py-2 hover:bg-[#FAFBFC] cursor-pointer"><input type="checkbox" checked class="accent-[#574BFF]" /><span class="text-[12px] w-28">case.create</span><span class="text-[11px] text-[#8F959E] flex-1">创建功能用例</span><span class="text-[10px] px-1.5 py-px rounded bg-[#F0F1F5] text-[#646A73]">PROJECT_CASE:CREATE</span><span class="text-[10px] px-1.5 py-px rounded bg-[#FA3939]/10 text-[#FA3939]">写操作</span></label>
-                        <label class="flex items-center gap-2.5 px-3.5 py-2 hover:bg-[#FAFBFC] cursor-pointer"><input type="checkbox" checked class="accent-[#574BFF]" /><span class="text-[12px] w-28">module.tree</span><span class="text-[11px] text-[#8F959E] flex-1">模块树</span><span class="text-[10px] px-1.5 py-px rounded bg-[#F0F1F5] text-[#646A73]">PROJECT_CASE:READ</span></label>
+                        <label
+                          class="flex items-center gap-2.5 px-3.5 py-2 hover:bg-[#FAFBFC] cursor-pointer"
+                          ><input type="checkbox" checked class="accent-[#574BFF]" /><span
+                            class="text-[12px] w-28"
+                            >case.search</span
+                          ><span class="text-[11px] text-[#8F959E] flex-1">功能用例搜索</span
+                          ><span
+                            class="text-[10px] px-1.5 py-px rounded bg-[#F0F1F5] text-[#646A73]"
+                            >PROJECT_CASE:READ</span
+                          ></label
+                        >
+                        <label
+                          class="flex items-center gap-2.5 px-3.5 py-2 hover:bg-[#FAFBFC] cursor-pointer"
+                          ><input type="checkbox" checked class="accent-[#574BFF]" /><span
+                            class="text-[12px] w-28"
+                            >case.get</span
+                          ><span class="text-[11px] text-[#8F959E] flex-1">用例详情</span
+                          ><span
+                            class="text-[10px] px-1.5 py-px rounded bg-[#F0F1F5] text-[#646A73]"
+                            >PROJECT_CASE:READ</span
+                          ></label
+                        >
+                        <label
+                          class="flex items-center gap-2.5 px-3.5 py-2 hover:bg-[#FAFBFC] cursor-pointer"
+                          ><input type="checkbox" checked class="accent-[#574BFF]" /><span
+                            class="text-[12px] w-28"
+                            >case.create</span
+                          ><span class="text-[11px] text-[#8F959E] flex-1">创建功能用例</span
+                          ><span
+                            class="text-[10px] px-1.5 py-px rounded bg-[#F0F1F5] text-[#646A73]"
+                            >PROJECT_CASE:CREATE</span
+                          ><span
+                            class="text-[10px] px-1.5 py-px rounded bg-[#FA3939]/10 text-[#FA3939]"
+                            >写操作</span
+                          ></label
+                        >
+                        <label
+                          class="flex items-center gap-2.5 px-3.5 py-2 hover:bg-[#FAFBFC] cursor-pointer"
+                          ><input type="checkbox" checked class="accent-[#574BFF]" /><span
+                            class="text-[12px] w-28"
+                            >module.tree</span
+                          ><span class="text-[11px] text-[#8F959E] flex-1">模块树</span
+                          ><span
+                            class="text-[10px] px-1.5 py-px rounded bg-[#F0F1F5] text-[#646A73]"
+                            >PROJECT_CASE:READ</span
+                          ></label
+                        >
                       </div>
                     </div>
                     <div>
                       <div class="text-[12px] font-medium mb-2">接口</div>
                       <div class="rounded-lg border border-[#E5E6EB] divide-y divide-[#F0F1F5]">
-                        <label class="flex items-center gap-2.5 px-3.5 py-2 hover:bg-[#FAFBFC] cursor-pointer"><input type="checkbox" checked class="accent-[#574BFF]" /><span class="text-[12px] w-28">api.search</span><span class="text-[11px] text-[#8F959E] flex-1">接口定义搜索</span><span class="text-[10px] px-1.5 py-px rounded bg-[#F0F1F5] text-[#646A73]">PROJECT_API:READ</span></label>
+                        <label
+                          class="flex items-center gap-2.5 px-3.5 py-2 hover:bg-[#FAFBFC] cursor-pointer"
+                          ><input type="checkbox" checked class="accent-[#574BFF]" /><span
+                            class="text-[12px] w-28"
+                            >api.search</span
+                          ><span class="text-[11px] text-[#8F959E] flex-1">接口定义搜索</span
+                          ><span
+                            class="text-[10px] px-1.5 py-px rounded bg-[#F0F1F5] text-[#646A73]"
+                            >PROJECT_API:READ</span
+                          ></label
+                        >
                       </div>
                     </div>
                     <div>
                       <div class="text-[12px] font-medium mb-2">计划与执行</div>
-                      <div class="rounded-lg border border-[#E5E6EB] divide-y divide-[#F0F1F5] opacity-50">
-                        <div class="flex items-center gap-2.5 px-3.5 py-2"><input type="checkbox" disabled class="accent-[#574BFF]" /><span class="text-[12px] w-28">plan.run</span><span class="text-[11px] text-[#8F959E] flex-1">触发计划执行</span><span class="text-[10px] px-1.5 py-px rounded bg-[#F0F1F5] text-[#646A73]">PROJECT_PLAN:…</span><span class="text-[10px] px-1.5 py-px rounded bg-[#FA3939]/10 text-[#FA3939]">写操作</span></div>
-                        <div class="flex items-center gap-2.5 px-3.5 py-2"><input type="checkbox" disabled class="accent-[#574BFF]" /><span class="text-[12px] w-28">task.status</span><span class="text-[11px] text-[#8F959E] flex-1">执行任务状态</span><span class="text-[10px] px-1.5 py-px rounded bg-[#F0F1F5] text-[#646A73]">PROJECT_EXEC_TASK:READ</span></div>
+                      <div
+                        class="rounded-lg border border-[#E5E6EB] divide-y divide-[#F0F1F5] opacity-50"
+                      >
+                        <div class="flex items-center gap-2.5 px-3.5 py-2">
+                          <input type="checkbox" disabled class="accent-[#574BFF]" /><span
+                            class="text-[12px] w-28"
+                            >plan.run</span
+                          ><span class="text-[11px] text-[#8F959E] flex-1">触发计划执行</span
+                          ><span
+                            class="text-[10px] px-1.5 py-px rounded bg-[#F0F1F5] text-[#646A73]"
+                            >PROJECT_PLAN:…</span
+                          ><span
+                            class="text-[10px] px-1.5 py-px rounded bg-[#FA3939]/10 text-[#FA3939]"
+                            >写操作</span
+                          >
+                        </div>
+                        <div class="flex items-center gap-2.5 px-3.5 py-2">
+                          <input type="checkbox" disabled class="accent-[#574BFF]" /><span
+                            class="text-[12px] w-28"
+                            >task.status</span
+                          ><span class="text-[11px] text-[#8F959E] flex-1">执行任务状态</span
+                          ><span
+                            class="text-[10px] px-1.5 py-px rounded bg-[#F0F1F5] text-[#646A73]"
+                            >PROJECT_EXEC_TASK:READ</span
+                          >
+                        </div>
                       </div>
-                      <div class="text-[11px] text-[#8F959E] mt-1">该角色模板默认不勾选执行类工具</div>
+                      <div class="text-[11px] text-[#8F959E] mt-1">
+                        该角色模板默认不勾选执行类工具
+                      </div>
                     </div>
                     <div>
                       <div class="text-[12px] font-medium mb-2">报告与缺陷</div>
                       <div class="rounded-lg border border-[#E5E6EB] divide-y divide-[#F0F1F5]">
-                        <label class="flex items-center gap-2.5 px-3.5 py-2 hover:bg-[#FAFBFC] cursor-pointer"><input type="checkbox" checked class="accent-[#574BFF]" /><span class="text-[12px] w-28">report.get</span><span class="text-[11px] text-[#8F959E] flex-1">报告统计摘要</span><span class="text-[10px] px-1.5 py-px rounded bg-[#F0F1F5] text-[#646A73]">PROJECT_REPORT:READ</span></label>
-                        <label class="flex items-center gap-2.5 px-3.5 py-2 hover:bg-[#FAFBFC] cursor-pointer"><input type="checkbox" class="accent-[#574BFF]" /><span class="text-[12px] w-28">bug.create</span><span class="text-[11px] text-[#8F959E] flex-1">创建缺陷</span><span class="text-[10px] px-1.5 py-px rounded bg-[#F0F1F5] text-[#646A73]">PROJECT_BUG:CREATE</span><span class="text-[10px] px-1.5 py-px rounded bg-[#FA3939]/10 text-[#FA3939]">写操作</span></label>
+                        <label
+                          class="flex items-center gap-2.5 px-3.5 py-2 hover:bg-[#FAFBFC] cursor-pointer"
+                          ><input type="checkbox" checked class="accent-[#574BFF]" /><span
+                            class="text-[12px] w-28"
+                            >report.get</span
+                          ><span class="text-[11px] text-[#8F959E] flex-1">报告统计摘要</span
+                          ><span
+                            class="text-[10px] px-1.5 py-px rounded bg-[#F0F1F5] text-[#646A73]"
+                            >PROJECT_REPORT:READ</span
+                          ></label
+                        >
+                        <label
+                          class="flex items-center gap-2.5 px-3.5 py-2 hover:bg-[#FAFBFC] cursor-pointer"
+                          ><input type="checkbox" class="accent-[#574BFF]" /><span
+                            class="text-[12px] w-28"
+                            >bug.create</span
+                          ><span class="text-[11px] text-[#8F959E] flex-1">创建缺陷</span
+                          ><span
+                            class="text-[10px] px-1.5 py-px rounded bg-[#F0F1F5] text-[#646A73]"
+                            >PROJECT_BUG:CREATE</span
+                          ><span
+                            class="text-[10px] px-1.5 py-px rounded bg-[#FA3939]/10 text-[#FA3939]"
+                            >写操作</span
+                          ></label
+                        >
                       </div>
                     </div>
                     <div>
                       <div class="text-[12px] font-medium mb-2">仓库</div>
                       <div class="rounded-lg border border-[#E5E6EB] divide-y divide-[#F0F1F5]">
-                        <label class="flex items-center gap-2.5 px-3.5 py-2 hover:bg-[#FAFBFC] cursor-pointer"><input type="checkbox" checked class="accent-[#574BFF]" /><span class="text-[12px] w-28">repo.list_files</span><span class="text-[11px] text-[#8F959E] flex-1">仓库列目录（平台 REST）</span><span class="text-[10px] px-1.5 py-px rounded bg-[#F0F1F5] text-[#646A73]">PROJECT_REPO:READ</span></label>
-                        <label class="flex items-center gap-2.5 px-3.5 py-2 hover:bg-[#FAFBFC] cursor-pointer"><input type="checkbox" checked class="accent-[#574BFF]" /><span class="text-[12px] w-28">repo.read_file</span><span class="text-[11px] text-[#8F959E] flex-1">读单文件 ≤256KB</span><span class="text-[10px] px-1.5 py-px rounded bg-[#F0F1F5] text-[#646A73]">PROJECT_REPO:READ</span></label>
+                        <label
+                          class="flex items-center gap-2.5 px-3.5 py-2 hover:bg-[#FAFBFC] cursor-pointer"
+                          ><input type="checkbox" checked class="accent-[#574BFF]" /><span
+                            class="text-[12px] w-28"
+                            >repo.list_files</span
+                          ><span class="text-[11px] text-[#8F959E] flex-1"
+                            >仓库列目录（平台 REST）</span
+                          ><span
+                            class="text-[10px] px-1.5 py-px rounded bg-[#F0F1F5] text-[#646A73]"
+                            >PROJECT_REPO:READ</span
+                          ></label
+                        >
+                        <label
+                          class="flex items-center gap-2.5 px-3.5 py-2 hover:bg-[#FAFBFC] cursor-pointer"
+                          ><input type="checkbox" checked class="accent-[#574BFF]" /><span
+                            class="text-[12px] w-28"
+                            >repo.read_file</span
+                          ><span class="text-[11px] text-[#8F959E] flex-1">读单文件 ≤256KB</span
+                          ><span
+                            class="text-[10px] px-1.5 py-px rounded bg-[#F0F1F5] text-[#646A73]"
+                            >PROJECT_REPO:READ</span
+                          ></label
+                        >
                       </div>
                     </div>
                   </div>
@@ -601,38 +1348,99 @@
                 <!-- Skills -->
                 <div id="sec-skills" class="sec-pane hidden max-w-[640px] space-y-3">
                   <div class="flex items-center justify-between">
-                    <div class="text-[12px] text-[#646A73]">从项目技能库引用（≤5 个），运行时注入系统提示词</div>
-                    <button class="btn px-2.5 py-1 rounded border border-[#E5E6EB] text-[12px] hover:border-[#574BFF] text-[#574BFF]">+ 快建技能</button>
+                    <div class="text-[12px] text-[#646A73]">
+                      从项目技能库引用（≤5 个），运行时注入系统提示词
+                    </div>
+                    <button
+                      class="btn px-2.5 py-1 rounded border border-[#E5E6EB] text-[12px] hover:border-[#574BFF] text-[#574BFF]"
+                    >
+                      + 快建技能
+                    </button>
                   </div>
                   <div class="rounded-lg border border-[#E5E6EB] divide-y divide-[#F0F1F5]">
-                    <label class="flex items-center gap-2.5 px-3.5 py-2.5 hover:bg-[#FAFBFC] cursor-pointer"><input type="checkbox" checked class="accent-[#574BFF]" /><div><div class="text-[12px]">等价类与边界值方法</div><div class="text-[11px] text-[#8F959E]">生成功能用例时按等价类划分并补边界值场景</div></div></label>
-                    <label class="flex items-center gap-2.5 px-3.5 py-2.5 hover:bg-[#FAFBFC] cursor-pointer"><input type="checkbox" checked class="accent-[#574BFF]" /><div><div class="text-[12px]">接口断言规范</div><div class="text-[11px] text-[#8F959E]">API 用例必须断言状态码+业务码+关键 JSONPath</div></div></label>
-                    <label class="flex items-center gap-2.5 px-3.5 py-2.5 hover:bg-[#FAFBFC] cursor-pointer"><input type="checkbox" class="accent-[#574BFF]" /><div><div class="text-[12px]">缺陷描述模板</div><div class="text-[11px] text-[#8F959E]">创建缺陷时按四段式结构</div></div></label>
+                    <label
+                      class="flex items-center gap-2.5 px-3.5 py-2.5 hover:bg-[#FAFBFC] cursor-pointer"
+                      ><input type="checkbox" checked class="accent-[#574BFF]" />
+                      <div>
+                        <div class="text-[12px]">等价类与边界值方法</div>
+                        <div class="text-[11px] text-[#8F959E]">
+                          生成功能用例时按等价类划分并补边界值场景
+                        </div>
+                      </div></label
+                    >
+                    <label
+                      class="flex items-center gap-2.5 px-3.5 py-2.5 hover:bg-[#FAFBFC] cursor-pointer"
+                      ><input type="checkbox" checked class="accent-[#574BFF]" />
+                      <div>
+                        <div class="text-[12px]">接口断言规范</div>
+                        <div class="text-[11px] text-[#8F959E]">
+                          API 用例必须断言状态码+业务码+关键 JSONPath
+                        </div>
+                      </div></label
+                    >
+                    <label
+                      class="flex items-center gap-2.5 px-3.5 py-2.5 hover:bg-[#FAFBFC] cursor-pointer"
+                      ><input type="checkbox" class="accent-[#574BFF]" />
+                      <div>
+                        <div class="text-[12px]">缺陷描述模板</div>
+                        <div class="text-[11px] text-[#8F959E]">创建缺陷时按四段式结构</div>
+                      </div></label
+                    >
                   </div>
                   <div class="text-[11px] text-[#8F959E]">已选 2 / 5</div>
                 </div>
                 <!-- 代码仓库 -->
                 <div id="sec-repos" class="sec-pane hidden max-w-[640px] space-y-3">
-                  <div class="text-[12px] text-[#646A73]">Agent 可读取的项目仓库（SCM-001 绑定）；勾选 repo.* 工具后生效</div>
-                  <label class="flex items-center gap-3 p-3 rounded-lg border border-[#574BFF] bg-[#574BFF]/5 cursor-pointer">
+                  <div class="text-[12px] text-[#646A73]">
+                    Agent 可读取的项目仓库（SCM-001 绑定）；勾选 repo.* 工具后生效
+                  </div>
+                  <label
+                    class="flex items-center gap-3 p-3 rounded-lg border border-[#574BFF] bg-[#574BFF]/5 cursor-pointer"
+                  >
                     <input type="checkbox" checked class="accent-[#574BFF]" />
                     <i data-lucide="github" class="w-4 h-4"></i>
-                    <div class="flex-1"><div class="text-[12px]">RabbitAI-Lab/user-service</div><div class="text-[11px] text-[#8F959E]">main · 默认仓库 · 最近验证 10-01 ✓</div></div>
-                    <span class="text-[10px] px-1.5 py-px rounded bg-[#00B42A]/10 text-[#00B42A]" style="color:#00B42A">已连接</span>
+                    <div class="flex-1">
+                      <div class="text-[12px]">RabbitAI-Lab/user-service</div>
+                      <div class="text-[11px] text-[#8F959E]">
+                        main · 默认仓库 · 最近验证 10-01 ✓
+                      </div>
+                    </div>
+                    <span
+                      class="text-[10px] px-1.5 py-px rounded bg-[#00B42A]/10 text-[#00B42A]"
+                      style="color: #00b42a"
+                      >已连接</span
+                    >
                   </label>
-                  <label class="flex items-center gap-3 p-3 rounded-lg border border-[#E5E6EB] cursor-pointer">
+                  <label
+                    class="flex items-center gap-3 p-3 rounded-lg border border-[#E5E6EB] cursor-pointer"
+                  >
                     <input type="checkbox" class="accent-[#574BFF]" />
                     <i data-lucide="gitlab" class="w-4 h-4"></i>
-                    <div class="flex-1"><div class="text-[12px]">rabbit/shared-docs</div><div class="text-[11px] text-[#8F959E]">docs · Token 认证 · 未验证</div></div>
-                    <span class="text-[10px] px-1.5 py-px rounded bg-[#F0F1F5] text-[#8F959E]">未验证</span>
+                    <div class="flex-1">
+                      <div class="text-[12px]">rabbit/shared-docs</div>
+                      <div class="text-[11px] text-[#8F959E]">docs · Token 认证 · 未验证</div>
+                    </div>
+                    <span class="text-[10px] px-1.5 py-px rounded bg-[#F0F1F5] text-[#8F959E]"
+                      >未验证</span
+                    >
                   </label>
                 </div>
                 <!-- 高级 -->
                 <div id="sec-advanced" class="sec-pane hidden space-y-4 max-w-[560px]">
                   <div>
-                    <label class="text-[12px] text-[#646A73] block mb-1.5">运行身份（runAs · A2A 调用时的工具执行身份）</label>
-                    <select class="w-full px-3 py-2 rounded-lg border border-[#E5E6EB] bg-white"><option selected>许某（创建人）</option><option>王某（项目管理员）</option></select>
-                    <div class="text-[11px] text-[#FF8800] mt-1.5 bg-[#FF8800]/8 rounded px-2.5 py-1.5">外部 AI 经 A2A 调用时，将以该成员身份执行工具（受其权限点约束）；UI 调试台始终以你本人身份执行</div>
+                    <label class="text-[12px] text-[#646A73] block mb-1.5"
+                      >运行身份（runAs · A2A 调用时的工具执行身份）</label
+                    >
+                    <select class="w-full px-3 py-2 rounded-lg border border-[#E5E6EB] bg-white">
+                      <option selected>许某（创建人）</option>
+                      <option>王某（项目管理员）</option>
+                    </select>
+                    <div
+                      class="text-[11px] text-[#FF8800] mt-1.5 bg-[#FF8800]/8 rounded px-2.5 py-1.5"
+                    >
+                      外部 AI 经 A2A 调用时，将以该成员身份执行工具（受其权限点约束）；UI
+                      调试台始终以你本人身份执行
+                    </div>
                   </div>
                 </div>
                 <!-- A2A -->
@@ -640,24 +1448,57 @@
                   <div class="flex items-center justify-between">
                     <div>
                       <div class="text-[12px] font-medium">对外暴露（A2A v1.0）</div>
-                      <div class="text-[11px] text-[#8F959E] mt-0.5">开启后外部 AI 可通过 Agent Card 发现并调用本 Agent（SendMessage / 流式 / 任务查询）</div>
+                      <div class="text-[11px] text-[#8F959E] mt-0.5">
+                        开启后外部 AI 可通过 Agent Card 发现并调用本 Agent（SendMessage / 流式 /
+                        任务查询）
+                      </div>
                     </div>
-                    <label class="inline-flex items-center cursor-pointer"><input type="checkbox" checked class="sr-only peer" /><span class="rounded-full bg-[#C9CDD4] peer-checked:bg-[#574BFF] relative after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:w-3.5 after:h-3.5 after:rounded-full after:bg-white after:transition-all peer-checked:after:translate-x-3.5" style="height:20px;width:36px"></span></label>
+                    <label class="inline-flex items-center cursor-pointer"
+                      ><input type="checkbox" checked class="sr-only peer" /><span
+                        class="rounded-full bg-[#C9CDD4] peer-checked:bg-[#574BFF] relative after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:w-3.5 after:h-3.5 after:rounded-full after:bg-white after:transition-all peer-checked:after:translate-x-3.5"
+                        style="height: 20px; width: 36px"
+                      ></span
+                    ></label>
                   </div>
                   <div class="rounded-lg border border-[#E5E6EB] divide-y divide-[#F0F1F5]">
                     <div class="px-4 py-3 flex items-center gap-3">
-                      <div class="flex-1"><div class="text-[12px]">API 密钥</div><div class="text-[11px] text-[#8F959E] mono mt-0.5">rag_8fK3…（前 8 位常显 · 生成于 10-01 · 明文仅生成时显示一次）</div></div>
-                      <button class="btn px-2.5 py-1 rounded border border-[#E5E6EB] text-[12px] hover:border-[#FA3939] hover:text-[#FA3939]">吊销</button>
-                      <button class="btn px-2.5 py-1 rounded border border-[#574BFF] text-[#574BFF] text-[12px] hover:bg-[#574BFF]/8" onclick="openModal('key-modal')">轮换</button>
+                      <div class="flex-1">
+                        <div class="text-[12px]">API 密钥</div>
+                        <div class="text-[11px] text-[#8F959E] mono mt-0.5">
+                          rag_8fK3…（前 8 位常显 · 生成于 10-01 · 明文仅生成时显示一次）
+                        </div>
+                      </div>
+                      <button
+                        class="btn px-2.5 py-1 rounded border border-[#E5E6EB] text-[12px] hover:border-[#FA3939] hover:text-[#FA3939]"
+                      >
+                        吊销
+                      </button>
+                      <button
+                        class="btn px-2.5 py-1 rounded border border-[#574BFF] text-[#574BFF] text-[12px] hover:bg-[#574BFF]/8"
+                        onclick="openModal('key-modal')"
+                      >
+                        轮换
+                      </button>
                     </div>
                     <div class="px-4 py-3">
                       <div class="text-[12px] mb-1.5">Agent Card</div>
-                      <div class="mono text-[11px] bg-[#FAFBFC] border border-[#F0F1F5] rounded px-2.5 py-1.5 text-[#646A73] truncate">https://rabbit.example.com/api/v1/a2a/projects/8a21…/agents/c31d…/agent-card.json</div>
-                      <div class="text-right mt-1"><button class="text-[11px] text-[#574BFF]">复制</button></div>
+                      <div
+                        class="mono text-[11px] bg-[#FAFBFC] border border-[#F0F1F5] rounded px-2.5 py-1.5 text-[#646A73] truncate"
+                      >
+                        https://rabbit.example.com/api/v1/a2a/projects/8a21…/agents/c31d…/agent-card.json
+                      </div>
+                      <div class="text-right mt-1">
+                        <button class="text-[11px] text-[#574BFF]">复制</button>
+                      </div>
                     </div>
                     <div class="px-4 py-3">
-                      <div class="text-[12px] mb-1.5 flex items-center justify-between">调用示例（curl）<button class="text-[11px] text-[#574BFF]">复制</button></div>
-                      <pre class="mono text-[11px] bg-[#1B1F2A] text-[#D7DAE0] rounded-lg px-3.5 py-3 overflow-auto leading-relaxed">curl -X POST https://rabbit.example.com/api/v1/a2a/projects/8a21…/agents/c31d… \
+                      <div class="text-[12px] mb-1.5 flex items-center justify-between">
+                        调用示例（curl）<button class="text-[11px] text-[#574BFF]">复制</button>
+                      </div>
+                      <pre
+                        class="mono text-[11px] bg-[#1B1F2A] text-[#D7DAE0] rounded-lg px-3.5 py-3 overflow-auto leading-relaxed"
+                      >
+curl -X POST https://rabbit.example.com/api/v1/a2a/projects/8a21…/agents/c31d… \
   -H "Authorization: Bearer rag_****" \
   -H "Content-Type: application/json" \
   -d '{"jsonrpc":"2.0","id":1,"method":"SendMessage",
@@ -678,26 +1519,59 @@
     <!-- 模板新建 -->
     <div id="tpl-modal" class="fixed inset-0 z-[60] hidden">
       <div class="absolute inset-0 bg-black/25 modal-mask" onclick="closeModal('tpl-modal')"></div>
-      <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[620px] bg-white rounded-xl shadow-xl">
-        <div class="px-5 py-4 border-b border-[#E5E6EB] font-medium flex items-center">从模板新建
-          <button class="ml-auto p-1 rounded hover:bg-[#F0F1F5]" onclick="closeModal('tpl-modal')"><i data-lucide="x" class="w-4 h-4"></i></button>
+      <div
+        class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[620px] bg-white rounded-xl shadow-xl"
+      >
+        <div class="px-5 py-4 border-b border-[#E5E6EB] font-medium flex items-center">
+          从模板新建
+          <button class="ml-auto p-1 rounded hover:bg-[#F0F1F5]" onclick="closeModal('tpl-modal')">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
         </div>
         <div class="p-5 grid grid-cols-2 gap-3">
-          <div class="p-3.5 rounded-lg border border-[#E5E6EB] hover:border-[#574BFF] cursor-pointer">
-            <div class="flex items-center gap-2 text-[#574BFF] font-medium text-[13px]"><i data-lucide="file-text" class="w-4 h-4"></i>用例生成 <span class="text-[10px] bg-[#574BFF]/10 px-1.5 py-px rounded">chat</span></div>
-            <div class="text-[11px] text-[#8F959E] mt-1.5">工具：case.* · module.tree · repo.*；Skills：等价类与边界值</div>
+          <div
+            class="p-3.5 rounded-lg border border-[#E5E6EB] hover:border-[#574BFF] cursor-pointer"
+          >
+            <div class="flex items-center gap-2 text-[#574BFF] font-medium text-[13px]">
+              <i data-lucide="file-text" class="w-4 h-4"></i>用例生成
+              <span class="text-[10px] bg-[#574BFF]/10 px-1.5 py-px rounded">chat</span>
+            </div>
+            <div class="text-[11px] text-[#8F959E] mt-1.5">
+              工具：case.* · module.tree · repo.*；Skills：等价类与边界值
+            </div>
           </div>
-          <div class="p-3.5 rounded-lg border border-[#E5E6EB] hover:border-[#574BFF] cursor-pointer">
-            <div class="flex items-center gap-2 text-[#574BFF] font-medium text-[13px]"><i data-lucide="play" class="w-4 h-4"></i>用例执行 <span class="text-[10px] bg-[#574BFF]/10 px-1.5 py-px rounded">chat</span></div>
-            <div class="text-[11px] text-[#8F959E] mt-1.5">工具：plan.* · task.status · report.get</div>
+          <div
+            class="p-3.5 rounded-lg border border-[#E5E6EB] hover:border-[#574BFF] cursor-pointer"
+          >
+            <div class="flex items-center gap-2 text-[#574BFF] font-medium text-[13px]">
+              <i data-lucide="play" class="w-4 h-4"></i>用例执行
+              <span class="text-[10px] bg-[#574BFF]/10 px-1.5 py-px rounded">chat</span>
+            </div>
+            <div class="text-[11px] text-[#8F959E] mt-1.5">
+              工具：plan.* · task.status · report.get
+            </div>
           </div>
-          <div class="p-3.5 rounded-lg border border-[#E5E6EB] hover:border-[#574BFF] cursor-pointer">
-            <div class="flex items-center gap-2 text-[#574BFF] font-medium text-[13px]"><i data-lucide="chart-column" class="w-4 h-4"></i>测试分析 <span class="text-[10px] bg-[#574BFF]/10 px-1.5 py-px rounded">chat</span></div>
-            <div class="text-[11px] text-[#8F959E] mt-1.5">工具：report.get · bug.* · case.search</div>
+          <div
+            class="p-3.5 rounded-lg border border-[#E5E6EB] hover:border-[#574BFF] cursor-pointer"
+          >
+            <div class="flex items-center gap-2 text-[#574BFF] font-medium text-[13px]">
+              <i data-lucide="chart-column" class="w-4 h-4"></i>测试分析
+              <span class="text-[10px] bg-[#574BFF]/10 px-1.5 py-px rounded">chat</span>
+            </div>
+            <div class="text-[11px] text-[#8F959E] mt-1.5">
+              工具：report.get · bug.* · case.search
+            </div>
           </div>
           <div class="p-3.5 rounded-lg border border-[#00B42A] bg-[#00B42A]/5 cursor-pointer">
-            <div class="flex items-center gap-2 font-medium text-[13px]" style="color:#00B42A"><i data-lucide="workflow" class="w-4 h-4"></i>资产生成 <span class="text-[10px] bg-[#00B42A]/10 px-1.5 py-px rounded" style="color:#00B42A">pipeline</span></div>
-            <div class="text-[11px] text-[#8F959E] mt-1.5">阶段 A·B·C：代码库+文档+需求 → 用例与脚本（AGENT-002）</div>
+            <div class="flex items-center gap-2 font-medium text-[13px]" style="color: #00b42a">
+              <i data-lucide="workflow" class="w-4 h-4"></i>资产生成
+              <span class="text-[10px] bg-[#00B42A]/10 px-1.5 py-px rounded" style="color: #00b42a"
+                >pipeline</span
+              >
+            </div>
+            <div class="text-[11px] text-[#8F959E] mt-1.5">
+              阶段 A·B·C：代码库+文档+需求 → 用例与脚本（AGENT-002）
+            </div>
           </div>
         </div>
       </div>
@@ -706,11 +1580,21 @@
     <!-- 密钥一次显示 -->
     <div id="key-modal" class="fixed inset-0 z-[70] hidden">
       <div class="absolute inset-0 bg-black/25 modal-mask"></div>
-      <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[480px] bg-white rounded-xl shadow-xl">
-        <div class="px-5 py-4 border-b border-[#E5E6EB] font-medium">新密钥已生成（仅此一次显示）</div>
+      <div
+        class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[480px] bg-white rounded-xl shadow-xl"
+      >
+        <div class="px-5 py-4 border-b border-[#E5E6EB] font-medium">
+          新密钥已生成（仅此一次显示）
+        </div>
         <div class="p-5">
-          <div class="text-[12px] text-[#FF8800] bg-[#FF8800]/8 rounded px-3 py-2 mb-3">请立即复制保存；关闭本弹窗后无法再次查看，遗失只能轮换重置</div>
-          <div class="mono text-[13px] bg-[#FAFBFC] border border-[#E5E6EB] rounded-lg px-3.5 py-3 select-all">rag_9Xk2mQ7vT4pZ8aLw3NfY6bC1dE5gHjU2</div>
+          <div class="text-[12px] text-[#FF8800] bg-[#FF8800]/8 rounded px-3 py-2 mb-3">
+            请立即复制保存；关闭本弹窗后无法再次查看，遗失只能轮换重置
+          </div>
+          <div
+            class="mono text-[13px] bg-[#FAFBFC] border border-[#E5E6EB] rounded-lg px-3.5 py-3 select-all"
+          >
+            rag_9Xk2mQ7vT4pZ8aLw3NfY6bC1dE5gHjU2
+          </div>
           <div class="flex justify-end gap-2 mt-4">
             <button class="btn px-3 py-1.5 rounded border border-[#E5E6EB]">我已保存，关闭</button>
             <button class="btn px-3 py-1.5 rounded bg-[#574BFF] text-white">复制密钥</button>
@@ -721,20 +1605,50 @@
 
     <!-- 技能编辑 -->
     <div id="skill-modal" class="fixed inset-0 z-[60] hidden">
-      <div class="absolute inset-0 bg-black/25 modal-mask" onclick="closeModal('skill-modal')"></div>
-      <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[760px] bg-white rounded-xl shadow-xl">
-        <div class="px-5 py-4 border-b border-[#E5E6EB] font-medium flex items-center">编辑技能 · 等价类与边界值方法
-          <button class="ml-auto p-1 rounded hover:bg-[#F0F1F5]" onclick="closeModal('skill-modal')"><i data-lucide="x" class="w-4 h-4"></i></button>
+      <div
+        class="absolute inset-0 bg-black/25 modal-mask"
+        onclick="closeModal('skill-modal')"
+      ></div>
+      <div
+        class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[760px] bg-white rounded-xl shadow-xl"
+      >
+        <div class="px-5 py-4 border-b border-[#E5E6EB] font-medium flex items-center">
+          编辑技能 · 等价类与边界值方法
+          <button
+            class="ml-auto p-1 rounded hover:bg-[#F0F1F5]"
+            onclick="closeModal('skill-modal')"
+          >
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
         </div>
         <div class="p-5 space-y-3">
           <div class="grid grid-cols-2 gap-4">
-            <div><label class="text-[12px] text-[#646A73] block mb-1.5">名称（项目内唯一）</label><input value="等价类与边界值方法" class="w-full px-3 py-2 rounded-lg border border-[#E5E6EB]" /></div>
-            <div><label class="text-[12px] text-[#646A73] block mb-1.5">触发说明（何时使用）</label><input value="生成功能用例时按等价类划分并补边界值场景" class="w-full px-3 py-2 rounded-lg border border-[#E5E6EB]" /></div>
+            <div>
+              <label class="text-[12px] text-[#646A73] block mb-1.5">名称（项目内唯一）</label
+              ><input
+                value="等价类与边界值方法"
+                class="w-full px-3 py-2 rounded-lg border border-[#E5E6EB]"
+              />
+            </div>
+            <div>
+              <label class="text-[12px] text-[#646A73] block mb-1.5">触发说明（何时使用）</label
+              ><input
+                value="生成功能用例时按等价类划分并补边界值场景"
+                class="w-full px-3 py-2 rounded-lg border border-[#E5E6EB]"
+              />
+            </div>
           </div>
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <div class="flex justify-between mb-1.5"><label class="text-[12px] text-[#646A73]">指令内容（markdown）</label><span class="text-[11px] text-[#8F959E]">3.2K / 16K</span></div>
-              <textarea rows="10" class="w-full mono text-[12px] px-3 py-2 rounded-lg border border-[#E5E6EB]">## 有效等价类
+              <div class="flex justify-between mb-1.5">
+                <label class="text-[12px] text-[#646A73]">指令内容（markdown）</label
+                ><span class="text-[11px] text-[#8F959E]">3.2K / 16K</span>
+              </div>
+              <textarea
+                rows="10"
+                class="w-full mono text-[12px] px-3 py-2 rounded-lg border border-[#E5E6EB]"
+              >
+## 有效等价类
 - 按输入域划分有效/无效等价类，每类至少 1 条用例
 
 ## 边界值
@@ -743,49 +1657,115 @@
             </div>
             <div>
               <div class="text-[12px] text-[#646A73] mb-1.5">预览</div>
-              <div class="h-[calc(100%-24px)] overflow-auto px-3 py-2.5 rounded-lg border border-[#F0F1F5] bg-[#FAFBFC] text-[12px] leading-relaxed">
+              <div
+                class="h-[calc(100%-24px)] overflow-auto px-3 py-2.5 rounded-lg border border-[#F0F1F5] bg-[#FAFBFC] text-[12px] leading-relaxed"
+              >
                 <div class="font-semibold text-[13px] mb-1">有效等价类</div>
-                <ul class="list-disc pl-4 text-[#3D4350]"><li>按输入域划分有效/无效等价类，每类至少 1 条用例</li></ul>
+                <ul class="list-disc pl-4 text-[#3D4350]">
+                  <li>按输入域划分有效/无效等价类，每类至少 1 条用例</li>
+                </ul>
                 <div class="font-semibold text-[13px] mt-3 mb-1">边界值</div>
-                <ul class="list-disc pl-4 text-[#3D4350]"><li>数值/长度边界取：min-1, min, min+1, max-1, max, max+1</li></ul>
+                <ul class="list-disc pl-4 text-[#3D4350]">
+                  <li>数值/长度边界取：min-1, min, min+1, max-1, max, max+1</li>
+                </ul>
               </div>
             </div>
           </div>
-          <div class="flex justify-end gap-2"><button class="btn px-3 py-1.5 rounded border border-[#E5E6EB]" onclick="closeModal('skill-modal')">取消</button><button class="btn px-3 py-1.5 rounded bg-[#574BFF] text-white">保存</button></div>
+          <div class="flex justify-end gap-2">
+            <button
+              class="btn px-3 py-1.5 rounded border border-[#E5E6EB]"
+              onclick="closeModal('skill-modal')"
+            >
+              取消</button
+            ><button class="btn px-3 py-1.5 rounded bg-[#574BFF] text-white">保存</button>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- 运行详情抽屉 -->
     <div id="run-detail" class="fixed inset-0 z-[60] hidden">
-      <div class="absolute inset-0 bg-black/25 modal-mask" onclick="closeDrawer('run-detail')"></div>
+      <div
+        class="absolute inset-0 bg-black/25 modal-mask"
+        onclick="closeDrawer('run-detail')"
+      ></div>
       <div class="drawer absolute right-0 top-0 bottom-0 w-[560px] bg-white flex flex-col">
-        <div class="px-5 py-4 border-b border-[#E5E6EB] flex items-center font-medium">运行详情 · 10-02 09:12 · A2A
-          <button class="ml-auto p-1 rounded hover:bg-[#F0F1F5]" onclick="closeDrawer('run-detail')"><i data-lucide="x" class="w-4 h-4"></i></button>
+        <div class="px-5 py-4 border-b border-[#E5E6EB] flex items-center font-medium">
+          运行详情 · 10-02 09:12 · A2A
+          <button
+            class="ml-auto p-1 rounded hover:bg-[#F0F1F5]"
+            onclick="closeDrawer('run-detail')"
+          >
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
         </div>
         <div class="flex-1 overflow-auto p-5 space-y-4">
           <div class="grid grid-cols-3 gap-3">
-            <div class="rounded-lg border border-[#E5E6EB] p-3"><div class="text-[11px] text-[#8F959E]">状态</div><div class="text-[13px] font-medium" style="color:#00B42A">已完成</div></div>
-            <div class="rounded-lg border border-[#E5E6EB] p-3"><div class="text-[11px] text-[#8F959E]">耗时</div><div class="text-[13px] font-medium">42s</div></div>
-            <div class="rounded-lg border border-[#E5E6EB] p-3"><div class="text-[11px] text-[#8F959E]">Token</div><div class="text-[13px] font-medium">18.4K / 2.1K</div></div>
+            <div class="rounded-lg border border-[#E5E6EB] p-3">
+              <div class="text-[11px] text-[#8F959E]">状态</div>
+              <div class="text-[13px] font-medium" style="color: #00b42a">已完成</div>
+            </div>
+            <div class="rounded-lg border border-[#E5E6EB] p-3">
+              <div class="text-[11px] text-[#8F959E]">耗时</div>
+              <div class="text-[13px] font-medium">42s</div>
+            </div>
+            <div class="rounded-lg border border-[#E5E6EB] p-3">
+              <div class="text-[11px] text-[#8F959E]">Token</div>
+              <div class="text-[13px] font-medium">18.4K / 2.1K</div>
+            </div>
           </div>
           <div>
-            <div class="text-[12px] text-[#646A73] mb-1.5">输入（A2A SendMessage · 密钥 rag_8fK3…）</div>
-            <div class="text-[12px] bg-[#FAFBFC] border border-[#F0F1F5] rounded-lg px-3 py-2">为登录模块生成 5 条功能用例</div>
+            <div class="text-[12px] text-[#646A73] mb-1.5">
+              输入（A2A SendMessage · 密钥 rag_8fK3…）
+            </div>
+            <div class="text-[12px] bg-[#FAFBFC] border border-[#F0F1F5] rounded-lg px-3 py-2">
+              为登录模块生成 5 条功能用例
+            </div>
           </div>
           <div>
             <div class="text-[12px] text-[#646A73] mb-1.5">轨迹（同调试台回放）</div>
             <div class="space-y-2">
-              <div class="flex items-center gap-2 text-[12px]"><span class="w-5 h-5 rounded-full bg-[#574BFF]/10 flex items-center justify-center text-[10px]">🧠</span>LLM · 迭代 1 · 决定查询模块与仓库</div>
-              <div class="flex items-center gap-2 text-[12px]"><span class="w-5 h-5 rounded-full bg-[#FF8800]/10 flex items-center justify-center text-[10px]">🔧</span>module.tree · 200 · 84ms</div>
-              <div class="flex items-center gap-2 text-[12px]"><span class="w-5 h-5 rounded-full bg-[#FF8800]/10 flex items-center justify-center text-[10px]">🔧</span>repo.read_file · 200 · 356ms</div>
-              <div class="flex items-center gap-2 text-[12px]"><span class="w-5 h-5 rounded-full bg-[#FF8800]/10 flex items-center justify-center text-[10px]">🔧</span>case.create · 200 · 512ms（写操作 · 已审计）</div>
-              <div class="flex items-center gap-2 text-[12px]"><span class="w-5 h-5 rounded-full flex items-center justify-center text-[10px]" style="background:#00B42A1A">📦</span>产物：createdCaseIds ×5</div>
+              <div class="flex items-center gap-2 text-[12px]">
+                <span
+                  class="w-5 h-5 rounded-full bg-[#574BFF]/10 flex items-center justify-center text-[10px]"
+                  >🧠</span
+                >LLM · 迭代 1 · 决定查询模块与仓库
+              </div>
+              <div class="flex items-center gap-2 text-[12px]">
+                <span
+                  class="w-5 h-5 rounded-full bg-[#FF8800]/10 flex items-center justify-center text-[10px]"
+                  >🔧</span
+                >module.tree · 200 · 84ms
+              </div>
+              <div class="flex items-center gap-2 text-[12px]">
+                <span
+                  class="w-5 h-5 rounded-full bg-[#FF8800]/10 flex items-center justify-center text-[10px]"
+                  >🔧</span
+                >repo.read_file · 200 · 356ms
+              </div>
+              <div class="flex items-center gap-2 text-[12px]">
+                <span
+                  class="w-5 h-5 rounded-full bg-[#FF8800]/10 flex items-center justify-center text-[10px]"
+                  >🔧</span
+                >case.create · 200 · 512ms（写操作 · 已审计）
+              </div>
+              <div class="flex items-center gap-2 text-[12px]">
+                <span
+                  class="w-5 h-5 rounded-full flex items-center justify-center text-[10px]"
+                  style="background: #00b42a1a"
+                  >📦</span
+                >产物：createdCaseIds ×5
+              </div>
             </div>
           </div>
           <div>
             <div class="text-[12px] text-[#646A73] mb-1.5">最终答复（TextPart）</div>
-            <div class="text-[12px] bg-[#FAFBFC] border border-[#F0F1F5] rounded-lg px-3 py-2 leading-relaxed">已生成 5 条用例（CASE-0187~0191），覆盖正常登录/密码错误锁定/验证码过期/多端互踢/记住登录…</div>
+            <div
+              class="text-[12px] bg-[#FAFBFC] border border-[#F0F1F5] rounded-lg px-3 py-2 leading-relaxed"
+            >
+              已生成 5
+              条用例（CASE-0187~0191），覆盖正常登录/密码错误锁定/验证码过期/多端互踢/记住登录…
+            </div>
           </div>
         </div>
       </div>
@@ -793,44 +1773,58 @@
 
     <script>
       function switchScreen(name) {
-        document.getElementById('screen-list').classList.toggle('hidden', name !== 'list');
-        document.getElementById('screen-debug').classList.toggle('hidden', name !== 'debug');
-        document.getElementById('screen-drawer').classList.toggle('hidden', name !== 'drawer');
-        document.querySelectorAll('#screen-switch button').forEach((b) => {
-          b.classList.toggle('bg-white/15', b.dataset.screen === name);
-          b.classList.toggle('bg-white/10', b.dataset.screen !== name);
+        document.getElementById("screen-list").classList.toggle("hidden", name !== "list");
+        document.getElementById("screen-debug").classList.toggle("hidden", name !== "debug");
+        document.getElementById("screen-drawer").classList.toggle("hidden", name !== "drawer");
+        document.querySelectorAll("#screen-switch button").forEach((b) => {
+          b.classList.toggle("bg-white/15", b.dataset.screen === name);
+          b.classList.toggle("bg-white/10", b.dataset.screen !== name);
         });
       }
-      document.querySelectorAll('#screen-switch button').forEach((b) => b.addEventListener('click', () => switchScreen(b.dataset.screen)));
+      document
+        .querySelectorAll("#screen-switch button")
+        .forEach((b) => b.addEventListener("click", () => switchScreen(b.dataset.screen)));
 
-      document.querySelectorAll('.tab-btn').forEach((t) =>
-        t.addEventListener('click', () => {
-          document.querySelectorAll('.tab-btn').forEach((x) => {
-            x.classList.remove('border-[#574BFF]', 'text-[#574BFF]', 'font-medium');
-            x.classList.add('border-transparent', 'text-[#646A73]');
+      document.querySelectorAll(".tab-btn").forEach((t) =>
+        t.addEventListener("click", () => {
+          document.querySelectorAll(".tab-btn").forEach((x) => {
+            x.classList.remove("border-[#574BFF]", "text-[#574BFF]", "font-medium");
+            x.classList.add("border-transparent", "text-[#646A73]");
           });
-          t.classList.add('border-[#574BFF]', 'text-[#574BFF]', 'font-medium');
-          ['agents', 'skills', 'runs'].forEach((k) => document.getElementById('tab-' + k).classList.toggle('hidden', k !== t.dataset.tab));
-        })
+          t.classList.add("border-[#574BFF]", "text-[#574BFF]", "font-medium");
+          ["agents", "skills", "runs"].forEach((k) =>
+            document.getElementById("tab-" + k).classList.toggle("hidden", k !== t.dataset.tab),
+          );
+        }),
       );
 
-      document.querySelectorAll('.sec-item').forEach((s) =>
-        s.addEventListener('click', () => {
-          document.querySelectorAll('.sec-item').forEach((x) => x.classList.remove('active'));
-          s.classList.add('active');
-          document.querySelectorAll('.sec-pane').forEach((p) => p.classList.toggle('hidden', p.id !== 'sec-' + s.dataset.sec));
-        })
+      document.querySelectorAll(".sec-item").forEach((s) =>
+        s.addEventListener("click", () => {
+          document.querySelectorAll(".sec-item").forEach((x) => x.classList.remove("active"));
+          s.classList.add("active");
+          document
+            .querySelectorAll(".sec-pane")
+            .forEach((p) => p.classList.toggle("hidden", p.id !== "sec-" + s.dataset.sec));
+        }),
       );
 
-      document.getElementById('empty-toggle').addEventListener('change', (e) => {
-        document.getElementById('agent-cards').classList.toggle('hidden', e.target.checked);
-        document.getElementById('agent-empty').classList.toggle('hidden', !e.target.checked);
+      document.getElementById("empty-toggle").addEventListener("change", (e) => {
+        document.getElementById("agent-cards").classList.toggle("hidden", e.target.checked);
+        document.getElementById("agent-empty").classList.toggle("hidden", !e.target.checked);
       });
 
-      function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
-      function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
-      function openDrawer(id) { document.getElementById(id).classList.remove('hidden'); }
-      function closeDrawer(id) { document.getElementById(id).classList.add('hidden'); }
+      function openModal(id) {
+        document.getElementById(id).classList.remove("hidden");
+      }
+      function closeModal(id) {
+        document.getElementById(id).classList.add("hidden");
+      }
+      function openDrawer(id) {
+        document.getElementById(id).classList.remove("hidden");
+      }
+      function closeDrawer(id) {
+        document.getElementById(id).classList.add("hidden");
+      }
 
       lucide.createIcons();
     </script>

@@ -71,7 +71,9 @@ async function step(page, title, ms = 2400) {
 
 async function loginAs(api, ctx, mail, pass) {
   for (let attempt = 0; attempt < 3; attempt++) {
-    const r = await api.post(`${BASE}/api/v1/auth/login`, { data: { email: mail, password: pass } });
+    const r = await api.post(`${BASE}/api/v1/auth/login`, {
+      data: { email: mail, password: pass },
+    });
     const cookie = (r.headers()["set-cookie"] ?? "").split("ras=")[1]?.split(";")[0];
     if (cookie) {
       await ctx.clearCookies();
@@ -116,14 +118,16 @@ const run = async () => {
   // 幂等起点：清历史 License（中断重跑残留）
   await api.delete(`${BASE}/api/v1/system/license`).catch(() => {});
   // 幂等清扫：上轮演示残留的池/组织（失败忽略——唯一名后缀兜底）
-  const stalePools = ((await (await api.get(`${BASE}/api/v1/system/pools`)).json()).data?.items ?? []).filter((p) =>
-    /^验收企业池/.test(p.name),
-  );
-  for (const sp of stalePools) await api.delete(`${BASE}/api/v1/system/pools/${sp.id}`).catch(() => {});
-  const staleOrgs = ((await (await api.get(`${BASE}/api/v1/system/orgs`)).json()).data?.items ?? []).filter((o) =>
-    /^验收电商事业部/.test(o.name),
-  );
-  for (const so of staleOrgs) await api.delete(`${BASE}/api/v1/orgs/${so.id}?needConfirm=true`).catch(() => {});
+  const stalePools = (
+    (await (await api.get(`${BASE}/api/v1/system/pools`)).json()).data?.items ?? []
+  ).filter((p) => /^验收企业池/.test(p.name));
+  for (const sp of stalePools)
+    await api.delete(`${BASE}/api/v1/system/pools/${sp.id}`).catch(() => {});
+  const staleOrgs = (
+    (await (await api.get(`${BASE}/api/v1/system/orgs`)).json()).data?.items ?? []
+  ).filter((o) => /^验收电商事业部/.test(o.name));
+  for (const so of staleOrgs)
+    await api.delete(`${BASE}/api/v1/orgs/${so.id}?needConfirm=true`).catch(() => {});
   // 管理员自己的项目（②段场景建在此——管理员会话访问演示用户项目会跨组织 404）
   const adminProjects = (await (await api.get(`${BASE}/api/v1/personal/projects`)).json()).data;
   const adminProjectList = adminProjects?.items ?? adminProjects ?? [];
@@ -141,15 +145,27 @@ const run = async () => {
   await page.goto(`${BASE}/system/pools`);
   await step(page, "② 资源池：社区版仅默认池（新建按钮 License 门控）", 2000);
   await step(page, `新建「${poolName}」→ engine 以 POOL_ID 绑定后节点自动注册`, 1600);
-  await page.getByTestId("btn-new-pool").click().catch(async () => {
-    // 按钮态未刷新兜底：API 建池
-    await api.post(`${BASE}/api/v1/system/pools`, {
-      data: { name: poolName, type: "NODE", maxConcurrency: 4 },
+  await page
+    .getByTestId("btn-new-pool")
+    .click()
+    .catch(async () => {
+      // 按钮态未刷新兜底：API 建池
+      await api.post(`${BASE}/api/v1/system/pools`, {
+        data: { name: poolName, type: "NODE", maxConcurrency: 4 },
+      });
     });
-  });
-  await page.getByTestId("input-pool-name").fill(poolName).catch(() => {});
-  await page.getByTestId("input-new-pool-concurrency").fill("4").catch(() => {});
-  await page.getByRole("button", { name: "创 建" }).click().catch(() => {});
+  await page
+    .getByTestId("input-pool-name")
+    .fill(poolName)
+    .catch(() => {});
+  await page
+    .getByTestId("input-new-pool-concurrency")
+    .fill("4")
+    .catch(() => {});
+  await page
+    .getByRole("button", { name: "创 建" })
+    .click()
+    .catch(() => {});
   await sleep(1500);
   let pools = (await (await api.get(`${BASE}/api/v1/system/pools`)).json()).data.items;
   if (!pools.find((p) => p.name === poolName)) {
@@ -162,8 +178,9 @@ const run = async () => {
 
   // 场景（脚本步骤自检，建在管理员项目）+ engine2 进程（POOL_ID）
   // moduleId 必填：取默认场景模块树根（s3-helpers defaultScenarioModuleId 同源逻辑）
-  const moduleTree = (await (await api.get(`${BASE}/api/v1/projects/${adminProjectId}/modules?scene=scenario`)).json())
-    .data;
+  const moduleTree = (
+    await (await api.get(`${BASE}/api/v1/projects/${adminProjectId}/modules?scene=scenario`)).json()
+  ).data;
   const defaultModule = (function find(items) {
     for (const it of items) {
       if (it.isDefault) return it;
@@ -174,93 +191,136 @@ const run = async () => {
   })(moduleTree?.items ?? []);
   let engine2 = null;
   const scenario =
-    (await (
-      await api.post(`${BASE}/api/v1/projects/${adminProjectId}/scenarios`, {
-        data: { name: scenarioName, moduleId: defaultModule?.id },
-      })
-    ).json()).data ?? null;
+    (
+      await (
+        await api.post(`${BASE}/api/v1/projects/${adminProjectId}/scenarios`, {
+          data: { name: scenarioName, moduleId: defaultModule?.id },
+        })
+      ).json()
+    ).data ?? null;
   if (scenario) {
-  const sd = (await (await api.get(`${BASE}/api/v1/projects/${adminProjectId}/scenarios/${scenario.id}`)).json()).data;
-  await api.put(`${BASE}/api/v1/projects/${adminProjectId}/scenarios/${scenario.id}/steps`, {
-    data: {
-      version: sd.version,
-      steps: [
-        {
-          uid: `demo-${Date.now().toString(36)}`,
-          stepType: "script",
-          name: "自检",
-          enabled: true,
-          config: { script: "1 + 1" },
-          children: [],
-        },
-      ],
-    },
-  }).catch(() => {});
-  engine2 = spawn("pnpm", ["--filter", "engine", "start"], {
-    cwd: path.resolve(import.meta.dirname ?? ".", "../../.."),
-    env: {
-      ...process.env,
-      POOL_ID: poolId,
-      REDIS_URL: process.env.DEMO_REDIS_URL ?? "redis://127.0.0.1:6381",
-      WEB_URL: BASE,
-      INTERNAL_TOKEN: process.env.INTERNAL_TOKEN ?? "dev-internal-token",
-    },
-    stdio: "ignore",
-  });
-  await step(page, "启动第二个 engine 进程（POOL_ID=验收企业池）→ 心跳注册节点…", 2600);
-  // 等节点 ONLINE（10s 心跳周期）
-  for (let i = 0; i < 14; i++) {
-    await sleep(2000);
-    const p = (await (await api.get(`${BASE}/api/v1/system/pools/${poolId}`)).json()).data;
-    if (p?.nodes?.some((n) => n.state === "ONLINE")) break;
-  }
-  await page.reload();
-  await sleep(1200);
-  await step(page, `${poolName}：节点 ONLINE（按池队列 exec-pool-{poolId} 隔离调度）`, 2600);
-
-  // 场景执行选池（批量执行弹窗选池）
-  await page.goto(`${BASE}/scenarios`);
-  await step(page, `场景列表 → 选中场景 → 批量执行 → 资源池=${poolName}`, 1600);
-  const row = page.getByRole("row", { name: new RegExp(scenarioName) });
-  await row.getByRole("checkbox").check().catch(() => row.click().catch(() => {}));
-  await sleep(800);
-  await page.getByRole("button", { name: "批量执行" }).click().catch(() => {});
-  await sleep(1200);
-  await page.getByTestId("select-exec-pool").click().catch(() => {});
-  await page.getByTitle(poolName, { exact: false }).first().click().catch(() => {});
-  await sleep(600);
-  await page.locator(".ant-modal .ant-btn-primary").last().click().catch(() => {});
-  await sleep(1200);
-  await page.locator(".ant-modal .ant-btn-primary").last().click().catch(() => {});
-  await sleep(2500);
-  await step(page, "任务提交至验收企业池（仅该池 engine 消费——池间隔离）", 2400);
-  await page.goto(`${BASE}/tasks`);
-  await sleep(2000);
-  // UI 提交失败兜底：API 直接投递到企业池（再回任务页展示）
-  // 判据=最近 90s 内新建任务（任务名是 taskId 十六进制，不含场景名）
-  let submitted = false;
-  try {
-    const tasks = (await (await api.get(`${BASE}/api/v1/projects/${adminProjectId}/exec-tasks?page=1&pageSize=20`)).json())
-      .data;
-    submitted = (tasks?.items ?? []).some((t) => Date.now() - new Date(t.createdAt).getTime() < 90_000);
-  } catch {}
-  if (!submitted) {
+    const sd = (
+      await (
+        await api.get(`${BASE}/api/v1/projects/${adminProjectId}/scenarios/${scenario.id}`)
+      ).json()
+    ).data;
     await api
-      .post(`${BASE}/api/v1/projects/${adminProjectId}/scenarios/execute`, {
-        data: { scenarioIds: [scenario.id], poolId, stopOnFail: false, mode: "serial" },
+      .put(`${BASE}/api/v1/projects/${adminProjectId}/scenarios/${scenario.id}/steps`, {
+        data: {
+          version: sd.version,
+          steps: [
+            {
+              uid: `demo-${Date.now().toString(36)}`,
+              stepType: "script",
+              name: "自检",
+              enabled: true,
+              config: { script: "1 + 1" },
+              children: [],
+            },
+          ],
+        },
       })
       .catch(() => {});
+    engine2 = spawn("pnpm", ["--filter", "engine", "start"], {
+      cwd: path.resolve(import.meta.dirname ?? ".", "../../.."),
+      env: {
+        ...process.env,
+        POOL_ID: poolId,
+        REDIS_URL: process.env.DEMO_REDIS_URL ?? "redis://127.0.0.1:6381",
+        WEB_URL: BASE,
+        INTERNAL_TOKEN: process.env.INTERNAL_TOKEN ?? "dev-internal-token",
+      },
+      stdio: "ignore",
+    });
+    await step(page, "启动第二个 engine 进程（POOL_ID=验收企业池）→ 心跳注册节点…", 2600);
+    // 等节点 ONLINE（10s 心跳周期）
+    for (let i = 0; i < 14; i++) {
+      await sleep(2000);
+      const p = (await (await api.get(`${BASE}/api/v1/system/pools/${poolId}`)).json()).data;
+      if (p?.nodes?.some((n) => n.state === "ONLINE")) break;
+    }
+    await page.reload();
+    await sleep(1200);
+    await step(page, `${poolName}：节点 ONLINE（按池队列 exec-pool-{poolId} 隔离调度）`, 2600);
+
+    // 场景执行选池（批量执行弹窗选池）
+    await page.goto(`${BASE}/scenarios`);
+    await step(page, `场景列表 → 选中场景 → 批量执行 → 资源池=${poolName}`, 1600);
+    const row = page.getByRole("row", { name: new RegExp(scenarioName) });
+    await row
+      .getByRole("checkbox")
+      .check()
+      .catch(() => row.click().catch(() => {}));
+    await sleep(800);
+    await page
+      .getByRole("button", { name: "批量执行" })
+      .click()
+      .catch(() => {});
+    await sleep(1200);
+    await page
+      .getByTestId("select-exec-pool")
+      .click()
+      .catch(() => {});
+    await page
+      .getByTitle(poolName, { exact: false })
+      .first()
+      .click()
+      .catch(() => {});
+    await sleep(600);
+    await page
+      .locator(".ant-modal .ant-btn-primary")
+      .last()
+      .click()
+      .catch(() => {});
+    await sleep(1200);
+    await page
+      .locator(".ant-modal .ant-btn-primary")
+      .last()
+      .click()
+      .catch(() => {});
+    await sleep(2500);
+    await step(page, "任务提交至验收企业池（仅该池 engine 消费——池间隔离）", 2400);
     await page.goto(`${BASE}/tasks`);
     await sleep(2000);
-  }
+    // UI 提交失败兜底：API 直接投递到企业池（再回任务页展示）
+    // 判据=最近 90s 内新建任务（任务名是 taskId 十六进制，不含场景名）
+    let submitted = false;
+    try {
+      const tasks = (
+        await (
+          await api.get(`${BASE}/api/v1/projects/${adminProjectId}/exec-tasks?page=1&pageSize=20`)
+        ).json()
+      ).data;
+      submitted = (tasks?.items ?? []).some(
+        (t) => Date.now() - new Date(t.createdAt).getTime() < 90_000,
+      );
+    } catch {}
+    if (!submitted) {
+      await api
+        .post(`${BASE}/api/v1/projects/${adminProjectId}/scenarios/execute`, {
+          data: { scenarioIds: [scenario.id], poolId, stopOnFail: false, mode: "serial" },
+        })
+        .catch(() => {});
+      await page.goto(`${BASE}/tasks`);
+      await sleep(2000);
+    }
   }
 
   // ═══════ ③ 多组织 + 顶栏切换器 ═══════
   await page.goto(`${BASE}/system/orgs`);
   await step(page, `③ 组织管理：新建组织「${orgName}」（管理员=第二用户）`, 1600);
-  await page.getByTestId("btn-new-org").click().catch(() => {});
-  await page.getByTestId("input-org-name").fill(orgName).catch(() => {});
-  await page.getByTestId("select-org-owner").click().catch(() => {});
+  await page
+    .getByTestId("btn-new-org")
+    .click()
+    .catch(() => {});
+  await page
+    .getByTestId("input-org-name")
+    .fill(orgName)
+    .catch(() => {});
+  await page
+    .getByTestId("select-org-owner")
+    .click()
+    .catch(() => {});
   await page.keyboard.type(ownerEmail).catch(() => {});
   await sleep(1200);
   await page
@@ -268,7 +328,10 @@ const run = async () => {
     .first()
     .click()
     .catch(() => {});
-  await page.getByRole("button", { name: "创 建" }).click().catch(() => {});
+  await page
+    .getByRole("button", { name: "创 建" })
+    .click()
+    .catch(() => {});
   await sleep(1800);
   // API 兜底：UI 建组织失败时补建（唯一名——重跑不 409）
   const orgsAfterUi = (await (await api.get(`${BASE}/api/v1/system/orgs`)).json()).data.items;
@@ -290,7 +353,10 @@ const run = async () => {
     .catch(() => {});
   await sleep(1000);
   await step(page, `切换到「${orgName}」→ 项目列表按组织过滤（新组织=空）`, 1600);
-  await page.getByRole("menuitem", { name: orgName }).click().catch(() => {});
+  await page
+    .getByRole("menuitem", { name: orgName })
+    .click()
+    .catch(() => {});
   await sleep(1800);
 
   // ═══════ ④ 部门树 ═══════
@@ -300,25 +366,42 @@ const run = async () => {
   await page.goto(`${BASE}/org/departments`);
   await sleep(1200);
   await step(page, `④ 部门管理：建两级部门树（${deptRootName} > ${deptSubName}）`, 1600);
-  await page.getByTestId("btn-new-department-root").click().catch(async () => {
-    await api.post(`${BASE}/api/v1/orgs/${adminOrgId}/departments`, { data: { name: deptRootName } });
-  });
-  await page.getByTestId("input-department-name").fill(deptRootName).catch(() => {});
-  await page.getByRole("button", { name: "创 建" }).click().catch(() => {});
+  await page
+    .getByTestId("btn-new-department-root")
+    .click()
+    .catch(async () => {
+      await api.post(`${BASE}/api/v1/orgs/${adminOrgId}/departments`, {
+        data: { name: deptRootName },
+      });
+    });
+  await page
+    .getByTestId("input-department-name")
+    .fill(deptRootName)
+    .catch(() => {});
+  await page
+    .getByRole("button", { name: "创 建" })
+    .click()
+    .catch(() => {});
   await sleep(1500);
   const tree = (await (await api.get(`${BASE}/api/v1/orgs/${adminOrgId}/departments`)).json()).data;
   let root = tree.find((n) => n.name === deptRootName);
   if (!root) {
     // UI 建根部门失败兜底
-    await api.post(`${BASE}/api/v1/orgs/${adminOrgId}/departments`, { data: { name: deptRootName } }).catch(() => {});
-    const tree2 = (await (await api.get(`${BASE}/api/v1/orgs/${adminOrgId}/departments`)).json()).data;
+    await api
+      .post(`${BASE}/api/v1/orgs/${adminOrgId}/departments`, { data: { name: deptRootName } })
+      .catch(() => {});
+    const tree2 = (await (await api.get(`${BASE}/api/v1/orgs/${adminOrgId}/departments`)).json())
+      .data;
     root = tree2.find((n) => n.name === deptRootName);
   }
   await api.post(`${BASE}/api/v1/orgs/${adminOrgId}/departments`, {
     data: { name: deptSubName, parentId: root.id },
   });
-  await api.post(`${BASE}/api/v1/orgs/${adminOrgId}/members-add`, { data: { userIds: [ownerUserId] } });
-  const subTree = (await (await api.get(`${BASE}/api/v1/orgs/${adminOrgId}/departments`)).json()).data;
+  await api.post(`${BASE}/api/v1/orgs/${adminOrgId}/members-add`, {
+    data: { userIds: [ownerUserId] },
+  });
+  const subTree = (await (await api.get(`${BASE}/api/v1/orgs/${adminOrgId}/departments`)).json())
+    .data;
   const sub = subTree.find((n) => n.name === deptSubName) ?? root;
   await api.post(`${BASE}/api/v1/orgs/${adminOrgId}/departments/${sub.id}/members`, {
     data: { userIds: [ownerUserId] },
@@ -339,12 +422,37 @@ const run = async () => {
   await page.getByRole("tab", { name: "界面设置" }).click();
   await sleep(1200);
   await step(page, "⑥ 界面设置：主题色+网站名称+Slogan（右侧实时预览）", 1600);
-  await page.getByTestId("input-theme-site-name").fill("星舟测试平台").catch(() => {});
-  await page.getByTestId("input-theme-slogan").fill("质量驱动交付").catch(() => {});
+  await page
+    .getByTestId("input-theme-site-name")
+    .fill("星舟测试平台")
+    .catch(() => {});
+  await page
+    .getByTestId("input-theme-slogan")
+    .fill("质量驱动交付")
+    .catch(() => {});
   await sleep(1200);
-  await page.getByTestId("btn-theme-save").click().catch(async () => {
-    await api.put(`${BASE}/api/v1/system/params/theme`, { data: { group: "theme", value: { primaryColor: "#574BFF", followPrimary: true, siteName: "星舟测试平台", slogan: "质量驱动交付", loginLogo: "", loginBg: "", icon: "", platformName: "RabbitAITest", platformLogo: "", helpUrl: "" } } });
-  });
+  await page
+    .getByTestId("btn-theme-save")
+    .click()
+    .catch(async () => {
+      await api.put(`${BASE}/api/v1/system/params/theme`, {
+        data: {
+          group: "theme",
+          value: {
+            primaryColor: "#574BFF",
+            followPrimary: true,
+            siteName: "星舟测试平台",
+            slogan: "质量驱动交付",
+            loginLogo: "",
+            loginBg: "",
+            icon: "",
+            platformName: "RabbitAITest",
+            platformLogo: "",
+            helpUrl: "",
+          },
+        },
+      });
+    });
   await sleep(1500);
   await step(page, "保存并应用 → 登录页品牌即时生效", 1600);
   await ctx.clearCookies();
@@ -363,46 +471,68 @@ const run = async () => {
   // ═══════ ⑦ 消息模板渲染 ═══════
   // 前置：切回演示用户会话（项目 OWNER）；事件配置 + 站内信机器人（接收人=演示用户）
   await loginAs(api, ctx, email, password);
-  const robot = (await (
-    await api.post(`${BASE}/api/v1/projects/${projectId}/robots`, {
-      data: { name: "验收-站内信", channel: "inapp", enabled: true },
-    })
-  ).json()).data;
+  const robot = (
+    await (
+      await api.post(`${BASE}/api/v1/projects/${projectId}/robots`, {
+        data: { name: "验收-站内信", channel: "inapp", enabled: true },
+      })
+    ).json()
+  ).data;
   const demoUserId = acct1.userId;
   if (robot && demoUserId) {
-  await api.put(`${BASE}/api/v1/projects/${projectId}/message-config`, {
-    data: { BUG_CREATED: { enabled: true, robotIds: [robot.id], receiverUserIds: [demoUserId] } },
-  });
-  await page.goto(`${BASE}/settings/messages`);
-  await page.getByRole("tab", { name: "模板" }).click();
-  await sleep(1500);
-  await step(page, "⑦ 消息模板：11 事件目录 · 定制缺陷创建标题（变量 chip 插入）", 1600);
-  await page.getByTestId("template-event-BUG_CREATED").click().catch(() => {});
-  await sleep(600);
-  await page.getByTestId("input-template-title").fill("[${project}] ${actorName} 提交了缺陷").catch(() => {});
-  await page.getByTestId("input-template-content").fill("缺陷：${title}").catch(() => {});
-  await sleep(600);
-  await page.getByTestId("btn-template-preview").click().catch(() => {});
-  await sleep(1500);
-  await step(page, "实时预览（服务端示例数据渲染）→ 保存", 1800);
-  await page.getByTestId("btn-template-save").click().catch(() => {});
-  await sleep(1500);
-  // 触发：管理员建缺陷 → 演示用户站内信按模板渲染
-  await api.post(`${BASE}/api/v1/projects/${projectId}/bugs`, { data: { title: "验收：支付偶发超时" } });
-  await sleep(1200);
-  await loginAs(api, ctx, email, password);
-  await page.goto(`${BASE}/personal/notifications`);
-  await sleep(1800);
-  await step(page, "触发缺陷创建 → 接收人站内信按模板渲染（无模板事件回退默认）", 3000);
-  // 恢复默认模板
-  await api.delete(`${BASE}/api/v1/projects/${projectId}/message-templates/BUG_CREATED`).catch(() => {});
+    await api.put(`${BASE}/api/v1/projects/${projectId}/message-config`, {
+      data: { BUG_CREATED: { enabled: true, robotIds: [robot.id], receiverUserIds: [demoUserId] } },
+    });
+    await page.goto(`${BASE}/settings/messages`);
+    await page.getByRole("tab", { name: "模板" }).click();
+    await sleep(1500);
+    await step(page, "⑦ 消息模板：11 事件目录 · 定制缺陷创建标题（变量 chip 插入）", 1600);
+    await page
+      .getByTestId("template-event-BUG_CREATED")
+      .click()
+      .catch(() => {});
+    await sleep(600);
+    await page
+      .getByTestId("input-template-title")
+      .fill("[${project}] ${actorName} 提交了缺陷")
+      .catch(() => {});
+    await page
+      .getByTestId("input-template-content")
+      .fill("缺陷：${title}")
+      .catch(() => {});
+    await sleep(600);
+    await page
+      .getByTestId("btn-template-preview")
+      .click()
+      .catch(() => {});
+    await sleep(1500);
+    await step(page, "实时预览（服务端示例数据渲染）→ 保存", 1800);
+    await page
+      .getByTestId("btn-template-save")
+      .click()
+      .catch(() => {});
+    await sleep(1500);
+    // 触发：管理员建缺陷 → 演示用户站内信按模板渲染
+    await api.post(`${BASE}/api/v1/projects/${projectId}/bugs`, {
+      data: { title: "验收：支付偶发超时" },
+    });
+    await sleep(1200);
+    await loginAs(api, ctx, email, password);
+    await page.goto(`${BASE}/personal/notifications`);
+    await sleep(1800);
+    await step(page, "触发缺陷创建 → 接收人站内信按模板渲染（无模板事件回退默认）", 3000);
+    // 恢复默认模板
+    await api
+      .delete(`${BASE}/api/v1/projects/${projectId}/message-templates/BUG_CREATED`)
+      .catch(() => {});
   }
 
   // ═══════ ⑧ SSO + 扫码登录（mock IdP）═══════
   await adminLogin(api, ctx);
   // 幂等：清历史认证源（中断重跑残留——多源致登录页 strict mode 冲突）
   const oldSources = (await (await api.get(`${BASE}/api/v1/system/sso`)).json()).data?.items ?? [];
-  for (const os of oldSources) await api.delete(`${BASE}/api/v1/system/sso/${os.id}`).catch(() => {});
+  for (const os of oldSources)
+    await api.delete(`${BASE}/api/v1/system/sso/${os.id}`).catch(() => {});
   // OIDC 源（两步：占位 → PATCH 注入 mock 端点）
   const oidcCreated = await api.post(`${BASE}/api/v1/system/sso`, {
     data: {
@@ -436,7 +566,11 @@ const run = async () => {
   await api.post(`${MOCK}/sso/_test/config`, {
     data: {
       authId: oidcId,
-      userinfo: { preferred_username: "demo-sso", name: "验收 SSO 用户", email: `demo-sso-${Date.now()}@idp.test` },
+      userinfo: {
+        preferred_username: "demo-sso",
+        name: "验收 SSO 用户",
+        email: `demo-sso-${Date.now()}@idp.test`,
+      },
     },
   });
   // 钉钉扫码源
@@ -464,7 +598,10 @@ const run = async () => {
     },
   });
   await api.post(`${MOCK}/sso/_test/config`, {
-    data: { authId: dingId, userinfo: { openId: `demo-open-${Date.now().toString(36)}`, nick: "扫码验收用户" } },
+    data: {
+      authId: dingId,
+      userinfo: { openId: `demo-open-${Date.now().toString(36)}`, nick: "扫码验收用户" },
+    },
   });
   await page.goto(`${BASE}/system/sso`);
   await sleep(1500);
@@ -476,7 +613,11 @@ const run = async () => {
   await sleep(1500);
   await step(page, "登录页出现「其他登录方式」（OIDC + 钉钉扫码）", 2000);
   await step(page, "点击 OIDC → mock IdP 自动授权 → 回调建号登录", 1600);
-  await page.getByTestId("sso-method-OIDC").first().click().catch(() => {});
+  await page
+    .getByTestId("sso-method-OIDC")
+    .first()
+    .click()
+    .catch(() => {});
   await sleep(4000);
   await step(page, "SSO 登录成功（source=OIDC，@idp.test 账号）", 2400);
   const me2 = (await (await page.request.get(`${BASE}/api/v1/personal/me`)).json()).data;
@@ -484,12 +625,18 @@ const run = async () => {
   await page.goto(`${BASE}/login`);
   await sleep(1200);
   await step(page, "钉钉扫码入口 → mock 扫码授权中转 → 回调登录（@sso.scan 合成账号幂等）", 1600);
-  await page.getByTestId("sso-method-DINGTALK").first().click().catch(() => {});
+  await page
+    .getByTestId("sso-method-DINGTALK")
+    .first()
+    .click()
+    .catch(() => {});
   await sleep(4000);
   const me3 = (await (await page.request.get(`${BASE}/api/v1/personal/me`)).json()).data;
   await step(
     page,
-    me3?.email?.includes("@sso.scan") ? "扫码登录成功（合成 @sso.scan 账号）" : `扫码登录（${me3?.email ?? "?"}）`,
+    me3?.email?.includes("@sso.scan")
+      ? "扫码登录成功（合成 @sso.scan 账号）"
+      : `扫码登录（${me3?.email ?? "?"}）`,
     2400,
   );
 
@@ -500,11 +647,14 @@ const run = async () => {
   engine2?.kill("SIGTERM");
   await sleep(800);
   engine2?.kill("SIGKILL");
-  await api.patch(`${BASE}/api/v1/system/pools/${poolId}`, { data: { status: "ACTIVE" } }).catch(() => {});
+  await api
+    .patch(`${BASE}/api/v1/system/pools/${poolId}`, { data: { status: "ACTIVE" } })
+    .catch(() => {});
   await api.delete(`${BASE}/api/v1/system/pools/${poolId}`).catch(() => {});
   const orgsNow = (await (await api.get(`${BASE}/api/v1/system/orgs`)).json()).data.items;
   const demoOrg = orgsNow.find((o) => o.name === orgName);
-  if (demoOrg) await api.delete(`${BASE}/api/v1/orgs/${demoOrg.id}?needConfirm=true`).catch(() => {});
+  if (demoOrg)
+    await api.delete(`${BASE}/api/v1/orgs/${demoOrg.id}?needConfirm=true`).catch(() => {});
   await api.delete(`${BASE}/api/v1/system/license`).catch(() => {});
 
   await step(
@@ -517,7 +667,9 @@ const run = async () => {
   await browser.close();
 
   // 录像文件重命名为固定名（排除既有目标名——否则字母序会选中旧目标自我重命名）
-  const webm = readdirSync(OUT).filter((f) => f.endsWith(".webm") && f !== "s9-acceptance-demo.webm");
+  const webm = readdirSync(OUT).filter(
+    (f) => f.endsWith(".webm") && f !== "s9-acceptance-demo.webm",
+  );
   if (webm.length) {
     const target = path.join(OUT, "s9-acceptance-demo.webm");
     renameSync(path.join(OUT, webm[webm.length - 1]), target);

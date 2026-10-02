@@ -1,6 +1,6 @@
 ---
-name: {{NAME}}
-description: {{ONE_LINE_DESCRIPTION}}
+name: { { NAME } }
+description: { { ONE_LINE_DESCRIPTION } }
 ---
 
 # {{NAME}}

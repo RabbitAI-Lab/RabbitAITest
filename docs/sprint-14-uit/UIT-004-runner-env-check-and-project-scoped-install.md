@@ -6,14 +6,14 @@
 | 所属迭代     | Sprint 14 — UI 测试 Runner 环境化                                                                                                                                                                      |
 | 优先级       | P1（用户直提：runner 要自带环境检测 checklist；项目要能安装自己的 runner 且跨项目隔离）                                                                                                                |
 | 所属模块     | UIT UI 测试 / EXEC 执行（引擎 runner 解析与安装）                                                                                                                                                      |
-| 文档状态     | **Implemented**（随批实现完成 2026-10-01：契约 v7/UiRunner 表/引擎 runner-jobs+预检/前端管理面/三件套；待 PR 合并 CI 绿后验收走查→Verified）                                                                                    |
+| 文档状态     | **Implemented**（随批实现完成 2026-10-01：契约 v7/UiRunner 表/引擎 runner-jobs+预检/前端管理面/三件套；待 PR 合并 CI 绿后验收走查→Verified）                                                           |
 | 最后更新日期 | 2026-10-01                                                                                                                                                                                             |
 | 上游依赖     | UIT-003（脚本 runner 子进程直执行）、UIT-002（ExecTask ui_* 任务面/事件流帧）、FILE-001（internal/files）、EXEC-002（BullMQ 队列/停止链先例）                                                          |
 | 下游消费     | P2：多浏览器矩阵（firefox/webkit）、Runner 版本升级巡检、组织级共享 Runner                                                                                                                             |
 | 上游依据     | 用户诉求（2026-10-01）：「runner 是不是要自带环境检测？检查哪些必须安装的工具是否安装，有个 checklist。需要允许项目安装自己的 runner，项目安装的 runner，留在当前项目，项目之间看不到非自己的 runner」 |
 | 对标基线     | MeterSphere功能清单（v1/v2/v3 均无 UI Runner 环境管理概念——执行机即装即用，环境问题以报错堆栈形式暴露）；本项目差异化：检测前置化、checklist 可视化                                                    |
 | 关联架构文档 | engine-execution-architecture.md、test-domain-model.md（§6 新表评审）、api-conventions.md、rules/engine.md（§6 例外口径延续）、rules/security.md（供应链）                                             |
-| 高保真确认   | **已确认**（确认人：xujialiang；确认日期：2026-10-01；确认口径：「原型可以，请继续开发」；原型链接：docs/design/UIT-004-runner-env/index.html）                                                                                   |
+| 高保真确认   | **已确认**（确认人：xujialiang；确认日期：2026-10-01；确认口径：「原型可以，请继续开发」；原型链接：docs/design/UIT-004-runner-env/index.html）                                                        |
 | 工作量估算   | 后端+引擎 2.5 人日 + 前端 2 人日 + 测试 1.5 人日（合计 ≈ 6 人日）                                                                                                                                      |
 
 ## 1. 概述
@@ -132,18 +132,18 @@ UI 测试页 header 增「Runner」胶囊（当前生效：内置·版本·✓/�
 
 ## 5. 测试用例表（§1.2 能力行映射；命名 rules/testing §1.1）
 
-| 用例编号    | 覆盖能力行                                                              | 文件                             | 类型       |
-| ----------- | ----------------------------------------------------------------------- | -------------------------------- | ---------- |
-| UIT-004-T01 | 管理面·仅本项目可见（隔离）                                             | tests/e2e/UIT-004-runner.spec.ts | Playwright |
-| UIT-004-T02 | checklist 六项三态渲染+hint                                             | tests/e2e/UIT-004-runner.spec.ts | Playwright |
-| UIT-004-T03 | 安装状态机（0.0.1 负路径：受理→busy→FAILED 日志→重试复用→删除）        | tests/e2e/UIT-004-runner.spec.ts | Playwright |
+| 用例编号    | 覆盖能力行                                                             | 文件                                           | 类型              |
+| ----------- | ---------------------------------------------------------------------- | ---------------------------------------------- | ----------------- |
+| UIT-004-T01 | 管理面·仅本项目可见（隔离）                                            | tests/e2e/UIT-004-runner.spec.ts               | Playwright        |
+| UIT-004-T02 | checklist 六项三态渲染+hint                                            | tests/e2e/UIT-004-runner.spec.ts               | Playwright        |
+| UIT-004-T03 | 安装状态机（0.0.1 负路径：受理→busy→FAILED 日志→重试复用→删除）        | tests/e2e/UIT-004-runner.spec.ts               | Playwright        |
 | UIT-004-T04 | 预检阻断（缺环境→任务 FAILED + runner-check 帧；口径见注②）            | tests/e2e/UIT-004-runner.spec.ts + engine 单测 | Playwright+Vitest |
-| UIT-004-T05 | 隔离 API（B 项目访问 A runner=404；无权限=403）                         | tests/api/UIT-004-runner.jmx     | JMeter     |
-| UIT-004-T06 | 安装/检测/设默认/删除 四类场景×四断言                                   | tests/api/UIT-004-runner.jmx     | JMeter     |
-| UIT-004-T07 | version 非法 422·90086；busy 422·90088；分页信封                        | tests/api/UIT-004-runner.jmx     | JMeter     |
-| UIT-004-T08 | checklist 纯函数（注入假 fs/registry：ok/warn/fail 全矩阵）             | packages/shared 或 engine 单测   | Vitest     |
-| UIT-004-T09 | runner 解析与归属校验（跨项目 runnerId 拒绝）、预检缓存 5min、回落内置  | engine 单测                      | Vitest     |
-| UIT-004-T10 | 安装 argv 构造（无 shell、白名单 version、registry 拼接）与目录净化     | engine 单测                      | Vitest     |
+| UIT-004-T05 | 隔离 API（B 项目访问 A runner=404；无权限=403）                        | tests/api/UIT-004-runner.jmx                   | JMeter            |
+| UIT-004-T06 | 安装/检测/设默认/删除 四类场景×四断言                                  | tests/api/UIT-004-runner.jmx                   | JMeter            |
+| UIT-004-T07 | version 非法 422·90086；busy 422·90088；分页信封                       | tests/api/UIT-004-runner.jmx                   | JMeter            |
+| UIT-004-T08 | checklist 纯函数（注入假 fs/registry：ok/warn/fail 全矩阵）            | packages/shared 或 engine 单测                 | Vitest            |
+| UIT-004-T09 | runner 解析与归属校验（跨项目 runnerId 拒绝）、预检缓存 5min、回落内置 | engine 单测                                    | Vitest            |
+| UIT-004-T10 | 安装 argv 构造（无 shell、白名单 version、registry 拼接）与目录净化    | engine 单测                                    | Vitest            |
 
 注①（真安装口径）：真 npm 安装不做 CI 用例（外网+时长不可控）——T03 以 0.0.1 负路径（npm 404 秒级 FAILED+日志尾部+重试复用）覆盖安装状态机；本地验收走查已实测真安装全链（1.62.0：npm 拉包→chromium-1234 自动补装→六项检测绿→READY 设默认→执行走项目 runner 成功）。
 注②（T04 拆分口径）：阻断态（fail 项→runner-check 帧+CONFIG_ERROR）由引擎单测覆盖（T08 三态矩阵+T09 解析缺失语义）；e2e T04b 覆盖缺省态（正常执行无阻断卡+接口 runnerChecks 空）——共享 e2e 栈无法破坏浏览器目录而不伤及其他用例，环境相关三态（warn 行文案等）归单测，e2e 只断言环境无关项（豁免登记）。
@@ -158,7 +158,7 @@ schema.prisma（UiRunner）+ migration + 种子（示例项目不预装）；pac
 
 ## 8. 勘误登记
 
-| 编号  | 日期       | 内容                                                                                                                                                                                                                                                                                             | 状态         |
-| ----- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------ |
-| 勘误1 | 2026-10-01 | 走查发现：粘贴导入/模板默认脚本断言 `toHaveText('提交成功，rabbit-e2e')` 与 mock demo 页实际输出 `…（normal）` 后缀不同步→首跑必败；已改 `toContainText`（ui-test/page.tsx、UiCaseForm.tsx 两处），dev 实测首跑 1/1 绿；随本规格 PR 一并提交 | 已修复随批提交 |
-| 勘误2 | 2026-10-02 | 走查发现：Runner 胶囊根节点为块级 div，在 PageHeader extra 槽内把按钮行打散成两层、贴按钮零留白（用户走查直提「样式难看，上方一点 margin 都没有」）；根节点改 `inline-flex align-middle` 同行流式排布，与按钮垂直居中、间距正常（原型画板一即同行口径，实现回归原型） | 已修复待提交 |
+| 编号  | 日期       | 内容                                                                                                                                                                                                                                                                  | 状态           |
+| ----- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- |
+| 勘误1 | 2026-10-01 | 走查发现：粘贴导入/模板默认脚本断言 `toHaveText('提交成功，rabbit-e2e')` 与 mock demo 页实际输出 `…（normal）` 后缀不同步→首跑必败；已改 `toContainText`（ui-test/page.tsx、UiCaseForm.tsx 两处），dev 实测首跑 1/1 绿；随本规格 PR 一并提交                          | 已修复随批提交 |
+| 勘误2 | 2026-10-02 | 走查发现：Runner 胶囊根节点为块级 div，在 PageHeader extra 槽内把按钮行打散成两层、贴按钮零留白（用户走查直提「样式难看，上方一点 margin 都没有」）；根节点改 `inline-flex align-middle` 同行流式排布，与按钮垂直居中、间距正常（原型画板一即同行口径，实现回归原型） | 已修复待提交   |

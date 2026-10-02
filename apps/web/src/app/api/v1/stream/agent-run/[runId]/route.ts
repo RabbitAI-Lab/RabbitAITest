@@ -22,7 +22,10 @@ export const GET = withAuth(async (ctx, req: Request, segArg?: unknown) => {
       })
     : null;
   if (!run || !visible) {
-    return NextResponse.json({ code: 70634, message: "运行不存在或无权访问", data: null }, { status: 404 });
+    return NextResponse.json(
+      { code: 70634, message: "运行不存在或无权访问", data: null },
+      { status: 404 },
+    );
   }
   const streamKey = agentRunStreamKey(runId);
   const lastEventId = req.headers.get("last-event-id") ?? "0";
@@ -39,13 +42,9 @@ export const GET = withAuth(async (ctx, req: Request, segArg?: unknown) => {
       const deadline = Date.now() + 11 * 60 * 1000;
       try {
         for (let i = 0; i < 800 && !closed && Date.now() < deadline; i++) {
-          const results = (await redis().xread(
-            "BLOCK",
-            5000,
-            "STREAMS",
-            streamKey,
-            cursor,
-          )) as [string, [id: string, fields: string[]][]] | null;
+          const results = (await redis().xread("BLOCK", 5000, "STREAMS", streamKey, cursor)) as
+            | [string, [id: string, fields: string[]][]]
+            | null;
           if (results) {
             for (const [, entries] of results) {
               for (const entry of entries ?? []) {
@@ -74,7 +73,12 @@ export const GET = withAuth(async (ctx, req: Request, segArg?: unknown) => {
             .findUnique({ where: { id: runId }, select: { status: true } })
             .catch(() => null);
           if (cur && ["COMPLETED", "FAILED", "CANCELED"].includes(cur.status) && i > 0) {
-            send(cursor, { type: "final", seq: cursor, payload: { status: cur.status }, ts: Date.now() });
+            send(cursor, {
+              type: "final",
+              seq: cursor,
+              payload: { status: cur.status },
+              ts: Date.now(),
+            });
             closed = true;
           }
         }

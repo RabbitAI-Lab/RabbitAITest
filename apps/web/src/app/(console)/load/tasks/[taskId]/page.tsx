@@ -72,7 +72,8 @@ export default function LoadMonitorPage() {
 
   // 终态自动跳报告（有报告时）
   useEffect(() => {
-    if (status === "SUCCESS" || status === "FAILED" || status === "STOPPED") { // 引擎停止回调 outcome=stopped→ExecTask.status=STOPPED（ABORTED 为规格措辞，状态机实值 STOPPED——勘误 1）
+    if (status === "SUCCESS" || status === "FAILED" || status === "STOPPED") {
+      // 引擎停止回调 outcome=stopped→ExecTask.status=STOPPED（ABORTED 为规格措辞，状态机实值 STOPPED——勘误 1）
       const t = setTimeout(() => router.push(`/load/reports/${taskId}`), 1500);
       return () => clearTimeout(t);
     }
@@ -96,7 +97,9 @@ export default function LoadMonitorPage() {
           <span className="flex items-center gap-2">
             任务监控
             <Tag
-              color={status === "RUNNING" ? "processing" : status === "SUCCESS" ? "success" : "default"}
+              color={
+                status === "RUNNING" ? "processing" : status === "SUCCESS" ? "success" : "default"
+              }
               data-testid="load-monitor-status"
             >
               {status}
@@ -106,11 +109,19 @@ export default function LoadMonitorPage() {
         sub={`任务 ${taskId.slice(0, 8)} · 秒级时间线（SSE 实时推进）`}
         extra={
           status === "RUNNING" || status === "PENDING" ? (
-            <Button danger loading={stopMut.isPending} data-testid="load-stop-btn" onClick={() => stopMut.mutate()}>
+            <Button
+              danger
+              loading={stopMut.isPending}
+              data-testid="load-stop-btn"
+              onClick={() => stopMut.mutate()}
+            >
               停止施压
             </Button>
           ) : (
-            <Button onClick={() => router.push(`/load/reports/${taskId}`)} data-testid="load-goto-report">
+            <Button
+              onClick={() => router.push(`/load/reports/${taskId}`)}
+              data-testid="load-goto-report"
+            >
               查看报告
             </Button>
           )
@@ -119,11 +130,15 @@ export default function LoadMonitorPage() {
       <div className="grid grid-cols-4 gap-3 text-center">
         <div className="border rounded p-2 bg-white">
           <div className="text-xs text-slate-400">当前 TPS</div>
-          <div className="text-lg font-semibold" data-testid="load-tps-now">{last?.sent ?? 0}</div>
+          <div className="text-lg font-semibold" data-testid="load-tps-now">
+            {last?.sent ?? 0}
+          </div>
         </div>
         <div className="border rounded p-2 bg-white">
           <div className="text-xs text-slate-400">已发压</div>
-          <div className="text-lg font-semibold" data-testid="load-sent-total">{totalSent}</div>
+          <div className="text-lg font-semibold" data-testid="load-sent-total">
+            {totalSent}
+          </div>
         </div>
         <div className="border rounded p-2 bg-white">
           <div className="text-xs text-slate-400">失败率</div>
@@ -133,7 +148,9 @@ export default function LoadMonitorPage() {
         </div>
         <div className="border rounded p-2 bg-white">
           <div className="text-xs text-slate-400">RT P95</div>
-          <div className="text-lg font-semibold" data-testid="load-p95-now">{last?.rtP95 ?? 0}ms</div>
+          <div className="text-lg font-semibold" data-testid="load-p95-now">
+            {last?.rtP95 ?? 0}ms
+          </div>
         </div>
       </div>
       <Spin spinning={frames.length === 0 && (status === "RUNNING" || status === "PENDING")}>
@@ -142,7 +159,13 @@ export default function LoadMonitorPage() {
           frames={frames}
           series={[
             { key: "tps", label: "TPS", color: "#574BFF", pick: (f) => f.sent },
-            { key: "conc", label: "并发", color: "#10b981", dashed: true, pick: (f) => f.concurrent },
+            {
+              key: "conc",
+              label: "并发",
+              color: "#10b981",
+              dashed: true,
+              pick: (f) => f.concurrent,
+            },
           ]}
         />
         <LoadTimelineChart

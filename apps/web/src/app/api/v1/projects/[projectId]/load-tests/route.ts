@@ -34,10 +34,9 @@ export const POST = withProjectScope(async (ctx, req) => {
     await assertEntpEnabled("LOAD_TEST");
     const parsed = loadTestCreateSchema.safeParse(await req.json());
     if (!parsed.success) return unprocessable(parsed.error.issues[0]?.message);
-    return NextResponse.json(
-      ok(await createLoadTest(ctx.projectId, ctx.userId, parsed.data)),
-      { status: 201 },
-    );
+    return NextResponse.json(ok(await createLoadTest(ctx.projectId, ctx.userId, parsed.data)), {
+      status: 201,
+    });
   } catch (err) {
     return toResponse(err);
   }

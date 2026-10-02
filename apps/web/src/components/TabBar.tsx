@@ -26,7 +26,17 @@ interface CtxAction {
   disabled?: boolean;
 }
 
-function CtxMenu({ actions, x, y, mode = "fixed" }: { actions: CtxAction[]; x?: number; y?: number; mode?: "fixed" | "absolute" }) {
+function CtxMenu({
+  actions,
+  x,
+  y,
+  mode = "fixed",
+}: {
+  actions: CtxAction[];
+  x?: number;
+  y?: number;
+  mode?: "fixed" | "absolute";
+}) {
   return (
     <div
       className={`${mode === "fixed" ? "fixed" : "absolute"} z-40 w-44 bg-white border border-[#E5E6EB] rounded-lg shadow-lg py-1`}
@@ -59,7 +69,8 @@ export function TabBar() {
     if (!ctx && !opsOpen) return;
     const onDoc = (e: MouseEvent) => {
       if (ctx && !(e.target as HTMLElement).closest('[data-testid="tab-ctx-menu"]')) setCtx(null);
-      if (opsOpen && opsRef.current && !opsRef.current.contains(e.target as Node)) setOpsOpen(false);
+      if (opsOpen && opsRef.current && !opsRef.current.contains(e.target as Node))
+        setOpsOpen(false);
     };
     document.addEventListener("click", onDoc);
     return () => document.removeEventListener("click", onDoc);
@@ -83,7 +94,10 @@ export function TabBar() {
   ];
 
   return (
-    <div className="h-9 flex items-stretch bg-[#E9EBF0] border-b border-[#E0E2E8] shrink-0" data-testid="tab-bar">
+    <div
+      className="h-9 flex items-stretch bg-[#E9EBF0] border-b border-[#E0E2E8] shrink-0"
+      data-testid="tab-bar"
+    >
       <div
         className="flex items-end gap-1 overflow-x-auto flex-1 min-w-0 px-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         onWheel={(e) => {
@@ -114,7 +128,10 @@ export function TabBar() {
               className={`group flex items-center gap-1.5 pl-3 ${t.pinned ? "pr-3" : "pr-1.5"} h-8 mt-1 rounded-t-md cursor-pointer text-[12px] whitespace-nowrap shrink-0 select-none transition-colors ${active ? "bg-white text-[#1F2329] font-medium" : "text-[#646A73] hover:bg-white/60"}`}
               style={active ? { borderTop: "2px solid var(--rabbit-primary, #574BFF)" } : undefined}
             >
-              <Icon size={14} className={`shrink-0 ${active ? "text-[var(--rabbit-primary,#574BFF)]" : "text-[#87888D]"}`} />
+              <Icon
+                size={14}
+                className={`shrink-0 ${active ? "text-[var(--rabbit-primary,#574BFF)]" : "text-[#87888D]"}`}
+              />
               <span>{nav?.label ?? t.key}</span>
               {!t.pinned && (
                 <span

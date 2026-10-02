@@ -39,7 +39,11 @@ export function startLoadController(): void {
         });
         const summary = summarize(cmd.thresholds, result.frames);
         await postCallback(cmd.taskId, {
-          outcome: result.aborted ? "stopped" : summary.verdict === "SUCCESS" ? "success" : "failed",
+          outcome: result.aborted
+            ? "stopped"
+            : summary.verdict === "SUCCESS"
+              ? "success"
+              : "failed",
           message: result.aborted
             ? `任务被停止（已发压 ${summary.totalSent} 次）`
             : summary.verdict === "SUCCESS"
@@ -48,7 +52,7 @@ export function startLoadController(): void {
           lastSeq: frames.length,
           varUpdates: [],
           // 终态汇总随回调携带（web 回调分支 loadSummarySchema 解析落 Report）
-          ...( { loadSummary: summary } as Record<string, unknown>),
+          ...({ loadSummary: summary } as Record<string, unknown>),
         });
       } catch (err) {
         logFor("engine").error({ taskId: cmd.taskId, err }, "load run error");
