@@ -2,12 +2,10 @@ name: perf
 
 # QA-001 性能基线 CI：PR=快速口径（1k 用例/20 任务），main push 与手动=完整口径（10k/100）。
 # 阈值即需求文档 §四 原文（不随口径放宽——quick 口径数据量小，本身即更宽松的实际余量）。
+# PR 侧 docs-only 直通走 job 级 if（同 ci.yml 口径——workflow 级跳过会令必需检查卡死合并）；
+# main push 保留 workflow 级 paths-ignore（push 不受分支保护必需检查约束，纯省时）。
 on:
   pull_request:
-    paths-ignore:
-      - "docs/**"
-      - "**/*.md"
-      - "CHANGELOG.md"
   push:
     branches: [main]
     paths-ignore:
@@ -29,8 +27,34 @@ permissions:
   contents: read
 
 jobs:
+  # 变更面探测（恒跑，PR 侧）：纯 docs/md → perf-baseline job 级 skipped（保护规则视为通过）
+  changes:
+    name: 变更面探测（docs-only 直通）
+    runs-on: ubuntu-latest
+    outputs:
+      code: ${{ steps.filter.outputs.code }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          fetch-depth: 0
+      - id: filter
+        run: |
+          if [ "${{ github.event_name }}" != "pull_request" ]; then
+            echo "code=true" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          BASE="${{ github.event.pull_request.base.sha }}"
+          HEAD="${{ github.event.pull_request.head.sha }}"
+          MB=$(git merge-base "$BASE" "$HEAD" 2>/dev/null || echo "$BASE")
+          if git diff --name-only "$MB" "$HEAD" | grep -Ev '(^docs/|\.md$|^CHANGELOG\.md$)' | grep -q .; then
+            echo "code=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "code=false" >> "$GITHUB_OUTPUT"
+          fi
+
   perf-baseline:
     name: 性能基线（QA-001）
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     services:
       postgres:

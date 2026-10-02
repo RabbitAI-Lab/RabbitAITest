@@ -2,17 +2,13 @@ name: ci
 
 # 触发面（2026-10-02 优化：PR-only——merge 后 main 不再重跑）：
 # 仅 pull_request 触发 + workflow_dispatch 手动兜底。合并前验证不可省；同代码 merge 到 main
-# 再跑一轮 ~11min 属纯重复（实测每 PR 双轮）。main 兜底口径：分支保护建议开启
-# 「Require branches to be up to date before merging」（PR 落后 main 时强制 rebase 重验，
-# 覆盖合并提交与基线漂移）；直接 push main 被保护拦截，docs-only 变更本就被 paths-ignore 跳过。
+# 再跑一轮 ~11min 属纯重复（实测每 PR 双轮）。main 已开分支保护（required checks + strict
+# up-to-date + 含管理员）；docs-only 直通语义从 workflow 级 paths-ignore 迁到 job 级 if——
+# workflow 被跳过时必需检查永远「expected」卡死合并（PR#46 实证），job 级 skipped 会被保护
+# 规则视为通过（GitHub 官方口径），由下方 changes 探测 job 驱动。
 # （perf.yml 保留 main push=full 口径属有意设计：PR quick / main full 双档，非重复。）
 on:
   pull_request:
-    paths-ignore:
-      - "docs/**"
-      - "**/*.md"
-      - "CHANGELOG.md"
-      - ".oxfmtignore"
   workflow_dispatch:
 
 concurrency:
@@ -24,8 +20,35 @@ permissions:
   contents: read
 
 jobs:
+  # 变更面探测（恒跑）：code=true（含代码/配置变更）→ 下游全量执行；纯 docs/md → 下游全部
+  # job 级 skipped（保护规则视为通过，直通合并）。workflow_dispatch 恒全量。
+  changes:
+    name: 变更面探测（docs-only 直通）
+    runs-on: ubuntu-latest
+    outputs:
+      code: ${{ steps.filter.outputs.code }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          fetch-depth: 0
+      - id: filter
+        run: |
+          if [ "${{ github.event_name }}" != "pull_request" ]; then
+            echo "code=true" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          BASE="${{ github.event.pull_request.base.sha }}"
+          HEAD="${{ github.event.pull_request.head.sha }}"
+          MB=$(git merge-base "$BASE" "$HEAD" 2>/dev/null || echo "$BASE")
+          if git diff --name-only "$MB" "$HEAD" | grep -Ev '(^docs/|\.md$|^CHANGELOG\.md$|^\.oxfmtignore$)' | grep -q .; then
+            echo "code=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "code=false" >> "$GITHUB_OUTPUT"
+          fi
+
   quality:
     name: lint + typecheck + unit
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
@@ -49,6 +72,7 @@ jobs:
     name: go cli (rabbit)
     runs-on: ubuntu-latest
     needs: quality
+    if: needs.changes.outputs.code == 'true'
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
@@ -75,9 +99,10 @@ jobs:
   build:
     name: next build
     runs-on: ubuntu-latest
+    needs: [changes, quality]
+    if: needs.changes.outputs.code == 'true'
     # INFRA-011：build 是并行「构建门禁」——不再是 e2e/api-test 前置（测试分片自带构建，
     # 与本作业同时起跑；等 build 完成会把 2m51s 串进关键路径）
-    needs: quality
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
@@ -94,6 +119,7 @@ jobs:
     name: 空库全量迁移重放
     runs-on: ubuntu-latest
     needs: quality
+    if: needs.changes.outputs.code == 'true'
     services:
       postgres:
         image: postgres:16-alpine
@@ -126,6 +152,8 @@ jobs:
   e2e:
     name: Playwright E2E（三类断言）
     runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     # INFRA-011：不再 needs build——原 quality→build→e2e 串行链是总墙钟 16m45s 的主因；
     # 分片自带 web 构建（~140s）与 build job 同期并行，t=0 即起。quality/build 红时本作业
     # 照跑至完（公共仓计算免费；PR 正确性不变——仍因上游红而红）。
@@ -197,6 +225,8 @@ jobs:
   api-test:
     name: JMeter 接口自动化
     runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     # INFRA-011：不再 needs build（与 e2e 同理，分片自带构建从 t=0 并行起跑；本作业
     # ~7.5min 不在关键路径，分片数维持 2 不动——再加分片只添固定开销，墙钟零收益）。
     # 2 分片并行（各分片独立栈/独立 DB）：70 计划串行 ~6min → 各分片 ~3min。
@@ -314,6 +344,8 @@ jobs:
   audit:
     name: 依赖审计（high 阻塞）
     runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
