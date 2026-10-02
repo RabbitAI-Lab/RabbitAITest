@@ -33,13 +33,10 @@ test.describe("AGENT-001 项目级 Agent", () => {
     await expect(page.getByTestId(`agent-card-${agentId}`)).toBeVisible();
     await expect(page.getByTestId(`agent-card-${agentId}`)).toContainText(`e2e-助手-${uniq}`);
 
-    // 密钥：开启即生成 → 明文仅一次（接口断言 rag_ 形状）
-    const keyWait = expectApi(`**/api/v1/projects/*/agents/${agentId}/a2a-key`, "POST");
-    const keyBody = (await (
-      await page.request.post(`/api/v1/projects/${projectId}/agents/${agentId}/a2a-key`)
-    ).json()) as { code: number; data: { apiKey: string; prefix: string } };
-    const keyApi = await keyWait;
-    expect(keyApi.status).toBe(201);
+    // 密钥：开启即生成 → 明文仅一次（page.request 不走页面网络——响应体断言即接口断言）
+    const keyRes = await page.request.post(`/api/v1/projects/${projectId}/agents/${agentId}/a2a-key`);
+    expect(keyRes.status()).toBe(201);
+    const keyBody = (await keyRes.json()) as { code: number; data: { apiKey: string; prefix: string } };
     expect(keyBody.code).toBe(0);
     expect(keyBody.data.apiKey).toMatch(/^rag_[A-Za-z0-9]{32}$/);
     // 吊销（避免密钥长期存续）
@@ -59,11 +56,11 @@ test.describe("AGENT-001 项目级 Agent", () => {
     });
     expect(skillRes.status()).toBe(201);
     const skill = ((await skillRes.json()) as { data: { id: string } }).data;
-    await page.getByRole("tab", { name: "技 能" }).click();
+    await page.locator('[role="tab"]:has-text("技能")').click();
     await expect(page.getByText(`e2e-技能-${uniq}`).first()).toBeVisible();
 
     // 编辑 Agent：改描述 → 保存（UI 断言）；技能引用走 API（Select 下拉交互走查项）
-    await page.getByRole("tab", { name: "Agent" }).click();
+    await page.locator('[role="tab"]:has-text("Agent")').click();
     await page.getByTestId(`agent-card-${agentId}`).getByText("编辑").click();
     await expect(page.getByTestId("agent-edit-drawer")).toBeVisible();
     await page.getByTestId("agent-edit-drawer").getByLabel("描述").fill("e2e 编辑过");
@@ -150,7 +147,7 @@ test.describe("AGENT-001 项目级 Agent", () => {
     await page.goto("/settings/agents");
     await page.getByTestId("agents-page").waitFor({ state: "visible" });
     await page.waitForTimeout(500);
-    await page.getByRole("tab", { name: "运行记录" }).click();
+    await page.locator('[role="tab"]:has-text("运行记录")').click();
     await expect(page.getByText(`e2e-调试-${uniq}`).first()).toBeVisible();
 
     // 清理
