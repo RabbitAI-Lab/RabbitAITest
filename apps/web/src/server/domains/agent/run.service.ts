@@ -12,7 +12,7 @@ import {
   type AgentRunQuery,
   type AgentRunView,
 } from "@rabbit/shared";
-import { Prisma, prisma } from "@rabbit/db";
+import { Prisma, prisma, runAsAdmin } from "@rabbit/db";
 import { logFor } from "@rabbit/shared/logger";
 import { permissionSetFor } from "@/server/rbac";
 import { resolveRuntime } from "@/server/domains/ai/model.service";
@@ -139,11 +139,12 @@ export async function createRun(
     },
   });
   // 每 Agent 串行：处理器内 Redis 锁（bullmq 5.x 无 groups；锁竞争走 Delayed 重排）
-  await agentQueue().add(
-    "chat",
-    { runId: run.id },
-    { jobId: run.id, removeOnComplete: 500, removeOnFail: 500 },
-  );
+  // 竞态修复：入队须等 ambient 事务提交（row 落盘可见）后再触发——本地自测实证（worker 抢先读不到 row）
+  setTimeout(() => {
+    void agentQueue()
+      .add("chat", { runId: run.id }, { jobId: run.id, removeOnComplete: 500, removeOnFail: 500 })
+      .catch(() => {});
+  }, 200);
   await emitFrame(run.id, "run-created", { runId: run.id, agentId });
   return { runId: run.id };
 }
@@ -286,10 +287,13 @@ async function appendMessage(
 }
 
 export async function processAgentRun(runId: string): Promise<void> {
-  const run = await prisma.agentRun.findUnique({ where: { id: runId } });
-  if (!run || run.status !== "PENDING") return;
-  await withAgentLock(run.agentId, async () => {
-    await executeRun(runId);
+  // worker 无租户上下文——RLS 门面会把查询过滤成空（本地自测实证），统一 admin 通道执行
+  await runAsAdmin(async () => {
+    const run = await prisma.agentRun.findUnique({ where: { id: runId } });
+    if (!run || run.status !== "PENDING") return;
+    await withAgentLock(run.agentId, async () => {
+      await executeRun(runId);
+    });
   });
 }
 
@@ -312,6 +316,7 @@ async function withAgentLock(agentId: string, fn: () => Promise<void>): Promise<
 
 async function executeRun(runId: string): Promise<void> {
   const run0 = await prisma.agentRun.findUnique({ where: { id: runId } });
+  console.error("[agent-dbg] executeRun", runId, "found:", Boolean(run0), "status:", run0?.status);
   if (!run0 || run0.status !== "PENDING") return;
   const run = run0;
   const agent = await prisma.projectAgent.findUnique({ where: { id: run.agentId } });

@@ -110,15 +110,16 @@ export async function runPiSession(opts: PiRunOptions): Promise<PiRunResult> {
   });
 
   const s = session as {
-    prompt: (text: string) => Promise<unknown>;
-    addEventListener: (l: (e: PiEvent) => void) => void;
+    prompt: (text: string) => Promise<void>;
+    subscribe: (l: (e: PiEvent) => void) => () => void;
+    messages: { role?: string; content?: unknown }[];
     dispose?: () => Promise<void> | void;
   };
 
   let promptTokens = 0;
   let completionTokens = 0;
   let iterations = 0;
-  s.addEventListener((event) => {
+  s.subscribe((event) => {
     opts.onEvent(event);
     const usage = (event as { usage?: { input?: number; output?: number } }).usage;
     if (usage) {
@@ -129,14 +130,16 @@ export async function runPiSession(opts: PiRunOptions): Promise<PiRunResult> {
   });
 
   try {
-    const result = (await s.prompt(opts.userMessage)) as {
-      result?: { text?: string; usage?: { input?: number; output?: number } };
-    };
-    if (result?.result?.usage) {
-      promptTokens += result.result.usage.input ?? 0;
-      completionTokens += result.result.usage.output ?? 0;
-    }
-    return { finalText: result?.result?.text ?? "", promptTokens, completionTokens, iterations };
+    await s.prompt(opts.userMessage);
+    // prompt() 返回 void——终文从 messages 尾部取最后一条 assistant
+    const msgs = s.messages ?? [];
+    const lastAssistant = [...msgs].reverse().find((m) => m.role === "assistant");
+    const finalText = String(
+      (lastAssistant?.content as { text?: string } | undefined)?.text ??
+        lastAssistant?.content ??
+        "",
+    );
+    return { finalText, promptTokens, completionTokens, iterations };
   } finally {
     await Promise.resolve(s.dispose?.()).catch(() => {});
   }
