@@ -92,10 +92,13 @@ test.describe("AGENT-001 项目级 Agent", () => {
     const agentId = ((await created.json()) as { data: { id: string } }).data.id;
 
     await page.goto(`/settings/agents/${agentId}/debug`);
-    await expect(page.getByTestId("agent-debug-page")).toBeVisible();
+    await expect(page.getByTestId("agent-debug-page")).toBeVisible({ timeout: 15000 });
+    // CI 冷启动：等 agent 数据加载（名称渲染=projectId 已水合）再交互——否则 send() 早退不发 POST
+    await expect(page.getByText(`e2e-调试-${uniq}`)).toBeVisible({ timeout: 15000 });
+    await page.waitForTimeout(500);
 
     // 接口断言：POST run 201 + 信封 runId
-    const runPosted = page.waitForResponse(`**/api/v1/projects/*/agents/${agentId}/run`);
+    const runPosted = page.waitForResponse(`**/api/v1/projects/*/agents/${agentId}/run`, { timeout: 20000 });
     await page.getByTestId("agent-debug-input").fill("查询模块树并给出一句话总结");
     await page.getByTestId("agent-debug-send").click();
     const runRes = await runPosted;

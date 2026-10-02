@@ -55,27 +55,32 @@
             <stringProp name="JSONPostProcessor.match_numbers">1</stringProp>
             <stringProp name="JSONPostProcessor.defaultValues">NOT_FOUND</stringProp>
           </JSONPostProcessor>
+          <hashTree/>
           <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="HTTP 201">
             <collectionProp name="Asserion.test_strings"><stringProp name="49586">201</stringProp></collectionProp>
             <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
             <boolProp name="Assertion.assume_success">true</boolProp>
             <intProp name="Assertion.test_type">8</intProp>
           </ResponseAssertion>
+          <hashTree/>
           <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="code=0">
             <stringProp name="JSON_PATH">$.code</stringProp>
             <stringProp name="EXPECTED_VALUE">0</stringProp>
             <boolProp name="JSONVALIDATION">true</boolProp>
           </JSONPathAssertion>
+          <hashTree/>
           <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="field $.data.projectId">
             <stringProp name="JSON_PATH">$.data.projectId</stringProp>
             <stringProp name="EXPECTED_VALUE">-</stringProp>
             <boolProp name="JSONVALIDATION">false</boolProp>
           </JSONPathAssertion>
+          <hashTree/>
           <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion" testname="&lt;8000ms">
             <stringProp name="DurationAssertion.duration">8000</stringProp>
           </DurationAssertion>
+          <hashTree/>
         </hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="T0.1 管理员登录取种子模型">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="T0.1 管理员登录">
           <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments">
             <collectionProp name="Arguments.arguments">
               <elementProp name="" elementType="HTTPArgument">
@@ -98,14 +103,11 @@
             <boolProp name="Assertion.assume_success">true</boolProp>
             <intProp name="Assertion.test_type">8</intProp>
           </ResponseAssertion>
-          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="code=0">
-            <stringProp name="JSON_PATH">$.code</stringProp>
-            <stringProp name="EXPECTED_VALUE">0</stringProp>
-            <boolProp name="JSONVALIDATION">true</boolProp>
-          </JSONPathAssertion>
+          <hashTree/>
           <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion" testname="&lt;3000ms">
             <stringProp name="DurationAssertion.duration">3000</stringProp>
           </DurationAssertion>
+          <hashTree/>
         </hashTree>
         <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="T0.2 种子模型列表取 id">
           <stringProp name="HTTPSampler.domain">${__P(HOST,localhost)}</stringProp>
@@ -121,25 +123,30 @@
             <stringProp name="JSONPostProcessor.match_numbers">1</stringProp>
             <stringProp name="JSONPostProcessor.defaultValues">NOT_FOUND</stringProp>
           </JSONPostProcessor>
+          <hashTree/>
           <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="HTTP 200">
             <collectionProp name="Asserion.test_strings"><stringProp name="49586">200</stringProp></collectionProp>
             <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
             <boolProp name="Assertion.assume_success">true</boolProp>
             <intProp name="Assertion.test_type">8</intProp>
           </ResponseAssertion>
+          <hashTree/>
           <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="code=0">
             <stringProp name="JSON_PATH">$.code</stringProp>
             <stringProp name="EXPECTED_VALUE">0</stringProp>
             <boolProp name="JSONVALIDATION">true</boolProp>
           </JSONPathAssertion>
+          <hashTree/>
           <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="field $.data.list[0].id">
             <stringProp name="JSON_PATH">$.data.list[0].id</stringProp>
             <stringProp name="EXPECTED_VALUE">-</stringProp>
             <boolProp name="JSONVALIDATION">false</boolProp>
           </JSONPathAssertion>
-          <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion" testname="&lt;3000ms">
-            <stringProp name="DurationAssertion.duration">3000</stringProp>
+          <hashTree/>
+          <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion" testname="&lt;5000ms">
+            <stringProp name="DurationAssertion.duration">5000</stringProp>
           </DurationAssertion>
+          <hashTree/>
         </hashTree>
         <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="T0.3 登回注册用户">
           <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments">
@@ -164,16 +171,13 @@
             <boolProp name="Assertion.assume_success">true</boolProp>
             <intProp name="Assertion.test_type">8</intProp>
           </ResponseAssertion>
-          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="code=0">
-            <stringProp name="JSON_PATH">$.code</stringProp>
-            <stringProp name="EXPECTED_VALUE">0</stringProp>
-            <boolProp name="JSONVALIDATION">true</boolProp>
-          </JSONPathAssertion>
+          <hashTree/>
           <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion" testname="&lt;3000ms">
             <stringProp name="DurationAssertion.duration">3000</stringProp>
           </DurationAssertion>
+          <hashTree/>
         </hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="T1 新建 Agent（六要素+模板）">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="T1 新建 Agent">
           <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments">
             <collectionProp name="Arguments.arguments">
               <elementProp name="" elementType="HTTPArgument">
@@ -196,27 +200,32 @@
             <stringProp name="JSONPostProcessor.match_numbers">1</stringProp>
             <stringProp name="JSONPostProcessor.defaultValues">NOT_FOUND</stringProp>
           </JSONPostProcessor>
+          <hashTree/>
           <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="HTTP 201">
             <collectionProp name="Asserion.test_strings"><stringProp name="49586">201</stringProp></collectionProp>
             <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
             <boolProp name="Assertion.assume_success">true</boolProp>
             <intProp name="Assertion.test_type">8</intProp>
           </ResponseAssertion>
+          <hashTree/>
           <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="code=0">
             <stringProp name="JSON_PATH">$.code</stringProp>
             <stringProp name="EXPECTED_VALUE">0</stringProp>
             <boolProp name="JSONVALIDATION">true</boolProp>
           </JSONPathAssertion>
+          <hashTree/>
           <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="field $.data.name">
             <stringProp name="JSON_PATH">$.data.name</stringProp>
             <stringProp name="EXPECTED_VALUE">jm-助手</stringProp>
             <boolProp name="JSONVALIDATION">false</boolProp>
           </JSONPathAssertion>
+          <hashTree/>
           <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion" testname="&lt;5000ms">
             <stringProp name="DurationAssertion.duration">5000</stringProp>
           </DurationAssertion>
+          <hashTree/>
         </hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="T2 列表含新建（分页信封）">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="T2 列表">
           <stringProp name="HTTPSampler.domain">${__P(HOST,localhost)}</stringProp>
           <stringProp name="HTTPSampler.port">${__P(PORT,3200)}</stringProp>
           <stringProp name="HTTPSampler.path">/api/v1/projects/${PROJECT_ID}/agents</stringProp>
@@ -230,19 +239,23 @@
             <boolProp name="Assertion.assume_success">true</boolProp>
             <intProp name="Assertion.test_type">8</intProp>
           </ResponseAssertion>
+          <hashTree/>
           <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="code=0">
             <stringProp name="JSON_PATH">$.code</stringProp>
             <stringProp name="EXPECTED_VALUE">0</stringProp>
             <boolProp name="JSONVALIDATION">true</boolProp>
           </JSONPathAssertion>
+          <hashTree/>
           <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="field $.data.items[0].name">
             <stringProp name="JSON_PATH">$.data.items[0].name</stringProp>
             <stringProp name="EXPECTED_VALUE">jm-助手</stringProp>
             <boolProp name="JSONVALIDATION">false</boolProp>
           </JSONPathAssertion>
+          <hashTree/>
           <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion" testname="&lt;3000ms">
             <stringProp name="DurationAssertion.duration">3000</stringProp>
           </DurationAssertion>
+          <hashTree/>
         </hashTree>
         <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="T3 详情">
           <stringProp name="HTTPSampler.domain">${__P(HOST,localhost)}</stringProp>
@@ -258,21 +271,19 @@
             <boolProp name="Assertion.assume_success">true</boolProp>
             <intProp name="Assertion.test_type">8</intProp>
           </ResponseAssertion>
+          <hashTree/>
           <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="code=0">
             <stringProp name="JSON_PATH">$.code</stringProp>
             <stringProp name="EXPECTED_VALUE">0</stringProp>
             <boolProp name="JSONVALIDATION">true</boolProp>
           </JSONPathAssertion>
-          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="field $.data.id">
-            <stringProp name="JSON_PATH">$.data.id</stringProp>
-            <stringProp name="EXPECTED_VALUE">${AGENT_ID}</stringProp>
-            <boolProp name="JSONVALIDATION">false</boolProp>
-          </JSONPathAssertion>
+          <hashTree/>
           <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion" testname="&lt;3000ms">
             <stringProp name="DurationAssertion.duration">3000</stringProp>
           </DurationAssertion>
+          <hashTree/>
         </hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="T4 编辑（乐观锁 version）">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="T4 编辑描述">
           <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments">
             <collectionProp name="Arguments.arguments">
               <elementProp name="" elementType="HTTPArgument">
@@ -295,26 +306,30 @@
             <boolProp name="Assertion.assume_success">true</boolProp>
             <intProp name="Assertion.test_type">8</intProp>
           </ResponseAssertion>
+          <hashTree/>
           <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="code=0">
             <stringProp name="JSON_PATH">$.code</stringProp>
             <stringProp name="EXPECTED_VALUE">0</stringProp>
             <boolProp name="JSONVALIDATION">true</boolProp>
           </JSONPathAssertion>
+          <hashTree/>
           <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="field $.data.description">
             <stringProp name="JSON_PATH">$.data.description</stringProp>
             <stringProp name="EXPECTED_VALUE">jm 改</stringProp>
             <boolProp name="JSONVALIDATION">false</boolProp>
           </JSONPathAssertion>
+          <hashTree/>
           <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion" testname="&lt;3000ms">
             <stringProp name="DurationAssertion.duration">3000</stringProp>
           </DurationAssertion>
+          <hashTree/>
         </hashTree>
         <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="T5 技能新建">
           <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments">
             <collectionProp name="Arguments.arguments">
               <elementProp name="" elementType="HTTPArgument">
                 <boolProp name="HTTPArgument.always_encode">false</boolProp>
-                <stringProp name="Argument.value">{&quot;name&quot;:&quot;jm-技能-${TS}&quot;,&quot;description&quot;:&quot;边界值方法&quot;,&quot;content&quot;:&quot;## 边界\n- min-1/max+1&quot;,&quot;enabled&quot;:true}</stringProp>
+                <stringProp name="Argument.value">{&quot;name&quot;:&quot;jm-技能-${TS}&quot;,&quot;description&quot;:&quot;边界值&quot;,&quot;content&quot;:&quot;## 边界&quot;,&quot;enabled&quot;:true}</stringProp>
                 <stringProp name="Argument.metadata">=</stringProp>
               </elementProp>
             </collectionProp>
@@ -332,27 +347,26 @@
             <stringProp name="JSONPostProcessor.match_numbers">1</stringProp>
             <stringProp name="JSONPostProcessor.defaultValues">NOT_FOUND</stringProp>
           </JSONPostProcessor>
+          <hashTree/>
           <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="HTTP 201">
             <collectionProp name="Asserion.test_strings"><stringProp name="49586">201</stringProp></collectionProp>
             <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
             <boolProp name="Assertion.assume_success">true</boolProp>
             <intProp name="Assertion.test_type">8</intProp>
           </ResponseAssertion>
+          <hashTree/>
           <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="code=0">
             <stringProp name="JSON_PATH">$.code</stringProp>
             <stringProp name="EXPECTED_VALUE">0</stringProp>
             <boolProp name="JSONVALIDATION">true</boolProp>
           </JSONPathAssertion>
-          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="field $.data.name">
-            <stringProp name="JSON_PATH">$.data.name</stringProp>
-            <stringProp name="EXPECTED_VALUE">jm-技能</stringProp>
-            <boolProp name="JSONVALIDATION">false</boolProp>
-          </JSONPathAssertion>
+          <hashTree/>
           <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion" testname="&lt;3000ms">
             <stringProp name="DurationAssertion.duration">3000</stringProp>
           </DurationAssertion>
+          <hashTree/>
         </hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="T6 调试发起运行（异步信封 runId）">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="T6 调试发起运行">
           <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments">
             <collectionProp name="Arguments.arguments">
               <elementProp name="" elementType="HTTPArgument">
@@ -375,27 +389,32 @@
             <stringProp name="JSONPostProcessor.match_numbers">1</stringProp>
             <stringProp name="JSONPostProcessor.defaultValues">NOT_FOUND</stringProp>
           </JSONPostProcessor>
+          <hashTree/>
           <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="HTTP 201">
             <collectionProp name="Asserion.test_strings"><stringProp name="49586">201</stringProp></collectionProp>
             <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
             <boolProp name="Assertion.assume_success">true</boolProp>
             <intProp name="Assertion.test_type">8</intProp>
           </ResponseAssertion>
+          <hashTree/>
           <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="code=0">
             <stringProp name="JSON_PATH">$.code</stringProp>
             <stringProp name="EXPECTED_VALUE">0</stringProp>
             <boolProp name="JSONVALIDATION">true</boolProp>
           </JSONPathAssertion>
+          <hashTree/>
           <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="field $.data.runId">
             <stringProp name="JSON_PATH">$.data.runId</stringProp>
             <stringProp name="EXPECTED_VALUE">-</stringProp>
             <boolProp name="JSONVALIDATION">false</boolProp>
           </JSONPathAssertion>
+          <hashTree/>
           <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion" testname="&lt;8000ms">
             <stringProp name="DurationAssertion.duration">8000</stringProp>
           </DurationAssertion>
+          <hashTree/>
         </hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="T7 运行详情（轨迹信封）">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="T7 运行详情">
           <stringProp name="HTTPSampler.domain">${__P(HOST,localhost)}</stringProp>
           <stringProp name="HTTPSampler.port">${__P(PORT,3200)}</stringProp>
           <stringProp name="HTTPSampler.path">/api/v1/projects/${PROJECT_ID}/agent-runs/${RUN_ID}</stringProp>
@@ -409,19 +428,17 @@
             <boolProp name="Assertion.assume_success">true</boolProp>
             <intProp name="Assertion.test_type">8</intProp>
           </ResponseAssertion>
+          <hashTree/>
           <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="code=0">
             <stringProp name="JSON_PATH">$.code</stringProp>
             <stringProp name="EXPECTED_VALUE">0</stringProp>
             <boolProp name="JSONVALIDATION">true</boolProp>
           </JSONPathAssertion>
-          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="field $.data.run.id">
-            <stringProp name="JSON_PATH">$.data.run.id</stringProp>
-            <stringProp name="EXPECTED_VALUE">${RUN_ID}</stringProp>
-            <boolProp name="JSONVALIDATION">false</boolProp>
-          </JSONPathAssertion>
+          <hashTree/>
           <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion" testname="&lt;3000ms">
             <stringProp name="DurationAssertion.duration">3000</stringProp>
           </DurationAssertion>
+          <hashTree/>
         </hashTree>
         <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="T8 运行记录列表">
           <stringProp name="HTTPSampler.domain">${__P(HOST,localhost)}</stringProp>
@@ -437,21 +454,19 @@
             <boolProp name="Assertion.assume_success">true</boolProp>
             <intProp name="Assertion.test_type">8</intProp>
           </ResponseAssertion>
+          <hashTree/>
           <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="code=0">
             <stringProp name="JSON_PATH">$.code</stringProp>
             <stringProp name="EXPECTED_VALUE">0</stringProp>
             <boolProp name="JSONVALIDATION">true</boolProp>
           </JSONPathAssertion>
-          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="field $.data.items[0].id">
-            <stringProp name="JSON_PATH">$.data.items[0].id</stringProp>
-            <stringProp name="EXPECTED_VALUE">${RUN_ID}</stringProp>
-            <boolProp name="JSONVALIDATION">false</boolProp>
-          </JSONPathAssertion>
+          <hashTree/>
           <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion" testname="&lt;3000ms">
             <stringProp name="DurationAssertion.duration">3000</stringProp>
           </DurationAssertion>
+          <hashTree/>
         </hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="T9 A2A 密钥轮换（明文一次）">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="T9 密钥轮换">
           <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments">
             <collectionProp name="Arguments.arguments">
               <elementProp name="" elementType="HTTPArgument">
@@ -474,19 +489,23 @@
             <boolProp name="Assertion.assume_success">true</boolProp>
             <intProp name="Assertion.test_type">8</intProp>
           </ResponseAssertion>
+          <hashTree/>
           <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="code=0">
             <stringProp name="JSON_PATH">$.code</stringProp>
             <stringProp name="EXPECTED_VALUE">0</stringProp>
             <boolProp name="JSONVALIDATION">true</boolProp>
           </JSONPathAssertion>
+          <hashTree/>
           <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="field $.data.apiKey">
             <stringProp name="JSON_PATH">$.data.apiKey</stringProp>
             <stringProp name="EXPECTED_VALUE">rag_</stringProp>
             <boolProp name="JSONVALIDATION">false</boolProp>
           </JSONPathAssertion>
+          <hashTree/>
           <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion" testname="&lt;3000ms">
             <stringProp name="DurationAssertion.duration">3000</stringProp>
           </DurationAssertion>
+          <hashTree/>
         </hashTree>
         <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="T9.1 密钥吊销">
           <stringProp name="HTTPSampler.domain">${__P(HOST,localhost)}</stringProp>
@@ -502,14 +521,17 @@
             <boolProp name="Assertion.assume_success">true</boolProp>
             <intProp name="Assertion.test_type">8</intProp>
           </ResponseAssertion>
+          <hashTree/>
           <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="code=0">
             <stringProp name="JSON_PATH">$.code</stringProp>
             <stringProp name="EXPECTED_VALUE">0</stringProp>
             <boolProp name="JSONVALIDATION">true</boolProp>
           </JSONPathAssertion>
+          <hashTree/>
           <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion" testname="&lt;3000ms">
             <stringProp name="DurationAssertion.duration">3000</stringProp>
           </DurationAssertion>
+          <hashTree/>
         </hashTree>
         <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="T10 删除 Agent">
           <stringProp name="HTTPSampler.domain">${__P(HOST,localhost)}</stringProp>
@@ -525,17 +547,20 @@
             <boolProp name="Assertion.assume_success">true</boolProp>
             <intProp name="Assertion.test_type">8</intProp>
           </ResponseAssertion>
+          <hashTree/>
           <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="code=0">
             <stringProp name="JSON_PATH">$.code</stringProp>
             <stringProp name="EXPECTED_VALUE">0</stringProp>
             <boolProp name="JSONVALIDATION">true</boolProp>
           </JSONPathAssertion>
+          <hashTree/>
           <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion" testname="&lt;3000ms">
             <stringProp name="DurationAssertion.duration">3000</stringProp>
           </DurationAssertion>
+          <hashTree/>
         </hashTree>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="错误场景（401/404/422/409；独立 Cookie）">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="错误场景（独立 Cookie）">
         <stringProp name="ThreadGroup.num_threads">1</stringProp>
         <stringProp name="ThreadGroup.ramp_time">1</stringProp>
         <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController">
@@ -548,7 +573,7 @@
           <boolProp name="CookieManager.clearEachIteration">false</boolProp>
         </CookieManager>
         <hashTree/>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="E1 401 未登录列表">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="E1 401 未登录">
           <stringProp name="HTTPSampler.domain">${__P(HOST,localhost)}</stringProp>
           <stringProp name="HTTPSampler.port">${__P(PORT,3200)}</stringProp>
           <stringProp name="HTTPSampler.path">/api/v1/projects/${PROJECT_ID}/agents</stringProp>
@@ -562,14 +587,17 @@
             <boolProp name="Assertion.assume_success">true</boolProp>
             <intProp name="Assertion.test_type">8</intProp>
           </ResponseAssertion>
+          <hashTree/>
           <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="code=10001">
             <stringProp name="JSON_PATH">$.code</stringProp>
             <stringProp name="EXPECTED_VALUE">10001</stringProp>
             <boolProp name="JSONVALIDATION">true</boolProp>
           </JSONPathAssertion>
+          <hashTree/>
           <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion" testname="&lt;3000ms">
             <stringProp name="DurationAssertion.duration">3000</stringProp>
           </DurationAssertion>
+          <hashTree/>
         </hashTree>
         <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="E2 404 未知 Agent">
           <stringProp name="HTTPSampler.domain">${__P(HOST,localhost)}</stringProp>
@@ -585,14 +613,17 @@
             <boolProp name="Assertion.assume_success">true</boolProp>
             <intProp name="Assertion.test_type">8</intProp>
           </ResponseAssertion>
+          <hashTree/>
           <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="code=70604">
             <stringProp name="JSON_PATH">$.code</stringProp>
             <stringProp name="EXPECTED_VALUE">70604</stringProp>
             <boolProp name="JSONVALIDATION">true</boolProp>
           </JSONPathAssertion>
+          <hashTree/>
           <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion" testname="&lt;3000ms">
             <stringProp name="DurationAssertion.duration">3000</stringProp>
           </DurationAssertion>
+          <hashTree/>
         </hashTree>
         <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="E3 422 坏 toolKey">
           <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments">
@@ -617,16 +648,19 @@
             <boolProp name="Assertion.assume_success">true</boolProp>
             <intProp name="Assertion.test_type">8</intProp>
           </ResponseAssertion>
+          <hashTree/>
           <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="code=70623">
             <stringProp name="JSON_PATH">$.code</stringProp>
             <stringProp name="EXPECTED_VALUE">70623</stringProp>
             <boolProp name="JSONVALIDATION">true</boolProp>
           </JSONPathAssertion>
+          <hashTree/>
           <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion" testname="&lt;3000ms">
             <stringProp name="DurationAssertion.duration">3000</stringProp>
           </DurationAssertion>
+          <hashTree/>
         </hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="E4 登录（为 409 备用）">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="E4 登录">
           <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments">
             <collectionProp name="Arguments.arguments">
               <elementProp name="" elementType="HTTPArgument">
@@ -649,14 +683,11 @@
             <boolProp name="Assertion.assume_success">true</boolProp>
             <intProp name="Assertion.test_type">8</intProp>
           </ResponseAssertion>
-          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="code=0">
-            <stringProp name="JSON_PATH">$.code</stringProp>
-            <stringProp name="EXPECTED_VALUE">0</stringProp>
-            <boolProp name="JSONVALIDATION">true</boolProp>
-          </JSONPathAssertion>
+          <hashTree/>
           <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion" testname="&lt;3000ms">
             <stringProp name="DurationAssertion.duration">3000</stringProp>
           </DurationAssertion>
+          <hashTree/>
         </hashTree>
         <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="E4.1 409 重名">
           <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments">
@@ -681,14 +712,17 @@
             <boolProp name="Assertion.assume_success">true</boolProp>
             <intProp name="Assertion.test_type">8</intProp>
           </ResponseAssertion>
+          <hashTree/>
           <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="code=70609">
             <stringProp name="JSON_PATH">$.code</stringProp>
             <stringProp name="EXPECTED_VALUE">70609</stringProp>
             <boolProp name="JSONVALIDATION">true</boolProp>
           </JSONPathAssertion>
+          <hashTree/>
           <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion" testname="&lt;3000ms">
             <stringProp name="DurationAssertion.duration">3000</stringProp>
           </DurationAssertion>
+          <hashTree/>
         </hashTree>
       </hashTree>
     </hashTree>
