@@ -224,7 +224,8 @@ export function zodToJsonSchemaShape(schema: z.ZodTypeAny): Record<string, unkno
     if (d.typeName === "ZodEnum") return { type: "string", enum: d.values };
     if (d.typeName === "ZodLiteral") return { type: "string", enum: [d.value] };
     if (d.typeName === "ZodObject") {
-      const shape = d.shape as Record<string, z.ZodTypeAny>;
+      const shapeRaw = d.shape as unknown;
+      const shape = (typeof shapeRaw === "function" ? (shapeRaw as () => Record<string, z.ZodTypeAny>)() : shapeRaw) as Record<string, z.ZodTypeAny>;
       const properties: Record<string, unknown> = {};
       const required: string[] = [];
       for (const [k, v] of Object.entries(shape)) {
