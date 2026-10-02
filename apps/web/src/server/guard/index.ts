@@ -100,6 +100,10 @@ export function toResponse(err: unknown): NextResponse {
                   ErrCode.UI_CASE_NOT_FOUND,
                   // S14 UIT-004
                   ErrCode.UI_RUNNER_NOT_FOUND,
+                  // S14 AGENT-001
+                  ErrCode.AGENT_NOT_FOUND,
+                  ErrCode.AGENT_SKILL_NOT_FOUND,
+                  ErrCode.AGENT_RUN_NOT_FOUND,
                   // S11 SYS-009（授权会话 404 防枚举）
                   ErrCode.OAUTH_GRANT_NOT_FOUND,
                 ] as number[]
@@ -116,6 +120,12 @@ export function toResponse(err: unknown): NextResponse {
                 err.code === ErrCode.DEPARTMENT_NAME_EXISTS ||
                 err.code === ErrCode.DEPARTMENT_HAS_CHILDREN ||
                 err.code === ErrCode.SSO_ACCOUNT_CONFLICT ||
+                // S14 AGENT-001 409（名称/引用冲突/运行不可取消）
+                err.code === ErrCode.AGENT_NAME_EXISTS ||
+                err.code === ErrCode.AGENT_SKILL_NAME_EXISTS ||
+                err.code === ErrCode.AGENT_SKILL_IN_USE ||
+                err.code === ErrCode.AGENT_RUN_NOT_CANCELLABLE ||
+                err.code === ErrCode.AGENT_DISABLED ||
                 // S11 LOAD/UIT 409
                 err.code === ErrCode.LOAD_TEST_RUNNING ||
                 err.code === ErrCode.LOAD_TASK_NOT_RUNNABLE
