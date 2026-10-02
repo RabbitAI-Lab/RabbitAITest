@@ -50,6 +50,7 @@ lint(oxlint) → typecheck(tsc) → unit(vitest, 含覆盖率阈值)
 ```
 
 - **测试作业不串行等待 build（INFRA-011，2026-10-01）**：e2e/api-test 分片自带 web 构建（挂 `.next/cache` 增量缓存）从 t=0 并行起跑——build 是并行「构建门禁」而非前置依赖（原 quality→build→e2e 串行链是总墙钟 16m45s 的主因）；quality/build 红时测试作业照跑至完（公共仓计算免费，PR 仍红）。
+- **ci 触发面 PR-only（2026-10-02）**：ci.yml 仅 `pull_request` + `workflow_dispatch`，merge 到 main 不再重跑（同代码双轮 ~11min 纯浪费）；配套要求分支保护开启「Require branches to be up to date before merging」防基线漂移。perf.yml 的 main push 保留（PR quick / main full 双档口径，属有意设计非重复）。
 - main 每日：全量 e2e + embedded/外部 PG 双环境迁移重放 + 性能基线冒烟（红灯成批收口到 `fix/nightly-regression-YYYYMMDD` 分支，合并后删分支）。
 - 产物上传：HTML 报告 always；video/trace/截图 on-failure；保留 30 天。
 - **CI 结果以 GitHub Actions 远端为准**（AGENTS.md 门禁 9）：本地全过仍可能因环境差异挂远端，push 后必须跟踪 Actions 结果直至绿。
