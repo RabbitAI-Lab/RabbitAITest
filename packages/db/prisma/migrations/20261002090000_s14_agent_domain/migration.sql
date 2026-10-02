@@ -125,8 +125,8 @@ CREATE INDEX "agent_gen_drafts_project_id_created_at_idx" ON "agent_gen_drafts"(
 
 -- AddForeignKey
 ALTER TABLE "project_agents" ADD CONSTRAINT "project_agents_project_id_fkey" FOREIGN KEY ("project_id") REFERENCES "projects"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-ALTER TABLE "project_agents" ADD CONSTRAINT "project_agents_run_as_user_id_fkey" FOREIGN KEY ("run_as_user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-ALTER TABLE "project_agents" ADD CONSTRAINT "project_agents_created_by_id_fkey" FOREIGN KEY ("created_by_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "project_agents" ADD CONSTRAINT "project_agents_run_as_user_id_fkey" FOREIGN KEY ("run_as_user_id") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "project_agents" ADD CONSTRAINT "project_agents_created_by_id_fkey" FOREIGN KEY ("created_by_id") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 ALTER TABLE "agent_skills" ADD CONSTRAINT "agent_skills_project_id_fkey" FOREIGN KEY ("project_id") REFERENCES "projects"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 ALTER TABLE "agent_runs" ADD CONSTRAINT "agent_runs_project_id_fkey" FOREIGN KEY ("project_id") REFERENCES "projects"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 ALTER TABLE "agent_runs" ADD CONSTRAINT "agent_runs_agent_id_fkey" FOREIGN KEY ("agent_id") REFERENCES "project_agents"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

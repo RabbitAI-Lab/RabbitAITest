@@ -677,7 +677,7 @@ model ProjectAgent {
   /// 运行模式：chat=pi 会话循环（AGENT-001）；pipeline=资产生成管线（AGENT-002）
   mode           String    @default("chat") @db.VarChar(16)
   /// pipeline 模式配置（stages/repos[{repoId,branch}]/limits/contextBudgetTokens 等；chat 恒 null）
-  pipelineConfig Json?
+  pipelineConfig Json? @map("pipeline_config")
   /// → AiModel.id（应用层校验存在且启用）
   modelId        String    @map("model_id") @db.VarChar(64)
   systemPrompt   String    @map("system_prompt") @db.Text
@@ -685,7 +685,7 @@ model ProjectAgent {
   maxIterations  Int       @default(12) @map("max_iterations")
   timeoutMs      Int       @default(300000) @map("timeout_ms")
   /// ScmRepository.id 数组（应用层校验 ⊆ 项目绑定仓库）
-  repoIds        Json      @default("[]")
+  repoIds        Json      @default("[]") @map("repo_ids")
   /// 工具目录 key 数组（shared 单一来源）
   toolKeys       Json      @default("[]") @map("tool_keys")
   /// AgentSkill.id 数组（≤5）
