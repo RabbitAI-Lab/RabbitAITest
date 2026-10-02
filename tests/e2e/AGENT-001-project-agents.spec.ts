@@ -39,22 +39,33 @@ test.describe("AGENT-001 项目级 Agent", () => {
     await page.getByTestId(`agent-card-${agentId}`).getByText("编辑").click();
     await expect(page.getByTestId("agent-edit-drawer")).toBeVisible();
     await page.getByTestId("agent-edit-drawer").getByLabel("描述").fill("e2e 编辑过");
-    const updated = page.waitForResponse(`**/api/v1/projects/*/agents/${agentId}`, { timeout: 15000 });
+    const updated = page.waitForResponse(`**/api/v1/projects/*/agents/${agentId}`, {
+      timeout: 15000,
+    });
     await page.getByTestId("agent-edit-save").click();
     expect((await updated).status()).toBe(200);
 
     // ── 密钥：POST 201 + rag_ 形状 + 吊销 200 ──
-    const keyRes = await page.request.post(`/api/v1/projects/${projectId}/agents/${agentId}/a2a-key`);
+    const keyRes = await page.request.post(
+      `/api/v1/projects/${projectId}/agents/${agentId}/a2a-key`,
+    );
     expect(keyRes.status()).toBe(201);
     const keyBody = (await keyRes.json()) as { code: number; data: { apiKey: string } };
     expect(keyBody.code).toBe(0);
     expect(keyBody.data.apiKey).toMatch(/^rag_[A-Za-z0-9]{32}$/);
-    const revoked = await page.request.delete(`/api/v1/projects/${projectId}/agents/${agentId}/a2a-key`);
+    const revoked = await page.request.delete(
+      `/api/v1/projects/${projectId}/agents/${agentId}/a2a-key`,
+    );
     expect(revoked.status()).toBe(200);
 
     // ── 技能：POST 201 → PUT 引用 200 → 被引用删除 409(70624) → 解除引用后删除 200 ──
     const skillRes = await page.request.post(`/api/v1/projects/${projectId}/agent-skills`, {
-      data: { name: `e2e-技能-${uniq}`, description: "等价类+边界值", content: "## 边界值\n- min-1/max+1", enabled: true },
+      data: {
+        name: `e2e-技能-${uniq}`,
+        description: "等价类+边界值",
+        content: "## 边界值\n- min-1/max+1",
+        enabled: true,
+      },
     });
     expect(skillRes.status()).toBe(201);
     const skill = ((await skillRes.json()) as { data: { id: string } }).data;
@@ -62,14 +73,18 @@ test.describe("AGENT-001 项目级 Agent", () => {
       data: { skillIds: [skill.id] },
     });
     expect(refRes.status()).toBe(200);
-    const delSkill409 = await page.request.delete(`/api/v1/projects/${projectId}/agent-skills/${skill.id}`);
+    const delSkill409 = await page.request.delete(
+      `/api/v1/projects/${projectId}/agent-skills/${skill.id}`,
+    );
     expect(delSkill409.status()).toBe(409);
     expect(((await delSkill409.json()) as { code: number }).code).toBe(70624);
     // 解除引用 → 技能可删（Agent 也删了 → 引用自动解除）
     const delAgent = await page.request.delete(`/api/v1/projects/${projectId}/agents/${agentId}`);
     expect(delAgent.status()).toBe(200);
     expect(((await delAgent.json()) as { code: number }).code).toBe(0);
-    const delSkillFinal = await page.request.delete(`/api/v1/projects/${projectId}/agent-skills/${skill.id}`);
+    const delSkillFinal = await page.request.delete(
+      `/api/v1/projects/${projectId}/agent-skills/${skill.id}`,
+    );
     expect(delSkillFinal.status()).toBe(200);
 
     // 404 后验证
@@ -86,7 +101,13 @@ test.describe("AGENT-001 项目级 Agent", () => {
     const { projectId } = authedPage;
     const uniq = `D${Date.now() % 1e7}`;
     const created = await page.request.post(`/api/v1/projects/${projectId}/agents`, {
-      data: { name: `e2e-调试-${uniq}`, systemPrompt: "你是测试专家。", toolKeys: ["module.tree"], mode: "chat", role: "CUSTOM" },
+      data: {
+        name: `e2e-调试-${uniq}`,
+        systemPrompt: "你是测试专家。",
+        toolKeys: ["module.tree"],
+        mode: "chat",
+        role: "CUSTOM",
+      },
     });
     expect(created.status()).toBe(201);
     const agentId = ((await created.json()) as { data: { id: string } }).data.id;
@@ -98,7 +119,9 @@ test.describe("AGENT-001 项目级 Agent", () => {
     await page.waitForTimeout(500);
 
     // 接口断言：POST run 201 + 信封 runId
-    const runPosted = page.waitForResponse(`**/api/v1/projects/*/agents/${agentId}/run`, { timeout: 20000 });
+    const runPosted = page.waitForResponse(`**/api/v1/projects/*/agents/${agentId}/run`, {
+      timeout: 20000,
+    });
     await page.getByTestId("agent-debug-input").fill("查询模块树并给出一句话总结");
     await page.getByTestId("agent-debug-send").click();
     const runRes = await runPosted;
@@ -107,9 +130,9 @@ test.describe("AGENT-001 项目级 Agent", () => {
     expect(runBody.code).toBe(0);
 
     // SSE 帧断言：工作目录准备（platform-docs 同步/任务目录创建——即使无仓库绑定也有 docs_sync+task_dir 两帧）
-    await expect(
-      page.getByText(/platform-docs 同步|任务目录 tasks\//).first(),
-    ).toBeVisible({ timeout: 60_000 });
+    await expect(page.getByText(/platform-docs 同步|任务目录 tasks\//).first()).toBeVisible({
+      timeout: 60_000,
+    });
 
     // 终态断言（COMPLETED 文本气泡 或 FAILED/CANCELED 红条——mock 模型兼容性两种皆为合法终态）
     await expect
@@ -124,7 +147,9 @@ test.describe("AGENT-001 项目级 Agent", () => {
       .toBeTruthy();
 
     // 运行详情（API：GET 200 + status 字段 + messages 轨迹）
-    const detail = await page.request.get(`/api/v1/projects/${projectId}/agent-runs/${runBody.data.runId}`);
+    const detail = await page.request.get(
+      `/api/v1/projects/${projectId}/agent-runs/${runBody.data.runId}`,
+    );
     expect(detail.status()).toBe(200);
     const detailBody = (await detail.json()) as {
       data: { run: { status: string }; messages: { role: string; name?: string }[] };
