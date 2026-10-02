@@ -105,6 +105,7 @@ export async function register(): Promise<void> {
 
     // Agent 运行 consumer（AGENT-001；并发 2；同 Agent 串行=处理器内 Redis 锁+Delayed 重排）
     const { processAgentRun } = await import("@/server/domains/agent/run.service");
+    const { processPipelineRun } = await import("@/server/domains/agent/pipeline/executor");
     const { DelayedError } = await import("bullmq");
     const agentWorker = new Worker(
       "agent-run",
@@ -112,6 +113,9 @@ export async function register(): Promise<void> {
         const data = job.data as { runId?: string };
         if (job.name === "chat" && data.runId) {
           await processAgentRun(data.runId);
+        }
+        if (job.name === "pipeline" && data.runId) {
+          await processPipelineRun(data.runId);
         }
       },
       { connection, concurrency: 2 },

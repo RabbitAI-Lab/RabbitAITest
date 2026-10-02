@@ -227,6 +227,9 @@ export function toResponse(err: unknown): NextResponse {
                       // S14 AGENT-001（模型无效/六要素配置校验 422）
                       ErrCode.AGENT_MODEL_INVALID,
                       ErrCode.AGENT_CONFIG_INVALID,
+                      ErrCode.AGENT_GEN_SOURCE_EMPTY,
+                      ErrCode.AGENT_GEN_CONTEXT_EMPTY,
+                      ErrCode.AGENT_GEN_BUDGET_INVALID,
                       // S-future（PLUG-003/TOOL-001/002/EXEC-004/RPT-004）
                       ErrCode.PROTOCOL_PLUGIN_LOAD_FAILED,
                       ErrCode.OPEN_SYNC_VALIDATION_FAILED,

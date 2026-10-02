@@ -106,7 +106,9 @@ export async function serializeAgent(r: AgentRow): Promise<AgentView> {
   };
 }
 
-export async function listAgents(projectId: string): Promise<{ total: number; items: AgentView[] }> {
+export async function listAgents(
+  projectId: string,
+): Promise<{ total: number; items: AgentView[] }> {
   const rows = await prisma.projectAgent.findMany({
     where: { projectId, deletedAt: null },
     orderBy: { createdAt: "asc" },
