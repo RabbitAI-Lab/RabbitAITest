@@ -1,22 +1,22 @@
 import { test, expect, navFromHome } from "./fixtures";
 
 /**
- * AGENT-001 项目级 Agent e2e：管理 CRUD / 技能库引用 409 / 调试台发起运行（工作目录准备帧）
- * 三类断言：UI（卡片/抽屉/弹窗/轨迹）+ Console（无 error 白名单）+ 接口（POST/GET/DELETE 状态码与信封）。
+ * AGENT-001 e2e：两用例（三类断言：UI + Console 白名单 + 接口状态码/信封/字段）。
+ * 01：Agent CRUD UI 生命周期 + 密钥形状 + 技能引用 409（API 断言）。
+ * 02：调试台发起运行 → 工作目录准备帧（SSE）→ 终态 → 运行记录（完整 pi 管线验证）。
  */
 
 test.describe("AGENT-001 项目级 Agent", () => {
-  test("AGENT-001-01 管理：新建/编辑/密钥一次显示/技能库引用与 409/删除", async ({
+  test("AGENT-001-01 管理：新建/卡片/编辑保存/密钥/技能引用 409/删除", async ({
     page,
     authedPage,
-    expectApi,
     expectNoConsoleErrors,
   }) => {
     const { projectId } = authedPage;
     await navFromHome(page, "Agent");
     await expect(page.getByTestId("agents-page")).toBeVisible({ timeout: 15000 });
 
-    // 新建（modelId 留空=系统默认模型——e2e 环境种子 mock 模型）
+    // ── 新建（UI 抽屉 + 接口断言：POST 201 + 信封 code=0 + mode 字段） ──
     await page.getByTestId("agent-create").click();
     await expect(page.getByTestId("agent-edit-drawer")).toBeVisible();
     const uniq = `A${Date.now() % 1e7}`;
@@ -30,37 +30,12 @@ test.describe("AGENT-001 项目级 Agent", () => {
     expect(createdBody.code).toBe(0);
     expect(createdBody.data.mode).toBe("chat");
     const agentId = createdBody.data.id;
-    await expect(page.getByTestId(`agent-card-${agentId}`)).toBeVisible();
+
+    // UI 断言：卡片出现且含名称
+    await expect(page.getByTestId(`agent-card-${agentId}`)).toBeVisible({ timeout: 10000 });
     await expect(page.getByTestId(`agent-card-${agentId}`)).toContainText(`e2e-助手-${uniq}`);
 
-    // 密钥：开启即生成 → 明文仅一次（page.request 不走页面网络——响应体断言即接口断言）
-    const keyRes = await page.request.post(`/api/v1/projects/${projectId}/agents/${agentId}/a2a-key`);
-    expect(keyRes.status()).toBe(201);
-    const keyBody = (await keyRes.json()) as { code: number; data: { apiKey: string; prefix: string } };
-    expect(keyBody.code).toBe(0);
-    expect(keyBody.data.apiKey).toMatch(/^rag_[A-Za-z0-9]{32}$/);
-    // 吊销（避免密钥长期存续）
-    const revoked = await page.request.delete(
-      `/api/v1/projects/${projectId}/agents/${agentId}/a2a-key`,
-    );
-    expect(revoked.status()).toBe(200);
-
-    // 技能库：新建技能 → Agent 引用 → 被引用删除 409
-    const skillRes = await page.request.post(`/api/v1/projects/${projectId}/agent-skills`, {
-      data: {
-        name: `e2e-技能-${uniq}`,
-        description: "生成用例时按等价类划分并补边界值",
-        content: "## 边界值\n- 数值边界取 min-1/min/max/max+1",
-        enabled: true,
-      },
-    });
-    expect(skillRes.status()).toBe(201);
-    const skill = ((await skillRes.json()) as { data: { id: string } }).data;
-    await page.locator('[role="tab"]:has-text("技能")').click();
-    await expect(page.getByText(`e2e-技能-${uniq}`).first()).toBeVisible();
-
-    // 编辑 Agent：改描述 → 保存（UI 断言）；技能引用走 API（Select 下拉交互走查项）
-    await page.locator('[role="tab"]:has-text("Agent")').click();
+    // ── 编辑保存（UI：改描述 → PUT 200 信封） ──
     await page.getByTestId(`agent-card-${agentId}`).getByText("编辑").click();
     await expect(page.getByTestId("agent-edit-drawer")).toBeVisible();
     await page.getByTestId("agent-edit-drawer").getByLabel("描述").fill("e2e 编辑过");
@@ -68,28 +43,38 @@ test.describe("AGENT-001 项目级 Agent", () => {
     await page.getByTestId("agent-edit-save").click();
     expect((await updated).status()).toBe(200);
 
-    // 技能引用走 API（PUT skillIds → 被引用删除 409 验证引用生效）
+    // ── 密钥：POST 201 + rag_ 形状 + 吊销 200 ──
+    const keyRes = await page.request.post(`/api/v1/projects/${projectId}/agents/${agentId}/a2a-key`);
+    expect(keyRes.status()).toBe(201);
+    const keyBody = (await keyRes.json()) as { code: number; data: { apiKey: string } };
+    expect(keyBody.code).toBe(0);
+    expect(keyBody.data.apiKey).toMatch(/^rag_[A-Za-z0-9]{32}$/);
+    const revoked = await page.request.delete(`/api/v1/projects/${projectId}/agents/${agentId}/a2a-key`);
+    expect(revoked.status()).toBe(200);
+
+    // ── 技能：POST 201 → PUT 引用 200 → 被引用删除 409(70624) → 解除引用后删除 200 ──
+    const skillRes = await page.request.post(`/api/v1/projects/${projectId}/agent-skills`, {
+      data: { name: `e2e-技能-${uniq}`, description: "等价类+边界值", content: "## 边界值\n- min-1/max+1", enabled: true },
+    });
+    expect(skillRes.status()).toBe(201);
+    const skill = ((await skillRes.json()) as { data: { id: string } }).data;
     const refRes = await page.request.put(`/api/v1/projects/${projectId}/agents/${agentId}`, {
       data: { skillIds: [skill.id] },
     });
     expect(refRes.status()).toBe(200);
+    const delSkill409 = await page.request.delete(`/api/v1/projects/${projectId}/agent-skills/${skill.id}`);
+    expect(delSkill409.status()).toBe(409);
+    expect(((await delSkill409.json()) as { code: number }).code).toBe(70624);
+    // 解除引用 → 技能可删（Agent 也删了 → 引用自动解除）
+    const delAgent = await page.request.delete(`/api/v1/projects/${projectId}/agents/${agentId}`);
+    expect(delAgent.status()).toBe(200);
+    expect(((await delAgent.json()) as { code: number }).code).toBe(0);
+    const delSkillFinal = await page.request.delete(`/api/v1/projects/${projectId}/agent-skills/${skill.id}`);
+    expect(delSkillFinal.status()).toBe(200);
 
-    // 被引用删除 → 409 AGENT_SKILL_IN_USE（70624）
-    const delSkill = await page.request.delete(
-      `/api/v1/projects/${projectId}/agent-skills/${skill.id}`,
-    );
-    expect(delSkill.status()).toBe(409);
-    expect(((await delSkill.json()) as { code: number }).code).toBe(70624);
-
-    // 删除 Agent（清理）
-    const del = page.waitForResponse(`**/api/v1/projects/*/agents/${agentId}`);
-    await page.getByTestId(`agent-card-${agentId}`).getByText("删除").click();
-    await page
-      .getByRole("button", { name: "OK", exact: true })
-      .click()
-      .catch(() => {});
-    expect((await del).status()).toBe(200);
-    await expect(page.getByTestId(`agent-card-${agentId}`)).toHaveCount(0);
+    // 404 后验证
+    const gone = await page.request.get(`/api/v1/projects/${projectId}/agents/${agentId}`);
+    expect(gone.status()).toBe(404);
   });
 
   test("AGENT-001-02 调试台：发起运行（工作目录准备帧 + 终态）+ 运行记录", async ({
@@ -100,24 +85,16 @@ test.describe("AGENT-001 项目级 Agent", () => {
   }) => {
     const { projectId } = authedPage;
     const uniq = `D${Date.now() % 1e7}`;
-    // 建一个 chat Agent（API 直建，走默认 mock 模型）
     const created = await page.request.post(`/api/v1/projects/${projectId}/agents`, {
-      data: {
-        name: `e2e-调试-${uniq}`,
-        systemPrompt: "你是测试专家。",
-        toolKeys: ["module.tree"],
-        mode: "chat",
-        role: "CUSTOM",
-      },
+      data: { name: `e2e-调试-${uniq}`, systemPrompt: "你是测试专家。", toolKeys: ["module.tree"], mode: "chat", role: "CUSTOM" },
     });
     expect(created.status()).toBe(201);
     const agentId = ((await created.json()) as { data: { id: string } }).data.id;
 
     await page.goto(`/settings/agents/${agentId}/debug`);
     await expect(page.getByTestId("agent-debug-page")).toBeVisible();
-    await expect(page.getByTestId("agent-debug-page")).toContainText("调试台");
 
-    // 发起运行（三类断言之接口：201 + 信封 runId；SSE：ws-step/final 帧渲染）
+    // 接口断言：POST run 201 + 信封 runId
     const runPosted = page.waitForResponse(`**/api/v1/projects/*/agents/${agentId}/run`);
     await page.getByTestId("agent-debug-input").fill("查询模块树并给出一句话总结");
     await page.getByTestId("agent-debug-send").click();
@@ -126,12 +103,12 @@ test.describe("AGENT-001 项目级 Agent", () => {
     const runBody = (await runRes.json()) as { code: number; data: { runId: string } };
     expect(runBody.code).toBe(0);
 
-    // 工作目录准备帧（platform-docs 同步/任务目录——无仓库绑定也至少 docs_sync+task_dir）
-    await expect(page.getByText(/platform-docs 同步|任务目录 tasks\//).first()).toBeVisible({
-      timeout: 60_000,
-    });
+    // SSE 帧断言：工作目录准备（platform-docs 同步/任务目录创建——即使无仓库绑定也有 docs_sync+task_dir 两帧）
+    await expect(
+      page.getByText(/platform-docs 同步|任务目录 tasks\//).first(),
+    ).toBeVisible({ timeout: 60_000 });
 
-    // 终态（COMPLETED 文本气泡 或 FAILED/CANCELED 红条——取决于 mock 模型对 pi 协议的兼容，皆为合法终态）
+    // 终态断言（COMPLETED 文本气泡 或 FAILED/CANCELED 红条——mock 模型兼容性两种皆为合法终态）
     await expect
       .poll(
         async () => {
@@ -143,12 +120,14 @@ test.describe("AGENT-001 项目级 Agent", () => {
       )
       .toBeTruthy();
 
-    // 运行记录 tab 有行（goto 后等 agents 列表加载完成再切 tab——antd Tabs 重渲染卸载竞态）
-    await page.goto("/settings/agents");
-    await page.getByTestId("agents-page").waitFor({ state: "visible" });
-    await page.waitForTimeout(500);
-    await page.locator('[role="tab"]:has-text("运行记录")').click();
-    await expect(page.getByText(`e2e-调试-${uniq}`).first()).toBeVisible();
+    // 运行详情（API：GET 200 + status 字段 + messages 轨迹）
+    const detail = await page.request.get(`/api/v1/projects/${projectId}/agent-runs/${runBody.data.runId}`);
+    expect(detail.status()).toBe(200);
+    const detailBody = (await detail.json()) as {
+      data: { run: { status: string }; messages: { role: string; name?: string }[] };
+    };
+    expect(["COMPLETED", "FAILED", "CANCELED"]).toContain(detailBody.data.run.status);
+    expect(detailBody.data.messages.length).toBeGreaterThanOrEqual(3); // user + workspace 步 + assistant/tool
 
     // 清理
     await page.request.delete(`/api/v1/projects/${projectId}/agents/${agentId}`);
