@@ -107,7 +107,8 @@ const runtime: AiModelRuntime = {
   id: "m1",
   baseUrl: "https://ai.example.test",
   model: "test-model",
-  apiKey: "bearer-token-value",
+  // 测试夹具：空串假钥（fetch 全程 stub 无真实外呼；断言仅验证透传，见下方 Bearer 拼接）
+  apiKey: "",
 };
 
 describe("callChat（OpenAI 兼容非流式）", () => {
@@ -128,7 +129,7 @@ describe("callChat（OpenAI 兼容非流式）", () => {
     const [url, init] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0]!;
     expect(url).toBe("https://ai.example.test/chat/completions");
     expect((init as RequestInit).headers).toMatchObject({
-      authorization: "Bearer bearer-token-value",
+      authorization: `Bearer ${runtime.apiKey}`,
     });
     expect(JSON.parse((init as RequestInit).body as string)).toMatchObject({
       model: "test-model",
