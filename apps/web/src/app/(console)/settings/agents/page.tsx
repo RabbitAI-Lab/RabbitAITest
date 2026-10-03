@@ -529,7 +529,7 @@ export default function AgentsPage() {
               />
             </Form.Item>
             {customRole && (
-              <Form.Item name="customRoleName" label="自定义角色名" rules={[{ required: true, message: "请输入自定义角色名" }]}>
+              <Form.Item name="customRoleName" label="自定义角色名（留空=通用自定义）">
                 <Input placeholder="如：安全测试专家" style={{ width: 200 }} data-testid="agent-custom-role-input" />
               </Form.Item>
             )}
