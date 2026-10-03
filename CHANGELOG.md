@@ -2,6 +2,23 @@
 
 本项目的所有显著变更记录于此。格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本遵循语义化版本。
 
+## Sprint 14 — 项目 Agent（AGENT-001/002）
+
+### 新增
+- **项目级多 Agent 配置**：每个项目可创建多个专属 Agent（对话/生成管线两种模式），支持模型/提示词/工具目录/Skills/代码仓库/运行身份六要素配置
+- **pi agent 运行时**：每 Agent 独立工作目录（repos/ 代码克隆+分支最新、platform-docs/ 文档同步、tasks/ 任务隔离），任务串行队列
+- **A2A v1.0.0 协议面**：Agent Card 发现 + JSON-RPC 六方法（SendMessage/SendStreamingMessage/GetTask/ListTasks/CancelTask/SubscribeToTask）+ SSE 流式 + Bearer 密钥鉴权 + 10 QPS 限流
+- **测试资产生成管线**：基于代码库+文档+需求，pi 会话驱动三阶段（A 需求→用例、B 代码→接口、C 用例→脚本），草稿人工确认后导入，采纳率统计
+- **生成向导 UI**：三步页面（上下文源→阶段勾选→运行进度）
+- **产物预览 UI**：草稿表格（冲突三态/导入状态）+ 勾选 + 批量导入
+- **技能库**：项目级 markdown 指令包，跨 Agent 复用（≤5 个/Agent）
+
+### 技术细节
+- 五张新表：project_agents / agent_skills / agent_runs / agent_run_messages / agent_gen_drafts
+- 13 个内置工具（权限点运行时断言）+ draft.submit 工具桥
+- 706xx/707xx/708xx 三段错误码
+- PROJECT_AGENT 五权限点 + 预置组
+
 ## [Unreleased] — Sprint 13 代码仓库
 
 ### 新增（SCM-001 项目代码仓库，超出 MeterSphere 基线的自有增强）
