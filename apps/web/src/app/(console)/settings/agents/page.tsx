@@ -50,7 +50,8 @@ const TOOL_GROUP_LABEL: Record<(typeof TOOL_GROUPS)[number], string> = {
 interface AgentFormValue {
   name: string;
   description?: string;
-  role: (typeof AGENT_ROLES)[number];
+  role: string;
+  customRoleName?: string;
   mode: "chat" | "pipeline";
   modelId: string;
   systemPrompt: string;
@@ -72,6 +73,7 @@ export default function AgentsPage() {
   const [editing, setEditing] = useState<AgentView | "new" | null>(null);
   const [keyModal, setKeyModal] = useState<AgentKeyView | null>(null);
   const [skillModal, setSkillModal] = useState<AgentSkillView | "new" | null>(null);
+  const [customRole, setCustomRole] = useState(false);
   const [form] = Form.useForm<AgentFormValue>();
   const [skillForm] = Form.useForm<{
     name: string;
@@ -179,8 +181,10 @@ export default function AgentsPage() {
   const openEdit = (a: AgentView | "new") => {
     setEditing(a);
     if (a === "new") {
+      setCustomRole(true);
       form.setFieldsValue({
         role: "CUSTOM",
+        customRoleName: undefined,
         mode: "chat",
         systemPrompt: "你是本项目的测试专家。",
         temperature: 0.3,
@@ -192,10 +196,14 @@ export default function AgentsPage() {
         enabled: true,
       });
     } else {
+      // 已有 Agent：已知角色显示原始枚举，未知角色（自定义）→ Select 置 CUSTOM + 输入框预填
+      const isKnownRole = a.role in AGENT_ROLE_LABELS;
+      setCustomRole(!isKnownRole);
       form.setFieldsValue({
         name: a.name,
         description: a.description ?? undefined,
-        role: a.role,
+        role: isKnownRole ? a.role : "CUSTOM",
+        customRoleName: isKnownRole ? undefined : a.role,
         mode: a.mode,
         modelId: a.modelId,
         systemPrompt: a.systemPrompt,
@@ -301,7 +309,7 @@ export default function AgentsPage() {
                     <Space size={6} wrap>
                       <span className="font-medium">{a.name}</span>
                       <Tag color={a.mode === "pipeline" ? "green" : "blue"}>{a.mode}</Tag>
-                      <Tag>{AGENT_ROLE_LABELS[a.role]}</Tag>
+                      <Tag>{AGENT_ROLE_LABELS[a.role] ?? a.role}</Tag>
                       {a.a2aEnabled && <Tag color="geekblue">A2A 已开启</Tag>}
                       {!a.enabled && <Tag color="red">已停用</Tag>}
                     </Space>
@@ -489,8 +497,12 @@ export default function AgentsPage() {
               data-testid="agent-edit-save"
               onClick={async () => {
                 const v = await form.validateFields();
-                if (editing && editing !== "new") updateMut.mutate({ id: editing.id, ...v });
-                else createMut.mutate(v);
+                // 自定义角色：用输入的自定义名替代 "CUSTOM"
+                const role = v.role === "CUSTOM" && v.customRoleName?.trim() ? v.customRoleName.trim() : v.role;
+                const payload = { ...v, role };
+                delete (payload as { customRoleName?: string }).customRoleName;
+                if (editing && editing !== "new") updateMut.mutate({ id: editing.id, ...payload });
+                else createMut.mutate(payload);
               }}
             >
               保存
@@ -509,12 +521,18 @@ export default function AgentsPage() {
             <Form.Item name="role" label="角色分类" initialValue="CUSTOM">
               <Select
                 style={{ width: 140 }}
+                onChange={(v: string) => setCustomRole(v === "CUSTOM")}
                 options={Object.entries(AGENT_ROLE_LABELS).map(([value, label]) => ({
                   value,
                   label,
                 }))}
               />
             </Form.Item>
+            {customRole && (
+              <Form.Item name="customRoleName" label="自定义角色名" rules={[{ required: true, message: "请输入自定义角色名" }]}>
+                <Input placeholder="如：安全测试专家" style={{ width: 200 }} data-testid="agent-custom-role-input" />
+              </Form.Item>
+            )}
             <Form.Item name="mode" label="运行模式" initialValue="chat">
               <Select
                 style={{ width: 200 }}
