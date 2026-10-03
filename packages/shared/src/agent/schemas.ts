@@ -66,7 +66,8 @@ export type PipelineConfig = z.infer<typeof pipelineConfigSchema>;
 const agentBaseSchema = z.object({
   name: z.string().min(1).max(64),
   description: z.string().max(512).optional(),
-  role: z.enum(AGENT_ROLES).default("CUSTOM"),
+  /** 预定义四角色或自定义名称（≤32 字符——自定义角色直接存名称） */
+  role: z.string().min(1).max(32).default("CUSTOM"),
   mode: z.enum(AGENT_MODES).default("chat"),
   /** 空=系统默认模型（服务端补齐） */
   modelId: z.string().uuid().optional(),

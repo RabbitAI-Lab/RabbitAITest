@@ -1,0 +1,110 @@
+{
+  "broll-intro": {
+    "taskId": "447319905423671",
+    "status": "Success",
+    "promptHash": "33cc548af94f",
+    "model": "MiniMax-Hailuo-2.3",
+    "fileId": "447321285116312",
+    "file": "portal/assets/tutor/broll/broll-intro.mp4",
+    "bytes": 754303
+  },
+  "broll-1.1": {
+    "taskId": "447324321280279",
+    "status": "Success",
+    "promptHash": "8e29153924e8",
+    "model": "MiniMax-Hailuo-2.3",
+    "fileId": "447323489337790",
+    "file": "portal/assets/tutor/broll/broll-1.1.mp4",
+    "bytes": 901291
+  },
+  "broll-1.2": {
+    "taskId": "447323802403118",
+    "status": "Success",
+    "promptHash": "83711d2d9cb2",
+    "model": "MiniMax-Hailuo-2.3",
+    "fileId": "447324258144560",
+    "file": "portal/assets/tutor/broll/broll-1.2.mp4",
+    "bytes": 1937521
+  },
+  "broll-2.1": {
+    "taskId": "447494761226520",
+    "status": "Success",
+    "promptHash": "bfd1c530bd93",
+    "model": "MiniMax-Hailuo-2.3",
+    "fileId": "447496169058587",
+    "file": "portal/assets/tutor/broll/broll-2.1.mp4",
+    "bytes": 1177461
+  },
+  "broll-2.2": {
+    "taskId": "447498009014539",
+    "status": "Success",
+    "promptHash": "bdc3696d577e",
+    "model": "MiniMax-Hailuo-2.3",
+    "fileId": "447496696332564",
+    "file": "portal/assets/tutor/broll/broll-2.2.mp4",
+    "bytes": 1033787
+  },
+  "broll-2.3": {
+    "taskId": "447497916956941",
+    "status": "Success",
+    "promptHash": "02d97c4c674e",
+    "model": "MiniMax-Hailuo-2.3",
+    "fileId": "447490921755056",
+    "file": "portal/assets/tutor/broll/broll-2.3.mp4",
+    "bytes": 1452866
+  },
+  "broll-2.4": {
+    "taskId": "447848353628458",
+    "status": "Success",
+    "promptHash": "6fa298470357",
+    "model": "MiniMax-Hailuo-2.3",
+    "fileId": "447845408874807",
+    "file": "portal/assets/tutor/broll/broll-2.4.mp4",
+    "bytes": 1404314
+  },
+  "broll-2.5": {
+    "taskId": "447852002275600",
+    "status": "Success",
+    "promptHash": "5c9f25b11403",
+    "model": "MiniMax-Hailuo-2.3",
+    "fileId": "447853089841555",
+    "file": "portal/assets/tutor/broll/broll-2.5.mp4",
+    "bytes": 1715733
+  },
+  "broll-3.1": {
+    "taskId": "447850969604379",
+    "status": "Success",
+    "promptHash": "715e3c8894cf",
+    "model": "MiniMax-Hailuo-2.3",
+    "fileId": "447851324793178",
+    "file": "portal/assets/tutor/broll/broll-3.1.mp4",
+    "bytes": 857825
+  },
+  "broll-3.2": {
+    "taskId": "448200097874231",
+    "status": "Success",
+    "promptHash": "5b8f63a43c16",
+    "model": "MiniMax-Hailuo-2.3",
+    "fileId": "448204873396685",
+    "file": "portal/assets/tutor/broll/broll-3.2.mp4",
+    "bytes": 1408818
+  },
+  "broll-3.3": {
+    "taskId": "448203083800867",
+    "status": "Success",
+    "promptHash": "7b767248d24d",
+    "model": "MiniMax-Hailuo-2.3",
+    "fileId": "448201323422176",
+    "file": "portal/assets/tutor/broll/broll-3.3.mp4",
+    "bytes": 1702528
+  },
+  "broll-3.4": {
+    "taskId": "448208477057409",
+    "status": "Success",
+    "promptHash": "addd56e062eb",
+    "model": "MiniMax-Hailuo-2.3",
+    "fileId": "448204320510369",
+    "file": "portal/assets/tutor/broll/broll-3.4.mp4",
+    "bytes": 1632540
+  }
+}
