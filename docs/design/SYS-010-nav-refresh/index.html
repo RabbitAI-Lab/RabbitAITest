@@ -395,6 +395,16 @@
           items: [{ t: "UI 测试", i: "monitor-play", h: "/ui-test" }],
         },
         {
+          id: "agent",
+          label: "Agent",
+          icon: "bot",
+          items: [
+            { t: "Agent", i: "bot", h: "/agents" },
+            { t: "技能", i: "wrench", h: "/agents/skills" },
+            { t: "运行记录", i: "history", h: "/agents/runs" },
+          ],
+        },
+        {
           id: "pset",
           label: "项目设置",
           icon: "settings",
@@ -409,6 +419,7 @@
             { t: "AI 提示词", i: "sparkles", h: "/settings/ai-prompts" },
             { t: "服务集成", i: "network", h: "/settings/integrations" },
             { t: "Swagger 同步", i: "refresh-cw", h: "/settings/swagger-sync" },
+            { t: "代码仓库", i: "git-branch", h: "/settings/code-repos" },
           ],
         },
       ];

@@ -22,7 +22,7 @@ test.describe("AGENT-002 生成管线 UI", () => {
     const agentId = ((await created.json()) as { data: { id: string } }).data.id;
 
     // ── 步骤 1：上下文源 ──
-    await page.goto(`/settings/agents/${agentId}/generate`);
+    await page.goto(`/agents/${agentId}/generate`);
     await expect(page.getByTestId("generate-wizard-page")).toBeVisible({ timeout: 15000 });
     await expect(page.getByTestId("generate-step-sources")).toBeVisible();
 
@@ -99,7 +99,7 @@ test.describe("AGENT-002 生成管线 UI", () => {
     }
 
     // ── 产物预览页 ──
-    await page.goto(`/settings/agents/${agentId}/runs/${runId}/drafts`);
+    await page.goto(`/agents/${agentId}/runs/${runId}/drafts`);
     await expect(page.getByTestId("drafts-page")).toBeVisible({ timeout: 15000 });
 
     // 草稿表格出现（可能有 0 条——mock LLM 不一定产出）

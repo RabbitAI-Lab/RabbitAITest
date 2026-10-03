@@ -8,6 +8,7 @@
 import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
 import fs from "node:fs/promises";
+import os from "node:os";
 import path from "node:path";
 import { DomainError, ErrCode } from "@rabbit/shared";
 import { prisma } from "@rabbit/db";
@@ -15,9 +16,10 @@ import { decryptCredential } from "@/server/domains/api/credential-crypto";
 import { readFileObject } from "@/server/storage";
 
 export function agentWsRoot(): string {
+  // AGENT-001 勘误2：缺省 ~/.rabbitaitest/workspaces/（用户主目录下平台级目录）；env 可覆盖
   return process.env.RABBIT_AGENT_WS_ROOT
     ? path.resolve(process.env.RABBIT_AGENT_WS_ROOT)
-    : path.join(process.cwd(), ".data", "agent-ws");
+    : path.join(os.homedir(), ".rabbitaitest", "workspaces");
 }
 
 export function agentWsDir(agentId: string): string {

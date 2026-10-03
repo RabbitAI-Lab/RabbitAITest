@@ -31,11 +31,19 @@ export const AGENT_MAX_ITERATIONS_MAX = 30;
 export const AGENT_TIMEOUT_MS_MAX = 600_000;
 export const AGENT_KEY_PREFIX = "rag_";
 
+/** 运行参数平台统一默认（AGENT-001 勘误2：UI 不可配置，服务端/前端共用此单一来源） */
+export const AGENT_RUN_DEFAULTS = {
+  temperature: 0.3,
+  maxTokens: 4096,
+  maxIterations: 12,
+  timeoutMs: 300_000,
+} as const;
+
 // ── 六要素 ──
 
 export const agentModelParamsSchema = z.object({
-  temperature: z.number().min(0).max(2).default(0.3),
-  maxTokens: z.number().int().min(256).max(32768).default(4096),
+  temperature: z.number().min(0).max(2).default(AGENT_RUN_DEFAULTS.temperature),
+  maxTokens: z.number().int().min(256).max(32768).default(AGENT_RUN_DEFAULTS.maxTokens),
 });
 export type AgentModelParams = z.infer<typeof agentModelParamsSchema>;
 
@@ -71,9 +79,22 @@ const agentBaseSchema = z.object({
   /** 空=系统默认模型（服务端补齐） */
   modelId: z.string().uuid().optional(),
   systemPrompt: z.string().min(1).max(AGENT_SYSTEM_PROMPT_MAX),
-  modelParams: agentModelParamsSchema.default({ temperature: 0.3, maxTokens: 4096 }),
-  maxIterations: z.number().int().min(1).max(AGENT_MAX_ITERATIONS_MAX).default(12),
-  timeoutMs: z.number().int().min(10_000).max(AGENT_TIMEOUT_MS_MAX).default(300_000),
+  modelParams: agentModelParamsSchema.default({
+    temperature: AGENT_RUN_DEFAULTS.temperature,
+    maxTokens: AGENT_RUN_DEFAULTS.maxTokens,
+  }),
+  maxIterations: z
+    .number()
+    .int()
+    .min(1)
+    .max(AGENT_MAX_ITERATIONS_MAX)
+    .default(AGENT_RUN_DEFAULTS.maxIterations),
+  timeoutMs: z
+    .number()
+    .int()
+    .min(10_000)
+    .max(AGENT_TIMEOUT_MS_MAX)
+    .default(AGENT_RUN_DEFAULTS.timeoutMs),
   repoIds: z.array(z.string().uuid()).max(10).default([]),
   toolKeys: z.array(z.string().max(64)).max(32).default([]),
   skillIds: z.array(z.string().uuid()).max(AGENT_SKILL_REFS_MAX).default([]),

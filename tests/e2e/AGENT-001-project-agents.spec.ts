@@ -16,9 +16,18 @@ test.describe("AGENT-001 项目级 Agent", () => {
     await navFromHome(page, "Agent");
     await expect(page.getByTestId("agents-page")).toBeVisible({ timeout: 15000 });
 
+    // ── 导航分组（SYS-010 ⑫轮）：Agent 独立分组三子项均可见；项目设置组不再有 Agent 项 ──
+    await expect(page.getByTestId("nav-agents")).toBeVisible();
+    await expect(page.getByTestId("nav-agent-skills")).toBeVisible();
+    await expect(page.getByTestId("nav-agent-runs")).toBeVisible();
+    await expect(page.getByTestId("nav-settings-agents")).toHaveCount(0);
+
     // ── 新建（UI 抽屉 + 接口断言：POST 201 + 信封 code=0 + mode 字段） ──
     await page.getByTestId("agent-create").click();
     await expect(page.getByTestId("agent-edit-drawer")).toBeVisible();
+    // 勘误2：运行参数不可配置——默认值只读展示块存在（温度/maxTokens/迭代/超时）
+    await expect(page.getByTestId("agent-run-defaults")).toBeVisible();
+    await expect(page.getByTestId("agent-run-defaults")).toContainText("平台统一默认");
     const uniq = `A${Date.now() % 1e7}`;
     await page.getByTestId("agent-form-name").fill(`e2e-助手-${uniq}`);
     await page.locator("#systemPrompt").fill("你是测试专家，按等价类与边界值设计用例。");
@@ -112,7 +121,7 @@ test.describe("AGENT-001 项目级 Agent", () => {
     expect(created.status()).toBe(201);
     const agentId = ((await created.json()) as { data: { id: string } }).data.id;
 
-    await page.goto(`/settings/agents/${agentId}/debug`);
+    await page.goto(`/agents/${agentId}/debug`);
     await expect(page.getByTestId("agent-debug-page")).toBeVisible({ timeout: 15000 });
     // CI 冷启动：等 agent 数据加载（名称渲染=projectId 已水合）再交互——否则 send() 早退不发 POST
     await expect(page.getByText(`e2e-调试-${uniq}`)).toBeVisible({ timeout: 15000 });
@@ -156,6 +165,15 @@ test.describe("AGENT-001 项目级 Agent", () => {
     };
     expect(["COMPLETED", "FAILED", "CANCELED"]).toContain(detailBody.data.run.status);
     expect(detailBody.data.messages.length).toBeGreaterThanOrEqual(3); // user + workspace 步 + assistant/tool
+
+    // ── 运行记录页（⑫轮独立菜单页）：Agent 选择器默认选中第一个 + 台账行出现 ──
+    await page.goto("/agents/runs");
+    await expect(page.getByTestId("agents-runs-page")).toBeVisible({ timeout: 15000 });
+    await expect(page.getByTestId("agent-runs-agent-select")).toContainText(
+      `e2e-调试-${uniq}`,
+      { timeout: 10_000 },
+    );
+    await expect(page.locator("tbody tr").first()).toBeVisible({ timeout: 10_000 });
 
     // 清理
     await page.request.delete(`/api/v1/projects/${projectId}/agents/${agentId}`);

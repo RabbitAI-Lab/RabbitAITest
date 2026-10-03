@@ -74,9 +74,9 @@ async function main() {
 
   // ── 段 1：Agent 管理页（空态 → 列表） ──
   console.log("[s14-demo] ① Agent 管理页");
-  await page.goto(`${BASE}/settings/agents`);
+  await page.goto(`${BASE}/agents`);
   await page.waitForSelector('[data-testid="agents-page"]', { timeout: 15000 }).catch(() => {});
-  await step(page, "① Sprint 14 项目级 Agent——项目设置新 tab「Agent」", 3000);
+  await step(page, "① Sprint 14 项目级 Agent——独立「Agent」分组菜单", 3000);
 
   // ── 段 2：新建 Agent（抽屉六要素） ──
   console.log("[s14-demo] ② 新建 Agent");
@@ -102,15 +102,15 @@ async function main() {
     await step(page, "Agent 创建成功——卡片出现在列表中", 2400);
   }
 
-  // ── 段 3：技能库 ──
+  // ── 段 3：技能库（⑫轮导航改版后为独立菜单页） ──
   console.log("[s14-demo] ③ 技能库");
-  const skillTab = page.locator('[role="tab"]:has-text("技能")');
+  const skillTab = page.locator('[data-testid="nav-agent-skills"]');
   if (await skillTab.isVisible().catch(() => false)) {
     await skillTab.click();
     await sleep(1500);
     await step(page, "③ 技能库——项目级 markdown 指令包，跨 Agent 复用", 2600);
-    // 切回 Agent tab
-    const agentTab = page.locator('[role="tab"]:has-text("Agent")');
+    // 切回 Agent 菜单
+    const agentTab = page.locator('[data-testid="nav-agents"]');
     if (await agentTab.isVisible().catch(() => false)) {
       await agentTab.click();
       await sleep(1000);
@@ -159,7 +159,7 @@ async function main() {
   // ── 段 5：生成向导三步 ──
   console.log("[s14-demo] ⑤ 生成向导");
   if (agentId) {
-    await page.goto(`${BASE}/settings/agents/${agentId}/generate`);
+    await page.goto(`${BASE}/agents/${agentId}/generate`);
     await page.waitForSelector('[data-testid="generate-wizard-page"]', { timeout: 15000 }).catch(() => {});
     await step(page, "⑤ 生成管线向导——步骤①上下文源：需求文本", 2800);
 
@@ -209,7 +209,7 @@ async function main() {
     const runsBody = (await runsRes.json());
     const runId = runsBody.data?.items?.[0]?.id;
     if (runId) {
-      await page.goto(`${BASE}/settings/agents/${agentId}/runs/${runId}/drafts`);
+      await page.goto(`${BASE}/agents/${agentId}/runs/${runId}/drafts`);
       await page.waitForSelector('[data-testid="drafts-page"]', { timeout: 15000 }).catch(() => {});
       await step(page, "⑥ 产物预览——草稿三态（新增/冲突/无效）+ 勾选 + 批量导入", 3200);
 

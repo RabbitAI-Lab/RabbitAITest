@@ -61,7 +61,7 @@ export default function GenerateWizardPage() {
   return (
     <div className="p-6" data-testid="generate-wizard-page">
       <div className="mb-4 flex items-center gap-3">
-        <Button onClick={() => router.push("/settings/agents")} data-testid="generate-back">返回</Button>
+        <Button onClick={() => router.push("/agents")} data-testid="generate-back">返回</Button>
         <Typography.Title level={5} style={{ margin: 0 }}>
           发起生成 · {agent.data?.name ?? "Agent"}
         </Typography.Title>
@@ -129,7 +129,7 @@ export default function GenerateWizardPage() {
           {["COMPLETED", "FAILED"].includes(runStatus) && runId && (
             <div className="!mt-4 flex justify-end gap-2">
               <Button onClick={() => setStep(0)}>重新生成</Button>
-              <Button type="primary" onClick={() => router.push(`/settings/agents/${agentId}/runs/${runId}/drafts`)}>
+              <Button type="primary" onClick={() => router.push(`/agents/${agentId}/runs/${runId}/drafts`)}>
                 查看产物
               </Button>
             </div>
