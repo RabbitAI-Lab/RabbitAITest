@@ -8,11 +8,9 @@ import {
   Empty,
   Form,
   Input,
-  InputNumber,
   Modal,
   Popconfirm,
   Select,
-  Slider,
   Space,
   Spin,
   Switch,
@@ -29,7 +27,7 @@ import {
   type AgentSkillView,
   type AgentView,
 } from "@rabbit/api-client";
-import { AGENT_ROLE_LABELS, AGENT_ROLES, AGENT_TOOLS } from "@rabbit/shared";
+import { AGENT_ROLE_LABELS, AGENT_ROLES, AGENT_RUN_DEFAULTS, AGENT_TOOLS } from "@rabbit/shared";
 import { useApp } from "@/hooks/useApp";
 import { useProjectStore } from "@/stores/project";
 
@@ -49,10 +47,6 @@ interface AgentFormValue {
   mode: "chat" | "pipeline";
   modelId: string;
   systemPrompt: string;
-  temperature: number;
-  maxTokens: number;
-  maxIterations: number;
-  timeoutMs: number;
   toolKeys: string[];
   skillIds: string[];
   enabled: boolean;
@@ -93,9 +87,12 @@ export default function AgentsPage() {
         mode: v.mode,
         modelId: v.modelId,
         systemPrompt: v.systemPrompt,
-        modelParams: { temperature: v.temperature, maxTokens: v.maxTokens },
-        maxIterations: v.maxIterations,
-        timeoutMs: v.timeoutMs,
+        modelParams: {
+          temperature: AGENT_RUN_DEFAULTS.temperature,
+          maxTokens: AGENT_RUN_DEFAULTS.maxTokens,
+        },
+        maxIterations: AGENT_RUN_DEFAULTS.maxIterations,
+        timeoutMs: AGENT_RUN_DEFAULTS.timeoutMs,
         repoIds: [],
         toolKeys: v.toolKeys,
         skillIds: v.skillIds,
@@ -117,9 +114,12 @@ export default function AgentsPage() {
         role: v.role,
         modelId: v.modelId,
         systemPrompt: v.systemPrompt,
-        modelParams: { temperature: v.temperature, maxTokens: v.maxTokens },
-        maxIterations: v.maxIterations,
-        timeoutMs: v.timeoutMs,
+        modelParams: {
+          temperature: AGENT_RUN_DEFAULTS.temperature,
+          maxTokens: AGENT_RUN_DEFAULTS.maxTokens,
+        },
+        maxIterations: AGENT_RUN_DEFAULTS.maxIterations,
+        timeoutMs: AGENT_RUN_DEFAULTS.timeoutMs,
         repoIds: [],
         toolKeys: v.toolKeys,
         skillIds: v.skillIds,
@@ -164,10 +164,6 @@ export default function AgentsPage() {
         role: "CUSTOM",
         mode: "chat",
         systemPrompt: "你是本项目的测试专家。",
-        temperature: 0.3,
-        maxTokens: 4096,
-        maxIterations: 12,
-        timeoutMs: 300000,
         toolKeys: [],
         skillIds: [],
         enabled: true,
@@ -180,10 +176,6 @@ export default function AgentsPage() {
         mode: a.mode,
         modelId: a.modelId,
         systemPrompt: a.systemPrompt,
-        temperature: a.modelParams.temperature ?? 0.3,
-        maxTokens: a.modelParams.maxTokens ?? 4096,
-        maxIterations: a.maxIterations,
-        timeoutMs: a.timeoutMs,
         toolKeys: a.toolKeys,
         skillIds: a.skillIds,
         enabled: a.enabled,
@@ -245,10 +237,6 @@ export default function AgentsPage() {
                       mode: a.mode,
                       modelId: a.modelId,
                       systemPrompt: a.systemPrompt,
-                      temperature: a.modelParams.temperature ?? 0.3,
-                      maxTokens: a.modelParams.maxTokens ?? 4096,
-                      maxIterations: a.maxIterations,
-                      timeoutMs: a.timeoutMs,
                       toolKeys: a.toolKeys,
                       skillIds: a.skillIds,
                       enabled: checked,
@@ -341,23 +329,24 @@ export default function AgentsPage() {
           <Form.Item name="modelId" label="模型 ID（UUID；留空=系统默认模型）">
             <Input placeholder="默认模型" allowClear />
           </Form.Item>
+          <div
+            className="!mb-6 rounded-md border border-gray-200 bg-gray-50 px-3 py-2.5"
+            data-testid="agent-run-defaults"
+          >
+            <div className="text-xs font-medium">运行参数（平台统一默认，无需配置）</div>
+            <div className="mt-1 text-xs text-gray-500">
+              温度 {AGENT_RUN_DEFAULTS.temperature} · maxTokens {AGENT_RUN_DEFAULTS.maxTokens} ·
+              迭代上限 {AGENT_RUN_DEFAULTS.maxIterations} · 超时{" "}
+              {AGENT_RUN_DEFAULTS.timeoutMs / 1000}s
+            </div>
+            <div className="mt-0.5 text-xs text-gray-400">
+              工作目录默认 ~/.rabbitaitest/workspaces/{"{agent-id}"}/（env RABBIT_AGENT_WS_ROOT
+              可覆盖）
+            </div>
+          </div>
           <Form.Item name="systemPrompt" label="系统提示词" rules={[{ required: true }]}>
             <Input.TextArea rows={8} showCount maxLength={16384} />
           </Form.Item>
-          <Form.Item name="temperature" label="温度" initialValue={0.3}>
-            <Slider min={0} max={2} step={0.1} style={{ width: 240 }} />
-          </Form.Item>
-          <Space size="large">
-            <Form.Item name="maxTokens" label="maxTokens" initialValue={4096}>
-              <InputNumber min={256} max={32768} />
-            </Form.Item>
-            <Form.Item name="maxIterations" label="迭代上限（≤30）" initialValue={12}>
-              <InputNumber min={1} max={30} />
-            </Form.Item>
-            <Form.Item name="timeoutMs" label="超时（ms，≤600000）" initialValue={300000}>
-              <InputNumber min={10000} max={600000} step={10000} />
-            </Form.Item>
-          </Space>
           <Form.Item name="toolKeys" label="工具目录">
             <Select
               mode="multiple"

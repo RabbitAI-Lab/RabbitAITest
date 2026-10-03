@@ -25,6 +25,9 @@ test.describe("AGENT-001 项目级 Agent", () => {
     // ── 新建（UI 抽屉 + 接口断言：POST 201 + 信封 code=0 + mode 字段） ──
     await page.getByTestId("agent-create").click();
     await expect(page.getByTestId("agent-edit-drawer")).toBeVisible();
+    // 勘误2：运行参数不可配置——默认值只读展示块存在（温度/maxTokens/迭代/超时）
+    await expect(page.getByTestId("agent-run-defaults")).toBeVisible();
+    await expect(page.getByTestId("agent-run-defaults")).toContainText("平台统一默认");
     const uniq = `A${Date.now() % 1e7}`;
     await page.getByTestId("agent-form-name").fill(`e2e-助手-${uniq}`);
     await page.locator("#systemPrompt").fill("你是测试专家，按等价类与边界值设计用例。");
