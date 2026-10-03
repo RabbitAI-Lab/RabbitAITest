@@ -1,5 +1,7 @@
 "use client";
 
+import { UploadOutlined } from "@ant-design/icons";
+import { Upload } from "antd";
 import {
   Alert,
   Button,
@@ -223,6 +225,45 @@ export default function AgentsPage() {
           <Button onClick={() => setSkillModal("new")} data-testid="agent-skill-create">
             技能库
           </Button>
+          <a
+            href={`/api/v1/projects/${projectId}/agent-skills/template`}
+            download="skill-template.zip"
+            data-testid="agent-skill-template"
+            className="ant-btn"
+            style={{ display: "inline-flex", alignItems: "center", gap: 4 }}
+          >
+            <UploadOutlined /> 模板下载
+          </a>
+          <Upload
+            accept=".zip"
+            showUploadList={false}
+            beforeUpload={async (file: File) => {
+              if (!projectId) return false;
+              const formData = new FormData();
+              formData.append("file", file);
+              try {
+                const res = await fetch(`/api/v1/projects/${projectId}/agent-skills/upload`, {
+                  method: "POST",
+                  body: formData,
+                  credentials: "same-origin",
+                });
+                const body = (await res.json()) as { code: number; message?: string };
+                if (body.code === 0) {
+                  message.success(`目录技能「${file.name.replace(/\.zip$/i, "")}」上传成功`);
+                  invalidate();
+                } else {
+                  message.error(body.message ?? "上传失败");
+                }
+              } catch (e) {
+                message.error((e as Error).message);
+              }
+              return false; // 阻止 antd 自动上传
+            }}
+          >
+            <Button icon={<UploadOutlined />} data-testid="agent-skill-upload">
+              上传技能包
+            </Button>
+          </Upload>
           <Button type="primary" onClick={() => openEdit("new")} data-testid="agent-create">
             新建 Agent
           </Button>

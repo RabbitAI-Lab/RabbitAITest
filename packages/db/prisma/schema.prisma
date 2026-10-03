@@ -722,8 +722,12 @@ model AgentSkill {
   project     Project   @relation(fields: [projectId], references: [id])
   name        String    @db.VarChar(64)
   description String    @db.VarChar(512)
-  /// markdown 指令 ≤16KB（zod）
+  /// markdown 指令 ≤16KB（zod）；directory 格式时存 SKILL.md 内容
   content     String    @db.Text
+  /// markdown | directory（目录技能含脚本/模板——zip 上传解压到 storageKey）
+  format      String    @default("markdown") @db.VarChar(16)
+  /// directory 格式时的存储键（storage.ts putFileObject 兼容路径）
+  storageKey  String?   @map("storage_key") @db.VarChar(512)
   enabled     Boolean   @default(true)
   createdById String    @map("created_by_id")
   createdAt   DateTime  @default(now()) @map("created_at")
