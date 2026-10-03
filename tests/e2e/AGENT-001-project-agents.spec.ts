@@ -16,6 +16,12 @@ test.describe("AGENT-001 项目级 Agent", () => {
     await navFromHome(page, "Agent");
     await expect(page.getByTestId("agents-page")).toBeVisible({ timeout: 15000 });
 
+    // ── 导航分组（SYS-010 ⑫轮）：Agent 独立分组三子项均可见；项目设置组不再有 Agent 项 ──
+    await expect(page.getByTestId("nav-agents")).toBeVisible();
+    await expect(page.getByTestId("nav-agent-skills")).toBeVisible();
+    await expect(page.getByTestId("nav-agent-runs")).toBeVisible();
+    await expect(page.getByTestId("nav-settings-agents")).toHaveCount(0);
+
     // ── 新建（UI 抽屉 + 接口断言：POST 201 + 信封 code=0 + mode 字段） ──
     await page.getByTestId("agent-create").click();
     await expect(page.getByTestId("agent-edit-drawer")).toBeVisible();
@@ -112,7 +118,7 @@ test.describe("AGENT-001 项目级 Agent", () => {
     expect(created.status()).toBe(201);
     const agentId = ((await created.json()) as { data: { id: string } }).data.id;
 
-    await page.goto(`/settings/agents/${agentId}/debug`);
+    await page.goto(`/agents/${agentId}/debug`);
     await expect(page.getByTestId("agent-debug-page")).toBeVisible({ timeout: 15000 });
     // CI 冷启动：等 agent 数据加载（名称渲染=projectId 已水合）再交互——否则 send() 早退不发 POST
     await expect(page.getByText(`e2e-调试-${uniq}`)).toBeVisible({ timeout: 15000 });
@@ -156,6 +162,15 @@ test.describe("AGENT-001 项目级 Agent", () => {
     };
     expect(["COMPLETED", "FAILED", "CANCELED"]).toContain(detailBody.data.run.status);
     expect(detailBody.data.messages.length).toBeGreaterThanOrEqual(3); // user + workspace 步 + assistant/tool
+
+    // ── 运行记录页（⑫轮独立菜单页）：Agent 选择器默认选中第一个 + 台账行出现 ──
+    await page.goto("/agents/runs");
+    await expect(page.getByTestId("agents-runs-page")).toBeVisible({ timeout: 15000 });
+    await expect(page.getByTestId("agent-runs-agent-select")).toContainText(
+      `e2e-调试-${uniq}`,
+      { timeout: 10_000 },
+    );
+    await expect(page.locator("tbody tr").first()).toBeVisible({ timeout: 10_000 });
 
     // 清理
     await page.request.delete(`/api/v1/projects/${projectId}/agents/${agentId}`);

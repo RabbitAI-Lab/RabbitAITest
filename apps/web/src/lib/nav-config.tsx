@@ -12,6 +12,7 @@ import {
   Bot,
   Gauge,
   GitBranch,
+  History,
   KeyRound,
   LayoutDashboard,
   MonitorPlay,
@@ -26,6 +27,7 @@ import {
   UserSquare2,
   Users,
   Workflow,
+  Wrench,
   type LucideIcon,
 } from "lucide-react";
 import type { TabRealm } from "@/stores/tabs";
@@ -183,6 +185,35 @@ export const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
+    id: "agent",
+    label: "Agent",
+    realm: "project",
+    icon: Bot,
+    items: [
+      {
+        href: "/agents",
+        label: "Agent",
+        ...i(Bot),
+        perm: "PROJECT_AGENT:READ",
+        testid: "nav-agents",
+      },
+      {
+        href: "/agents/skills",
+        label: "技能",
+        ...i(Wrench),
+        perm: "PROJECT_AGENT:READ",
+        testid: "nav-agent-skills",
+      },
+      {
+        href: "/agents/runs",
+        label: "运行记录",
+        ...i(History),
+        perm: "PROJECT_AGENT:READ",
+        testid: "nav-agent-runs",
+      },
+    ],
+  },
+  {
     id: "pset",
     label: "项目设置",
     realm: "project",
@@ -257,13 +288,6 @@ export const NAV_GROUPS: NavGroup[] = [
         ...i(GitBranch),
         perm: "PROJECT_REPO:READ",
         testid: "nav-settings-code-repos",
-      },
-      {
-        href: "/settings/agents",
-        label: "Agent",
-        ...i(Bot),
-        perm: "PROJECT_AGENT:READ",
-        testid: "nav-settings-agents",
       },
     ],
   },

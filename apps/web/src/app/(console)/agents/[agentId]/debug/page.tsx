@@ -111,7 +111,7 @@ export default function AgentDebugPage() {
       <div className="flex items-center gap-3 border-b border-gray-200 bg-white px-6 py-3">
         <Button
           size="small"
-          onClick={() => router.push("/settings/agents")}
+          onClick={() => router.push("/agents")}
           data-testid="agent-debug-back"
         >
           返回

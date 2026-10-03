@@ -16,8 +16,6 @@ import {
   Space,
   Spin,
   Switch,
-  Table,
-  Tabs,
   Tag,
   Typography,
 } from "antd";
@@ -28,7 +26,6 @@ import {
   agentApi,
   agentSkillApi,
   type AgentKeyView,
-  type AgentRunView,
   type AgentSkillView,
   type AgentView,
 } from "@rabbit/api-client";
@@ -66,17 +63,9 @@ export default function AgentsPage() {
   const router = useRouter();
   const qc = useQueryClient();
   const { currentProjectId: projectId } = useProjectStore();
-  const [tab, setTab] = useState("agents");
   const [editing, setEditing] = useState<AgentView | "new" | null>(null);
   const [keyModal, setKeyModal] = useState<AgentKeyView | null>(null);
-  const [skillModal, setSkillModal] = useState<AgentSkillView | "new" | null>(null);
   const [form] = Form.useForm<AgentFormValue>();
-  const [skillForm] = Form.useForm<{
-    name: string;
-    description: string;
-    content: string;
-    enabled?: boolean;
-  }>();
 
   const agents = useQuery({
     queryKey: ["agents", projectId],
@@ -86,13 +75,7 @@ export default function AgentsPage() {
   const skills = useQuery({
     queryKey: ["agent-skills", projectId],
     queryFn: () => agentSkillApi.list(projectId!),
-    enabled: Boolean(projectId) && tab === "skills",
-  });
-  const runs = useQuery({
-    queryKey: ["agent-runs", projectId],
-    queryFn: () =>
-      agentApi.runs(projectId!, agents.data?.items[0]?.id ?? "", { page: 1, pageSize: 20 }),
-    enabled: Boolean(projectId) && tab === "runs" && Boolean(agents.data?.items.length),
+    enabled: Boolean(projectId),
   });
 
   const invalidate = () => {
@@ -220,218 +203,88 @@ export default function AgentsPage() {
           </Typography.Text>
         </div>
         <div className="ml-auto flex gap-2">
-          <Button onClick={() => setSkillModal("new")} data-testid="agent-skill-create">
-            技能库
-          </Button>
           <Button type="primary" onClick={() => openEdit("new")} data-testid="agent-create">
             新建 Agent
           </Button>
         </div>
       </div>
 
-      <Tabs
-        activeKey={tab}
-        onChange={setTab}
-        items={[
-          { key: "agents", label: "Agent", children: null },
-          { key: "skills", label: "技能", children: null },
-          { key: "runs", label: "运行记录", children: null },
-        ]}
-      />
-
-      {tab === "agents" &&
-        (agents.isLoading ? (
-          <div className="py-20 text-center">
-            <Spin />
-          </div>
-        ) : !agents.data?.items.length ? (
-          <Empty description="还没有项目 Agent" className="py-16" data-testid="agents-empty" />
-        ) : (
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            {agents.data.items.map((a) => (
-              <Card
-                key={a.id}
-                size="small"
-                className="!bg-white"
-                data-testid={`agent-card-${a.id}`}
-              >
-                <div className="flex items-start gap-3">
-                  <div className="min-w-0 flex-1">
-                    <Space size={6} wrap>
-                      <span className="font-medium">{a.name}</span>
-                      <Tag color={a.mode === "pipeline" ? "green" : "blue"}>{a.mode}</Tag>
-                      <Tag>{AGENT_ROLE_LABELS[a.role]}</Tag>
-                      {a.a2aEnabled && <Tag color="geekblue">A2A 已开启</Tag>}
-                      {!a.enabled && <Tag color="red">已停用</Tag>}
-                    </Space>
-                    <div className="mt-1 text-xs text-gray-500">
-                      {a.modelName ?? "默认模型"} · 工具 {a.toolKeys.length} · Skills{" "}
-                      {a.skillIds.length}
-                      {a.lastCalledAt
-                        ? ` · 最近调用 ${a.lastCalledAt.slice(5, 16).replace("T", " ")}`
-                        : ""}
-                    </div>
+      {agents.isLoading ? (
+        <div className="py-20 text-center">
+          <Spin />
+        </div>
+      ) : !agents.data?.items.length ? (
+        <Empty description="还没有项目 Agent" className="py-16" data-testid="agents-empty" />
+      ) : (
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          {agents.data.items.map((a) => (
+            <Card key={a.id} size="small" className="!bg-white" data-testid={`agent-card-${a.id}`}>
+              <div className="flex items-start gap-3">
+                <div className="min-w-0 flex-1">
+                  <Space size={6} wrap>
+                    <span className="font-medium">{a.name}</span>
+                    <Tag color={a.mode === "pipeline" ? "green" : "blue"}>{a.mode}</Tag>
+                    <Tag>{AGENT_ROLE_LABELS[a.role]}</Tag>
+                    {a.a2aEnabled && <Tag color="geekblue">A2A 已开启</Tag>}
+                    {!a.enabled && <Tag color="red">已停用</Tag>}
+                  </Space>
+                  <div className="mt-1 text-xs text-gray-500">
+                    {a.modelName ?? "默认模型"} · 工具 {a.toolKeys.length} · Skills {a.skillIds.length}
+                    {a.lastCalledAt ? ` · 最近调用 ${a.lastCalledAt.slice(5, 16).replace("T", " ")}` : ""}
                   </div>
-                  <Switch
-                    checked={a.enabled}
-                    size="small"
-                    onChange={(checked) =>
-                      updateMut.mutate({
-                        id: a.id,
-                        name: a.name,
-                        description: a.description ?? undefined,
-                        role: a.role,
-                        mode: a.mode,
-                        modelId: a.modelId,
-                        systemPrompt: a.systemPrompt,
-                        temperature: a.modelParams.temperature ?? 0.3,
-                        maxTokens: a.modelParams.maxTokens ?? 4096,
-                        maxIterations: a.maxIterations,
-                        timeoutMs: a.timeoutMs,
-                        toolKeys: a.toolKeys,
-                        skillIds: a.skillIds,
-                        enabled: checked,
-                      })
-                    }
-                  />
                 </div>
-                <div className="mt-3 flex items-center gap-1 border-t border-gray-100 pt-3">
-                  <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-                    {a.apiKeyPrefix ? `密钥 ${a.apiKeyPrefix}…` : "A2A 未开启"}
-                  </Typography.Text>
-                  <div className="ml-auto flex gap-1">
-                    {a.mode === "chat" && (
-                      <Button
-                        size="small"
-                        type="link"
-                        data-testid={`agent-debug-${a.id}`}
-                        onClick={() => router.push(`/settings/agents/${a.id}/debug`)}
-                      >
-                        调试
-                      </Button>
-                    )}
-                    <Button size="small" type="link" onClick={() => openEdit(a)}>
-                      编辑
+                <Switch
+                  checked={a.enabled}
+                  size="small"
+                  onChange={(checked) =>
+                    updateMut.mutate({
+                      id: a.id,
+                      name: a.name,
+                      description: a.description ?? undefined,
+                      role: a.role,
+                      mode: a.mode,
+                      modelId: a.modelId,
+                      systemPrompt: a.systemPrompt,
+                      temperature: a.modelParams.temperature ?? 0.3,
+                      maxTokens: a.modelParams.maxTokens ?? 4096,
+                      maxIterations: a.maxIterations,
+                      timeoutMs: a.timeoutMs,
+                      toolKeys: a.toolKeys,
+                      skillIds: a.skillIds,
+                      enabled: checked,
+                    })
+                  }
+                />
+              </div>
+              <div className="mt-3 flex items-center gap-1 border-t border-gray-100 pt-3">
+                <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                  {a.apiKeyPrefix ? `密钥 ${a.apiKeyPrefix}…` : "A2A 未开启"}
+                </Typography.Text>
+                <div className="ml-auto flex gap-1">
+                  {a.mode === "chat" && (
+                    <Button
+                      size="small"
+                      type="link"
+                      data-testid={`agent-debug-${a.id}`}
+                      onClick={() => router.push(`/agents/${a.id}/debug`)}
+                    >
+                      调试
                     </Button>
-                    <Popconfirm title="确认删除该 Agent？" onConfirm={() => deleteMut.mutate(a.id)}>
-                      <Button size="small" type="link" danger>
-                        删除
-                      </Button>
-                    </Popconfirm>
-                  </div>
-                </div>
-              </Card>
-            ))}
-          </div>
-        ))}
-
-      {tab === "skills" && (
-        <Table
-          rowKey="id"
-          size="small"
-          loading={skills.isLoading}
-          dataSource={skills.data?.items ?? []}
-          columns={[
-            { title: "名称", dataIndex: "name" },
-            { title: "触发说明", dataIndex: "description", ellipsis: true },
-            {
-              title: "引用 Agent",
-              dataIndex: "refCount",
-              width: 100,
-              render: (v: number) => v ?? 0,
-            },
-            {
-              title: "启用",
-              dataIndex: "enabled",
-              width: 80,
-              render: (v: boolean) => (v ? "是" : "否"),
-            },
-            {
-              title: "操作",
-              width: 140,
-              render: (_: unknown, r: AgentSkillView) => (
-                <>
-                  <Button size="small" type="link" onClick={() => setSkillModal(r)}>
+                  )}
+                  <Button size="small" type="link" onClick={() => openEdit(a)}>
                     编辑
                   </Button>
-                  <Popconfirm
-                    title="确认删除该技能？"
-                    onConfirm={() =>
-                      void agentSkillApi
-                        .remove(projectId!, r.id)
-                        .then(invalidate)
-                        .catch((e: Error) => message.error(e.message))
-                    }
-                  >
+                  <Popconfirm title="确认删除该 Agent？" onConfirm={() => deleteMut.mutate(a.id)}>
                     <Button size="small" type="link" danger>
                       删除
                     </Button>
                   </Popconfirm>
-                </>
-              ),
-            },
-          ]}
-        />
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
       )}
-
-      {tab === "runs" &&
-        (!agents.data?.items.length ? (
-          <Empty description="尚无 Agent 运行记录" className="py-16" />
-        ) : (
-          <Table
-            rowKey="id"
-            size="small"
-            loading={runs.isLoading}
-            dataSource={runs.data?.items ?? []}
-            columns={[
-              {
-                title: "时间",
-                dataIndex: "createdAt",
-                width: 160,
-                render: (v: string) => v.replace("T", " ").slice(0, 19),
-              },
-              { title: "Agent", dataIndex: "agentName" },
-              {
-                title: "来源",
-                dataIndex: "source",
-                width: 70,
-                render: (v: string) => <Tag>{v}</Tag>,
-              },
-              {
-                title: "状态",
-                dataIndex: "status",
-                width: 100,
-                render: (v: AgentRunView["status"]) => (
-                  <Tag
-                    color={
-                      v === "COMPLETED"
-                        ? "green"
-                        : v === "FAILED"
-                          ? "red"
-                          : v === "RUNNING"
-                            ? "processing"
-                            : "default"
-                    }
-                  >
-                    {v}
-                  </Tag>
-                ),
-              },
-              {
-                title: "耗时",
-                dataIndex: "durationMs",
-                width: 90,
-                render: (v: number | null) => (v != null ? `${(v / 1000).toFixed(1)}s` : "—"),
-              },
-              {
-                title: "Token(入/出)",
-                width: 130,
-                render: (_: unknown, r: AgentRunView) => `${r.promptTokens}/${r.completionTokens}`,
-              },
-              { title: "错误", dataIndex: "error", ellipsis: true },
-            ]}
-          />
-        ))}
 
       {/* 编辑抽屉 */}
       <Drawer
@@ -558,65 +411,6 @@ export default function AgentsPage() {
         <Typography.Paragraph copyable code data-testid="agent-key-plaintext">
           {keyModal?.apiKey}
         </Typography.Paragraph>
-      </Modal>
-      {/* 技能编辑弹窗 */}
-      <Modal
-        title={skillModal && skillModal !== "new" ? `编辑技能 · ${skillModal.name}` : "新建技能"}
-        open={Boolean(skillModal)}
-        onCancel={() => setSkillModal(null)}
-        data-testid="agent-skill-modal"
-        onOk={async () => {
-          const v = await skillForm.validateFields();
-          const p = skillModal && skillModal !== "new" ? skillModal.id : null;
-          const action = p
-            ? agentSkillApi.update(projectId!, p, {
-                name: v.name,
-                description: v.description,
-                content: v.content,
-                enabled: skillModal && skillModal !== "new" ? skillModal.enabled : true,
-              })
-            : agentSkillApi.create(projectId!, {
-                name: v.name,
-                description: v.description,
-                content: v.content,
-                enabled: true,
-              });
-          await action
-            .then(invalidate)
-            .then(() => {
-              message.success("已保存");
-              setSkillModal(null);
-            })
-            .catch((e: Error) => message.error(e.message));
-        }}
-      >
-        <Form
-          form={skillForm}
-          layout="vertical"
-          initialValues={
-            skillModal && skillModal !== "new"
-              ? {
-                  name: skillModal.name,
-                  description: skillModal.description,
-                  content: skillModal.content,
-                }
-              : undefined
-          }
-        >
-          <Form.Item name="name" label="名称（项目内唯一）" rules={[{ required: true, max: 64 }]}>
-            <Input data-testid="agent-skill-name" />
-          </Form.Item>
-          <Form.Item
-            name="description"
-            label="触发说明（何时使用）"
-            rules={[{ required: true, max: 512 }]}
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item name="content" label="指令内容（markdown ≤16KB）" rules={[{ required: true }]}>
-            <Input.TextArea rows={8} showCount maxLength={16384} />
-          </Form.Item>
-        </Form>
       </Modal>
     </div>
   );
