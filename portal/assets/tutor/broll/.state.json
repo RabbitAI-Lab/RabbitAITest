@@ -106,5 +106,86 @@
     "fileId": "448204320510369",
     "file": "portal/assets/tutor/broll/broll-3.4.mp4",
     "bytes": 1632540
+  },
+  "broll-3.5": {
+    "taskId": "448557878198687",
+    "status": "Success",
+    "promptHash": "6a8b7ed271e1",
+    "model": "MiniMax-Hailuo-2.3",
+    "fileId": "448561113723146",
+    "file": "portal/assets/tutor/broll/broll-3.5.mp4",
+    "bytes": 1268743
+  },
+  "broll-3.6": {
+    "taskId": "448559054836133",
+    "status": "Success",
+    "promptHash": "6b065e40d5e1",
+    "model": "MiniMax-Hailuo-2.3",
+    "fileId": "448557896847803",
+    "file": "portal/assets/tutor/broll/broll-3.6.mp4",
+    "bytes": 1661916
+  },
+  "broll-4.1": {
+    "taskId": "448562269213065",
+    "status": "Success",
+    "promptHash": "cc004190fe43",
+    "model": "MiniMax-Hailuo-2.3",
+    "fileId": "448561821860297",
+    "file": "portal/assets/tutor/broll/broll-4.1.mp4",
+    "bytes": 1114725
+  },
+  "broll-4.2": {
+    "taskId": "448912519684390",
+    "status": "Success",
+    "promptHash": "73bde356049d",
+    "model": "MiniMax-Hailuo-2.3",
+    "fileId": "448914851078537",
+    "file": "portal/assets/tutor/broll/broll-4.2.mp4",
+    "bytes": 1550638
+  },
+  "broll-4.3": {
+    "taskId": "448912383189430",
+    "status": "Success",
+    "promptHash": "8351a0f5601d",
+    "model": "MiniMax-Hailuo-2.3",
+    "fileId": "448912645656893",
+    "file": "portal/assets/tutor/broll/broll-4.3.mp4",
+    "bytes": 1168602
+  },
+  "broll-5.1": {
+    "taskId": "448914851078545",
+    "status": "Success",
+    "promptHash": "722dfe9fde1b",
+    "model": "MiniMax-Hailuo-2.3",
+    "fileId": "448914807972131",
+    "file": "portal/assets/tutor/broll/broll-5.1.mp4",
+    "bytes": 1012567
+  },
+  "broll-5.2": {
+    "taskId": "449265790742946",
+    "status": "Success",
+    "promptHash": "461b554632de",
+    "model": "MiniMax-Hailuo-2.3",
+    "fileId": "449268602503569",
+    "file": "portal/assets/tutor/broll/broll-5.2.mp4",
+    "bytes": 1070003
+  },
+  "broll-6.1": {
+    "taskId": "449267270005149",
+    "status": "Success",
+    "promptHash": "f893e2e6d30b",
+    "model": "MiniMax-Hailuo-2.3",
+    "fileId": "449262505525756",
+    "file": "portal/assets/tutor/broll/broll-6.1.mp4",
+    "bytes": 1890797
+  },
+  "broll-6.2": {
+    "taskId": "449267047067946",
+    "status": "Success",
+    "promptHash": "9f1c1fc349d7",
+    "model": "MiniMax-Hailuo-2.3",
+    "fileId": "449270644580742",
+    "file": "portal/assets/tutor/broll/broll-6.2.mp4",
+    "bytes": 1853928
   }
 }

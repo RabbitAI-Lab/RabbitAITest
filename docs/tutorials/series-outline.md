@@ -1,12 +1,14 @@
 # 教学系列总纲 — 《RabbitAITest 功能教学》
 
-对标飞致云《MeterSphere v3.0 功能演示》合集（5 系列 14 集）的编排方式，按 RabbitAITest 实际交付功能面扩展为 **6 系列 20 集**，全集约 80 分钟。发布形态：B 站合集 + `portal/` 挂载 + 每集文字版。
+对标飞致云《MeterSphere v3.0 功能演示》合集（5 系列 14 集）的编排方式，按 RabbitAITest 实际交付功能面扩展为 **7 系列 23 集**，全集约 95 分钟。发布形态：B 站合集 + `portal/` 挂载 + 每集文字版。
 
-## 1. 20 集总表
+> **勘误 1（2026-10-08 补全）**：初版 20 集定稿于 2026-09-30，彼时 S13/S14 功能尚未合入 main。现补 3 集对齐功能面：5.3 项目 Agent（AGENT-001/002/005：管理/调试台/A2A/技能上传/生成管线）、7.1 UI 测试（UIT-002/003/004：元素库/步骤与脚本双模式/Runner 自检）、7.2 性能测试（LOAD-003：计划/监控/报告/阈值判定）；6.2 新增代码仓库段（SCM-001）；1.1 导览补性能/UI/Agent 入口。SSO（ENTP-002）为 License 门控面，教学片不排。全系列收官页由 6.2 迁至 7.2。
+
+## 1. 23 集总表
 
 | 集  | 标题                  | 时长 | 本集 AI 概念动画   | 主要路由                                                           | 制作稿                                                    |
 | --- | --------------------- | ---- | ------------------ | ------------------------------------------------------------------ | --------------------------------------------------------- |
-| 1.1 | 课程简介 — 三大能力面 | 3:00 | 三道光流汇成工作台 | 工作台/全导航                                                      | [1.1](series-01-intro/1.1-course-intro.md)                |
+| 1.1 | 课程简介 — 三大能力面 | 3:20 | 三道光流汇成工作台 | 工作台/全导航                                                      | [1.1](series-01-intro/1.1-course-intro.md)                |
 | 1.2 | 五分钟上手            | 4:00 | 种子长成界面之树   | 终端、/register、/org/projects                                     | [1.2](series-01-intro/1.2-quick-start.md)                 |
 | 2.1 | 测试管理 — 基本概念   | 3:00 | 发光图书馆与卡片树 | /cases、/settings/templates、/settings/public-scripts、/files      | [2.1](series-02-test-mgmt/2.1-concepts.md)                |
 | 2.2 | 功能用例 — 创建与编辑 | 6:00 | 卡片流水线三站成型 | /cases、/cases/new、/cases/[id]                                    | [2.2](series-02-test-mgmt/2.2-functional-cases.md)        |
@@ -24,8 +26,11 @@
 | 4.3 | 消息与通知            | 3:00 | 信使光点飞回灯塔   | /personal/notifications、/settings/messages                        | [4.3](series-04-collab/4.3-messages-notifications.md)     |
 | 5.1 | AI 助手               | 4:00 | 星云瞳孔点亮晶体   | /system/ai-models、/personal/ai-model                              | [5.1](series-05-ai/5.1-ai-assistant.md)                   |
 | 5.2 | AI 生成用例           | 5:00 | 光尘折成卡片矩阵   | /settings/ai-prompts、用例生成入口                                 | [5.2](series-05-ai/5.2-ai-generate-cases.md)              |
+| 5.3 | 项目 Agent            | 6:00 | 机器人助手编织卡片 | /settings/agents、[id]/debug、[id]/generate、runs/[runId]/drafts   | [5.3](series-05-ai/5.3-project-agents.md)                 |
 | 6.1 | 插件体系              | 4:00 | 模块压入主板点亮   | /system/plugins                                                    | [6.1](series-06-extension/6.1-plugins.md)                 |
-| 6.2 | 开放集成              | 5:00 | 光桥连通群岛       | /personal/api-keys、/settings/integrations、/system/params         | [6.2](series-06-extension/6.2-open-integration.md)        |
+| 6.2 | 开放集成              | 5:30 | 光桥连通群岛       | /personal/api-keys、/settings/integrations、/settings/code-repos、/system/params | [6.2](series-06-extension/6.2-open-integration.md) |
+| 7.1 | UI 测试               | 5:30 | 光笔自动描摹画板   | /ui-test、/ui-test/elements、/ui-test/tasks/[taskId]               | [7.1](series-07-ui-load/7.1-ui-testing.md)                |
+| 7.2 | 性能测试              | 4:00 | 光浪冲击悬索桥     | /load、/load/tasks/[taskId]、/load/reports/[taskId]                | [7.2](series-07-ui-load/7.2-load-testing.md)              |
 
 ## 2. 统一视觉与录制规范（全系列锁定）
 
@@ -74,7 +79,7 @@
 | MiniMax H3（全模态）      | ≤15s、最高 2K、原生双声道（教学片中静音使用）；约 $0.08~0.13/s —— 用于片头等关键素材                                       |
 | 套餐每日免费条数          | Coding Plan/Token Plan 仅 Ultra 档官方明确「5 条/天」；Max 档「3 条/天」见第三方口径，**以控制台权益中心为准**；额度不结转 |
 | 管线策略                  | `broll.mjs` 每日提交 ≤ `TUTOR_BROLL_DAILY_LIMIT`（默认 3）个任务，剩余队列次日续跑；prompt 哈希缓存，失败不重复扣额度      |
-| 全系列预算                | 20 段概念动画（10s 档）+ 1 片头 ≈ ¥85 起步；按 3 倍重生成系数 ≈ ¥250 封顶（全按量价）                                      |
+| 全系列预算                | 23 段概念动画（10s 档）+ 1 片头 ≈ ¥95 起步；按 3 倍重生成系数 ≈ ¥280 封顶（全按量价）                                      |
 
 ## 6. 制作顺序与试点
 
@@ -82,6 +87,7 @@
 2. **批次 A（主体）**：2.2、2.5、3.2、3.3、3.4、3.6 —— 教学价值最高的六集。
 3. **批次 B**：系列一余量 1.2 + 2.1/2.3/2.4 + 3.1/3.5。
 4. **批次 C**：系列四、五、六（依赖演示数据较多，最后收尾）。
+5. **批次 D（勘误 1 补集）**：5.3、7.1、7.2 + 6.2 补录 SCM 段——依赖 S13/S14 功能走查翻 Verified 后开录；三集新增概念动画素材（`broll-5.3`/`broll-7.1`/`broll-7.2`）随批次排产。
 
 ## 7. 数据与账号基线（全系列通用）
 
