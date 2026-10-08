@@ -1,6 +1,6 @@
 # RabbitAITest 教学视频系列 — 制作主计划
 
-> 本目录是《RabbitAITest 功能教学》系列（6 系列 20 集，全集约 80 分钟）的**分镜 / 内容 / 提示词**唯一事实源。
+> 本目录是《RabbitAITest 功能教学》系列（7 系列 23 集，全集约 95 分钟）的**分镜 / 内容 / 提示词**唯一事实源。
 > 每集一份制作稿，供三条生产线共用：AI 素材生成（MiniMax）、配音合成（MiniMax T2A）、录屏与合成（Playwright + ffmpeg）。
 
 ## 目录结构
@@ -8,13 +8,14 @@
 ```
 docs/tutorials/
 ├── README.md                  ← 本文件：使用说明与命名约定
-├── series-outline.md          ← 总纲：20 集总表、统一视觉风格、共享 AI 素材（片头）、配音与参数规范
+├── series-outline.md          ← 总纲：23 集总表、统一视觉风格、共享 AI 素材（片头）、配音与参数规范
 ├── series-01-intro/           ← 系列一：课程简介（1.1 / 1.2）
 ├── series-02-test-mgmt/       ← 系列二：测试管理（2.1 ~ 2.5）
 ├── series-03-api-testing/     ← 系列三：接口测试（3.1 ~ 3.6）
 ├── series-04-collab/          ← 系列四：团队协作（4.1 ~ 4.3）
-├── series-05-ai/              ← 系列五：AI 能力（5.1 / 5.2）
-└── series-06-extension/       ← 系列六：扩展与集成（6.1 / 6.2）
+├── series-05-ai/              ← 系列五：AI 能力（5.1 ~ 5.3）
+├── series-06-extension/       ← 系列六：扩展与集成（6.1 / 6.2）
+└── series-07-ui-load/         ← 系列七：UI 与性能测试（7.1 / 7.2，收官段）
 ```
 
 ## 每集制作稿的结构（统一模板）
