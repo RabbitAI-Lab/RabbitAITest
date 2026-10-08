@@ -187,5 +187,32 @@
     "fileId": "449270644580742",
     "file": "portal/assets/tutor/broll/broll-6.2.mp4",
     "bytes": 1853928
+  },
+  "broll-5.3": {
+    "taskId": "450227433980166",
+    "status": "Success",
+    "promptHash": "87751ae3f8ef",
+    "model": "MiniMax-Hailuo-2.3",
+    "fileId": "450225644028338",
+    "file": "portal/assets/tutor/broll/broll-5.3.mp4",
+    "bytes": 1036723
+  },
+  "broll-7.1": {
+    "taskId": "450226826400019",
+    "status": "Success",
+    "promptHash": "5455a39b3db0",
+    "model": "MiniMax-Hailuo-2.3",
+    "fileId": "450227809321238",
+    "file": "portal/assets/tutor/broll/broll-7.1.mp4",
+    "bytes": 666818
+  },
+  "broll-7.2": {
+    "taskId": "450226861392287",
+    "status": "Success",
+    "promptHash": "25bb184a98df",
+    "model": "MiniMax-Hailuo-2.3",
+    "fileId": "450227790950699",
+    "file": "portal/assets/tutor/broll/broll-7.2.mp4",
+    "bytes": 1605216
   }
 }
