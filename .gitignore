@@ -31,3 +31,7 @@ apps/engine/.uit-run/
 
 # S14 UIT-004：项目级 runner 安装目录（npm 产物按项目分域，磁盘态不入库）
 apps/engine/.runners/
+
+# 教学视频中间产物（可由 make.mjs 再生）
+portal/assets/tutor/rec/
+portal/assets/tutor/.compose-tmp/
