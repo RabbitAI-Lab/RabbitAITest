@@ -43,14 +43,17 @@ docs/tutorials/
 | 字卡/转场   | `portal/assets/tutor/cards/{ep}-{镜号}.png`（HTML 渲染导出）                                |
 | 成片        | `portal/assets/tutor/{ep}-{slug}.mp4`（1920×1080 / 30fps）                                  |
 
-## 制作管线（四脚本，落在 scripts/tutor/）
+## 制作管线（六脚本，落在 scripts/tutor/）
 
-1. `broll.mjs` — 读各集制作稿的提示词块，调 MiniMax 视频生成 API（T2V/I2V 异步任务），按 prompt 哈希缓存幂等；**额度感知**：每日提交任务数 ≤ 当前套餐每日条数（默认 3，可配 `TUTOR_BROLL_DAILY_LIMIT`）。
-2. `narrate.mjs` — 读配音脚本表，逐镜调 T2A 合成 mp3，按镜号落盘。
-3. `record.mjs` — Playwright 起栈（复用 e2e 环境与槽位端口），按分镜表执行操作并录制；支持**注入运镜**（目标元素 CSS transform 平滑缩放、spotlight 聚焦遮罩、光标高亮）。
-4. `compose.mjs` — ffmpeg 按分镜时序拼接 片头/AI 段/录屏段/字卡，混入配音轨，烧录字幕（文案即配音脚本，无需 ASR），输出成片。
+1. `prep.mjs` — 演示数据准备（API 造数：10 用例/6 缺陷/1 评审/2 计划/4 接口/场景与执行任务/UI 元素用例；prisma 回填 createdAt 分散 14 天喂趋势图）。
+2. `broll.mjs` — 读各集制作稿的提示词块，调 MiniMax 视频生成 API（T2V/I2V 异步任务），按 prompt 哈希缓存幂等；**额度感知**：每日提交任务数 ≤ 当前套餐每日条数（默认 3，可配 `TUTOR_BROLL_DAILY_LIMIT`）。
+3. `narrate.mjs` — 读配音脚本表，逐镜调 T2A 合成 mp3，按镜号落盘（RPM 限流退避；英文术语停顿标签可用 `TUTOR_PLAIN=1` 关闭）。
+4. `record.mjs` + `record-core.mjs` — Playwright 按分镜表执行操作并录制（tests/demo/tutor-{ep}-{slug}.mjs 场景模块）；**注入运镜**（目标元素 CSS transform 平滑缩放、spotlight 聚焦遮罩、光标高亮）；失败自动重试一次（dev 首编译超时自愈）。
+5. `cards.mjs` — 字卡/片尾/徽标 HTML 渲染导出 PNG（分镜表驱动，不用 AI）。
+6. `compose.mjs` — ffmpeg 分段归一化（片头裁剪+徽标叠加/AI 段慢放对齐配音/录屏尾帧定格/字幕 PNG 分段内烧录）→ concat → 成片；分段缓存。
+7. `make.mjs` — 总控：`make.mjs <ep>` 单集全管线、`all [n]` 批量、`status` 产线总览。
 
-密钥：`MINIMAX_API_KEY`（同 `visual:diff` 需 `GLM_API_KEY` 的先例）；成片与素材不进 CI。
+密钥：`MINIMAX_API_KEY`（同 `visual:diff` 需 `GLM_API_KEY` 的先例）；rec/ 与 .compose-tmp/ 为中间产物不入库（可再生成）；成片与素材不进 CI。dev 栈需 `REDIS_URL`（本机 6379 被占时换端口）与 `AI_ALLOW_PRIVATE_BASEURL=1`（5.3 演示模型指向 mock 环回豁免）。
 
 ## 与仓库规范的关系
 
